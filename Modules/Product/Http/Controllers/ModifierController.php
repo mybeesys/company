@@ -168,7 +168,7 @@ class ModifierController extends Controller
     {
         $modifier = Product::restrictByFranchise('modifier')
             ->where('type', 'modifier')
-            ->with(['tax', 'priceTiers.priceTier', 'recipe.unitTransfer'])
+            ->with(['tax', 'priceTiers.priceTier', 'recipe.unitTransfer', 'recipe.products', 'recipe.ingredients'])
             ->findOrFail($id);
 
         foreach ($modifier->priceTiers as $rec) {
@@ -176,7 +176,11 @@ class ModifierController extends Controller
         }
         foreach ($modifier->recipe as $rec) {
             $rec->newid = $rec->item_id.'-'.$rec->item_type;
-            $rec->cost = $rec->detail->cost ?? 0;
+            $rec->cost = match ($rec->item_type) {
+                'p' => (float) ($rec->products?->cost ?? 0),
+                'i' => (float) ($rec->ingredients?->cost ?? 0),
+                default => (float) ($rec->detail?->cost ?? 0),
+            };
         }
 
         return view('product::modifier.edit', compact('modifier'));
