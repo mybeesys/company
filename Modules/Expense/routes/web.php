@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Expense\Http\Controllers\ExpenseCategoryController;
 use Modules\Expense\Http\Controllers\ExpenseController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -26,11 +25,6 @@ Route::middleware([
 
             Route::delete('manage/{expense}/attachments/{attachment}', [ExpenseController::class, 'attachmentDestroy'])
                 ->name('manage.attachments.destroy');
-
-            Route::get('categories', [ExpenseCategoryController::class, 'index'])->name('categories.index');
-            Route::post('categories', [ExpenseCategoryController::class, 'store'])->name('categories.store');
-            Route::put('categories/{id}', [ExpenseCategoryController::class, 'update'])->whereNumber('id')->name('categories.update');
-            Route::delete('categories/{id}', [ExpenseCategoryController::class, 'destroy'])->whereNumber('id')->name('categories.destroy');
         });
     });
 });

@@ -11,10 +11,11 @@ use Illuminate\Validation\Rule;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Expense\Models\Expense;
-use Modules\Expense\Models\ExpenseCategory;
 use Modules\Expense\Services\ExpenseJournalPoster;
 use Modules\Expense\Services\ExpenseTaxCalculator;
+use Modules\Expense\Support\ExpenseLedgerAccounts;
 use Modules\Expense\Support\TreasuryAccounts;
 use Modules\General\Models\Tax;
 
@@ -28,22 +29,18 @@ class ExpenseController extends Controller
             return (int) $id;
         }
 
-        return AccountingAccount::query()
-            ->whereIn('account_primary_type', ['expenses', 'expense'])
-            ->where('status', 'active')
-            ->orderBy('id')
-            ->value('id');
+        return ExpenseLedgerAccounts::query()->value('id');
     }
 
     public function manage(Request $request)
     {
-        $categories = ExpenseCategory::query()->orderBy('name')->get();
+        $expenseAccounts = ExpenseLedgerAccounts::query()->get();
         $treasuryAccounts = TreasuryAccounts::query()->get();
 
-        $query = Expense::query()->with(['category', 'attachments', 'creditAccount']);
+        $query = Expense::query()->with(['debitAccount', 'creditAccount', 'costCenter', 'attachments']);
 
-        if ($request->filled('category_id') && $request->input('category_id') !== 'all') {
-            $query->where('expense_category_id', (int) $request->input('category_id'));
+        if ($request->filled('debit_account_id') && $request->input('debit_account_id') !== 'all') {
+            $query->where('debit_accounting_account_id', (int) $request->input('debit_account_id'));
         }
 
         if ($request->filled('credit_account_ids')) {
@@ -91,7 +88,7 @@ class ExpenseController extends Controller
         return view('expense::manage.index', compact(
             'columns',
             'hasExpenses',
-            'categories',
+            'expenseAccounts',
             'treasuryAccounts',
             'overviewStats'
         ));
@@ -100,9 +97,14 @@ class ExpenseController extends Controller
     public function create(Request $request)
     {
         $defaultDebitId = $this->resolveDefaultExpenseAccountId();
-        $categories = ExpenseCategory::query()->orderBy('name')->get();
+        $expenseAccounts = ExpenseLedgerAccounts::query()->get();
+        $costCenters = AccountingCostCenter::forDropdown();
         $taxes = Tax::query()->with('sub_taxes')->orderBy('name')->get();
         $treasuryAccounts = TreasuryAccounts::query()->get();
+
+        $canCreate = $expenseAccounts->isNotEmpty()
+            && $treasuryAccounts->isNotEmpty()
+            && $costCenters->isNotEmpty();
 
         $duplicateDefaults = null;
         $duplicateFromId = (int) $request->query('duplicate_from', 0);
@@ -113,11 +115,28 @@ class ExpenseController extends Controller
             }
         }
 
-        return view('expense::manage.create', compact('categories', 'taxes', 'treasuryAccounts', 'defaultDebitId', 'duplicateDefaults'));
+        return view('expense::manage.create', compact(
+            'expenseAccounts',
+            'costCenters',
+            'taxes',
+            'treasuryAccounts',
+            'defaultDebitId',
+            'canCreate',
+            'duplicateDefaults'
+        ));
     }
 
     /**
-     * @return array{credit_accounting_account_id:int, expense_category_id:int, date:string, amount:float, tax_id:?int, amount_includes_tax:bool, description:string}
+     * @return array{
+     *     debit_accounting_account_id:int,
+     *     credit_accounting_account_id:int,
+     *     cost_center_id:?int,
+     *     date:string,
+     *     amount:float,
+     *     tax_id:?int,
+     *     amount_includes_tax:bool,
+     *     description:string
+     * }
      */
     protected function duplicateDefaultsFromExpense(Expense $src): array
     {
@@ -132,8 +151,9 @@ class ExpenseController extends Controller
         }
 
         return [
+            'debit_accounting_account_id' => (int) $src->debit_accounting_account_id,
             'credit_accounting_account_id' => (int) $src->credit_accounting_account_id,
-            'expense_category_id' => (int) $src->expense_category_id,
+            'cost_center_id' => $src->cost_center_id ? (int) $src->cost_center_id : null,
             'date' => now()->format('Y-m-d'),
             'amount' => $amountInput,
             'tax_id' => $src->tax_id ? (int) $src->tax_id : null,
@@ -145,7 +165,7 @@ class ExpenseController extends Controller
     public function show(int $id)
     {
         $expense = Expense::query()
-            ->with(['category', 'creditAccount', 'debitAccount', 'attachments', 'appliedTax.sub_taxes', 'journalMapping'])
+            ->with(['creditAccount', 'debitAccount', 'costCenter', 'attachments', 'appliedTax.sub_taxes', 'journalMapping'])
             ->findOrFail($id);
 
         $totalTaxPercent = '';
@@ -205,10 +225,12 @@ class ExpenseController extends Controller
     public function store(Request $request)
     {
         $treasuryIds = TreasuryAccounts::ids();
+        $expenseAccountIds = ExpenseLedgerAccounts::ids();
 
         $validated = $request->validate([
+            'debit_accounting_account_id' => ['required', 'integer', Rule::in($expenseAccountIds)],
             'credit_accounting_account_id' => ['required', 'integer', Rule::in($treasuryIds)],
-            'expense_category_id' => ['required', 'integer', 'exists:expense_categories,id'],
+            'cost_center_id' => ['required', 'integer', 'exists:accounting_cost_centers,id'],
             'date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'tax_id' => ['nullable', 'integer', 'exists:taxes,id'],
@@ -216,11 +238,6 @@ class ExpenseController extends Controller
             'description' => ['required', 'string'],
             'attachments.*' => ['nullable', 'file', 'max:10240'],
         ]);
-
-        $debitId = $this->resolveDefaultExpenseAccountId();
-        if (! $debitId) {
-            return redirect()->back()->withInput()->with('error', __('expense::lang.default_expense_account_missing'));
-        }
 
         $taxId = $validated['tax_id'] ?? null;
         $includesTax = $request->boolean('amount_includes_tax');
@@ -261,9 +278,9 @@ class ExpenseController extends Controller
 
         try {
             $expense = Expense::query()->create([
-                'debit_accounting_account_id' => $debitId,
+                'debit_accounting_account_id' => (int) $validated['debit_accounting_account_id'],
                 'credit_accounting_account_id' => (int) $validated['credit_accounting_account_id'],
-                'expense_category_id' => (int) $validated['expense_category_id'],
+                'cost_center_id' => (int) $validated['cost_center_id'],
                 'tax_id' => $taxId,
                 'amount' => $grossAmount,
                 'tax' => $tax,
@@ -306,9 +323,8 @@ class ExpenseController extends Controller
 
     public function edit(int $id)
     {
-        $expense = Expense::query()->with(['attachments'])->findOrFail($id);
-
-        $categories = ExpenseCategory::query()->orderBy('name')->get();
+        $expense = Expense::query()->with(['attachments', 'debitAccount', 'creditAccount'])->findOrFail($id);
+        $costCenters = AccountingCostCenter::forDropdown();
 
         $totalTaxPercent = '';
         if ($expense->tax_profile_data && isset($expense->tax_profile_data['percent'])) {
@@ -320,7 +336,7 @@ class ExpenseController extends Controller
             }
         }
 
-        return view('expense::manage.edit', compact('expense', 'categories', 'totalTaxPercent'));
+        return view('expense::manage.edit', compact('expense', 'costCenters', 'totalTaxPercent'));
     }
 
     public function update(Request $request, int $id)
@@ -328,7 +344,7 @@ class ExpenseController extends Controller
         $expense = Expense::query()->findOrFail($id);
 
         $validated = $request->validate([
-            'expense_category_id' => ['required', 'integer', 'exists:expense_categories,id'],
+            'cost_center_id' => ['required', 'integer', 'exists:accounting_cost_centers,id'],
             'date' => ['required', 'date'],
             'description' => ['required', 'string'],
             'attachments.*' => ['nullable', 'file', 'max:10240'],
@@ -338,10 +354,16 @@ class ExpenseController extends Controller
 
         try {
             $expense->update([
-                'expense_category_id' => (int) $validated['expense_category_id'],
+                'cost_center_id' => (int) $validated['cost_center_id'],
                 'date' => $validated['date'],
                 'description' => $validated['description'],
             ]);
+
+            if ($expense->acc_trans_mapping_id) {
+                AccountingAccountsTransaction::query()
+                    ->where('acc_trans_mapping_id', $expense->acc_trans_mapping_id)
+                    ->update(['cost_center_id' => (int) $validated['cost_center_id']]);
+            }
 
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {

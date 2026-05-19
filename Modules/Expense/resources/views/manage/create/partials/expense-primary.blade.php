@@ -1,5 +1,17 @@
 <div class="card border-0 shadow-none" data-section="expense-primary">
     <div class="row g-6">
+        <div class="col-md-6 fv-row fv-plugins-icon-container">
+            <label class="fs-6 fw-semibold mb-2 required" for="exp_debit_account">@lang('expense::lang.field_debit_account')</label>
+            <select class="form-select form-select-solid w-100" required name="debit_accounting_account_id" id="exp_debit_account">
+                @foreach ($expenseAccounts as $acc)
+                    <option value="{{ $acc->id }}" @selected((int) ($defaultDebitId ?? 0) === (int) $acc->id)>
+                        {{ $acc->gl_code }} —
+                        {{ app()->getLocale() === 'ar' ? $acc->name_ar : $acc->name_en }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
         <div class="col-md-6 fv-row fv-plugins-icon-container" id="div-expense-treasury">
             <label class="fs-6 fw-semibold mb-2 required" for="exp_credit_account">@lang('expense::lang.field_credit_account')</label>
             <select class="form-select form-select-solid w-100" required name="credit_accounting_account_id" id="exp_credit_account">
@@ -11,10 +23,13 @@
         </div>
 
         <div class="col-md-6 fv-row fv-plugins-icon-container">
-            <label class="fs-6 fw-semibold mb-2 required" for="exp_category_id">@lang('expense::lang.field_category')</label>
-            <select class="form-select form-select-solid w-100" required name="expense_category_id" id="exp_category_id">
-                @foreach ($categories as $cat)
-                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+            <label class="fs-6 fw-semibold mb-2 required" for="exp_cost_center">@lang('expense::lang.field_cost_center')</label>
+            <select class="form-select form-select-solid w-100" required name="cost_center_id" id="exp_cost_center">
+                @foreach ($costCenters as $cc)
+                    <option value="{{ $cc->id }}">
+                        {{ $cc->account_center_number ?? '' }}
+                        {{ app()->getLocale() === 'ar' ? $cc->name_ar : $cc->name_en }}
+                    </option>
                 @endforeach
             </select>
         </div>

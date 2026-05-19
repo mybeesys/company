@@ -80,19 +80,23 @@ class PaymentVouchersController extends Controller
      */
     public function store(Request $request)
     {
+        $request->merge([
+            'additionalNotes' => trim((string) $request->input('additionalNotes', '')),
+        ]);
+
         $validated = $request->validate([
             'account_id' => ['required', 'integer', 'min:1'],
             'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
             'paid_amount' => ['required', 'numeric', 'gt:0'],
             'pament_on' => ['required', 'date'],
             'cost_center_id' => ['nullable', 'integer', 'min:1', 'exists:accounting_cost_centers,id'],
-            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+            'additionalNotes' => ['required', 'string', 'max:2000'],
         ]);
 
         try {
             DB::beginTransaction();
 
-            $note = $validated['additionalNotes'] ?? null;
+            $note = $validated['additionalNotes'];
             $amount = number_format((float) $validated['paid_amount'], 2, '.', '');
 
             $credit_data = [
@@ -199,13 +203,17 @@ class PaymentVouchersController extends Controller
      */
     public function update(Request $request, int $id)
     {
+        $request->merge([
+            'additionalNotes' => trim((string) $request->input('additionalNotes', '')),
+        ]);
+
         $validated = $request->validate([
             'account_id' => ['required', 'integer', 'min:1'],
             'from_account' => ['required', 'integer', 'min:1', 'different:account_id'],
             'paid_amount' => ['required', 'numeric', 'gt:0'],
             'pament_on' => ['required', 'date'],
             'cost_center_id' => ['nullable', 'integer', 'min:1', 'exists:accounting_cost_centers,id'],
-            'additionalNotes' => ['nullable', 'string', 'max:2000'],
+            'additionalNotes' => ['required', 'string', 'max:2000'],
         ]);
 
         try {
@@ -213,7 +221,7 @@ class PaymentVouchersController extends Controller
 
             DB::beginTransaction();
 
-            $note = $validated['additionalNotes'] ?? null;
+            $note = $validated['additionalNotes'];
             $amount = number_format((float) $validated['paid_amount'], 2, '.', '');
             $date = $validated['pament_on'];
             $costCenterId = $validated['cost_center_id'] ?? null;

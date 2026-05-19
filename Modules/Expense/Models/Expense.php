@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\General\Models\Tax;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -71,11 +72,6 @@ class Expense extends Model
         return $this->storedAmount();
     }
 
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
-    }
-
     public function appliedTax(): BelongsTo
     {
         return $this->belongsTo(Tax::class, 'tax_id');
@@ -89,6 +85,11 @@ class Expense extends Model
     public function creditAccount(): BelongsTo
     {
         return $this->belongsTo(AccountingAccount::class, 'credit_accounting_account_id');
+    }
+
+    public function costCenter(): BelongsTo
+    {
+        return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
     }
 
     public function attachments(): HasMany
@@ -111,8 +112,9 @@ class Expense extends Model
     {
         return [
             ['class' => 'text-start min-w-125px', 'name' => 'expense_date'],
-            ['class' => 'text-start min-w-120px', 'name' => 'category'],
+            ['class' => 'text-start min-w-160px', 'name' => 'debit_account'],
             ['class' => 'text-start min-w-200px', 'name' => 'credit_account'],
+            ['class' => 'text-start min-w-120px', 'name' => 'cost_center'],
             ['class' => 'text-start min-w-220px', 'name' => 'description'],
             ['class' => 'text-end min-w-100px', 'name' => 'net_amount'],
             ['class' => 'text-end min-w-100px', 'name' => 'tax_amount'],
@@ -122,27 +124,31 @@ class Expense extends Model
         ];
     }
 
+    public static function accountLabel(?AccountingAccount $acc): string
+    {
+        if (! $acc) {
+            return '—';
+        }
+        $nm = app()->getLocale() === 'ar' ? $acc->name_ar : $acc->name_en;
+
+        return '<div class="fw-semibold text-gray-800">'.e($nm).'</div><div class="text-muted fs-8">'.e((string) $acc->gl_code).'</div>';
+    }
+
     public static function manageDataTable(Builder $query): mixed
     {
         return DataTables::eloquent($query)
             ->editColumn('id', fn ($row) => "<div class='badge badge-light-info'>{$row->id}</div>")
             ->addColumn('expense_date', fn ($row) => optional($row->date)->format('j M Y') ?? '—')
-            ->addColumn('category', function ($row) {
-                $cat = $row->category;
-                if (! $cat) {
+            ->addColumn('debit_account', fn ($row) => static::accountLabel($row->debitAccount))
+            ->addColumn('credit_account', fn ($row) => static::accountLabel($row->creditAccount))
+            ->addColumn('cost_center', function ($row) {
+                $cc = $row->costCenter;
+                if (! $cc) {
                     return '—';
                 }
+                $nm = app()->getLocale() === 'ar' ? $cc->name_ar : $cc->name_en;
 
-                return '<span class="text-gray-800 fw-semibold">'.e($cat->name).'</span>';
-            })
-            ->addColumn('credit_account', function ($row) {
-                $acc = $row->creditAccount;
-                if (! $acc) {
-                    return '—';
-                }
-                $nm = app()->getLocale() === 'ar' ? $acc->name_ar : $acc->name_en;
-
-                return '<div class="fw-semibold text-gray-800">'.e($nm).'</div><div class="text-muted fs-8">'.e((string) $acc->gl_code).'</div>';
+                return '<span class="text-gray-800">'.e($nm).'</span>';
             })
             ->addColumn('description', fn ($row) => e(Str::limit(strip_tags((string) ($row->description ?? '')), 55)))
             ->addColumn('net_amount', fn ($row) => number_format($row->net_amount, 2))
@@ -167,7 +173,7 @@ class Expense extends Model
 
                 return $actions;
             })
-            ->rawColumns(['id', 'category', 'credit_account', 'actions'])
+            ->rawColumns(['id', 'debit_account', 'credit_account', 'cost_center', 'actions'])
             ->orderColumn('expense_date', 'date $1')
             ->orderColumn('id', 'id $1')
             ->filter(function ($query) {
@@ -182,11 +188,19 @@ class Expense extends Model
                 $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $kw).'%';
                 $query->where(function ($q) use ($like) {
                     $q->where('description', 'like', $like)
-                        ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $like))
+                        ->orWhereHas('debitAccount', function ($a) use ($like) {
+                            $a->where('name_ar', 'like', $like)
+                                ->orWhere('name_en', 'like', $like)
+                                ->orWhere('gl_code', 'like', $like);
+                        })
                         ->orWhereHas('creditAccount', function ($a) use ($like) {
                             $a->where('name_ar', 'like', $like)
                                 ->orWhere('name_en', 'like', $like)
                                 ->orWhere('gl_code', 'like', $like);
+                        })
+                        ->orWhereHas('costCenter', function ($c) use ($like) {
+                            $c->where('name_ar', 'like', $like)
+                                ->orWhere('name_en', 'like', $like);
                         });
                 });
             })

@@ -168,12 +168,6 @@
                             <td class="lbl">@lang('accounting::lang.to_date')</td>
                             <td class="val">{{ $fmtDate($end_date) }}</td>
                         </tr>
-                        @if (! empty($account_class_label))
-                            <tr>
-                                <td class="lbl">@lang('accounting::lang.ledger_report_account_class')</td>
-                                <td class="val">{{ $account_class_label }}</td>
-                            </tr>
-                        @endif
                     </table>
                 </div>
             </td>
@@ -203,7 +197,7 @@
         <thead>
             <tr>
                 <th class="c-date">@lang('accounting::lang.ledger_stmt_col_date')</th>
-                <th class="c-ref">@lang('accounting::lang.ledger_stmt_col_invoice')</th>
+                <th class="c-ref">@lang('accounting::lang.ledger_stmt_col_transaction')</th>
                 <th class="c-desc">@lang('accounting::lang.ledger_stmt_col_description')</th>
                 <th class="c-due">@lang('accounting::lang.ledger_stmt_col_due')</th>
                 <th class="c-cur">@lang('accounting::lang.ledger_stmt_currency')</th>

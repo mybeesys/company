@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Http\Controllers;
 
+use App\Helpers\CurrencyHelper;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -26,7 +27,11 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
-use Modules\Expense\Models\ExpenseCategory;
+use Modules\Expense\Models\Expense;
+use Modules\Expense\Support\ExpenseLedgerAccounts;
+use Modules\Accounting\Services\CashFlowReportService;
+use Modules\Accounting\Services\CustomerSupplierStatementReportService;
+use Modules\Accounting\Services\TrialBalanceReportService;
 use Modules\Expense\Services\ExpenseReportService;
 use Modules\Expense\Support\TreasuryAccounts;
 use Modules\General\Models\Actions;
@@ -61,67 +66,78 @@ class AccountingReportsController extends Controller
 
     public function getIcomeStatementData($accounts)
     {
-        $revenue_net = 0;
+        $gross_revenue = 0;
+        $sales_returns = 0;
         $cost_of_revenue = 0;
         $total_expense = 0;
         $total_other_income = 0;
         $total_other_expense = 0;
 
         foreach ($accounts as $account) {
-            $debit = $account->debit_balance;
-            $credit = $account->credit_balance;
-
-            $balance = 0;
+            $debit = (float) $account->debit_balance;
+            $credit = (float) $account->credit_balance;
 
             switch ($account->acc_type) {
+                case 'gross_revenue':
                 case 'income':
-                    $balance = $credit - $debit;
-                    $revenue_net += $balance;
+                    $gross_revenue += $credit - $debit;
+                    break;
+
+                case 'sales_returns':
+                    $sales_returns += $debit - $credit;
                     break;
 
                 case 'cost_of_sales':
-                    $balance = $debit - $credit;
-                    $cost_of_revenue += $balance;
+                    $cost_of_revenue += $debit - $credit;
                     break;
 
                 case 'expenses':
-                    $balance = $debit - $credit;
-                    $total_expense += $balance;
+                case 'operating_expense':
+                    $total_expense += $debit - $credit;
                     break;
 
                 case 'other_income':
-                    $balance = $credit - $debit;
-                    $total_other_income += $balance;
+                    $total_other_income += $credit - $debit;
                     break;
 
                 case 'other_expenses':
-                    $balance = $debit - $credit;
-                    $total_other_expense += $balance;
+                    $total_other_expense += $debit - $credit;
                     break;
             }
         }
 
-        $gross_profit = $revenue_net - $cost_of_revenue;
+        $net_sales = $gross_revenue - $sales_returns;
+        $gross_profit = $net_sales - $cost_of_revenue;
         $operation_income = $gross_profit - $total_expense;
         $income_before_tax = $operation_income + $total_other_income - $total_other_expense;
 
-        // ضريبة على الربح فقط (لا تُحسب على خسارة الفترة) — أنسب لنموذج نسبة من الربح المحاسبي
         $taxPercent = (float) (Tax::query()->value('amount') ?? 0);
         $taxableBase = max(0.0, (float) $income_before_tax);
         $tax_amount = ($taxPercent * $taxableBase) / 100;
+        $net_profit = $income_before_tax - $tax_amount;
+
+        $total_expenses_all = $cost_of_revenue + $total_expense + $total_other_expense;
+        $profit_margin = abs($net_sales) > 0.0001 ? ($net_profit / $net_sales) * 100 : null;
 
         return [
+            'gross_revenue' => $gross_revenue,
+            'sales_returns' => $sales_returns,
+            'net_sales' => $net_sales,
+            'revenue_net' => $net_sales,
             'gross_profit' => $gross_profit,
             'operation_income' => $operation_income,
             'operating_profit' => $operation_income,
             'income_before_tax' => $income_before_tax,
             'tax_amount' => $tax_amount,
-            'revenue_net' => $revenue_net,
+            'tax_percent' => $taxPercent,
+            'net_profit' => $net_profit,
             'cost_of_revenue' => $cost_of_revenue,
             'total_expense' => $total_expense,
             'total_operating_expenses' => $total_expense,
             'total_other_income' => $total_other_income,
             'total_other_expense' => $total_other_expense,
+            'total_expenses_all' => $total_expenses_all,
+            'profit_margin' => $profit_margin,
         ];
     }
 
@@ -131,29 +147,50 @@ class AccountingReportsController extends Controller
         $end_date = request()->end_date ?? now()->format('Y-m-d');
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $choose_cost_center_select = request()->choose_cost_center_select ?? [];
+        $compare_mode = request()->get('compare_mode', 'none');
+        $hide_zero_lines = (int) request()->get('hide_zero_lines', 1) === 1;
 
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select);
-        $accounts = $incomeDataset['accounts'];
+        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $compareDataset = null;
+        $comparePeriod = null;
+
+        if (in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
+            $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compare_mode);
+            $compareDataset = $this->buildIncomeStatementDataset(
+                $comparePeriod['start'],
+                $comparePeriod['end'],
+                $choose_cost_center_select,
+                $hide_zero_lines
+            );
+        }
+
         $data = $incomeDataset['data'];
-        $revenueAccounts = $incomeDataset['revenueAccounts'];
-        $cogsAccounts = $incomeDataset['cogsAccounts'];
-        $expenseAccounts = $incomeDataset['expenseAccounts'];
+        $kpiGrowth = $this->buildIncomeStatementKpiGrowth($data, $compareDataset['data'] ?? null);
 
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         return view('accounting::reports.income-statement')
-            ->with(compact(
-                'accounts',
-                'revenueAccounts',
-                'cogsAccounts',
-                'expenseAccounts',
-                'start_date',
-                'end_date',
-                'data',
-                'company',
-                'costCenters',
-                'choose_cost_center_select'
-            ));
+            ->with([
+                'accounts' => $incomeDataset['accounts'],
+                'grossRevenueAccounts' => $incomeDataset['grossRevenueAccounts'],
+                'salesReturnAccounts' => $incomeDataset['salesReturnAccounts'],
+                'cogsAccounts' => $incomeDataset['cogsAccounts'],
+                'expenseAccounts' => $incomeDataset['expenseAccounts'],
+                'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
+                'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
+                'revenueAccounts' => $incomeDataset['grossRevenueAccounts'],
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'data' => $data,
+                'compareData' => $compareDataset['data'] ?? null,
+                'comparePeriod' => $comparePeriod,
+                'compare_mode' => $compare_mode,
+                'hide_zero_lines' => $hide_zero_lines,
+                'kpiGrowth' => $kpiGrowth,
+                'company' => $company,
+                'costCenters' => $costCenters,
+                'choose_cost_center_select' => $choose_cost_center_select,
+            ]);
     }
 
     public function incomeStatementExportPdf(Request $request)
@@ -162,15 +199,21 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select);
+        $hide_zero_lines = (int) $request->input('hide_zero_lines', 1) === 1;
+        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $html = view('accounting::reports.income-statement-print', [
+            'company' => $company,
             'start_date' => $start_date,
             'end_date' => $end_date,
             'data' => $incomeDataset['data'],
-            'revenueAccounts' => $incomeDataset['revenueAccounts'],
+            'grossRevenueAccounts' => $incomeDataset['grossRevenueAccounts'],
+            'salesReturnAccounts' => $incomeDataset['salesReturnAccounts'],
             'cogsAccounts' => $incomeDataset['cogsAccounts'],
             'expenseAccounts' => $incomeDataset['expenseAccounts'],
+            'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
+            'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
         ])->render();
 
         $mpdf = new Mpdf([
@@ -193,39 +236,9 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select);
-
-        $rows = collect();
-        foreach ($incomeDataset['revenueAccounts'] as $account) {
-            $rows->push([
-                __('accounting::lang.Revenues').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
-                number_format((float) $account->amount, 2, '.', ''),
-            ]);
-        }
-        $rows->push([__('accounting::lang.total').' '.__('accounting::lang.Revenues'), number_format((float) ($incomeDataset['data']['revenue_net'] ?? 0), 2, '.', '')]);
-
-        foreach ($incomeDataset['cogsAccounts'] as $account) {
-            $rows->push([
-                __('accounting::lang.income_statement_cost_of_revenue').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
-                number_format((float) $account->amount, 2, '.', ''),
-            ]);
-        }
-        if ($incomeDataset['cogsAccounts']->isNotEmpty()) {
-            $rows->push([__('accounting::lang.income_statement_total_cost_of_revenue'), number_format((float) ($incomeDataset['data']['cost_of_revenue'] ?? 0), 2, '.', '')]);
-        }
-        $rows->push([__('report::general.gross_profit'), number_format((float) ($incomeDataset['data']['gross_profit'] ?? 0), 2, '.', '')]);
-
-        foreach ($incomeDataset['expenseAccounts'] as $account) {
-            $rows->push([
-                __('accounting::lang.income_statement_operating_expenses').' — '.(app()->getLocale() == 'ar' ? $account->name_ar : $account->name_en),
-                number_format((float) $account->amount, 2, '.', ''),
-            ]);
-        }
-        $rows->push([__('accounting::lang.income_statement_total_operating_expenses'), number_format((float) ($incomeDataset['data']['total_expense'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.income_statement_operating_profit'), number_format((float) ($incomeDataset['data']['operating_profit'] ?? $incomeDataset['data']['operation_income'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.income_before_tax'), number_format((float) ($incomeDataset['data']['income_before_tax'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.tax_amount'), number_format((float) ($incomeDataset['data']['tax_amount'] ?? 0), 2, '.', '')]);
-        $rows->push([__('accounting::lang.net_profit'), number_format((float) (($incomeDataset['data']['income_before_tax'] ?? 0) - ($incomeDataset['data']['tax_amount'] ?? 0)), 2, '.', '')]);
+        $hide_zero_lines = (int) $request->input('hide_zero_lines', 1) === 1;
+        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $rows = $this->buildIncomeStatementExportRows($incomeDataset);
 
         $filename = 'income-statement-'.now()->format('Ymd-His').'.xlsx';
 
@@ -238,8 +251,12 @@ class AccountingReportsController extends Controller
         );
     }
 
-    private function buildIncomeStatementDataset(string $start_date, string $end_date, array $choose_cost_center_select): array
-    {
+    private function buildIncomeStatementDataset(
+        string $start_date,
+        string $end_date,
+        array $choose_cost_center_select,
+        bool $hide_zero_lines = true
+    ): array {
         $accounts = AccountingAccount::query()
             ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
             ->leftJoin('accounting_account_types as acc_subtype', 'acc_subtype.id', '=', 'accounting_accounts.account_sub_type_id')
@@ -250,6 +267,7 @@ class AccountingReportsController extends Controller
             ->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
             ->select(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.gl_code',
@@ -260,6 +278,7 @@ class AccountingReportsController extends Controller
             )
             ->groupBy(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.gl_code',
@@ -269,51 +288,186 @@ class AccountingReportsController extends Controller
             ->orderBy('accounting_accounts.gl_code')
             ->get()
             ->map(function ($account) {
-                $isCogs = $account->account_type === 'expenses'
-                    && ($account->account_sub_type_name_en === 'Cost Of Sales');
-                $account->acc_type = $isCogs ? 'cost_of_sales' : $account->account_type;
+                $account->acc_type = $this->resolveIncomeAccountCategory($account);
 
                 return $account;
             });
 
+        $accounts = $this->enrichIncomeAccountsWithAmountsAndDepth($accounts);
+
+        $filterZero = static fn ($account) => ! $hide_zero_lines || abs((float) $account->amount) > 0.0001;
+
+        $grossRevenueAccounts = $accounts->where('acc_type', 'gross_revenue')->filter($filterZero)->values();
+        $salesReturnAccounts = $accounts->where('acc_type', 'sales_returns')->filter($filterZero)->values();
+        $cogsAccounts = $accounts->where('acc_type', 'cost_of_sales')->filter($filterZero)->values();
+        $expenseAccounts = $accounts->whereIn('acc_type', ['expenses', 'operating_expense'])->filter($filterZero)->values();
+        $otherIncomeAccounts = $accounts->where('acc_type', 'other_income')->filter($filterZero)->values();
+        $otherExpenseAccounts = $accounts->where('acc_type', 'other_expenses')->filter($filterZero)->values();
+
         $data = $this->getIcomeStatementData($accounts);
-        $revenueAccounts = $accounts
-            ->where('acc_type', 'income')
-            ->map(function ($account) {
-                $account->amount = (float) $account->credit_balance - (float) $account->debit_balance;
-
-                return $account;
-            })
-            ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
-            ->values();
-
-        $cogsAccounts = $accounts
-            ->where('acc_type', 'cost_of_sales')
-            ->map(function ($account) {
-                $account->amount = (float) $account->debit_balance - (float) $account->credit_balance;
-
-                return $account;
-            })
-            ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
-            ->values();
-
-        $expenseAccounts = $accounts
-            ->where('acc_type', 'expenses')
-            ->map(function ($account) {
-                $account->amount = (float) $account->debit_balance - (float) $account->credit_balance;
-
-                return $account;
-            })
-            ->filter(fn ($account) => abs((float) $account->amount) > 0.0001)
-            ->values();
 
         return [
             'accounts' => $accounts,
             'data' => $data,
-            'revenueAccounts' => $revenueAccounts,
+            'grossRevenueAccounts' => $grossRevenueAccounts,
+            'salesReturnAccounts' => $salesReturnAccounts,
+            'revenueAccounts' => $grossRevenueAccounts,
             'cogsAccounts' => $cogsAccounts,
             'expenseAccounts' => $expenseAccounts,
+            'otherIncomeAccounts' => $otherIncomeAccounts,
+            'otherExpenseAccounts' => $otherExpenseAccounts,
         ];
+    }
+
+    private function resolveIncomeAccountCategory(object $account): string
+    {
+        if ($account->account_type === 'income') {
+            if ($this->isSalesReturnAccount($account)) {
+                return 'sales_returns';
+            }
+            if ($this->isOtherIncomeAccount($account)) {
+                return 'other_income';
+            }
+
+            return 'gross_revenue';
+        }
+
+        if ($account->account_sub_type_name_en === 'Cost Of Sales') {
+            return 'cost_of_sales';
+        }
+
+        if ($account->account_sub_type_name_en === 'Other Expenses') {
+            return 'other_expenses';
+        }
+
+        return 'operating_expense';
+    }
+
+    private function isSalesReturnAccount(object $account): bool
+    {
+        $label = strtolower(trim(($account->name_en ?? '').' '.($account->name_ar ?? '')));
+
+        return str_contains($label, 'sales return')
+            || str_contains($label, 'sales returns')
+            || str_contains($label, 'مردود');
+    }
+
+    private function isOtherIncomeAccount(object $account): bool
+    {
+        $label = strtolower(trim(($account->name_en ?? '').' '.($account->name_ar ?? '')));
+
+        return str_contains($label, 'other income')
+            || str_contains($label, 'إيرادات أخرى')
+            || str_contains($label, 'gain on asset');
+    }
+
+    private function enrichIncomeAccountsWithAmountsAndDepth(Collection $accounts): Collection
+    {
+        $byId = $accounts->keyBy('id');
+        $childCountByParent = $accounts
+            ->pluck('parent_account_id')
+            ->filter()
+            ->countBy();
+
+        return $accounts->map(function ($account) use ($byId, $childCountByParent) {
+            $debit = (float) $account->debit_balance;
+            $credit = (float) $account->credit_balance;
+
+            if (in_array($account->acc_type, ['gross_revenue', 'other_income'], true)) {
+                $account->amount = $credit - $debit;
+            } elseif ($account->acc_type === 'sales_returns') {
+                $account->amount = -1 * ($debit - $credit);
+            } else {
+                $account->amount = $debit - $credit;
+            }
+
+            $depth = 0;
+            $parentId = $account->parent_account_id;
+            $guard = 0;
+            while ($parentId && $byId->has($parentId) && $guard < 12) {
+                $depth++;
+                $parentId = $byId->get($parentId)->parent_account_id;
+                $guard++;
+            }
+
+            $account->depth = $depth;
+            $account->has_children = $childCountByParent->get($account->id, 0) > 0;
+
+            return $account;
+        });
+    }
+
+    private function resolveIncomeComparePeriod(string $start_date, string $end_date, string $compare_mode): array
+    {
+        $start = \Carbon\Carbon::parse($start_date);
+        $end = \Carbon\Carbon::parse($end_date);
+
+        if ($compare_mode === 'previous_year') {
+            return [
+                'start' => $start->copy()->subYear()->format('Y-m-d'),
+                'end' => $end->copy()->subYear()->format('Y-m-d'),
+                'label' => 'previous_year',
+            ];
+        }
+
+        $days = $start->diffInDays($end) + 1;
+
+        return [
+            'start' => $start->copy()->subDays($days)->format('Y-m-d'),
+            'end' => $start->copy()->subDay()->format('Y-m-d'),
+            'label' => 'previous_period',
+        ];
+    }
+
+    private function buildIncomeStatementKpiGrowth(array $data, ?array $compareData): array
+    {
+        if ($compareData === null) {
+            return [];
+        }
+
+        return [
+            'net_sales' => CurrencyHelper::growth_percent($data['net_sales'] ?? 0, $compareData['net_sales'] ?? 0),
+            'gross_profit' => CurrencyHelper::growth_percent($data['gross_profit'] ?? 0, $compareData['gross_profit'] ?? 0),
+            'operating_profit' => CurrencyHelper::growth_percent($data['operating_profit'] ?? 0, $compareData['operating_profit'] ?? 0),
+            'net_profit' => CurrencyHelper::growth_percent($data['net_profit'] ?? 0, $compareData['net_profit'] ?? 0),
+            'total_expenses' => CurrencyHelper::growth_percent($data['total_expenses_all'] ?? 0, $compareData['total_expenses_all'] ?? 0),
+        ];
+    }
+
+    private function buildIncomeStatementExportRows(array $incomeDataset): Collection
+    {
+        $rows = collect();
+        $localeAr = app()->getLocale() === 'ar';
+        $name = static fn ($account) => $localeAr ? $account->name_ar : $account->name_en;
+        $fmt = static fn ($amount) => number_format((float) $amount, 2, '.', '');
+        $data = $incomeDataset['data'];
+
+        $pushAccounts = function (string $section, $accounts) use (&$rows, $name, $fmt) {
+            foreach ($accounts as $account) {
+                $indent = str_repeat('  ', (int) ($account->depth ?? 0));
+                $rows->push([$section.' — '.$indent.$name($account), $fmt($account->amount)]);
+            }
+        };
+
+        $pushAccounts(__('accounting::lang.income_statement_gross_revenue'), $incomeDataset['grossRevenueAccounts']);
+        $pushAccounts(__('accounting::lang.income_statement_sales_returns'), $incomeDataset['salesReturnAccounts']);
+        $rows->push([__('accounting::lang.income_statement_net_sales'), $fmt($data['net_sales'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_cost_of_revenue'), $incomeDataset['cogsAccounts']);
+        $rows->push([__('accounting::lang.income_statement_total_cost_of_revenue'), $fmt($data['cost_of_revenue'] ?? 0)]);
+        $rows->push([__('report::general.gross_profit'), $fmt($data['gross_profit'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_operating_expenses'), $incomeDataset['expenseAccounts']);
+        $rows->push([__('accounting::lang.income_statement_total_operating_expenses'), $fmt($data['total_expense'] ?? 0)]);
+        $rows->push([__('accounting::lang.income_statement_operating_profit'), $fmt($data['operating_profit'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_other_income'), $incomeDataset['otherIncomeAccounts']);
+        $pushAccounts(__('accounting::lang.income_statement_other_expenses'), $incomeDataset['otherExpenseAccounts']);
+        $rows->push([__('accounting::lang.income_before_tax'), $fmt($data['income_before_tax'] ?? 0)]);
+        $rows->push([
+            __('accounting::lang.tax_amount').' ('.number_format((float) ($data['tax_percent'] ?? 0), 0).'%)',
+            $fmt($data['tax_amount'] ?? 0),
+        ]);
+        $rows->push([__('accounting::lang.net_profit'), $fmt($data['net_profit'] ?? 0)]);
+
+        return $rows;
     }
 
     public function trialBalance(Request $request)
@@ -380,32 +534,80 @@ class AccountingReportsController extends Controller
             : $baseRows;
 
         if (request()->ajax()) {
-            $totalDebitOpeningBalance = 0;
-            $totalCreditOpeningBalance = 0;
-            $totalClosingDebitBalance = 0;
-            $totalClosingCreditBalance = 0;
-            $totalDebitBalance = 0;
-            $totalCreditBalance = 0;
+            $accountsCollection = $accounts instanceof Collection ? $accounts : collect($accounts);
+            $analytics = TrialBalanceReportService::buildAnalytics($accountsCollection, (bool) $aggregated);
 
-            foreach ($accounts as $account) {
-                $totalDebitBalance += $account->debit_balance;
-                $totalCreditBalance += $account->credit_balance;
-                $totalDebitOpeningBalance += $account->debit_opening_balance;
-                $totalCreditOpeningBalance += $account->credit_opening_balance;
-
-                $closing_balance = $this->calculateClosingBalance($account);
-                $totalClosingDebitBalance += $closing_balance['closing_debit_balance'];
-                $totalClosingCreditBalance += $closing_balance['closing_credit_balance'];
+            $compareMode = $request->input('compare_mode', 'none');
+            $compareAnalytics = null;
+            if (in_array($compareMode, ['previous_period', 'previous_year'], true)) {
+                $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compareMode);
+                $compareRows = $aggregated
+                    ? collect($this->aggregateTrialBalanceRows($this->queryTrialBalanceAccountRows(
+                        $comparePeriod['start'],
+                        $comparePeriod['end'],
+                        $with_zero_balances,
+                        $choose_accounts_select,
+                        $costCenterIds,
+                        $level_filter
+                    )))
+                    : $this->queryTrialBalanceAccountRows(
+                        $comparePeriod['start'],
+                        $comparePeriod['end'],
+                        $with_zero_balances,
+                        $choose_accounts_select,
+                        $costCenterIds,
+                        $level_filter
+                    );
+                $compareAnalytics = TrialBalanceReportService::buildAnalytics($compareRows, (bool) $aggregated);
             }
 
-            // dd($accounts->get());
+            $totalDebitOpeningBalance = $analytics['kpis']['total_debit_opening'];
+            $totalCreditOpeningBalance = $analytics['kpis']['total_credit_opening'];
+            $totalClosingDebitBalance = $analytics['kpis']['closing_debit'];
+            $totalClosingCreditBalance = $analytics['kpis']['closing_credit'];
+            $totalDebitBalance = $analytics['kpis']['total_debit_period'];
+            $totalCreditBalance = $analytics['kpis']['total_credit_period'];
+
+            $localeAr = app()->getLocale() === 'ar';
+
             return DataTables::of($accounts)
                 ->editColumn('gl_code', function ($account) {
-                    return $account->gl_code;
+                    return '<span class="tb-gl-code">'.e($account->gl_code ?? '').'</span>';
                 })
+                ->editColumn('name', function ($account) use ($aggregated) {
+                    $depth = (int) ($account->depth ?? 0);
+                    $indent = str_repeat('<span class="tb-indent"></span>', max(0, $depth));
+                    $typeKey = TrialBalanceReportService::normalizePrimaryType((string) ($account->account_primary_type ?? ''));
+                    $typeBadge = $aggregated
+                        ? ''
+                        : '<span class="badge badge-light-secondary tb-type-badge ms-1">'.e(
+                            Lang::has('accounting::lang.'.$typeKey)
+                                ? __('accounting::lang.'.$typeKey)
+                                : $typeKey
+                        ).'</span>';
 
-                ->editColumn('name', function ($account) {
-                    return $account->name;
+                    return '<div class="tb-name-cell">'.$indent
+                        .'<span class="tb-account-name">'.e($account->name ?? '').'</span>'
+                        .$typeBadge.'</div>';
+                })
+                ->addColumn('period_movement', function ($account) {
+                    return $this->roundMoney(
+                        abs($this->roundMoney((float) ($account->debit_balance ?? 0) - (float) ($account->credit_balance ?? 0)))
+                    );
+                })
+                ->addColumn('balance_type', function ($account) {
+                    $closing = TrialBalanceReportService::closingBalance($account);
+                    $label = TrialBalanceReportService::balanceTypeLabel(
+                        (float) $closing['closing_debit_balance'],
+                        (float) $closing['closing_credit_balance']
+                    );
+                    $isDebit = str_contains($label, __('accounting::lang.tb_balance_type_debit'));
+                    $class = $isDebit ? 'badge-light-primary' : 'badge-light-warning';
+
+                    return '<span class="badge '.$class.'">'.e($label).'</span>';
+                })
+                ->addColumn('closing_balance', function ($account) {
+                    return $this->roundMoney(abs(TrialBalanceReportService::signedClosing($account)));
                 })
                 ->editColumn('debit_balance', function ($account) {
                     return $this->roundMoney($account->debit_balance ?? 0);
@@ -421,12 +623,12 @@ class AccountingReportsController extends Controller
                     return $this->roundMoney($account->credit_balance ?? 0);
                 })
                 ->addColumn('closing_debit_balance', function ($account) {
-                    $closing_balance = $this->calculateClosingBalance($account);
+                    $closing_balance = TrialBalanceReportService::closingBalance($account);
 
                     return $this->roundMoney($closing_balance['closing_debit_balance'] ?? 0);
                 })
                 ->addColumn('closing_credit_balance', function ($account) {
-                    $closing_balance = $this->calculateClosingBalance($account);
+                    $closing_balance = TrialBalanceReportService::closingBalance($account);
 
                     return $this->roundMoney($closing_balance['closing_credit_balance'] ?? 0);
                 })
@@ -450,16 +652,24 @@ class AccountingReportsController extends Controller
                     'totalCreditBalance' => $this->roundMoney($totalCreditBalance),
                     'totalClosingDebitBalance' => $this->roundMoney($totalClosingDebitBalance),
                     'totalClosingCreditBalance' => $this->roundMoney($totalClosingCreditBalance),
+                    'analytics' => $analytics,
+                    'compareAnalytics' => $compareAnalytics,
+                    'difference' => $analytics['kpis']['difference'],
+                    'isBalanced' => $analytics['kpis']['is_balanced'],
                 ])
-                ->rawColumns(['action', 'closing_debit_balance', 'closing_credit_balance', 'debit_balance', 'credit_balance', 'name', 'gl_code'])
+                ->rawColumns([
+                    'action', 'closing_debit_balance', 'closing_credit_balance', 'debit_balance', 'credit_balance',
+                    'name', 'gl_code', 'balance_type', 'period_movement', 'closing_balance',
+                ])
 
                 ->make(true);
         }
 
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         return view('accounting::reports.trial_balance')
-            ->with(compact('levelsArray', 'accounts_array', 'costCenters'));
+            ->with(compact('levelsArray', 'accounts_array', 'costCenters', 'company', 'start_date', 'end_date'));
         // } catch (\Exception $e) {
         //     // Log::error('Error in trialBalance method: ' . $e->getMessage());
         //     return redirect()->route('tree-of-accounts')
@@ -654,6 +864,7 @@ class AccountingReportsController extends Controller
             ->select([
                 'accounting_accounts.id',
                 'accounting_accounts.gl_code',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.account_primary_type',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
@@ -667,6 +878,7 @@ class AccountingReportsController extends Controller
         return $query->get()->map(function ($row) {
             $o = (object) $row->getAttributes();
             $o->name = app()->getLocale() === 'ar' ? ($o->name_ar ?? '') : ($o->name_en ?? '');
+            $o->depth = substr_count((string) ($o->gl_code ?? ''), '.');
             foreach (['debit_opening_balance', 'credit_opening_balance', 'debit_balance', 'credit_balance'] as $key) {
                 $o->{$key} = $this->roundMoney($o->{$key} ?? 0);
             }
@@ -689,6 +901,8 @@ class AccountingReportsController extends Controller
                 $aggregatedAccounts[$groupKey] = (object) [
                     'name' => Lang::has('accounting::lang.'.$groupKey) ? __('accounting::lang.'.$groupKey) : $groupKey,
                     'gl_code' => is_string($account->gl_code) && $account->gl_code !== '' ? substr($account->gl_code, 0, 1) : '-',
+                    'account_primary_type' => $groupKey,
+                    'depth' => 0,
                     'credit_balance' => 0.0,
                     'debit_balance' => 0.0,
                     'credit_opening_balance' => 0.0,
@@ -738,32 +952,48 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
+        $compare_mode = $request->get('compare_mode', 'none');
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
-        $assets = $dataset['assets'];
-        $liabilities = $dataset['liabilities'];
-        $equities = $dataset['equities'];
-        $total_assets = $dataset['total_assets'];
-        $total_liab_owners = $dataset['total_liab_owners'];
-        $difference = $dataset['difference'];
-        $balance_status = $dataset['balance_status'];
+        $compareDataset = null;
+        $comparePeriod = null;
+
+        if (in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
+            $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compare_mode);
+            $compareDataset = $this->buildBalanceSheetDataset(
+                $comparePeriod['start'],
+                $comparePeriod['end'],
+                $choose_cost_center_select,
+                $with_zero_balances
+            );
+        }
+
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
         return view('accounting::reports.balance_sheet')
-            ->with(compact(
-                'assets',
-                'liabilities',
-                'equities',
-                'start_date',
-                'end_date',
-                'costCenters',
-                'choose_cost_center_select',
-                'with_zero_balances',
-                'total_assets',
-                'total_liab_owners',
-                'difference',
-                'balance_status'
-            ));
+            ->with([
+                'company' => $company,
+                'sections' => $dataset['sections'],
+                'metrics' => $dataset['metrics'],
+                'assets' => $dataset['assets'],
+                'liabilities' => $dataset['liabilities'],
+                'equities' => $dataset['equities'],
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'costCenters' => $costCenters,
+                'choose_cost_center_select' => $choose_cost_center_select,
+                'with_zero_balances' => $with_zero_balances,
+                'compare_mode' => $compare_mode,
+                'comparePeriod' => $comparePeriod,
+                'compareMetrics' => $compareDataset['metrics'] ?? null,
+                'total_assets' => $dataset['total_assets'],
+                'total_liabilities' => $dataset['total_liabilities'],
+                'total_equity' => $dataset['total_equity'],
+                'total_liab_owners' => $dataset['total_liab_owners'],
+                'difference' => $dataset['difference'],
+                'balance_status' => $dataset['balance_status'],
+            ]);
     }
 
     public function balanceSheetExportPdf(Request $request)
@@ -775,7 +1005,10 @@ class AccountingReportsController extends Controller
 
         $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
 
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
+
         $html = view('accounting::reports.balance_sheet_print', array_merge($dataset, [
+            'company' => $company,
             'start_date' => $start_date,
             'end_date' => $end_date,
         ]))->render();
@@ -801,18 +1034,7 @@ class AccountingReportsController extends Controller
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
         $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
 
-        $rows = collect();
-        foreach ($dataset['assets'] as $asset) {
-            $rows->push([__('accounting::lang.assets'), app()->getLocale() == 'ar' ? $asset->name_ar : $asset->name_en, number_format((float) $asset->balance, 2, '.', '')]);
-        }
-        foreach ($dataset['liabilities'] as $liability) {
-            $rows->push([__('accounting::lang.liabilities'), app()->getLocale() == 'ar' ? $liability->name_ar : $liability->name_en, number_format((float) $liability->balance, 2, '.', '')]);
-        }
-        foreach ($dataset['equities'] as $equity) {
-            $rows->push([__('accounting::lang.equity'), app()->getLocale() == 'ar' ? $equity->name_ar : $equity->name_en, number_format((float) $equity->balance, 2, '.', '')]);
-        }
-        $rows->push([__('accounting::lang.total_assets'), '-', number_format((float) $dataset['total_assets'], 2, '.', '')]);
-        $rows->push([__('accounting::lang.total_liab_owners'), '-', number_format((float) $dataset['total_liab_owners'], 2, '.', '')]);
+        $rows = $this->buildBalanceSheetExportRows($dataset);
 
         return Excel::download(
             new BalanceSheetExport($rows, [
@@ -844,7 +1066,7 @@ class AccountingReportsController extends Controller
             ELSE 0
         END";
 
-        $baseQuery = AccountingAccount::query()
+        $accounts = AccountingAccount::query()
             ->leftJoin('accounting_accounts_transactions as AAT', function ($join) use ($end_date, $costCenterIds) {
                 $join->on('AAT.accounting_account_id', '=', 'accounting_accounts.id')
                     ->whereDate('AAT.operation_date', '<=', $end_date);
@@ -852,53 +1074,387 @@ class AccountingReportsController extends Controller
                     $join->whereIn('AAT.cost_center_id', $costCenterIds);
                 }
             })
+            ->leftJoin('accounting_account_types as acc_subtype', 'acc_subtype.id', '=', 'accounting_accounts.account_sub_type_id')
             ->whereIn('accounting_accounts.account_primary_type', ['asset', 'liability', 'liabilities', 'equity'])
             ->groupBy(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.account_primary_type',
-                'accounting_accounts.gl_code'
+                'accounting_accounts.account_type',
+                'accounting_accounts.gl_code',
+                'acc_subtype.name_en',
+                'acc_subtype.name_ar',
             )
             ->select(
                 'accounting_accounts.id',
+                'accounting_accounts.parent_account_id',
                 'accounting_accounts.name_ar',
                 'accounting_accounts.name_en',
                 'accounting_accounts.account_primary_type',
+                'accounting_accounts.account_type',
                 'accounting_accounts.gl_code',
+                'acc_subtype.name_en as account_sub_type_name_en',
+                'acc_subtype.name_ar as account_sub_type_name_ar',
                 DB::raw($balanceExpression.' as balance')
             )
             ->orderBy('accounting_accounts.gl_code')
             ->get()
             ->map(function ($row) {
                 $row->balance = $this->roundMoney($row->balance ?? 0);
+                $row->bs_bucket = $this->classifyBalanceSheetBucket($row);
 
                 return $row;
             });
 
-        $filtered = $with_zero_balances
-            ? $baseQuery
-            : $baseQuery->filter(fn ($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
+        $accounts = $this->enrichBalanceSheetAccounts($accounts);
 
-        $assets = $filtered->where('account_primary_type', 'asset')->values();
-        $liabilities = $filtered->filter(fn ($account) => in_array($account->account_primary_type, ['liability', 'liabilities'], true))->values();
-        $equities = $filtered->where('account_primary_type', 'equity')->values();
+        if (! $with_zero_balances) {
+            $accounts = $accounts->filter(fn ($account) => abs((float) ($account->balance ?? 0)) > 0.0001)->values();
+        }
+
+        $assets = $accounts->where('account_primary_type', 'asset')->values();
+        $liabilities = $accounts->filter(fn ($account) => in_array($account->account_primary_type, ['liability', 'liabilities'], true))->values();
+        $equities = $accounts->where('account_primary_type', 'equity')->values();
 
         $total_assets = $this->roundMoney($assets->sum('balance'));
-        $total_liab_owners = $this->roundMoney(
-            $this->roundMoney($liabilities->sum('balance')) + $this->roundMoney($equities->sum('balance'))
-        );
+        $total_liabilities = $this->roundMoney($liabilities->sum('balance'));
+        $total_equity = $this->roundMoney($equities->sum('balance'));
+        $total_liab_owners = $this->roundMoney($total_liabilities + $total_equity);
         $difference = $this->roundMoney(abs($total_assets - $total_liab_owners));
 
+        $metrics = $this->calculateBalanceSheetMetrics($accounts, $total_assets, $total_liabilities, $total_equity);
+        $sections = $this->buildBalanceSheetSections($accounts);
+
         return [
+            'accounts' => $accounts,
             'assets' => $assets,
             'liabilities' => $liabilities,
             'equities' => $equities,
+            'sections' => $sections,
+            'metrics' => $metrics,
             'total_assets' => $total_assets,
+            'total_liabilities' => $total_liabilities,
+            'total_equity' => $total_equity,
             'total_liab_owners' => $total_liab_owners,
             'difference' => $difference,
             'balance_status' => $difference < 0.005 ? __('accounting::lang.balanced') : __('accounting::lang.unbalanced'),
         ];
+    }
+
+    private function classifyBalanceSheetBucket(object $account): string
+    {
+        $subtype = strtolower(trim((string) ($account->account_sub_type_name_en ?? '')));
+        $type = strtolower(trim((string) ($account->account_type ?? '')));
+        $name = strtolower(trim(($account->name_en ?? '').' '.($account->name_ar ?? '')));
+        $gl = (string) ($account->gl_code ?? '');
+        $primary = strtolower(trim((string) ($account->account_primary_type ?? '')));
+
+        if ($primary === 'asset') {
+            if (str_contains($name, 'accumulated') || str_contains($name, 'depreciation') || str_contains($name, 'مجمع')) {
+                return 'accumulated_depreciation';
+            }
+
+            $glSegment = (strlen($gl) >= 5 && str_starts_with($gl, '111')) ? (int) substr($gl, 3, 2) : 0;
+            $isCurrent = $subtype === 'current assets'
+                || $type === 'current_assets'
+                || ($glSegment >= 1 && $glSegment <= 9);
+
+            if ($isCurrent) {
+                if (str_contains($name, 'cash') || str_contains($name, 'صندوق') || $gl === '11101') {
+                    return 'cash';
+                }
+                if (str_contains($name, 'bank') || str_contains($name, 'بنك') || $gl === '11102') {
+                    return 'banks';
+                }
+                if (str_contains($name, 'receivable') || str_contains($name, 'مدين') || str_contains($name, 'عميل') || str_contains($name, 'قبض')) {
+                    return 'receivables';
+                }
+                if (str_contains($name, 'inventory') || str_contains($name, 'مخزون') || $gl === '11105') {
+                    return 'inventory';
+                }
+                if (str_contains($name, 'prepaid') || str_contains($name, 'مقدما')) {
+                    return 'prepaid';
+                }
+
+                return 'other_current_assets';
+            }
+
+            $isFixed = $subtype === 'fixed assets'
+                || $type === 'fixed_assets'
+                || ($glSegment >= 10 && $glSegment <= 99);
+
+            if ($isFixed) {
+                if (str_contains($name, 'investment') || str_contains($name, 'استثمار')) {
+                    return 'long_term_assets';
+                }
+
+                return 'fixed_assets';
+            }
+
+            return 'long_term_assets';
+        }
+
+        if (in_array($primary, ['liability', 'liabilities'], true)) {
+            if ($subtype === 'long-term liabilities' || $type === 'non_current_liabilities' || str_starts_with($gl, '222')) {
+                if (str_contains($name, 'loan') || str_contains($name, 'قرض')) {
+                    return 'long_term_loans';
+                }
+
+                return 'other_long_term_liabilities';
+            }
+
+            if (str_contains($name, 'vat') || str_contains($name, 'ضريبة') || str_contains($name, 'قيمة مضافة')) {
+                return 'vat';
+            }
+            if (str_contains($name, 'payable') || str_contains($name, 'مورد') || str_contains($name, 'دائنون')) {
+                return 'suppliers';
+            }
+            if (str_contains($name, 'accrued') || str_contains($name, 'مستحق')) {
+                return 'accrued_expenses';
+            }
+            if ((str_contains($name, 'short') && str_contains($name, 'loan')) || str_contains($name, 'قصيرة')) {
+                return 'short_term_loans';
+            }
+
+            return 'other_current_liabilities';
+        }
+
+        if ($primary === 'equity') {
+            if (str_contains($name, 'capital') || str_contains($name, 'رأس المال')) {
+                return 'capital';
+            }
+            if (str_contains($name, 'retained') || str_contains($name, 'مرحلة')) {
+                return 'retained_earnings';
+            }
+            if (str_contains($name, 'net income') || str_contains($name, 'صافي الربح') || str_contains($name, 'خسارة')) {
+                return 'current_net_profit';
+            }
+            if (str_contains($name, 'reserve') || str_contains($name, 'احتياط')) {
+                return 'reserves';
+            }
+
+            return 'other_equity';
+        }
+
+        return 'other';
+    }
+
+    private function enrichBalanceSheetAccounts(Collection $accounts): Collection
+    {
+        $byId = $accounts->keyBy('id');
+        $childCountByParent = $accounts->pluck('parent_account_id')->filter()->countBy();
+
+        return $accounts->map(function ($account) use ($byId, $childCountByParent) {
+            $depth = 0;
+            $parentId = $account->parent_account_id;
+            $guard = 0;
+            while ($parentId && $byId->has($parentId) && $guard < 12) {
+                $depth++;
+                $parentId = $byId->get($parentId)->parent_account_id;
+                $guard++;
+            }
+
+            $account->depth = $depth;
+            $account->has_children = $childCountByParent->get($account->id, 0) > 0;
+
+            return $account;
+        });
+    }
+
+    private function sumBalanceSheetBuckets(Collection $accounts, array $buckets): float
+    {
+        return $this->roundMoney(
+            $accounts->whereIn('bs_bucket', $buckets)->sum('balance')
+        );
+    }
+
+    private function accountsForBalanceSheetBuckets(Collection $accounts, array $buckets): Collection
+    {
+        return $accounts->whereIn('bs_bucket', $buckets)->sortBy('gl_code')->values();
+    }
+
+    private function buildBalanceSheetSections(Collection $accounts): array
+    {
+        $sumBuckets = fn (array $buckets) => $this->sumBalanceSheetBuckets($accounts, $buckets);
+        $accountsFor = fn (array $buckets) => $this->accountsForBalanceSheetBuckets($accounts, $buckets);
+
+        $currentAssetBuckets = ['cash', 'banks', 'receivables', 'inventory', 'prepaid', 'other_current_assets'];
+        $nonCurrentAssetBuckets = ['fixed_assets', 'accumulated_depreciation', 'long_term_assets'];
+        $currentLiabBuckets = ['suppliers', 'accrued_expenses', 'short_term_loans', 'vat', 'other_current_liabilities'];
+        $longTermLiabBuckets = ['long_term_loans', 'other_long_term_liabilities'];
+        $equityBuckets = ['capital', 'retained_earnings', 'current_net_profit', 'reserves', 'other_equity'];
+
+        $assetGroupDefs = [
+            ['buckets' => ['cash'], 'label' => 'bs_cash'],
+            ['buckets' => ['banks'], 'label' => 'bs_banks'],
+            ['buckets' => ['receivables'], 'label' => 'bs_receivables'],
+            ['buckets' => ['inventory'], 'label' => 'bs_inventory'],
+            ['buckets' => ['prepaid'], 'label' => 'bs_prepaid_expenses'],
+            ['buckets' => ['other_current_assets'], 'label' => 'bs_other_current_assets'],
+        ];
+
+        $nonCurrentDefs = [
+            ['buckets' => ['fixed_assets'], 'label' => 'bs_fixed_assets'],
+            ['buckets' => ['accumulated_depreciation'], 'label' => 'bs_accumulated_depreciation'],
+            ['buckets' => ['long_term_assets'], 'label' => 'bs_long_term_assets'],
+        ];
+
+        $currentLiabDefs = [
+            ['buckets' => ['suppliers'], 'label' => 'bs_suppliers'],
+            ['buckets' => ['accrued_expenses'], 'label' => 'bs_accrued_expenses'],
+            ['buckets' => ['short_term_loans'], 'label' => 'bs_short_term_loans'],
+            ['buckets' => ['vat'], 'label' => 'bs_vat_payable'],
+            ['buckets' => ['other_current_liabilities'], 'label' => 'bs_other_current_liabilities'],
+        ];
+
+        $longTermLiabDefs = [
+            ['buckets' => ['long_term_loans'], 'label' => 'bs_long_term_loans'],
+            ['buckets' => ['other_long_term_liabilities'], 'label' => 'bs_other_long_term_liabilities'],
+        ];
+
+        $equityDefs = [
+            ['buckets' => ['capital'], 'label' => 'bs_capital'],
+            ['buckets' => ['retained_earnings'], 'label' => 'bs_retained_earnings'],
+            ['buckets' => ['current_net_profit'], 'label' => 'bs_current_net_profit'],
+            ['buckets' => ['reserves'], 'label' => 'bs_reserves'],
+            ['buckets' => ['other_equity'], 'label' => 'bs_other_equity'],
+        ];
+
+        $buildGroups = function (array $defs) use ($accountsFor, $sumBuckets) {
+            $groups = [];
+            foreach ($defs as $def) {
+                $accs = $accountsFor($def['buckets']);
+                if ($accs->isEmpty()) {
+                    continue;
+                }
+                $groups[] = [
+                    'type' => 'accounts',
+                    'label' => __('accounting::lang.'.$def['label']),
+                    'accounts' => $accs,
+                    'total' => $sumBuckets($def['buckets']),
+                ];
+            }
+
+            return $groups;
+        };
+
+        $totalCurrentAssets = $sumBuckets($currentAssetBuckets);
+        $totalNonCurrentAssets = $sumBuckets($nonCurrentAssetBuckets);
+        $totalCurrentLiab = $sumBuckets($currentLiabBuckets);
+        $totalLongTermLiab = $sumBuckets($longTermLiabBuckets);
+        $totalEquity = $sumBuckets($equityBuckets);
+
+        return [
+            [
+                'key' => 'assets',
+                'title' => __('accounting::lang.assets'),
+                'groups' => array_merge(
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_current_assets')]],
+                    $buildGroups($assetGroupDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_current_assets'), 'amount' => $totalCurrentAssets]],
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_non_current_assets')]],
+                    $buildGroups($nonCurrentDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_non_current_assets'), 'amount' => $totalNonCurrentAssets]],
+                    [['type' => 'grand', 'label' => __('accounting::lang.total_assets'), 'amount' => $totalCurrentAssets + $totalNonCurrentAssets]],
+                ),
+                'total' => $totalCurrentAssets + $totalNonCurrentAssets,
+            ],
+            [
+                'key' => 'liabilities',
+                'title' => __('accounting::lang.liabilities'),
+                'groups' => array_merge(
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_current_liabilities')]],
+                    $buildGroups($currentLiabDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_current_liabilities'), 'amount' => $totalCurrentLiab]],
+                    [['type' => 'subsection', 'label' => __('accounting::lang.bs_non_current_liabilities')]],
+                    $buildGroups($longTermLiabDefs),
+                    [['type' => 'subtotal', 'label' => __('accounting::lang.bs_total_non_current_liabilities'), 'amount' => $totalLongTermLiab]],
+                    [['type' => 'grand', 'label' => __('accounting::lang.bs_total_liabilities'), 'amount' => $totalCurrentLiab + $totalLongTermLiab]],
+                ),
+                'total' => $totalCurrentLiab + $totalLongTermLiab,
+            ],
+            [
+                'key' => 'equity',
+                'title' => __('accounting::lang.equity'),
+                'groups' => array_merge(
+                    [['type' => 'subsection', 'label' => __('accounting::lang.equity')]],
+                    $buildGroups($equityDefs),
+                    [['type' => 'grand', 'label' => __('accounting::lang.bs_total_equity'), 'amount' => $totalEquity]],
+                ),
+                'total' => $totalEquity,
+            ],
+        ];
+    }
+
+    private function calculateBalanceSheetMetrics(
+        Collection $accounts,
+        float $total_assets,
+        float $total_liabilities,
+        float $total_equity
+    ): array {
+        $currentAssets = $this->sumBalanceSheetBuckets($accounts, [
+            'cash', 'banks', 'receivables', 'inventory', 'prepaid', 'other_current_assets',
+        ]);
+        $currentLiabilities = $this->sumBalanceSheetBuckets($accounts, [
+            'suppliers', 'accrued_expenses', 'short_term_loans', 'vat', 'other_current_liabilities',
+        ]);
+
+        $workingCapital = $this->roundMoney($currentAssets - $currentLiabilities);
+        $currentRatio = abs($currentLiabilities) > 0.0001 ? round($currentAssets / $currentLiabilities, 2) : null;
+        $debtRatio = abs($total_assets) > 0.0001 ? round($total_liabilities / $total_assets, 4) : null;
+        $equityRatio = abs($total_assets) > 0.0001 ? round($total_equity / $total_assets, 4) : null;
+        $liquidityPercent = $currentRatio !== null ? round($currentRatio * 100, 1) : null;
+        $debtPercent = $debtRatio !== null ? round($debtRatio * 100, 1) : null;
+        $equityPercent = $equityRatio !== null ? round($equityRatio * 100, 1) : null;
+
+        return [
+            'total_assets' => $total_assets,
+            'total_liabilities' => $total_liabilities,
+            'total_equity' => $total_equity,
+            'current_assets' => $currentAssets,
+            'current_liabilities' => $currentLiabilities,
+            'working_capital' => $workingCapital,
+            'current_ratio' => $currentRatio,
+            'debt_ratio' => $debtRatio,
+            'equity_ratio' => $equityRatio,
+            'liquidity_percent' => $liquidityPercent,
+            'debt_percent' => $debtPercent,
+            'equity_percent' => $equityPercent,
+        ];
+    }
+
+    private function buildBalanceSheetExportRows(array $dataset): Collection
+    {
+        $rows = collect();
+        $localeAr = app()->getLocale() === 'ar';
+        $name = static fn ($account) => $localeAr ? $account->name_ar : $account->name_en;
+        $fmt = static fn ($amount) => number_format((float) $amount, 2, '.', '');
+
+        foreach ($dataset['sections'] as $section) {
+            $rows->push([$section['title'], '', '']);
+            foreach ($section['groups'] as $group) {
+                if (($group['type'] ?? '') === 'accounts') {
+                    foreach ($group['accounts'] as $account) {
+                        $indent = str_repeat('  ', (int) ($account->depth ?? 0));
+                        $rows->push([$group['label'], $indent.$name($account), $fmt($account->balance)]);
+                    }
+                } elseif (in_array($group['type'] ?? '', ['subtotal', 'grand'], true)) {
+                    $rows->push([$group['label'], '', $fmt($group['amount'] ?? 0)]);
+                } elseif (($group['type'] ?? '') === 'subsection') {
+                    $rows->push([$group['label'], '', '']);
+                }
+            }
+        }
+
+        $rows->push([
+            __('accounting::lang.total_liab_owners'),
+            '',
+            $fmt($dataset['total_liab_owners'] ?? 0),
+        ]);
+
+        return $rows;
     }
 
     public function JournalReport(Request $request)
@@ -1119,68 +1675,32 @@ class AccountingReportsController extends Controller
 
     public function cash_flow(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $choose_cost_center_select = $request->input('choose_cost_center_select', []);
-        $movement_type = $request->input('movement_type');
-        $selected_sub_types = $request->input('sub_types', []);
-        $activity_section = $request->input('activity_section');
-
-        $dataset = $this->buildCashFlowDataset($startDate, $endDate, $choose_cost_center_select, $movement_type, $selected_sub_types, $activity_section);
-
-        $operatingCashFlows = $dataset['query']->paginate(15);
-        $operatingCashFlows->getCollection()->transform(function ($flow) {
-            $flow->section_key = $this->resolveCashFlowSection($flow->sub_type);
-
-            return $flow;
-        });
-        $cashInflows = $dataset['cashInflows'];
-        $cashOutflows = $dataset['cashOutflows'];
-        $netCashFlow = $dataset['netCashFlow'];
-        $availableSubTypes = $dataset['availableSubTypes'];
-        $sectionSummaries = $dataset['sectionSummaries'];
-        $rows = $dataset['rows'];
-
+        $report = CashFlowReportService::dataset($request);
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        return view('accounting::reports.cash_flow', compact(
-            'operatingCashFlows',
-            'cashInflows',
-            'cashOutflows',
-            'netCashFlow',
-            'startDate',
-            'endDate',
-            'costCenters',
-            'choose_cost_center_select',
-            'movement_type',
-            'selected_sub_types',
-            'activity_section',
-            'availableSubTypes',
-            'sectionSummaries',
-            'rows'
-        ));
+        $detailPaginator = $this->paginateReportRows($report['detailRows'], 20);
+
+        return view('accounting::reports.cash_flow', array_merge($report, [
+            'company' => $company,
+            'costCenters' => $costCenters,
+            'choose_cost_center_select' => $report['costCenterIds'],
+            'movement_type' => $report['movementType'],
+            'selected_sub_types' => $report['selectedSubTypes'],
+            'activity_section' => $report['activitySection'],
+            'availableSubTypes' => $report['availableSubTypes'],
+            'detailPaginator' => $detailPaginator,
+            'compare_mode' => $report['compareMode'],
+            'period_group' => $report['periodGroup'],
+        ]));
     }
 
     public function cashFlowExportPdf(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $choose_cost_center_select = $request->input('choose_cost_center_select', []);
-        $movement_type = $request->input('movement_type');
-        $selected_sub_types = $request->input('sub_types', []);
-        $activity_section = $request->input('activity_section');
+        $report = CashFlowReportService::dataset($request);
+        $report['company'] = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        $dataset = $this->buildCashFlowDataset($startDate, $endDate, $choose_cost_center_select, $movement_type, $selected_sub_types, $activity_section);
-
-        $html = view('accounting::reports.cash_flow_print', [
-            'startDate' => $startDate,
-            'endDate' => $endDate,
-            'rows' => $dataset['rows'],
-            'cashInflows' => $dataset['cashInflows'],
-            'cashOutflows' => $dataset['cashOutflows'],
-            'netCashFlow' => $dataset['netCashFlow'],
-            'sectionSummaries' => $dataset['sectionSummaries'],
-        ])->render();
+        $html = view('accounting::reports.cash_flow_print', $report)->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -1197,16 +1717,9 @@ class AccountingReportsController extends Controller
 
     public function cashFlowExportExcel(Request $request)
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
-        $choose_cost_center_select = $request->input('choose_cost_center_select', []);
-        $movement_type = $request->input('movement_type');
-        $selected_sub_types = $request->input('sub_types', []);
-        $activity_section = $request->input('activity_section');
+        $report = CashFlowReportService::dataset($request);
 
-        $dataset = $this->buildCashFlowDataset($startDate, $endDate, $choose_cost_center_select, $movement_type, $selected_sub_types, $activity_section);
-
-        $exportRows = collect($dataset['rows'])->map(function ($row) {
+        $exportRows = collect($report['detailRows'])->map(function ($row) {
             return [
                 $row['section'],
                 $row['operation_date'],
@@ -1220,11 +1733,11 @@ class AccountingReportsController extends Controller
 
         return Excel::download(
             new CashFlowExport($exportRows, [
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'cash_inflows' => $dataset['cashInflows'],
-                'cash_outflows' => $dataset['cashOutflows'],
-                'net_cash_flow' => $dataset['netCashFlow'],
+                'start_date' => $report['startDate'],
+                'end_date' => $report['endDate'],
+                'cash_inflows' => $report['cashInflows'],
+                'cash_outflows' => $report['cashOutflows'],
+                'net_cash_flow' => $report['netCashFlow'],
             ]),
             'cash-flow-'.now()->format('Ymd-His').'.xlsx'
         );
@@ -1305,198 +1818,68 @@ class AccountingReportsController extends Controller
         ];
     }
 
+    /** @param  array<int, array<string, mixed>>  $rows */
+    private function paginateReportRows(array $rows, int $perPage): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $page = max(1, (int) request()->get('page', 1));
+        $collection = collect($rows);
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $collection->forPage($page, $perPage)->values()->all(),
+            $collection->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+    }
+
     private function resolveCashFlowSection(?string $subType): string
     {
-        $subType = (string) $subType;
-        if (in_array($subType, $this->getCashFlowSectionSubTypes('investing'), true)) {
-            return 'investing';
-        }
-        if (in_array($subType, $this->getCashFlowSectionSubTypes('financing'), true)) {
-            return 'financing';
-        }
-
-        return 'operating';
+        return CashFlowReportService::resolveSection($subType);
     }
 
     private function getCashFlowSectionSubTypes(string $section): array
     {
-        $map = [
-            'operating' => ['sell', 'sell_cash', 'purchases', 'sales_revenue', 'receipt_voucher', 'payment_voucher', 'expense', 'expense_refund'],
-            'investing' => ['asset_sale', 'asset_purchase', 'fixed_asset', 'capital_expenditure', 'periodic_inventory'],
-            'financing' => ['loan', 'loan_received', 'loan_payment', 'equity', 'capital', 'owner_withdrawal', 'owner_injection'],
-        ];
-
-        return $map[$section] ?? [];
+        return CashFlowReportService::getSectionSubTypes($section);
     }
 
     public function customersSuppliersStatement(Request $request)
     {
-        $accountingUtil = new AccountingUtil;
-        $contact_id = $request->query('id') ?? Contact::query()->value('id');
-        if (! $contact_id) {
+        $contactId = $request->query('id') ?? Contact::query()->value('id');
+        if (! $contactId) {
             return redirect()->route('accounting-reports')->with('error', __('messages.no_data_found'));
         }
-        $contact = Contact::with(['transactions'])
-            ->findOrFail($contact_id);
 
-        $start_date = $request->query('start_date') ?? now()->startOfMonth()->format('Y-m-d');
-        $end_date = $request->query('end_date') ?? now()->endOfMonth()->format('Y-m-d');
-        $choose_cost_center_select = $request->query('choose_cost_center_select') ?? [];
-        $entry_type = $request->query('entry_type');
-        $balance_side = $request->query('balance_side');
-        $sub_type = $request->query('sub_type');
-        $ref_no = $request->query('ref_no');
-
-        $statementQuery = $this->buildCustomerSupplierStatementQuery(
-            (int) $contact_id,
-            $start_date,
-            $end_date,
-            $choose_cost_center_select,
-            $entry_type ?: $balance_side,
-            $sub_type,
-            $ref_no
-        );
-
-        if ($request->ajax()) {
-            $period_debit = (clone $statementQuery)->where('aat.type', 'debit')->sum('aat.amount');
-            $period_credit = (clone $statementQuery)->where('aat.type', 'credit')->sum('aat.amount');
-
-            return DataTables::of($statementQuery)
-                ->editColumn('operation_date', function ($row) {
-                    return $row->operation_date;
-                })
-
-                ->editColumn('cost_center_name', function ($row) {
-                    return app()->getLocale() === 'ar'
-                        ? ($row->cost_center_name_ar ?? $row->cost_center_name_en ?? '--')
-                        : ($row->cost_center_name_en ?? $row->cost_center_name_ar ?? '--');
-                })
-
-                ->editColumn('ref_no', function ($row) {
-                    $description = $row->atm_ref_no ?: ($row->invoice_no ?: ($row->payment_ref_no ?: '--'));
-                    if (! empty($row->atm_id)) {
-                        $description = '<a class=" btn-modal"
-                      data-container="#printJournalEntry"
-                        href="'.action('\Modules\Accounting\Http\Controllers\JournalEntryController@print', [$row->atm_id]).'"
-                         >
-                            '.$description.'
-                        </a>';
-                    }
-
-                    return $description;
-                })
-                ->addColumn('transaction', function ($row) {
-                    if (Lang::has('accounting::lang.'.$row->sub_type)) {
-
-                        $description = __('accounting::lang.'.$row->sub_type);
-                    } else {
-                        $description = $row->sub_type;
-                    }
-
-                    return $description;
-                })
-                ->addColumn('debit', function ($row) {
-                    if ($row->type == 'debit') {
-                        return '<span class="debit" data-orig-value="'.$row->amount.'">'.number_format((float) $row->amount, 2, '.', '').'</span>';
-                    }
-
-                    return '';
-                })
-                ->addColumn('credit', function ($row) {
-                    if ($row->type == 'credit') {
-                        return '<span class="credit"  data-orig-value="'.$row->amount.'">'.number_format((float) $row->amount, 2, '.', '').'</span>';
-                    }
-
-                    return '';
-                })
-                ->rawColumns(['ref_no', 'debit', 'credit', 'cost_center_name', 'balance', 'action'])
-                ->with([
-                    'period_debit' => (float) $period_debit,
-                    'period_credit' => (float) $period_credit,
-                ])
-                ->make(true);
-        }
-
-        $contact_dropdown = Contact::all();
-
-        $current_bal = Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin(
-                'accounting_accounts as accounting_accounts',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )
-            ->select([DB::raw($accountingUtil->balanceFormula())]);
-
-        $current_bal = $current_bal?->first()->balance;
-
-        $total_debit_bal = Contact::join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin(
-                'accounting_accounts as accounting_accounts',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )
-
-            ->where('cs_contacts.id', $contact_id)
-            ->select(DB::raw("SUM(IF((AAT.type = 'debit'), AAT.amount, 0)) as balance"))
-            ->first();
-        $total_debit_bal = $total_debit_bal->balance;
-
-        $total_credit_bal = Contact::join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin(
-                'accounting_accounts as accounting_accounts',
-                'AAT.accounting_account_id',
-                '=',
-                'accounting_accounts.id'
-            )
-
-            ->where('cs_contacts.id', $contact_id)
-            ->select(DB::raw("SUM(IF((AAT.type = 'credit'), AAT.amount, 0)) as balance"))
-            ->first();
-
-        $total_credit_bal = $total_credit_bal->balance;
-
-        $period_debit = (clone $statementQuery)->where('aat.type', 'debit')->sum('aat.amount');
-        $period_credit = (clone $statementQuery)->where('aat.type', 'credit')->sum('aat.amount');
-        $net_movement = (float) $period_debit - (float) $period_credit;
-
-        $available_sub_types = Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
-            ->whereDate('aat.operation_date', '>=', $start_date)
-            ->whereDate('aat.operation_date', '<=', $end_date)
-            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
-                return $query->whereIn('aat.cost_center_id', $choose_cost_center_select);
-            })
-            ->distinct()
-            ->pluck('aat.sub_type');
-
+        $report = CustomerSupplierStatementReportService::dataset($request);
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
+        $contactDropdown = Contact::orderBy('name')->get(['id', 'name', 'commercial_register', 'tax_number']);
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        return view('accounting::reports.customers-suppliers-statement')
-            ->with(compact(
-                'contact',
-                'contact_dropdown',
-                'costCenters',
-                'choose_cost_center_select',
-                'current_bal',
-                'contact_id',
-                'total_debit_bal',
-                'total_credit_bal',
-                'entry_type',
-                'balance_side',
-                'sub_type',
-                'ref_no',
-                'available_sub_types',
-                'period_debit',
-                'period_credit',
-                'net_movement'
-            ));
+        $linePaginator = $this->paginateReportRows($report['lines'], 25);
+
+        return view('accounting::reports.customers-suppliers-statement', array_merge($report, [
+            'company' => $company,
+            'costCenters' => $costCenters,
+            'contact_dropdown' => $contactDropdown,
+            'choose_cost_center_select' => $report['costCenterIds'],
+            'establishment_ids' => $report['establishmentIds'],
+            'created_by' => $report['userId'],
+            'entry_type' => $report['entryType'],
+            'sub_type' => $report['subType'],
+            'ref_no' => $report['refNo'],
+            'unsettled_only' => $report['unsettledOnly'],
+            'compare_mode' => $report['compareMode'],
+            'period_group' => $report['periodGroup'],
+            'available_sub_types' => $report['availableSubTypes'],
+            'linePaginator' => $linePaginator,
+            'contact_id' => $report['contactId'],
+            'start_date' => $report['startDate'],
+            'end_date' => $report['endDate'],
+            'current_bal' => $report['currentBalance'],
+            'period_debit' => $report['periodDebit'],
+            'period_credit' => $report['periodCredit'],
+            'net_movement' => $report['closingBalance'] - $report['openingBalance'],
+        ]));
     }
 
     public function customersSuppliersStatementExportPdf(Request $request)
@@ -1506,11 +1889,15 @@ class AccountingReportsController extends Controller
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
-            'format' => 'A4-L',
+            'format' => 'A4',
             'default_font' => 'DejaVuSans',
-            'default_font_size' => 11,
+            'default_font_size' => 10,
             'autoLangToFont' => true,
             'autoScriptToLang' => true,
+            'margin_left' => 12,
+            'margin_right' => 12,
+            'margin_top' => 16,
+            'margin_bottom' => 16,
         ]);
         $mpdf->WriteHTML($html);
 
@@ -1523,14 +1910,16 @@ class AccountingReportsController extends Controller
 
         $rows = collect($report['rows'])->map(function ($row) {
             return [
-                $row['ref_no'],
                 $row['operation_date'],
+                $row['ref_no'],
                 $row['transaction'],
+                $row['description'],
+                $row['establishment'],
                 $row['cost_center'],
-                $row['note'],
-                $row['added_by'],
                 number_format((float) $row['debit'], 2, '.', ''),
                 number_format((float) $row['credit'], 2, '.', ''),
+                number_format((float) $row['running_balance'], 2, '.', ''),
+                $row['added_by'],
             ];
         });
 
@@ -1540,8 +1929,10 @@ class AccountingReportsController extends Controller
                 'start_date' => $report['start_date'],
                 'end_date' => $report['end_date'],
                 'current_balance' => $report['current_bal'],
-                'period_debit' => $report['period_debit'],
-                'period_credit' => $report['period_credit'],
+                'opening_balance' => $report['openingBalance'],
+                'closing_balance' => $report['closingBalance'],
+                'period_debit' => $report['periodDebit'],
+                'period_credit' => $report['periodCredit'],
             ]),
             'customers-suppliers-statement-'.now()->format('Ymd-His').'.xlsx'
         );
@@ -1549,108 +1940,28 @@ class AccountingReportsController extends Controller
 
     private function getCustomerSupplierStatementExportDataset(Request $request): array
     {
-        $contact_id = (int) ($request->query('id') ?? Contact::query()->value('id'));
-        $contact = Contact::findOrFail($contact_id);
-        $start_date = $request->query('start_date') ?? now()->startOfMonth()->format('Y-m-d');
-        $end_date = $request->query('end_date') ?? now()->endOfMonth()->format('Y-m-d');
-        $choose_cost_center_select = $request->query('choose_cost_center_select') ?? [];
-        $entry_type = $request->query('entry_type');
-        $balance_side = $request->query('balance_side');
-        $sub_type = $request->query('sub_type');
-        $ref_no = $request->query('ref_no');
-
-        $query = $this->buildCustomerSupplierStatementQuery(
-            $contact_id,
-            $start_date,
-            $end_date,
-            $choose_cost_center_select,
-            $entry_type ?: $balance_side,
-            $sub_type,
-            $ref_no
-        );
-
-        $rows = (clone $query)->get()->map(function ($row) {
-            $displayRef = $row->atm_ref_no ?: ($row->invoice_no ?: ($row->payment_ref_no ?: '--'));
-
+        $report = CustomerSupplierStatementReportService::dataset($request);
+        $report['company'] = DB::connection('mysql')->table('companies')->find(get_company_id());
+        $report['start_date'] = $report['startDate'];
+        $report['end_date'] = $report['endDate'];
+        $report['current_bal'] = $report['currentBalance'];
+        $report['rows'] = collect($report['lines'])->map(function (array $line) {
             return [
-                'ref_no' => $displayRef,
-                'operation_date' => $row->operation_date,
-                'transaction' => Lang::has('accounting::lang.'.$row->sub_type) ? __('accounting::lang.'.$row->sub_type) : $row->sub_type,
-                'cost_center' => app()->getLocale() === 'ar'
-                    ? ($row->cost_center_name_ar ?? $row->cost_center_name_en ?? '--')
-                    : ($row->cost_center_name_en ?? $row->cost_center_name_ar ?? '--'),
-                'note' => $row->note ?? '--',
-                'added_by' => $row->added_by ?? '--',
-                'debit' => $row->type === 'debit' ? (float) $row->amount : 0.0,
-                'credit' => $row->type === 'credit' ? (float) $row->amount : 0.0,
+                'row_type' => $line['row_type'] ?? 'movement',
+                'operation_date' => $line['operation_date'] ?? '—',
+                'ref_no' => $line['ref_no'],
+                'transaction' => $line['transaction_type'],
+                'description' => $line['description'],
+                'establishment' => $line['establishment_name'],
+                'cost_center' => $line['cost_center'],
+                'debit' => $line['debit'],
+                'credit' => $line['credit'],
+                'running_balance' => $line['running_balance'],
+                'added_by' => $line['added_by'],
             ];
         })->values()->all();
 
-        $period_debit = (clone $query)->where('aat.type', 'debit')->sum('aat.amount');
-        $period_credit = (clone $query)->where('aat.type', 'credit')->sum('aat.amount');
-
-        $current_bal = Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-            ->leftjoin('accounting_accounts as accounting_accounts', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
-            ->select([DB::raw((new AccountingUtil)->balanceFormula())])
-            ->first()?->balance ?? 0;
-
-        return compact('contact', 'rows', 'start_date', 'end_date', 'current_bal', 'period_debit', 'period_credit');
-    }
-
-    private function buildCustomerSupplierStatementQuery(
-        int $contact_id,
-        string $start_date,
-        string $end_date,
-        array $choose_cost_center_select,
-        ?string $entry_type,
-        ?string $sub_type,
-        ?string $ref_no
-    ) {
-        return Contact::where('cs_contacts.id', $contact_id)
-            ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-            ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
-            ->leftJoin('accounting_acc_trans_mappings as atm', 'aat.acc_trans_mapping_id', '=', 'atm.id')
-            ->leftJoin('transaction_payments as tp', 'aat.transaction_payment_id', '=', 'tp.id')
-            ->leftJoin('emp_employees as u', 'aat.created_by', '=', 'u.id')
-            ->leftJoin('accounting_cost_centers as cc', 'aat.cost_center_id', '=', 'cc.id')
-            ->whereDate('aat.operation_date', '>=', $start_date)
-            ->whereDate('aat.operation_date', '<=', $end_date)
-            ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
-                return $query->whereIn('aat.cost_center_id', $choose_cost_center_select);
-            })
-            ->when(! empty($entry_type), function ($query) use ($entry_type) {
-                return $query->where('aat.type', $entry_type);
-            })
-            ->when(! empty($sub_type), function ($query) use ($sub_type) {
-                return $query->where('aat.sub_type', $sub_type);
-            })
-            ->when(! empty($ref_no), function ($query) use ($ref_no) {
-                return $query->where(function ($q) use ($ref_no) {
-                    $q->where('atm.ref_no', 'like', '%'.$ref_no.'%')
-                        ->orWhere('t.ref_no', 'like', '%'.$ref_no.'%')
-                        ->orWhere('tp.payment_ref_no', 'like', '%'.$ref_no.'%');
-                });
-            })
-            ->select(
-                'aat.id',
-                'aat.operation_date',
-                'aat.sub_type',
-                'aat.type',
-                'aat.cost_center_id',
-                'atm.ref_no as atm_ref_no',
-                'tp.payment_ref_no',
-                'atm.id as atm_id',
-                'cc.name_ar as cost_center_name_ar',
-                'cc.name_en as cost_center_name_en',
-                'atm.note',
-                'aat.amount',
-                'u.name as added_by',
-                't.ref_no as invoice_no'
-            )
-            ->orderByDesc('aat.operation_date')
-            ->orderByDesc('aat.id');
+        return $report;
     }
 
     public function accountReceivableAgeingReport()
@@ -1861,16 +2172,39 @@ class AccountingReportsController extends Controller
     public function expenseReport(Request $request)
     {
         $report = ExpenseReportService::dataset($request);
-        $categories = ExpenseCategory::query()->orderBy('name')->get();
+        $expenseAccounts = ExpenseReportService::reportableAccountsQuery()->with('account_sub_type')->get();
         $treasuryAccounts = TreasuryAccounts::query()->get();
+        $costCenters = AccountingCostCenter::forDropdown();
         $taxes = Tax::query()->orderBy('name')->get();
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
+
+        $expenseCreators = \Modules\Accounting\Models\AccountingAccountsTransaction::query()
+            ->whereIn('accounting_account_id', ExpenseReportService::reportableAccountIds())
+            ->whereDate('operation_date', '>=', $report['startDate'])
+            ->whereDate('operation_date', '<=', $report['endDate'])
+            ->with('createdBy')
+            ->get()
+            ->pluck('createdBy')
+            ->filter()
+            ->unique('id')
+            ->sortBy(app()->getLocale() === 'ar' ? 'name' : 'name_en');
 
         return view('accounting::reports.expense_report', array_merge($report, [
-            'categories' => $categories,
+            'company' => $company,
+            'expenseAccounts' => $expenseAccounts,
             'treasuryAccounts' => $treasuryAccounts,
+            'costCenters' => $costCenters,
             'taxes' => $taxes,
-            'categoryIds' => array_values(array_filter(array_map('intval', (array) $request->input('category_ids', [])))),
+            'expenseCreators' => $expenseCreators,
+            'expenseCategories' => ExpenseReportService::CATEGORY_KEYS,
+            'debitAccountIds' => array_values(array_filter(array_map('intval', (array) $request->input('debit_account_ids', [])))),
             'creditAccountIds' => array_values(array_filter(array_map('intval', (array) $request->input('credit_account_ids', [])))),
+            'costCenterIds' => array_values(array_filter(array_map('intval', (array) $request->input('cost_center_ids', [])))),
+            'createdByIds' => array_values(array_filter(array_map('intval', (array) $request->input('created_by_ids', [])))),
+            'selectedCategories' => array_values(array_intersect(
+                (array) $request->input('expense_categories', []),
+                ExpenseReportService::CATEGORY_KEYS
+            )),
             'taxId' => $request->input('tax_id', 'all'),
             'keyword' => trim((string) $request->input('q', '')),
             'withAttachments' => $request->boolean('with_attachments'),
@@ -1880,6 +2214,7 @@ class AccountingReportsController extends Controller
     public function expenseReportExportPdf(Request $request)
     {
         $report = ExpenseReportService::dataset($request);
+        $report['company'] = DB::connection('mysql')->table('companies')->find(get_company_id());
         $html = view('accounting::reports.expense_report_print', $report)->render();
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -1899,22 +2234,28 @@ class AccountingReportsController extends Controller
         $report = ExpenseReportService::dataset($request);
         $localeAr = app()->getLocale() === 'ar';
         $rows = collect();
-        $report['expenses']->loadMissing(['category', 'creditAccount']);
-        foreach ($report['expenses'] as $expense) {
-            $credit = $expense->creditAccount;
+        foreach ($report['expenses'] as $line) {
+            $debit = $line->debitAccount;
+            $debitLabel = $debit
+                ? (($localeAr ? $debit->name_ar : $debit->name_en).' ('.$debit->gl_code.')')
+                : '';
+            $credit = $line->creditAccount;
             $creditLabel = $credit
                 ? (($localeAr ? $credit->name_ar : $credit->name_en).' ('.$credit->gl_code.')')
                 : '';
+            $cc = $line->costCenter;
+            $ccLabel = $cc ? ($localeAr ? $cc->name_ar : $cc->name_en) : '';
             $rows->push([
-                $expense->date?->format('Y-m-d') ?? '',
-                $expense->id,
-                $expense->category?->name ?? '',
+                $line->date->format('Y-m-d'),
+                $line->line_id,
+                $debitLabel,
                 $creditLabel,
-                $expense->description ?? '',
-                number_format($expense->net_amount, 2, '.', ''),
-                number_format((float) $expense->getRawOriginal('tax'), 2, '.', ''),
-                number_format($expense->total, 2, '.', ''),
-                (string) ($expense->attachments_count ?? 0),
+                $ccLabel,
+                $line->description ?? '',
+                number_format($line->net, 2, '.', ''),
+                number_format($line->tax, 2, '.', ''),
+                number_format($line->total, 2, '.', ''),
+                (string) ($line->source_label ?? ''),
             ]);
         }
 

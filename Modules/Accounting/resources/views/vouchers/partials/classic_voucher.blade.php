@@ -145,15 +145,11 @@
                     <div class="cv-amt-words" dir="{{ $localeAr ? 'rtl' : 'ltr' }}" style="text-align: center;">
                         @if ($localeAr)
                             <span class="cv-amt-w-ar" dir="rtl" lang="ar">{{ $amountWordsAr ?? '' }}</span>
-                            <span class="cv-amt-sep">—</span>
-                            <span class="cv-amt-w-en" dir="ltr" lang="en">{{ $amountWordsEn ?? '' }}</span>
+                            <span class="cv-amt-suf" dir="rtl"> {{ __('accounting::lang.voucher_tpl_amount_words_suffix_ar') }}</span>
                         @else
                             <span class="cv-amt-w-en" dir="ltr" lang="en">{{ $amountWordsEn ?? '' }}</span>
-                            <span class="cv-amt-sep">—</span>
-                            <span class="cv-amt-w-ar" dir="rtl" lang="ar">{{ $amountWordsAr ?? '' }}</span>
+                            <span class="cv-amt-suf" dir="ltr"> {{ __('accounting::lang.voucher_tpl_amount_words_suffix') }}</span>
                         @endif
-                        <span class="cv-amt-sep">—</span>
-                        <span class="cv-amt-suf" dir="ltr">{{ __('accounting::lang.voucher_tpl_amount_suffix_bilingual') }}</span>
                     </div>
                 @if ($forPrint)
                             </td>

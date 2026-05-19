@@ -994,6 +994,8 @@ class ProductController extends Controller
             'establishments.establishment',
             'priceTiers.priceTier',
             'recipe.unitTransfer',
+            'recipe.products',
+            'recipe.ingredients',
             'attributes.attribute1',
             'attributes.attribute2',
             'modifiers.modifierClass',
@@ -1007,7 +1009,11 @@ class ProductController extends Controller
         }
         foreach ($product->recipe as $rec) {
             $rec->newid = $rec->item_id.'-'.$rec->item_type;
-            $rec->cost = $rec->detail->cost;
+            $rec->cost = match ($rec->item_type) {
+                'p' => (float) ($rec->products?->cost ?? 0),
+                'i' => (float) ($rec->ingredients?->cost ?? 0),
+                default => (float) ($rec->detail?->cost ?? 0),
+            };
         }
         foreach ($product->attributes as $attr) {
             if ($attr->attribute1) {

@@ -276,8 +276,14 @@
                     <i class="bi bi-info-circle fs-4 text-primary flex-shrink-0"></i>
                     <div class="fs-7 text-gray-800">@lang('report::general.weekday_simple_grid_info')</div>
                 </div>
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
-                    <div class="sc-table-search-pill d-flex align-items-stretch gap-1 ps-2 pe-1 py-1 border rounded flex-grow-1" style="max-width:480px;border-color:#e1e4ea;">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                    <div class="form-check form-check-custom form-check-solid mb-0">
+                        <input class="form-check-input" type="checkbox" id="wsrShowPrice" checked />
+                        <label class="form-check-label fw-semibold text-gray-700 cursor-pointer" for="wsrShowPrice">
+                            @lang('report::general.weekday_simple_grid_show_price')
+                        </label>
+                    </div>
+                    <div class="sc-table-search-pill d-flex align-items-stretch gap-1 ps-2 pe-1 py-1 border rounded flex-grow-1 ms-auto" style="max-width:480px;border-color:#e1e4ea;">
                         <i class="ki-outline ki-magnifier align-self-center ms-1 text-muted"></i>
                         <input type="text" id="wsrTableSearch" data-kt-filter="search" class="form-control border-0 bg-transparent shadow-none" placeholder="@lang('report::general.SalesComparison_search')" />
                     </div>
@@ -307,7 +313,9 @@
 <script>
     "use strict";
     let wsrLastKpi = null;
+    let wsrLastGridJson = null;
     let scRestoringFilters = false;
+    const WSR_SHOW_PRICE_STORAGE_KEY = 'weekdaySalesReport:showPrice:v1';
     const apiUrl = "{{ route('weekday-sales-report') }}";
     const exportExcelUrl = "{{ route('weekday-sales-export-excel') }}";
     const exportPdfUrl = "{{ route('weekday-sales-export-pdf') }}";
@@ -542,20 +550,30 @@
         });
     }
 
+    function wsrShowPriceInGrid() {
+        return $('#wsrShowPrice').is(':checked');
+    }
+
     function renderWsrSimpleGrid(json) {
         const dates = json.wsr_occurrence_dates || [];
         const rows = json.wsr_grid_rows || [];
+        const showPrice = wsrShowPriceInGrid();
         const $r1 = $('#wsrSimpleHeadRow1').empty();
         const $r2 = $('#wsrSimpleHeadRow2').empty();
         $r1.append($('<th/>', { rowspan: 2, class: 'text-start min-w-140px' }).text(WSR_GRID_TH.product));
         $r1.append($('<th/>', { rowspan: 2, class: 'text-start min-w-120px' }).text(WSR_GRID_TH.branch));
         $r1.append($('<th/>', { rowspan: 2, class: 'text-start min-w-100px' }).text(WSR_GRID_TH.unit));
         dates.forEach(function(dm) {
-            $r1.append($('<th/>', { colspan: 2, class: 'text-center bg-light' }).text(dm.label || dm.date));
+            $r1.append($('<th/>', {
+                colspan: showPrice ? 2 : 1,
+                class: 'text-center bg-light'
+            }).text(dm.label || dm.date));
         });
         dates.forEach(function() {
             $r2.append($('<th/>', { class: 'text-end' }).text(WSR_GRID_TH.qty));
-            $r2.append($('<th/>', { class: 'text-end' }).text(WSR_GRID_TH.price));
+            if (showPrice) {
+                $r2.append($('<th/>', { class: 'text-end' }).text(WSR_GRID_TH.price));
+            }
         });
         const $body = $('#wsrSimpleBody').empty();
         rows.forEach(function(row) {
@@ -566,13 +584,16 @@
             dates.forEach(function(dm) {
                 const c = (row.cells && row.cells[dm.date]) ? row.cells[dm.date] : { qty: 0, unit_sale_price: null };
                 $tr.append($('<td/>', { class: 'text-end' }).text(wsrFmtQty(c.qty)));
-                const p = c.unit_sale_price;
-                $tr.append($('<td/>', { class: 'text-end' }).text(p == null || isNaN(p) ? '—' : wsrFmtNum(p, 2)));
+                if (showPrice) {
+                    const p = c.unit_sale_price;
+                    $tr.append($('<td/>', { class: 'text-end' }).text(p == null || isNaN(p) ? '—' : wsrFmtNum(p, 2)));
+                }
             });
             $body.append($tr);
         });
         const note = json.wsr_notice || '';
         $('#wsrSimpleNotice').toggleClass('d-none', !note).text(note);
+        $('#wsrTableSearch').trigger('input');
     }
 
     function loadWsrReportData() {
@@ -585,6 +606,7 @@
                 if (!json || typeof json !== 'object' || !json.wsr_simple_grid) {
                     return;
                 }
+                wsrLastGridJson = json;
                 renderWsrSimpleGrid(json);
                 wsrLastKpi = json.wsr_kpi || null;
                 refreshWsrKpiAndCharts(json.wsr_kpi || null);
@@ -660,6 +682,19 @@
     }
 
     $(document).ready(function() {
+        try {
+            if (localStorage.getItem(WSR_SHOW_PRICE_STORAGE_KEY) === '0') {
+                $('#wsrShowPrice').prop('checked', false);
+            }
+        } catch (e) {}
+        $('#wsrShowPrice').on('change', function() {
+            try {
+                localStorage.setItem(WSR_SHOW_PRICE_STORAGE_KEY, $(this).is(':checked') ? '1' : '0');
+            } catch (e) {}
+            if (wsrLastGridJson) {
+                renderWsrSimpleGrid(wsrLastGridJson);
+            }
+        });
         scSelect2Multi($('#filterPanels'));
         scSelect2Single($('#wsrPeriodScope'));
         $('#filterPanels').on('change', syncFilterPanels);

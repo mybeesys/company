@@ -24,21 +24,13 @@
 
 @section('content')
     <form id="expense-create-form" method="post" action="{{ route('expenses.manage.store') }}" enctype="multipart/form-data"
-        @if ($defaultDebitId) onsubmit="return confirm(@json(__('expense::lang.confirm_create')))" @endif>
+        @if ($canCreate) onsubmit="return confirm(@json(__('expense::lang.confirm_create')))" @endif>
         @csrf
 
         <div class="container">
             <div class="row py-2">
-                <div class="col-6">
-                    <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1 class="fs-2 fw-bold mb-0">@lang('expense::lang.create_heading')</h1>
-                    </div>
-                </div>
-                <div class="col-6 d-flex" style="justify-content: flex-end">
-                    <button type="submit" style="border-radius: 6px;width: 29%;" class="btn btn-bg-primary text-white"
-                        @unless ($defaultDebitId) disabled @endunless>
-                        @lang('messages.save')
-                    </button>
+                <div class="col-12">
+                    <h1 class="fs-2 fw-bold mb-0">@lang('expense::lang.create_heading')</h1>
                 </div>
             </div>
         </div>
@@ -53,15 +45,23 @@
             </div>
         @endif
 
-        @if (!$defaultDebitId)
+        @unless ($canCreate)
             <div class="container mb-5">
-                <div class="alert alert-danger mb-0">@lang('expense::lang.default_expense_account_missing')</div>
+                <div class="alert alert-danger mb-0">@lang('expense::lang.create_prerequisites_missing')</div>
             </div>
-        @endif
+        @endunless
 
-        <div class="container pb-12 pt-2">
+        <div class="container pb-4 pt-2">
             @include('expense::manage.create.partials.expense-primary')
             @include('expense::manage.create.partials.expense-secondary')
+        </div>
+
+        <div class="container pb-12">
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary min-w-150px" @unless ($canCreate) disabled @endunless>
+                    @lang('messages.save')
+                </button>
+            </div>
         </div>
     </form>
 @endsection
@@ -128,7 +128,7 @@
 
         $(function() {
             const dir = document.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
-            $('#exp_credit_account, #exp_category_id').select2({
+            $('#exp_debit_account, #exp_credit_account, #exp_cost_center').select2({
                 width: '100%',
                 dir: dir,
             });
@@ -201,8 +201,11 @@
             @if ($duplicateDefaults ?? null)
                 (function() {
                     const d = @json($duplicateDefaults);
+                    $('#exp_debit_account').val(String(d.debit_accounting_account_id)).trigger('change');
                     $('#exp_credit_account').val(String(d.credit_accounting_account_id)).trigger('change');
-                    $('#exp_category_id').val(String(d.expense_category_id)).trigger('change');
+                    if (d.cost_center_id) {
+                        $('#exp_cost_center').val(String(d.cost_center_id)).trigger('change');
+                    }
                     $('#expense_date').val(d.date);
                     $('#exp_amount').val(Number(d.amount));
                     if (d.tax_id) {

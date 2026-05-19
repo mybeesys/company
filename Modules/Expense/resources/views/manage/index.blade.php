@@ -108,12 +108,13 @@
                 <div class="container px-0 w-100">
                     <div class="card-toolbar flex-column align-items-stretch gap-5 gap-md-6 py-2" data-kt-expense-table-toolbar="base">
                         <div class="d-flex flex-wrap gap-3 align-items-end w-100">
-                            <div class="min-w-175px">
-                                <label class="form-label fs-7 mb-1">@lang('expense::fields.category')</label>
-                                <select id="expense_filter_category" class="form-select form-select-sm form-select-solid">
+                            <div class="min-w-200px">
+                                <label class="form-label fs-7 mb-1">@lang('expense::fields.debit_account')</label>
+                                <select id="expense_filter_debit_account" class="form-select form-select-sm form-select-solid">
                                     <option value="all">@lang('accounting::lang.all')</option>
-                                    @foreach ($categories as $cat)
-                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                    @foreach ($expenseAccounts as $acc)
+                                        <option value="{{ $acc->id }}">{{ $acc->gl_code }} —
+                                            {{ app()->getLocale() === 'ar' ? $acc->name_ar : $acc->name_en }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -187,7 +188,7 @@
             $(document).ready(function() {
                 if (!table.length) return;
                 initDatatable();
-                exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], '#kt_expense_table');
+                exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], '#kt_expense_table');
                 handleSearchDatatable();
 
                 $('#expense_filter_credit_accounts').select2({
@@ -197,7 +198,7 @@
                     closeOnSelect: false,
                     minimumResultsForSearch: 0,
                 });
-                $('#expense_filter_category').select2({
+                $('#expense_filter_debit_account').select2({
                     width: '100%',
                     minimumResultsForSearch: 10,
                     dir: document.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr',
@@ -205,7 +206,7 @@
 
                 function expenseFilterParams() {
                     return {
-                        category_id: $('#expense_filter_category').val(),
+                        debit_account_id: $('#expense_filter_debit_account').val(),
                         credit_account_ids: $('#expense_filter_credit_accounts').val(),
                         date_from: $('#expense_filter_date_from').val(),
                         date_until: $('#expense_filter_date_until').val(),
@@ -217,7 +218,7 @@
                     dataTable.ajax.url(dataUrl + '?' + $.param(expenseFilterParams())).load();
                 });
                 $('#expense_reset_filters').on('click', function() {
-                    $('#expense_filter_category').val('all').trigger('change');
+                    $('#expense_filter_debit_account').val('all').trigger('change');
                     $('#expense_filter_credit_accounts').val(null).trigger('change');
                     $('#expense_filter_date_from').val('');
                     $('#expense_filter_date_until').val('');
@@ -276,14 +277,20 @@
                             name: 'expense_date',
                         },
                         {
-                            data: 'category',
-                            name: 'category',
+                            data: 'debit_account',
+                            name: 'debit_account',
                             orderable: false,
                             searchable: false,
                         },
                         {
                             data: 'credit_account',
                             name: 'credit_account',
+                            orderable: false,
+                            searchable: false,
+                        },
+                        {
+                            data: 'cost_center',
+                            name: 'cost_center',
                             orderable: false,
                             searchable: false,
                         },
