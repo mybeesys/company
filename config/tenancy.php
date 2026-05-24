@@ -187,6 +187,7 @@ return [
         '--force' => true, // This needs to be true to run migrations in production.
         '--path' => [
             // 'Modules/UserManagement/database/migrations/tenant',
+            'Modules/Franchise/database/migrations/tenant',
             'Modules/Employee/database/migrations/tenant',
             'Modules/Establishment/database/migrations/tenant',
             'Modules/Product/database/migrations/tenant',
@@ -198,7 +199,6 @@ return [
             'Modules/purchases/database/migrations/tenant',
             'Modules/Screen/database/migrations/tenant',
             'Modules/Reservation/database/migrations/tenant',
-            'Modules/Franchise/database/migrations/tenant',
             'Modules/Expense/database/migrations/tenant',
         ],
 

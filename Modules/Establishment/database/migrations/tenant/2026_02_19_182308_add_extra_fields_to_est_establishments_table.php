@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('est_establishments', function (Blueprint $table) {
-            $table->foreignId('franchise_id')->nullable()->after('code')
-                ->constrained('franchise_companies')->onDelete('set null');
+            // No FK: franchise_companies may not exist yet (migration path order / optional Franchise module).
+            $table->unsignedBigInteger('franchise_id')->nullable()->after('code');
+            $table->index('franchise_id');
             $table->boolean('is_franchise')->default(0)->after('franchise_id');
 
             $table->string('theme')->nullable()->after('logo');
@@ -26,7 +27,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('est_establishments', function (Blueprint $table) {
-            $table->dropForeign(['franchise_id']);
+            $table->dropIndex(['franchise_id']);
             $table->dropColumn(['franchise_id', 'is_franchise', 'theme']);
         });
     }
