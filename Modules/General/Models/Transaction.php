@@ -2,6 +2,7 @@
 
 namespace Modules\General\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -68,6 +69,15 @@ class Transaction extends Model
     public function createdBy()
     {
         return $this->belongsTo(Employee::class, 'created_by');
+    }
+
+    public function isQuotationExpired(): bool
+    {
+        if ($this->type !== 'quotation' || $this->due_date === null || $this->due_date === '') {
+            return false;
+        }
+
+        return Carbon::parse($this->due_date)->startOfDay()->lt(now()->startOfDay());
     }
 
     public static function getsSellsColumns()
@@ -144,14 +154,21 @@ class Transaction extends Model
                             </div>";
             })
             ->editColumn('ref_no', function ($row) use ($returns) {
+                $ref = e($row->ref_no);
+
                 if (in_array($row->id, $returns)) {
-                    return $row->ref_no.
-                        '<span class=" m-2" data-bs-toggle="tooltip" title="'.__('general::lang.tooltip_inv_return').'">
+                    $ref .= '<span class=" m-2" data-bs-toggle="tooltip" title="'.__('general::lang.tooltip_inv_return').'">
                                 <i class="fas fa-undo text-danger fs-6"></i>
                             </span>';
                 }
 
-                return $row->ref_no;
+                if ($row->type === 'quotation' && $row->isQuotationExpired()) {
+                    $ref .= '<span class="ms-2" data-bs-toggle="tooltip" title="'.e(__('sales::lang.quotation_expired_notice')).'">
+                                <span class="badge badge-light-danger">'.e(__('sales::lang.quotation_expired')).'</span>
+                            </span>';
+                }
+
+                return $ref;
             })
 
             ->editColumn('client', function ($row) {
@@ -161,7 +178,17 @@ class Transaction extends Model
                 return $row->transaction_date ?? '--';
             })
             ->editColumn('due_date', function ($row) {
-                return $row->due_date;
+                if ($row->due_date === null || $row->due_date === '') {
+                    return '--';
+                }
+
+                $html = e($row->due_date);
+
+                if ($row->type === 'quotation' && $row->isQuotationExpired()) {
+                    $html .= ' <span class="badge badge-light-danger">'.e(__('sales::lang.quotation_expired')).'</span>';
+                }
+
+                return $html;
             })
             ->editColumn('total_before_tax', function ($row) {
                 return $row->total_before_tax ?? '0.00';
@@ -307,7 +334,7 @@ class Transaction extends Model
                 }
             )
 
-            ->rawColumns(['actions', 'po_status', 'payment_status', 'ref_no', 'remaining_amount', 'paid_amount', 'client', 'id'])
+            ->rawColumns(['actions', 'po_status', 'payment_status', 'ref_no', 'due_date', 'remaining_amount', 'paid_amount', 'client', 'id'])
             ->make(true);
     }
 }

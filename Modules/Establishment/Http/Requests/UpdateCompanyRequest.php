@@ -26,6 +26,10 @@ class UpdateCompanyRequest extends FormRequest
                 'email',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
+            'business_type' => [
+                Rule::requiredIf($notAjaxValidate),
+                Rule::in(['contractors', 'e-commerce', 'restaurant-cafe', 'services', 'general']),
+            ],
             'phone' => ['nullable', 'digits_between:10,15'],
             'country_id' => [Rule::requiredIf($notAjaxValidate), 'exists:mysql.countries,id'],
             'state' => [Rule::requiredIf($notAjaxValidate), 'string'],
@@ -35,6 +39,8 @@ class UpdateCompanyRequest extends FormRequest
             'website' => ['nullable', 'url'],
             'tax_name' => [Rule::requiredIf($notAjaxValidate), 'string'],
             'tax_number' => ['nullable'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
             'menu_cover_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
         ];
     }

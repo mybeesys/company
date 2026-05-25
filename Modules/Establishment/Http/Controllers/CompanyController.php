@@ -76,7 +76,19 @@ class CompanyController extends Controller
 
                 $socialKeys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x'];
                 $validated = $request->validated();
-                $dataToUpdate = collect($validated)->except(['menu_cover_image', 'email'])->toArray();
+                $dataToUpdate = collect($validated)->except(['menu_cover_image', 'logo', 'email'])->toArray();
+
+                if ($request->hasFile('logo')) {
+                    $file = $request->file('logo');
+                    $oldLogoPath = $company->logo ?? null;
+                    $fileName = 'company-'.$id.'-'.time().'.'.$file->getClientOriginalExtension();
+                    $path = $file->storeAs('companies/logos', $fileName, 'public');
+                    $dataToUpdate['logo'] = $path;
+
+                    if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
+                        Storage::disk('public')->delete($oldLogoPath);
+                    }
+                }
 
                 DB::connection('mysql')->table('companies')->where('id', $id)->update($dataToUpdate);
 
