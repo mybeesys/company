@@ -90,4 +90,12 @@ return [
     'ref' => 'Reference number',
     'generate' => 'generate',
     'perpetual_inventory_account' => 'Linked GL account (branch)',
+    'business_type' => 'Business type',
+    'business_types' => [
+        'contractors' => 'Contractors',
+        'e-commerce' => 'E-commerce',
+        'restaurant-cafe' => 'Restaurant / Cafe',
+        'services' => 'Services',
+        'general' => 'General',
+    ],
 ];

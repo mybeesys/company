@@ -514,7 +514,11 @@ class SellController extends Controller
         $transaction = $transactionsQuery->get();
         $columns = Transaction::getsSellsColumns();
 
-        $quotations = Transaction::where('type', 'quotation')->where('po_status', '<>', 'completed')->get();
+        $quotations = Transaction::where('type', 'quotation')
+            ->where('po_status', '<>', 'completed')
+            ->get()
+            ->reject(fn (Transaction $q) => $q->isQuotationExpired())
+            ->values();
 
         $Latest_event = Actions::where('user_id', Auth::id())->where('type', 'create_sell')->first();
 
@@ -602,6 +606,12 @@ class SellController extends Controller
         } elseif ($quotationId > 0) {
             $transaction = Transaction::with($sellLineRelations)->find($quotationId);
             if ($transaction && $transaction->type === 'quotation') {
+                if ($transaction->isQuotationExpired()) {
+                    return redirect()->route('invoices')->with('error', __('sales::lang.quotation_expired_convert_blocked', [
+                        'ref' => $transaction->ref_no,
+                        'date' => $transaction->due_date,
+                    ]));
+                }
                 $quotation = true;
             }
 
@@ -688,6 +698,19 @@ class SellController extends Controller
 
         $transactionUtil = new TransactionUtils;
         DB::beginTransaction();
+
+        if ($request->filled('quotation_id')) {
+            $sourceQuotation = Transaction::find((int) $request->quotation_id);
+            if ($sourceQuotation && $sourceQuotation->type === 'quotation' && $sourceQuotation->isQuotationExpired()) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', __('sales::lang.quotation_expired_convert_blocked', [
+                    'ref' => $sourceQuotation->ref_no,
+                    'date' => $sourceQuotation->due_date,
+                ]));
+            }
+        }
+
         $ref_no = SalesUtile::generateReferenceNumber('sell');
 
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;

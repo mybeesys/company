@@ -91,4 +91,12 @@ return [
     'ref' => 'الرقم المرجعي',
     'generate' => 'إنشاء',
     'perpetual_inventory_account' => 'الحساب المحاسبي المرتبط بالفرع',
+    'business_type' => 'نوع النشاط',
+    'business_types' => [
+        'contractors' => 'مقاولات',
+        'e-commerce' => 'تجارة إلكترونية',
+        'restaurant-cafe' => 'مطاعم ومقاهي',
+        'services' => 'خدمات',
+        'general' => 'عام',
+    ],
 ];

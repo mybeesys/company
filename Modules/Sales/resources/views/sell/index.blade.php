@@ -141,19 +141,26 @@
 
             );
 
-            const form = $('#create-invoice');
+            const form = $('#convert-to-invoice');
             const quotationSelect = $('#quotation-items');
 
             form.on('submit', function(event) {
+                if (!quotationSelect.length) {
+                    event.preventDefault();
+                    alert(@json(__('sales::lang.quotation_expired_no_convertible')));
+                    return;
+                }
+
                 const selectedQuotation = quotationSelect.val();
 
-                if (selectedQuotation) {
-                    form.attr('action',
-                        `{{ route('create-invoice') }}?quotation_id=${selectedQuotation}`);
-                } else {
+                if (!selectedQuotation) {
                     event.preventDefault();
                     alert('@lang('sales::lang.Please select a quotation')');
+                    return;
                 }
+
+                form.attr('action',
+                    `{{ route('convert-to-invoice') }}?quotation_id=${selectedQuotation}`);
             });
 
 

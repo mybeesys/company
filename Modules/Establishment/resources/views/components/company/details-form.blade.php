@@ -39,6 +39,21 @@
         </div>
 
         <div class="col-md-4 fv-row">
+            <label class="fs-6 fw-semibold mb-2">{{ __('establishment::fields.business_type') }}</label>
+            <select class="form-select form-select-solid" name="business_type" data-control="select2" data-hide-search="true">
+                @foreach ([
+                    'contractors' => __('establishment::fields.business_types.contractors'),
+                    'e-commerce' => __('establishment::fields.business_types.e-commerce'),
+                    'restaurant-cafe' => __('establishment::fields.business_types.restaurant-cafe'),
+                    'services' => __('establishment::fields.business_types.services'),
+                    'general' => __('establishment::fields.business_types.general'),
+                ] as $value => $label)
+                    <option value="{{ $value }}" @selected($company?->business_type === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-md-4 fv-row">
             <label class="fs-6 fw-semibold mb-2">{{ __('establishment::fields.ceo_name') }}</label>
             <input type="text" class="form-control form-control-solid" name="ceo_name"
                 value="{{ $company?->ceo_name }}" placeholder="{{ __('establishment::fields.ceo_name') }}" />
@@ -103,9 +118,67 @@
             <input type="text" class="form-control form-control-solid" name="tax_number"
                 value="{{ $company?->tax_number }}" placeholder="{{ __('establishment::fields.tax_number') }}" />
         </div>
+
+        <div class="col-12 fv-row">
+            <label class="fs-6 fw-semibold mb-2">{{ __('establishment::fields.description') }}</label>
+            <textarea class="form-control form-control-solid" name="description" rows="3"
+                placeholder="{{ __('establishment::fields.description') }}">{{ $company?->description }}</textarea>
+        </div>
     </div>
     </div>
 </x-form.form-card>
+
+<div class="card card-flush py-4 mt-5 company-details-surface">
+    <div class="card-header">
+        <div class="card-title">
+            <h2>{{ __('establishment::fields.logo') }}</h2>
+        </div>
+    </div>
+    <div class="card-body pt-0 text-center">
+        <style>
+            .company-logo-image-input.image-input-placeholder {
+                background-image: url('{{ asset('assets/media/svg/avatars/blank.svg') }}');
+            }
+
+            [data-bs-theme="dark"] .company-logo-image-input.image-input-placeholder {
+                background-image: url('{{ asset('assets/media/svg/avatars/blank-dark.svg') }}');
+            }
+        </style>
+
+        @php
+            $logoPath = $company?->logo;
+            if ($logoPath && function_exists('central_public_storage_url_for_path')) {
+                $logoUrl = central_public_storage_url_for_path((string) $logoPath);
+            } elseif ($logoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($logoPath)) {
+                $logoUrl = asset('storage/' . ltrim($logoPath, '/'));
+            } else {
+                $logoUrl = asset('assets/media/svg/avatars/blank.svg');
+            }
+        @endphp
+
+        <div class="image-input image-input-outline company-logo-image-input image-input-placeholder mb-3" data-kt-image-input="true">
+            <div class="image-input-wrapper w-150px h-150px" style="background-image: url('{{ $logoUrl }}')"></div>
+
+            <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                data-kt-image-input-action="change" data-bs-toggle="tooltip" title="{{ __('establishment::fields.logo') }}">
+                <i class="ki-outline ki-pencil fs-7"></i>
+                <input type="file" name="logo" accept=".png, .jpg, .jpeg" />
+                <input type="hidden" name="logo_remove" />
+            </label>
+
+            <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="{{ __('Cancel cover') }}">
+                <i class="ki-outline ki-cross fs-2"></i>
+            </span>
+
+            <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="{{ __('Remove cover') }}">
+                <i class="ki-outline ki-cross fs-2"></i>
+            </span>
+        </div>
+        <div class="text-muted fs-7">{{ __('Allowed file types: png, jpg, jpeg.') }}</div>
+    </div>
+</div>
 
 <div class="card card-flush py-4 mt-5 company-details-surface">
     <div class="card-header">
