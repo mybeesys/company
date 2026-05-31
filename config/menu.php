@@ -287,9 +287,9 @@ return [
                 'permission' => 'accounting.Accounts tree.show',
             ],
             [
-                'name' => 'accounts-routing',
-                'url' => 'accounts-routing',
-                'permission' => 'accounting.Accounts routing.show',
+                'name' => 'accounting_settings',
+                'url' => 'accounting-settings',
+                'permission' => 'accounting.all.show',
             ],
             [
                 'name' => 'journalEntry',

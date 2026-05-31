@@ -107,6 +107,7 @@ return [
     'areas' => 'Areas',
     'tables_qr' => 'Tables QR',
 
+    'accounting_settings' => 'Accounting Settings',
     'accounts-routing' => 'Accounts Routing',
 
     'menu_qr' => 'Menu QR',

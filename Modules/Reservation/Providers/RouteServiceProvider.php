@@ -25,6 +25,7 @@ class RouteServiceProvider extends ServiceProvider
     public function map(): void
     {
         $this->mapApiRoutes();
+        $this->mapRealtimeInternalRoutes();
         $this->mapWebRoutes();
     }
 
@@ -46,5 +47,15 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapApiRoutes(): void
     {
         Route::middleware('api')->prefix('api')->name('api.')->group(module_path($this->name, '/routes/api.php'));
+    }
+
+    /**
+     * Socket server internal API (tenant initialized via X-Tenant-Id, no domain tenancy).
+     */
+    protected function mapRealtimeInternalRoutes(): void
+    {
+        Route::middleware(['api', 'socket.internal'])
+            ->prefix('api')
+            ->group(module_path($this->name, '/routes/Api/realtime-internal.php'));
     }
 }

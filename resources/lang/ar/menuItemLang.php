@@ -104,6 +104,7 @@ return [
     'tables' => 'الطاولات',
     'tables_qr' => 'الطاولات QR',
 
+    'accounting_settings' => 'إعدادات المحاسبة',
     'accounts-routing' => 'توجيه الحسابات',
 
     'menu_qr' => 'القائمة QR',
