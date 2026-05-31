@@ -57,7 +57,26 @@ async function verifyBearerToken(token, tenantId) {
   if (!token) return false;
   const cleanToken = token.replace(/^Bearer\s+/i, "");
 
-  // 1) نفس تحقق REST على دومين الـ tenant (auth-central)
+  // 1) تحقق داخلي على نفس السيرفر (موصى به في الإنتاج)
+  if (tenantId && SOCKET_INTERNAL_SECRET) {
+    const base = LARAVEL_INTERNAL_URL.replace(/\/$/, "");
+    try {
+      const res = await fetch(`${base}/api/internal/realtime/verify-token`, {
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+          Accept: "application/json",
+          "X-Socket-Secret": SOCKET_INTERNAL_SECRET,
+          "X-Tenant-Id": tenantId,
+        },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) return true;
+    } catch (err) {
+      console.error("[socket] internal verify error:", err.message);
+    }
+  }
+
+  // 2) دومين الـ tenant (عبر Apache)
   if (tenantId) {
     const tenantUrl = `${tenantBaseUrl(tenantId).replace(/\/$/, "")}/api/verify-socket-token`;
     try {
@@ -69,24 +88,24 @@ async function verifyBearerToken(token, tenantId) {
         signal: AbortSignal.timeout(8000),
       });
       if (res.ok) return true;
-    } catch {
-      /* fall through */
+    } catch (err) {
+      console.error("[socket] tenant verify error:", err.message);
     }
   }
 
-  // 2) احتياطي: التطبيق المركزي (نفس APP_URL في Laravel)
-  const centralBase = LARAVEL_VERIFY_URL.replace(/\/$/, "");
-  const centralUrl = `${centralBase}/api/verify-token`;
+  // 3) احتياطي: التطبيق المركزي
+  const centralUrl = `${LARAVEL_VERIFY_URL.replace(/\/$/, "")}/api/verify-token`;
   try {
     const res = await fetch(centralUrl, {
       headers: {
         Authorization: `Bearer ${cleanToken}`,
         Accept: "application/json",
       },
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(5000),
     });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.error("[socket] central verify error:", err.message);
     return false;
   }
 }
