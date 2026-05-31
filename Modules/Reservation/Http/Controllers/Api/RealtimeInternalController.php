@@ -4,6 +4,7 @@ namespace Modules\Reservation\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\Reservation\Support\KitchenOrderPayload;
 use Modules\Reservation\Support\TableRealtimePayload;
 
 class RealtimeInternalController extends Controller
@@ -26,5 +27,19 @@ class RealtimeInternalController extends Controller
         }
 
         return response()->json($details);
+    }
+
+    public function kitchenOrders(Request $request)
+    {
+        $establishmentId = (int) $request->query('establishment_id');
+        if (! $establishmentId) {
+            return response()->json(['message' => 'establishment_id required'], 422);
+        }
+
+        $categoryIds = array_map('intval', (array) $request->query('category_ids', []));
+
+        return response()->json([
+            'data' => KitchenOrderPayload::ordersForEstablishment($establishmentId, $categoryIds),
+        ]);
     }
 }
