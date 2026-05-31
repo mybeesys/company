@@ -11,7 +11,7 @@
 | البند | القيمة |
 |--------|--------|
 | البروتوكول | Socket.IO v4 (`socket_io_client`) |
-| عنوان الاتصال | `https://{tenant_id}.my-bee.info` **بدون منفذ** |
+| عنوان الاتصال | **نفس scheme الـ REST** — `https://{tenant_id}.my-bee.info` **بدون** `:3001` وبدون `/socket.io/` في الـ URL |
 | المسار | `/socket.io/` |
 | Transports | `['websocket', 'polling']` |
 | Namespace | `/` (افتراضي) |
@@ -74,8 +74,17 @@ IO.Socket connectKitchenSocket({
 
 | الرسالة | الإجراء |
 |---------|---------|
-| `UNAUTHORIZED` / `INVALID_TOKEN` | إعادة تسجيل الدخول |
+| `timeout` | غالباً Apache لا يوجّه `/socket.io/` أو استخدم `https` إن REST على https — راجع §12 |
+| `UNAUTHORIZED` / `INVALID_TOKEN` | token منتهي أو `Bearer ` زائدة — أعد login |
 | `ESTABLISHMENT_REQUIRED` | أرسل `establishment_id` في `kitchen:join` |
+
+```dart
+// ❌ خطأ — يسبب timeout أو 404
+IO.io('http://test1.my-bee.info/socket.io/', ...);
+
+// ✅ صح
+IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...);
+```
 
 ---
 
@@ -330,5 +339,20 @@ socket.onReconnect((_) {
 - `Modules/Reservation/Services/KitchenBroadcastService.php`
 - `Modules/Reservation/Support/KitchenOrderPayload.php`
 - `Modules/Reservation/Http/Controllers/Api/OrderController.php`
+
+## 12) تشخيص timeout (من السيرفر)
+
+```bash
+curl http://127.0.0.1:3001/health
+curl -I "http://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+curl -Ik "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+```
+
+| نتيجة curl | المعنى |
+|------------|--------|
+| health OK + socket 404 | أضف ProxyPass في `laravel.conf` |
+| http timeout لكن https OK | Flutter يجب أن يستخدم **https** |
+
+---
 
 **جهة الاتصال (باك إند):** فريق MyBee Company

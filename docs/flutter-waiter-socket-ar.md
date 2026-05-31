@@ -73,7 +73,8 @@ IO.Socket connectWaiterSocket({
 | رسالة السيرفر | إجراء التطبيق |
 |---------------|----------------|
 | `UNAUTHORIZED` | لا token — إعادة company-login |
-| `INVALID_TOKEN` | token خاطئ/منتهي، أو `auth.token` فيه `Bearer ` زائدة — أرسل التوكن خاماً فقط |
+| `INVALID_TOKEN` | token منتهي، أو `Bearer ` في auth، أو السيرفر لم يسحب آخر كود — جرّب `curl` في §12 |
+| `timeout` | Apache / https — نفس §12 في `flutter-kitchen-socket-ar.md` |
 | `TENANT_REQUIRED` | أرسل `tenant_id` في `auth` أو استخدم subdomain صحيح |
 | `RATE_LIMITED` | انتظر وأعد المحاولة |
 | `MAINTENANCE` | عرض شاشة صيانة |
@@ -324,5 +325,25 @@ socket.onReconnect((_) {
 - خادم Node: `socket-server/index.js`
 - بث من Laravel: `Modules/Reservation/Services/RealtimeBroadcastService.php`
 - شكل البيانات: `Modules/Reservation/Support/TableRealtimePayload.php`
+
+## 13) تشخيص سريع (INVALID_TOKEN / timeout)
+
+```bash
+# على السيرفر
+curl http://127.0.0.1:3001/health
+pm2 logs mybee-socket --lines 30
+
+# تحقق التوكن (استبدل TOKEN)
+curl -i -H "Authorization: Bearer TOKEN" \
+  -H "X-Socket-Secret: YOUR_SECRET" \
+  -H "X-Tenant-Id: test1" \
+  "http://127.0.0.1/api/internal/realtime/verify-token"
+
+curl -I "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+```
+
+`internal verify` يجب **200**. Socket path يجب **ليس 404**.
+
+---
 
 **جهة الاتصال (باك إند):** فريق MyBee Company
