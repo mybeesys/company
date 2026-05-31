@@ -55,15 +55,35 @@ function extractTenantId(host, authTenantId) {
 
 async function verifyBearerToken(token, tenantId) {
   if (!token) return false;
-  const base = tenantId ? tenantBaseUrl(tenantId) : LARAVEL_VERIFY_URL;
-  const url = `${base.replace(/\/$/, "")}/api/verify-token`;
+  const cleanToken = token.replace(/^Bearer\s+/i, "");
+
+  // 1) نفس تحقق REST على دومين الـ tenant (auth-central)
+  if (tenantId) {
+    const tenantUrl = `${tenantBaseUrl(tenantId).replace(/\/$/, "")}/api/verify-socket-token`;
+    try {
+      const res = await fetch(tenantUrl, {
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+          Accept: "application/json",
+        },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (res.ok) return true;
+    } catch {
+      /* fall through */
+    }
+  }
+
+  // 2) احتياطي: التطبيق المركزي (نفس APP_URL في Laravel)
+  const centralBase = LARAVEL_VERIFY_URL.replace(/\/$/, "");
+  const centralUrl = `${centralBase}/api/verify-token`;
   try {
-    const res = await fetch(url, {
+    const res = await fetch(centralUrl, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${cleanToken}`,
         Accept: "application/json",
       },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(8000),
     });
     return res.ok;
   } catch {
