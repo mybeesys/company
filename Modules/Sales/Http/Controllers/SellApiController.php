@@ -17,10 +17,14 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductCombo;
+use Modules\Reservation\Services\KitchenBroadcastService;
 use Modules\Sales\Utils\SalesUtile;
 
 class SellApiController extends Controller
 {
+    public function __construct(
+        private readonly KitchenBroadcastService $kitchen
+    ) {}
     /**
      * Display a listing of the resource.
      */
@@ -217,6 +221,9 @@ class SellApiController extends Controller
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
+
+            $transaction->load(['sell_lines.product']);
+            $this->kitchen->orderCreated($transaction, 'pos');
 
             return response()->json(['message' => 'Added successfully'], 200);
         } catch (Exception $e) {

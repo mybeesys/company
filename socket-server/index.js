@@ -120,6 +120,27 @@ function resolveRooms(tenantId, establishmentId, tableId) {
   return rooms;
 }
 
+function resolveKitchenRooms(tenantId, establishmentId, categoryIds = []) {
+  const rooms = [`tenant:${tenantId}`, `kitchen:establishment:${establishmentId}`];
+  for (const c of categoryIds) {
+    rooms.push(`kitchen:establishment:${establishmentId}:category:${c}`);
+  }
+  return rooms;
+}
+
+function parseEstablishmentId(socket, body = {}) {
+  const auth = socket.handshake.auth || {};
+  const headerEst =
+    socket.handshake.headers["establishment-id"] ||
+    socket.handshake.headers["establishment_id"];
+  return Number(
+    body.establishment_id ??
+      auth.establishment_id ??
+      headerEst ??
+      socket.data.establishmentId
+  );
+}
+
 function emitToRooms(eventName, payload, rooms) {
   for (const room of rooms) {
     io.to(room).emit(eventName, payload);
@@ -141,6 +162,27 @@ async function fetchTablesSnapshot(tenantId, establishmentId) {
   if (!res.ok) throw new Error(`snapshot HTTP ${res.status}`);
   const json = await res.json();
   return json.data ?? json;
+}
+
+async function fetchKitchenOrders(tenantId, establishmentId, categoryIds = []) {
+  const base = LARAVEL_INTERNAL_URL.replace(/\/$/, "");
+  const params = new URLSearchParams();
+  params.set("establishment_id", String(establishmentId));
+  for (const c of categoryIds) {
+    params.append("category_ids[]", String(c));
+  }
+  const url = `${base}/api/internal/realtime/kitchen-orders?${params.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "X-Socket-Secret": SOCKET_INTERNAL_SECRET,
+      "X-Tenant-Id": tenantId,
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) throw new Error(`kitchen orders HTTP ${res.status}`);
+  const json = await res.json();
+  return json.data ?? json.orders ?? json;
 }
 
 async function fetchTableOrderDetails(tenantId, tableId) {
@@ -178,6 +220,27 @@ app.post("/broadcast", (req, res) => {
 
   if (!tenantId || !eventName) {
     return res.status(422).json({ message: "tenant_id and event are required" });
+  }
+
+  const isKitchen = body.kitchen === true || String(eventName).startsWith("kitchen:");
+
+  if (isKitchen) {
+    const estId = Number(establishmentId ?? payload.establishment_id);
+    if (!estId) {
+      return res.status(422).json({ message: "establishment_id required for kitchen events" });
+    }
+    const envelope = payload.event_id
+      ? payload
+      : {
+          event_id: randomUUID(),
+          schema_version: SCHEMA_VERSION,
+          ...payload,
+          event: payload.event || eventName,
+          timestamp: payload.timestamp || new Date().toISOString(),
+        };
+    const rooms = resolveKitchenRooms(tenantId, estId, body.category_ids || []);
+    emitToRooms(eventName, envelope, rooms);
+    return res.json({ ok: true, rooms, kitchen: true });
   }
 
   const rooms = resolveRooms(tenantId, establishmentId, tableId);
@@ -232,9 +295,14 @@ io.use(async (socket, next) => {
   socket.data.tenantId = tenantId;
   socket.data.employeeId = auth.employee_id ? Number(auth.employee_id) : null;
   socket.data.timecardId = auth.timecard_id ? Number(auth.timecard_id) : null;
+  const headerEst =
+    socket.handshake.headers["establishment-id"] ||
+    socket.handshake.headers["establishment_id"];
   socket.data.establishmentId = auth.establishment_id
     ? Number(auth.establishment_id)
-    : null;
+    : headerEst
+      ? Number(headerEst)
+      : null;
 
   next();
 });
@@ -313,11 +381,47 @@ io.on("connection", (socket) => {
     ack?.(pong);
   });
 
+  socket.on("kitchen:join", async (body, ack) => {
+    const estId = parseEstablishmentId(socket, body);
+    if (!estId) {
+      ack?.({ ok: false, code: "ESTABLISHMENT_REQUIRED", message: "establishment_id required" });
+      return;
+    }
+    const categoryIds = (body?.category_ids || []).map(Number).filter(Boolean);
+    socket.join(`kitchen:establishment:${estId}`);
+    for (const c of categoryIds) {
+      socket.join(`kitchen:establishment:${estId}:category:${c}`);
+    }
+    socket.data.kitchenEstablishmentId = estId;
+    try {
+      const orders = await fetchKitchenOrders(tenantId, estId, categoryIds);
+      socket.emit("kitchen:sync", {
+        event_id: randomUUID(),
+        schema_version: SCHEMA_VERSION,
+        event: "kitchen:sync",
+        timestamp: new Date().toISOString(),
+        establishment_id: estId,
+        orders,
+      });
+      ack?.({ ok: true, room: `kitchen:establishment:${estId}`, count: orders.length });
+    } catch (e) {
+      ack?.({ ok: true, room: `kitchen:establishment:${estId}`, sync: false, error: e.message });
+    }
+  });
+
+  socket.on("kitchen:leave", (body, ack) => {
+    const estId = parseEstablishmentId(socket, body) || socket.data.kitchenEstablishmentId;
+    if (estId) {
+      socket.leave(`kitchen:establishment:${estId}`);
+    }
+    ack?.({ ok: true });
+  });
+
   socket.on("disconnect", () => {
     // rooms cleaned automatically
   });
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`MyBee Socket.IO listening on :${PORT} (schema v${SCHEMA_VERSION})`);
+  console.log(`MyBee Socket.IO listening on :${PORT} (schema v${SCHEMA_VERSION}, waiter + kitchen)`);
 });

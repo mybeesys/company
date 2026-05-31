@@ -21,12 +21,15 @@ use Modules\Reservation\Models\OrderTableItems;
 use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
+use Modules\Reservation\Services\KitchenBroadcastService;
 use Modules\Reservation\Services\RealtimeBroadcastService;
+use Modules\Reservation\Support\KitchenOrderPayload;
 
 class OrderController extends Controller
 {
     public function __construct(
-        private readonly RealtimeBroadcastService $realtime
+        private readonly RealtimeBroadcastService $realtime,
+        private readonly KitchenBroadcastService $kitchen
     ) {}
     public function storeApi(Request $request)
     {
@@ -147,6 +150,8 @@ class OrderController extends Controller
 
             if ($wasCreated) {
                 $this->realtime->orderCreated($transaction, (int) $userId);
+                $transaction->load(['sell_lines.product']);
+                $this->kitchen->orderCreated($transaction, 'local');
             } elseif ($this->isTerminalOrderStatus($transaction->order_status)) {
                 $this->finalizeTableOrderIfTerminal($transaction);
                 $table->refresh();
@@ -157,6 +162,8 @@ class OrderController extends Controller
             } else {
                 $this->realtime->tableUpdated($table);
                 $this->realtime->orderUpdated($table->id);
+                $transaction->load(['sell_lines.product']);
+                $this->kitchen->orderUpdated($transaction, 'local');
             }
 
             return response()->json([
@@ -204,6 +211,9 @@ class OrderController extends Controller
             if ($table) {
                 $table->refresh();
                 $this->realtime->orderFinished($order);
+            }
+            if ($establishmentId = KitchenOrderPayload::establishmentIdFromOrder($order)) {
+                $this->kitchen->orderRemoved($order->id, $establishmentId, 'cancelled');
             }
 
             return response()->json(['message' => 'Order canceled successfully'], 200);
@@ -456,9 +466,12 @@ class OrderController extends Controller
 
         if ($this->isTerminalOrderStatus($order->order_status)) {
             $this->realtime->orderFinished($order);
+            $this->kitchen->orderUpdated($order, 'local');
         } else {
             $this->realtime->orderStatusChanged($order);
             $this->realtime->orderUpdated($order->table_id);
+            $order->load(['sell_lines.product']);
+            $this->kitchen->orderUpdated($order, 'local');
         }
 
         return response()->json([
@@ -605,106 +618,16 @@ class OrderController extends Controller
     // }
     public function getFilteredOrdersByCategory(Request $request)
     {
-        $category_ids = $request->input('category_ids', []);
-        $establishment_id = $request->input('establishment_id');
+        $category_ids = array_map('intval', (array) $request->input('category_ids', []));
+        $establishment_id = (int) $request->input('establishment_id');
 
         if (! $establishment_id || ! Establishment::find($establishment_id)) {
             return response()->json(['message' => 'Establishment not found'], 404);
         }
 
-        $tableOrders = TableOrders::where('establishment_id', $establishment_id)
-
-            ->where('order_status', 'inpreparation')
-            ->when(! empty($category_ids), function ($query) use ($category_ids) {
-                return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
-                    $q->whereIn('category_id', $category_ids);
-                });
-            })
-            ->with(['sell_lines.product', 'createdBy'])
-            ->get();
-
-        $posTransactions = Transaction::where('establishment_id', $establishment_id)
-            ->where('type', 'sell')
-            ->where('order_status', 'inpreparation')
-            ->when(! empty($category_ids), function ($query) use ($category_ids) {
-                return $query->whereHas('sell_lines.product', function ($q) use ($category_ids) {
-                    $q->whereIn('category_id', $category_ids);
-                });
-            })
-            ->with(['sell_lines.product', 'createdBy'])
-            ->get();
-
-        $allOrders = $tableOrders->concat($posTransactions);
-
-        $formattedOrders = $allOrders->map(function ($order) use ($category_ids) {
-
-            $reservation = null;
-            if (isset($order->table_id)) {
-                $reservation = Reservation::where('table_id', $order->table_id)
-                    ->where('status', 'active')
-                    ->first();
-            }
-
-            $allLines = $order->sell_lines;
-
-            $filteredLines = $allLines->filter(function ($line) use ($category_ids) {
-                if (empty($category_ids)) {
-                    return true;
-                }
-
-                return $line->product && in_array($line->product->category_id, $category_ids);
-            });
-
-            if (! empty($category_ids) && $filteredLines->isEmpty()) {
-                return null;
-            }
-
-            $serviceName = 'محلي';
-            if (! isset($order->table_id)) {
-                $serviceName = 'سفري';
-            } else {
-                $service = TypesOfService::find($order->order_type);
-                $serviceName = $service->name_ar ?? 'محلي';
-            }
-
-            return [
-                'id' => $order->id,
-                'table_id' => $order->table_id,
-                'created_by' => $order->created_by,
-                'order_type' => $serviceName,
-                'order_status' => $order->order_status,
-                'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
-                'customer_name' => $reservation->customer_name ?? ($order->contact->name ?? 'Guest'),
-                'customer_phone' => $reservation->customer_phone ?? ($order->contact->mobile ?? ''),
-                'guests_count' => $reservation->guests_count ?? 0,
-                'discount_type' => $order->discount_type,
-                'discount_value' => (float) $order->discount_amount,
-                'total_before_discount' => (float) $order->total_before_tax,
-                'total_after_discount' => (float) $order->total_after_discount,
-                'total_tax' => (float) $order->tax_amount,
-                'total_paid' => (float) $order->final_total,
-                'note' => $order->description,
-                'items' => $filteredLines->map(function ($mainItem) {
-                    return [
-                        'id' => $mainItem->id,
-                        'order_id' => $mainItem->transaction_id,
-                        'product_id' => $mainItem->product_id,
-                        'product_name' => $mainItem->product->name_ar ?? '',
-                        'category_id' => $mainItem->product->category_id,
-                        'quantity' => (float) $mainItem->qyt,
-                        'price' => (float) $mainItem->unit_price,
-                        'price_with_tax' => (float) $mainItem->unit_price_inc_tax,
-                        'tax_id' => $mainItem->tax_id,
-                        'tax_value' => (float) $mainItem->tax_value,
-                        'discount_type' => $mainItem->discount_type,
-                        'discount_amount' => (float) $mainItem->discount_amount,
-                        'status' => $mainItem->line_status ?? 'inpreparation',
-                    ];
-                })->values(),
-            ];
-        })->filter()->values();
-
-        return response()->json($formattedOrders);
+        return response()->json(
+            KitchenOrderPayload::ordersForEstablishment($establishment_id, $category_ids)
+        );
     }
 
     public function updateItemStatus(Request $request)
@@ -747,12 +670,17 @@ class OrderController extends Controller
             }
         }
 
-        if ($order && $orderType === 'local' && $order->table_id) {
+        if ($order) {
             $order->refresh();
-            if ($allOrderPrepared) {
-                $this->realtime->orderStatusChanged($order);
+            $order->load(['sell_lines.product']);
+            $this->kitchen->itemStatusChanged($order, (int) $item->id, $item->line_status ?? 'prepared', $orderType);
+
+            if ($orderType === 'local' && $order->table_id) {
+                if ($allOrderPrepared) {
+                    $this->realtime->orderStatusChanged($order);
+                }
+                $this->realtime->orderUpdated($order->table_id);
             }
-            $this->realtime->orderUpdated($order->table_id);
         }
 
         return response()->json([
