@@ -143,8 +143,17 @@ class OrderController extends Controller
 
             DB::commit();
             $table->refresh();
+            $transaction->refresh();
+
             if ($wasCreated) {
                 $this->realtime->orderCreated($transaction, (int) $userId);
+            } elseif ($this->isTerminalOrderStatus($transaction->order_status)) {
+                $this->finalizeTableOrderIfTerminal($transaction);
+                $table->refresh();
+                $this->realtime->orderFinished($transaction);
+            } elseif ($isNewRequestPaid) {
+                $this->realtime->tableUpdated($table);
+                $this->realtime->orderUpdated($table->id);
             } else {
                 $this->realtime->tableUpdated($table);
                 $this->realtime->orderUpdated($table->id);
@@ -194,8 +203,7 @@ class OrderController extends Controller
 
             if ($table) {
                 $table->refresh();
-                $this->realtime->tableUpdated($table);
-                $this->realtime->orderUpdated($table->id);
+                $this->realtime->orderFinished($order);
             }
 
             return response()->json(['message' => 'Order canceled successfully'], 200);
@@ -433,16 +441,56 @@ class OrderController extends Controller
                 'message' => 'no order with given id',
             ], 409);
         }
+
+        $newStatus = $request->input('status') ?? $request->input('order_status');
+        if (empty($newStatus)) {
+            return response()->json(['message' => 'status or order_status is required'], 422);
+        }
+
         $order->update([
-            'order_status' => $request->status,
+            'order_status' => $newStatus,
         ]);
         $order->refresh();
-        $this->realtime->orderStatusChanged($order);
-        $this->realtime->orderUpdated($order->table_id);
+
+        $this->finalizeTableOrderIfTerminal($order);
+
+        if ($this->isTerminalOrderStatus($order->order_status)) {
+            $this->realtime->orderFinished($order);
+        } else {
+            $this->realtime->orderStatusChanged($order);
+            $this->realtime->orderUpdated($order->table_id);
+        }
 
         return response()->json([
             'message' => $order,
         ], 200);
+    }
+
+    private function isTerminalOrderStatus(?string $status): bool
+    {
+        return in_array($status, ['served', 'canceled', 'completed'], true);
+    }
+
+    private function finalizeTableOrderIfTerminal(TableOrders $order): void
+    {
+        if (! $this->isTerminalOrderStatus($order->order_status)) {
+            return;
+        }
+
+        $table = Table::find($order->table_id);
+        if (! $table) {
+            return;
+        }
+
+        $table->update([
+            'table_status' => 0,
+            'assigned_waiter_id' => null,
+        ]);
+
+        $reservationStatus = $order->order_status === 'canceled' ? 'canceled' : 'completed';
+        Reservation::where('table_id', $order->table_id)
+            ->where('status', 'active')
+            ->update(['status' => $reservationStatus]);
     }
 
     public function typesOfService()

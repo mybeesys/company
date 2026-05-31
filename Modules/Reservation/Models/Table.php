@@ -35,7 +35,7 @@ class Table extends Model
     public function activeOrder()
     {
         return $this->hasOne(TableOrders::class, 'table_id')
-            ->where('order_status', '<>', 'canceled')
+            ->whereNotIn('order_status', ['canceled', 'served', 'completed'])
             ->latest();
     }
 
