@@ -73,6 +73,15 @@ class RealtimeBroadcastService
     }
 
     /**
+     * طلب منتهٍ (served / canceled / paid+إغلاق) — تحديث شبكة الطاولات + تفاصيل الطاولة.
+     */
+    public function orderFinished(TableOrders $order): void
+    {
+        $this->orderStatusChanged($order);
+        $this->orderUpdated($order->table_id);
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      */
     private function send(string $event, array $payload, ?int $establishmentId = null, ?int $tableId = null): void
