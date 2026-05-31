@@ -11,8 +11,9 @@
 | البند | القيمة |
 |--------|--------|
 | البروتوكول | Socket.IO v4 (`socket_io_client` ^2.x مع Engine.IO v4) |
-| عنوان الاتصال | `https://{tenant_id}.my-bee.info` (نفس دومين الـ REST) |
+| عنوان الاتصال | `https://{tenant_id}.my-bee.info` **بدون منفذ** (انظر §7.1) |
 | المسار | `/socket.io/` |
+| ⚠️ لا تستخدم `:0` أو `:3001` في الإنتاج إن وُجد Nginx proxy |
 | Transports | `['websocket', 'polling']` |
 | المصادقة | `auth` في handshake (انظر §3) |
 | REST | يبقى للتحميل الأول؛ Socket للتحديثات اللاحقة |
@@ -72,7 +73,7 @@ IO.Socket connectWaiterSocket({
 | رسالة السيرفر | إجراء التطبيق |
 |---------------|----------------|
 | `UNAUTHORIZED` | لا token — إعادة company-login |
-| `INVALID_TOKEN` | token منتهي/خاطئ — إعادة تسجيل الدخول |
+| `INVALID_TOKEN` | token خاطئ/منتهي، أو `auth.token` فيه `Bearer ` زائدة — أرسل التوكن خاماً فقط |
 | `TENANT_REQUIRED` | أرسل `tenant_id` في `auth` أو استخدم subdomain صحيح |
 | `RATE_LIMITED` | انتظر وأعد المحاولة |
 | `MAINTENANCE` | عرض شاشة صيانة |
@@ -237,14 +238,34 @@ bool isDuplicate(Map payload) {
 
 ## 7. إعدادات البيئة (AppConfig)
 
+### 7.1 بناء الـ URL (مهم — سبب خطأ `:0`)
+
+السوكت على السيرفر يعمل على **3001 داخلياً**، لكن تطبيق Flutter يتصل عبر **نفس دومين الـ API** على 443/80 بعد Nginx.
+
 ```dart
-class SocketConfig {
-  static String urlForTenant(String tenantId, {bool prod = true}) {
-    final scheme = prod ? 'https' : 'http';
-    return '$scheme://$tenantId.my-bee.info';
-  }
+/// إنتاج: بدون منفذ أبداً
+String socketUrl(String tenantId, {bool useHttps = true}) {
+  final scheme = useHttps ? 'https' : 'http';
+  return '$scheme://$tenantId.my-bee.info';
 }
+
+// ❌ خطأ — يسبب: test1.my-bee.info:0
+// '$host:${socketPort}'  عندما socketPort = 0 أو null
+
+// ❌ خطأ في الإنتاج (إلا للتجربة المباشرة على IP)
+// 'https://test1.my-bee.info:3001'
 ```
+
+| البيئة | URL للاتصال |
+|--------|-------------|
+| إنتاج (مع Nginx) | `https://test1.my-bee.info` |
+| تجربة مباشرة على Node | `http://IP_SERVER:3001` فقط للاختبار |
+
+### 7.2 Nginx (الباك / DevOps)
+
+بدون توجيه `/socket.io/` → Laravel يرجع **404** (هذا ما يظهر في Flutter).
+
+راجع: `docs/nginx-socket-proxy.example.conf`
 
 **Android:** للتطوير على `http` فعّل cleartext في `networkSecurityConfig`.
 

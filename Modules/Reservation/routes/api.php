@@ -22,4 +22,9 @@ Route::middleware([
 ])->group(function () {
 
     require __DIR__.'/Api/order.php';
+
+    // تحقق توكن Socket — نفس auth-central المستخدم في REST
+    Route::middleware(['auth-central'])->get('/verify-socket-token', function () {
+        return response()->json(['ok' => true]);
+    });
 });
