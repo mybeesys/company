@@ -1964,18 +1964,25 @@ class SalesReportController extends Controller
     public function getProfitLoss(Request $request)
     {
         $transactionUtile = new TransactionUtile;
+        $dates = TransactionUtile::parseDateRangeFromRequest($request);
+        $establishmentIds = collect($request->input('branch_id'))->filter()->values()->all();
+
+        $data = $transactionUtile->getProfitLossDetails(
+            $dates['start'],
+            $dates['end'],
+            $establishmentIds ?: null
+        );
+
+        $defaultDateRange = TransactionUtile::defaultDateRange();
+        $defaultDateRangeLabel = $dates['start'] && $dates['end']
+            ? $dates['start'].(app()->getLocale() === 'ar' ? ' إلى ' : ' to ').$dates['end']
+            : null;
 
         if ($request->ajax()) {
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-
-            $data = $transactionUtile->getProfitLossDetails($start_date, $end_date);
-
             return view('report::profit_loss_details', compact('data'))->render();
         }
-        $data = $transactionUtile->getProfitLossDetails();
 
-        return view('report::profit_loss', compact('data'));
+        return view('report::profit_loss', compact('data', 'defaultDateRange', 'defaultDateRangeLabel'));
     }
 
     public function getPurchaseSell(Request $request)
@@ -2057,8 +2064,12 @@ class SalesReportController extends Controller
         return view('report::sales.purchase_sell');
     }
 
-    public function getProfit($by = null)
+    public function getProfit(Request $request, $by = null)
     {
+        $transactionUtile = new TransactionUtile;
+        $dates = TransactionUtile::parseDateRangeFromRequest($request);
+        $establishmentIds = collect($request->input('branch_id'))->filter()->values()->all();
+
         $query = TransactionSellLine::join('transactions as sale', 'transaction_sell_lines.transaction_id', '=', 'sale.id')
             ->leftJoin('transactione_purchases_lines as TPL', function ($join) {
                 $join->on('transaction_sell_lines.transaction_id', '=', 'TPL.transaction_id')
@@ -2066,11 +2077,24 @@ class SalesReportController extends Controller
             })
             ->join('product_products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
             ->where('sale.type', 'sell')
-            ->where('sale.status', 'approved');
+            ->where('sale.status', 'approved')
+            ->where(function ($q) {
+                $q->whereNull('transaction_sell_lines.is_show')
+                    ->orWhere('transaction_sell_lines.is_show', '1')
+                    ->orWhere('transaction_sell_lines.is_show', 1);
+            });
+
+        $transactionUtile->applySaleTransactionFilters(
+            $query,
+            $dates['start'],
+            $dates['end'],
+            $establishmentIds ?: null
+        );
+
         $query->addSelect(DB::raw('
             SUM(
-                (transaction_sell_lines.qyt - COALESCE(TPL.qyt, 0)) *
-                (transaction_sell_lines.unit_price_inc_tax - COALESCE(TPL.unit_price_inc_tax, 0))
+                (CAST(transaction_sell_lines.qyt AS DECIMAL(16,4)) - COALESCE(CAST(TPL.qyt AS DECIMAL(16,4)), 0)) *
+                (CAST(transaction_sell_lines.unit_price_inc_tax AS DECIMAL(16,4)) - COALESCE(CAST(TPL.unit_price_inc_tax AS DECIMAL(16,4)), CAST(P.cost AS DECIMAL(16,4)), 0))
             ) AS gross_profit
         '));
 
@@ -2149,8 +2173,8 @@ class SalesReportController extends Controller
         if (in_array($by, ['invoice'])) {
             $datatable->editColumn('gross_profit', function ($row) {
                 $discount = $row->discount_amount;
-                if ($row->discount_type == 'percent') {
-                    $discount = ($row->discount_amount * $row->total_before_vat) / 100;
+                if ($row->discount_type == 'percent' || $row->discount_type == 'percentage') {
+                    $discount = ($row->discount_amount * $row->total_before_tax) / 100;
                 }
 
                 return $profit = $row->gross_profit - $discount;

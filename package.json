@@ -3,7 +3,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "socket": "node socket-server/index.js",
+    "socket:install": "npm install --prefix socket-server"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

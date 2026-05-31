@@ -17,21 +17,35 @@ class AccountsRoutingController extends Controller
      */
     public function index()
     {
-
-        $accounts = AccountingAccount::forDropdown();
-        if (count($accounts) == 0) {
+        if (count(AccountingAccount::forDropdown()) === 0) {
             return redirect()->route('tree-of-accounts')->with('error', __('accounting::lang.no_accounts'));
         }
+
+        return redirect()->route('accounting-settings', ['tab' => 'accounts-routing']);
+    }
+
+    /**
+     * Data required for accounts routing settings (standalone or embedded tab).
+     *
+     * @return array{accounts: mixed, accountsRoting: mixed, options: array<string, string>, isPeriodicInventoryPolicy: bool, defaultDiscountAccountId: int|string|null, hasAccounts: bool}
+     */
+    public static function routingSettingsData(): array
+    {
+        $accounts = AccountingAccount::forDropdown();
         $defaultDiscountAccountId = AccountingAccount::where('gl_code', '523')->value('id');
         $options = [
             'auto_assign' => 'تعيين تلقائي',
             'no_routing' => 'بلا توجيه',
-            // 'assign_to_each' => 'تعيين لكل منها',
         ];
-        $accountsRoting = AccountsRoting::all();
-        $isPeriodicInventoryPolicy = Setting::isPeriodicInventory();
 
-        return view('accounting::AccountsRouting.index', compact('accounts', 'accountsRoting', 'options', 'isPeriodicInventoryPolicy', 'defaultDiscountAccountId'));
+        return [
+            'accounts' => $accounts,
+            'accountsRoting' => AccountsRoting::all(),
+            'options' => $options,
+            'isPeriodicInventoryPolicy' => Setting::isPeriodicInventory(),
+            'defaultDiscountAccountId' => $defaultDiscountAccountId,
+            'hasAccounts' => count($accounts) > 0,
+        ];
     }
 
     /**

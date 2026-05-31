@@ -3,11 +3,11 @@
     <p class="text-muted py-2">
         @lang('report::general.profit_note')
     </p>
-    <table class="table align-middle table-striped table-row-bordered fs-6 gy-5" id="profit_by_products_table">
+    <table class="table align-middle table-striped table-row-bordered fs-6 gy-5 pl-datatable w-100" id="profit_by_products_table">
         <thead>
             <tr>
-                <th class="min-w-10px p-3 align-middle no-border" style="text-align: inherit;">@lang('sales::lang.product')</th>
-                <th class="min-w-10px p-3 align-middle no-border" style="text-align: inherit;">@lang('report::general.gross_profit')</th>
+                <th class="min-w-200px">@lang('sales::lang.product')</th>
+                <th class="min-w-120px text-end">@lang('report::general.gross_profit')</th>
             </tr>
         </thead>
         <tfoot>

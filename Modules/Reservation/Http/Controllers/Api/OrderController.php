@@ -21,9 +21,13 @@ use Modules\Reservation\Models\OrderTableItems;
 use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
+use Modules\Reservation\Services\RealtimeBroadcastService;
 
 class OrderController extends Controller
 {
+    public function __construct(
+        private readonly RealtimeBroadcastService $realtime
+    ) {}
     public function storeApi(Request $request)
     {
         try {
@@ -74,6 +78,7 @@ class OrderController extends Controller
             }
 
             $transaction = null;
+            $wasCreated = false;
 
             // --- تنفيذ عملية التخزين (Update or Create) ---
             if (isset($request->order_id) && $existingOrder) {
@@ -133,10 +138,17 @@ class OrderController extends Controller
                 ]);
 
                 $this->saveOrderItems($transaction, $request->items);
+                $wasCreated = true;
             }
 
             DB::commit();
-            $this->broadcastTableUpdate($table, $transaction);
+            $table->refresh();
+            if ($wasCreated) {
+                $this->realtime->orderCreated($transaction, (int) $userId);
+            } else {
+                $this->realtime->tableUpdated($table);
+                $this->realtime->orderUpdated($table->id);
+            }
 
             return response()->json([
                 'status' => true,
@@ -179,6 +191,12 @@ class OrderController extends Controller
                 ->update(['status' => 'canceled']);
 
             DB::commit();
+
+            if ($table) {
+                $table->refresh();
+                $this->realtime->tableUpdated($table);
+                $this->realtime->orderUpdated($table->id);
+            }
 
             return response()->json(['message' => 'Order canceled successfully'], 200);
         } catch (Exception $e) {
@@ -253,24 +271,6 @@ class OrderController extends Controller
         }
 
         return $prefix.str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
-    }
-
-    private function broadcastTableUpdate($table, $transaction)
-    {
-        try {
-            $tenantId = (string) tenancy()->tenant->id;
-            \Illuminate\Support\Facades\Http::timeout(2)->post('http://127.0.0.1:3001/broadcast', [
-                'tenant_id' => $tenantId,
-                'event' => 'TableUpdated',
-                'data' => [
-                    'table_id' => $table->id,
-                    'table_code' => $table->code,
-                    'transaction_ref_no' => $transaction->ref_no,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Socket Error: '.$e->getMessage());
-        }
     }
 
     public function establishmentOrders(Request $request, $id)
@@ -436,6 +436,9 @@ class OrderController extends Controller
         $order->update([
             'order_status' => $request->status,
         ]);
+        $order->refresh();
+        $this->realtime->orderStatusChanged($order);
+        $this->realtime->orderUpdated($order->table_id);
 
         return response()->json([
             'message' => $order,
@@ -696,39 +699,12 @@ class OrderController extends Controller
             }
         }
 
-        try {
-            $tenantId = (string) tenancy()->tenant->id;
-            $broadcastUrl = 'http://127.0.0.1:3001/broadcast';
-
-            \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
-                'tenant_id' => $tenantId,
-                'event' => 'ItemStatusUpdated',
-                'data' => [
-                    'item_id' => $item->id,
-                    'order_id' => $item->transaction_id,
-                    'order_type' => $orderType,
-                    'status' => $item->line_status,
-                    'product_name' => $item->product->name_ar ?? '',
-                    'updated_at' => now()->toDateTimeString(),
-                ],
-            ]);
-
+        if ($order && $orderType === 'local' && $order->table_id) {
+            $order->refresh();
             if ($allOrderPrepared) {
-                \Illuminate\Support\Facades\Http::timeout(2)->post($broadcastUrl, [
-                    'tenant_id' => $tenantId,
-                    'event' => 'OrderIsPrepared',
-                    'data' => [
-                        'order_id' => $order->id,
-                        'order_type' => $orderType,
-                        'table_id' => $order->table_id ?? null,
-                        'ref_no' => $order->ref_no ?? $order->invoice_no,
-                        'message' => 'الطلب رقم '.($order->ref_no ?? $order->invoice_no).' جاهز بالكامل',
-                        'status' => 'prepared',
-                    ],
-                ]);
+                $this->realtime->orderStatusChanged($order);
             }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Socket Error: '.$e->getMessage());
+            $this->realtime->orderUpdated($order->table_id);
         }
 
         return response()->json([

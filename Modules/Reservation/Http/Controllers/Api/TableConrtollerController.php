@@ -5,15 +5,18 @@ namespace Modules\Reservation\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Modules\Product\Models\TypesOfService;
 use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
+use Modules\Reservation\Services\RealtimeBroadcastService;
 use Modules\Reservation\Transformers\TableResource;
 
 class TableConrtollerController extends Controller
 {
+    public function __construct(
+        private readonly RealtimeBroadcastService $realtime
+    ) {}
     public function index()
     {
         $tables = Table::with('area')->get();
@@ -229,7 +232,8 @@ class TableConrtollerController extends Controller
             $table->table_status = $request->status;
             $table->save();
             DB::commit();
-            $this->broadcastTableUpdate($table);
+            $table->load(['area', 'activeOrder', 'reservation']);
+            $this->realtime->tableUpdated($table);
 
             return response()->json([
                 'status' => true,
@@ -247,20 +251,4 @@ class TableConrtollerController extends Controller
         }
     }
 
-    private function broadcastTableUpdate($table)
-    {
-        try {
-            $tenantId = (string) tenancy()->tenant->id;
-            \Illuminate\Support\Facades\Http::timeout(1)->post('http://127.0.0.1:3001/broadcast', [
-                'tenant_id' => $tenantId,
-                'event' => 'TableUpdated',
-                'data' => [
-                    'table_id' => $table->id,
-                    'status' => $table->table_status,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Socket Error: '.$e->getMessage());
-        }
-    }
 }

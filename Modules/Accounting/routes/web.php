@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Accounting\Http\Controllers\AccountingDashboardController;
 use Modules\Accounting\Http\Controllers\AccountingStagingResetController;
 use Modules\Accounting\Http\Controllers\AccountingReportsController;
+use Modules\Accounting\Http\Controllers\AccountingSettingsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
@@ -51,6 +52,8 @@ Route::middleware([
         Route::get('next-gl-code', [TreeAccountsController::class, 'nextGlCode'])->name('next-gl-code');
         Route::post('delete-account', [TreeAccountsController::class, 'deleteAccount'])->name('delete-account');
         Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
+
+        Route::get('accounting-settings', [AccountingSettingsController::class, 'index'])->name('accounting-settings');
 
         Route::get('accounts-routing', [AccountsRoutingController::class, 'index'])->name('accounts-routing');
         Route::post('accounts-routing-store', [AccountsRoutingController::class, 'store'])->name('accounts-routing-store');

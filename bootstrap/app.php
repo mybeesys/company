@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CentralAppAuthenticate;
+use App\Http\Middleware\VerifySocketInternalSecret;
 use App\Http\Middleware\CleanJsonNoiseMiddleware;
 use App\Http\Middleware\EnsureHasSubscription;
 use App\Http\Middleware\LocalizationMiddleware;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auth-central' => CentralAppAuthenticate::class,
+            'socket.internal' => VerifySocketInternalSecret::class,
         ]);
         $middleware->web(append: [
             LocalizationMiddleware::class,
