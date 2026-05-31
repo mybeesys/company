@@ -2,7 +2,12 @@
  * MyBee Waiter — Socket.IO server (Engine.IO v4)
  * Spec: SOCKET_IO_BACKEND_SPEC.md
  */
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+loadEnv({ path: resolve(__dirname, ".env") });
 import { createServer } from "http";
 import { randomUUID } from "crypto";
 import cors from "cors";
