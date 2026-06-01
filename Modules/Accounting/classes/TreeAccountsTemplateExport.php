@@ -37,7 +37,7 @@ class TreeAccountsTemplateExport implements FromArray, WithHeadings, WithTitle
                 'active',
             ],
             [
-                '11101',
+                '1101',
                 'النقدية بالصندوق',
                 'Cash on hand',
                 'asset',

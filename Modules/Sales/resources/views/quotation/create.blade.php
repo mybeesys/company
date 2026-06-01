@@ -306,17 +306,21 @@
         $('#Delegates').select2({
             width: 'resolve'
         });
-        $('#invoice_type').select2({
-            width: 'resolve'
-        });
+        if ($('#invoice_type').length) {
+            $('#invoice_type').select2({
+                width: 'resolve'
+            });
+        }
         $('#account_id').select2();
 
         $('#payment_type').select2({
             width: 'resolve'
         });
-        $('#cash_account').select2({
-            width: 'resolve'
-        });
+        if ($('#cash_account').length) {
+            $('#cash_account').select2({
+                width: 'resolve'
+            });
+        }
 
         $('#client_id').select2({
             width: 'resolve'
@@ -1026,36 +1030,30 @@ $.ajax({
             });
 
 
-            $("#invoice_type").change(function() {
-                if ($(this).val() === "due") {
-                    // $(".pay-pament_on").hide();
-                    // $(".pay-payment_type").hide();
-                    // $(".pay-paid_amount").hide();
-                    // $(".pay-additionalNotes").hide();
-                    $('#nots_tab').tab('show');
+            if ($('#invoice_type').length) {
+                $("#invoice_type").change(function() {
+                    if ($(this).val() === "due") {
+                        $('#nots_tab').tab('show');
 
-                    $("#li-payment_info").show();
-                    $("#paid_amount").val(0);
+                        $("#li-payment_info").show();
+                        $("#paid_amount").val(0);
 
-                    $("#div-cash_account").hide();
+                        $("#div-cash_account").hide();
 
-                    $("#card").hide();
-                    $("#bank_check").hide();
-                    $("#bank_transfer").hide();
+                        $("#card").hide();
+                        $("#bank_check").hide();
+                        $("#bank_transfer").hide();
 
-                } else {
-                    // $(".pay-pament_on").show();
-                    // $(".pay-payment_type").show();
-                    // $(".pay-paid_amount").show();
-                    // $(".pay-additionalNotes").show();
-                    $('#nots_tab').tab('show');
+                    } else {
+                        $('#nots_tab').tab('show');
 
-                    $("#li-payment_info").hide();
-                    $("#div-cash_account").show();
+                        $("#li-payment_info").hide();
+                        $("#div-cash_account").show();
 
-                }
+                    }
 
-            });
+                });
+            }
 
 
             document.getElementById('kt_modal_upload_attachments').addEventListener('click', function() {

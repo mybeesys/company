@@ -108,6 +108,14 @@
                 <a href="{{ route('tree-of-accounts-import') }}" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
                     @lang('accounting::lang.import_tree_of_accounts')
                 </a>
+                <form method="POST" action="{{ route('tree-of-accounts-repair-gl-codes') }}" class="d-inline"
+                    onsubmit="return confirm(@json(__('accounting::lang.repair_gl_codes_confirm')));">
+                    @csrf
+                    <button type="submit" class="btn btn-flex btn-light-primary h-40px fs-7 fw-bold">
+                        <i class="ki-outline ki-wrench fs-4 me-1"></i>
+                        @lang('accounting::lang.repair_gl_codes_button')
+                    </button>
+                </form>
                 @if (\Modules\Accounting\Utils\AccountingFullResetService::isAllowed())
                     <form method="POST" action="{{ route('accounting.staging-full-reset') }}" class="d-inline"
                         onsubmit="return confirm(@json(__('accounting::lang.staging_full_reset_confirm')));">

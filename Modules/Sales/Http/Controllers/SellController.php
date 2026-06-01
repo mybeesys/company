@@ -586,6 +586,7 @@ class SellController extends Controller
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
         $quotation = false;
+        $isQuotationForm = false;
         $isDuplicate = false;
         $transaction = null;
 
@@ -634,7 +635,7 @@ class SellController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
-        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate'));
+        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate'));
     }
 
     private function buildSalesInvoicePrecheckConfig(): array
@@ -654,7 +655,7 @@ class SellController extends Controller
         }
         if (Setting::isPerpetualInventory()) {
             $inventoryAccountId = AccountingAccount::query()
-                ->where('gl_code', '11105')
+                ->where('gl_code', '1105')
                 ->orWhere('account_category', 'inventory')
                 ->value('id');
             $cogsAccountId = AccountingAccount::query()

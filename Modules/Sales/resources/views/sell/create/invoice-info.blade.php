@@ -1,6 +1,9 @@
 <div class="card" data-section="contact" style="border: 0;box-shadow: none">
     <div class="container">
-        <div class="d- align-items-center mb-5" @if ($quotation) style="display: none;" @endif>
+        @if ($isQuotationForm ?? false)
+            <input type="hidden" name="invoice_type" value="">
+        @else
+        <div class="d-flex align-items-center mb-5" id="div-invoice_type">
             {{-- <span class=" mt-2" data-bs-toggle="tooltip" title="@lang('accounting::lang.ref_number_note')">
                 <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.invoice_no')
 
@@ -20,6 +23,7 @@
             </select>
 
         </div>
+        @endif
 
         {{-- <div class="d-flex align-items-center mb-5">
             <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.issue_date')</label>

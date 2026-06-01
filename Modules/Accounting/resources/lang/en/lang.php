@@ -3,6 +3,9 @@
 return [
     'tree_of_accounts' => 'Tree of accounts',
     'import_tree_of_accounts' => 'Import tree of accounts',
+    'repair_gl_codes_button' => 'Repair GL codes',
+    'repair_gl_codes_confirm' => 'Stored GL codes will be renumbered (e.g. 1 → 11 → 1101, 1102). Continue?',
+    'repair_gl_codes_success' => 'GL codes repaired: :sub_types sub-type(s), :accounts account(s).',
     'import_tree_accounts_duplicate_gl_code' => 'Duplicate GL codes found in file: :codes',
     'import_tree_accounts_gl_code_exists' => 'Some GL codes already exist: :codes',
     'import_tree_accounts_parent_not_found' => 'Parent GL code not found for :gl_code (parent: :parent_gl_code)',

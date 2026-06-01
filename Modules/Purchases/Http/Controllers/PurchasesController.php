@@ -498,7 +498,7 @@ class PurchasesController extends Controller
         }
         if (Setting::isPerpetualInventory()) {
             $inventoryAccountId = AccountingAccount::query()
-                ->where('gl_code', '11105')
+                ->where('gl_code', '1105')
                 ->orWhere('account_category', 'inventory')
                 ->value('id');
             if (! $inventoryAccountId && ! $purchasesAccountId) {

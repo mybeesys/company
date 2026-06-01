@@ -975,41 +975,41 @@ $.ajax({
 
             });
 
-            $('#cash_account').attr('required', 'required');
+            if ($('#invoice_type').length) {
+                $("#invoice_type").change(function() {
+                    if ($(this).val() === "due") {
 
-            $("#invoice_type").change(function() {
-                if ($(this).val() === "due") {
+                        $("#li-payment_info").show();
+                        $("#tab-content-payment_info").show();
+                        $("#paid_amount").val(0);
 
-                    $("#li-payment_info").show();
-                    $("#tab-content-payment_info").show();
-                    $("#paid_amount").val(0);
+                        $('#nots_tab').tab('show');
 
-                    $('#nots_tab').tab('show');
+                        $("#div-cash_account").hide();
 
-                    $("#div-cash_account").hide();
-
-                    $("#card").hide();
-                    $("#bank_check").hide();
-                    $("#bank_transfer").hide();
-                    $('#client_l_id').attr('class', 'required');
-                    $('#client_id').attr('required', 'required');
+                        $("#card").hide();
+                        $("#bank_check").hide();
+                        $("#bank_transfer").hide();
+                        $('#client_l_id').attr('class', 'required');
+                        $('#client_id').attr('required', 'required');
 
 
-                    $('#cash_account').removeAttr('required');
+                        $('#cash_account').removeAttr('required');
 
-                } else {
-                    $('#nots_tab').tab('show');
+                    } else {
+                        $('#nots_tab').tab('show');
 
-                    $("#li-payment_info").hide();
-                    $("#tab-content-payment_info").hide();
-                    $("#div-cash_account").show();
-                    $('#cash_account').attr('required', 'required');
-                    $('#client_l_id').removeAttr('class', 'required');
-                    $('#client_id').removeAttr('required', 'required');
+                        $("#li-payment_info").hide();
+                        $("#tab-content-payment_info").hide();
+                        $("#div-cash_account").show();
+                        $('#cash_account').attr('required', 'required');
+                        $('#client_l_id').removeAttr('class', 'required');
+                        $('#client_id').removeAttr('required', 'required');
 
-                }
+                    }
 
-            });
+                }).trigger('change');
+            }
 
 
             document.getElementById('kt_modal_upload_attachments').addEventListener('click', function() {

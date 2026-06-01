@@ -1162,16 +1162,16 @@ class AccountingReportsController extends Controller
                 || ($glSegment >= 1 && $glSegment <= 9);
 
             if ($isCurrent) {
-                if (str_contains($name, 'cash') || str_contains($name, 'صندوق') || $gl === '11101') {
+                if (str_contains($name, 'cash') || str_contains($name, 'صندوق') || $gl === '1101') {
                     return 'cash';
                 }
-                if (str_contains($name, 'bank') || str_contains($name, 'بنك') || $gl === '11102') {
+                if (str_contains($name, 'bank') || str_contains($name, 'بنك') || $gl === '1102') {
                     return 'banks';
                 }
                 if (str_contains($name, 'receivable') || str_contains($name, 'مدين') || str_contains($name, 'عميل') || str_contains($name, 'قبض')) {
                     return 'receivables';
                 }
-                if (str_contains($name, 'inventory') || str_contains($name, 'مخزون') || $gl === '11105') {
+                if (str_contains($name, 'inventory') || str_contains($name, 'مخزون') || $gl === '1105') {
                     return 'inventory';
                 }
                 if (str_contains($name, 'prepaid') || str_contains($name, 'مقدما')) {

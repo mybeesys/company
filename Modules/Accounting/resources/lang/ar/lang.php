@@ -3,6 +3,9 @@
 return [
     'tree_of_accounts' => 'شجرة الحسابات',
     'import_tree_of_accounts' => 'استيراد شجرة الحسابات',
+    'repair_gl_codes_button' => 'إصلاح أكواد GL',
+    'repair_gl_codes_confirm' => 'سيتم إعادة ترقيم أكواد GL المخزّنة (مثال: 1 → 11 → 1101، 1102). هل تريد المتابعة؟',
+    'repair_gl_codes_success' => 'تم إصلاح أكواد GL: :sub_types نوع فرعي، :accounts حساب.',
     'import_tree_accounts_duplicate_gl_code' => 'يوجد تكرار في رقم الحساب داخل الملف: :codes',
     'import_tree_accounts_gl_code_exists' => 'بعض أرقام الحسابات موجودة مسبقاً: :codes',
     'import_tree_accounts_parent_not_found' => 'لم يتم العثور على رقم حساب الأب للحساب :gl_code (الأب: :parent_gl_code)',

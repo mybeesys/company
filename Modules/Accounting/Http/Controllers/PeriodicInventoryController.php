@@ -500,7 +500,7 @@ class PeriodicInventoryController extends Controller
 
                 $inventoryAccountId = AccountingAccount::query()
                     ->where('account_category', 'inventory')
-                    ->orWhere('gl_code', '11105')
+                    ->orWhere('gl_code', '1105')
                     ->value('id');
 
                 $inventoryAdjustmentAccountId = AccountsRoting::query()

@@ -86,6 +86,7 @@ class QuotationController extends Controller
         $countries = Country::all();
 
         $quotation = true;
+        $isQuotationForm = true;
         $isDuplicate = false;
         $transaction = null;
 
@@ -105,7 +106,7 @@ class QuotationController extends Controller
             $query->whereNull('unit2');
         }])->get();
 
-        return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate'));
+        return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate'));
     }
 
     /**
@@ -126,7 +127,7 @@ class QuotationController extends Controller
             }
             $transaction = Transaction::create([
                 'type' => 'quotation',
-                'invoice_type' => $request->invoice_type,
+                'invoice_type' => $request->filled('invoice_type') ? $request->invoice_type : null,
                 'due_date' => $request->due_date,
                 'transaction_date' => $request->transaction_date,
                 'contact_id' => $request->client_id,
