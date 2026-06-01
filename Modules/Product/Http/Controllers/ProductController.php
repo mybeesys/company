@@ -405,7 +405,9 @@ class ProductController extends Controller
                         $tran = [];
                         $newid['oldId'] = $transfer['id'];
                         $tran['product_id'] = $product->id;
-                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 ? $transfer['transfer'] : null;
+                        $tran['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 && (float) $transfer['transfer'] != 0
+                            ? $transfer['transfer']
+                            : null;
                         $tran['primary'] = isset($transfer['primary']) && $transfer['primary'] == true ? 1 : 0;
                         $tran['unit1'] = $transfer['unit1'];
                         $tran['unit2'] = null;
@@ -424,7 +426,9 @@ class ProductController extends Controller
                         $updatedTransfer['unit1'] = $transfer['unit1'];
                         $updatedTransfer['unit2'] = $transfer['unit2'];
                         $updatedTransfer['primary'] = $transfer['primary'];
-                        $updatedTransfer['transfer'] = $transfer['transfer'];
+                        $updatedTransfer['transfer'] = isset($transfer['transfer']) && $transfer['transfer'] != -100 && (float) $transfer['transfer'] != 0
+                            ? $transfer['transfer']
+                            : null;
                         $updatedTransfer->save();
                     }
                 }
@@ -850,9 +854,13 @@ class ProductController extends Controller
         $ids = [];
         $insertedIds = [];
         foreach ($transfers as $transfer) {
+            $transferFactor = $transfer['transfer'] ?? null;
+            if ($transferFactor === -100 || $transferFactor === 0 || $transferFactor === '0') {
+                $transferFactor = null;
+            }
             $tran = [
                 'product_id' => $productId,
-                'transfer' => $transfer['transfer'] ?? null,
+                'transfer' => $transferFactor,
                 'primary' => $transfer['primary'] ?? 0,
                 'unit1' => $transfer['unit1'],
                 'unit2' => null,
@@ -1332,10 +1340,17 @@ class ProductController extends Controller
             ->with(['unitTransfers'])
             ->get();
 
-        $inventoryMap = DB::table('product_inventories')
-            ->select('product_id', DB::raw('COALESCE(SUM(qty),0) as qty_sum'))
-            ->groupBy('product_id')
-            ->pluck('qty_sum', 'product_id');
+        try {
+            $inventoryMap = DB::table('product_inventories')
+                ->select('product_id', DB::raw('COALESCE(SUM(qty),0) as qty_sum'))
+                ->groupBy('product_id')
+                ->pluck('qty_sum', 'product_id');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (! str_contains($e->getMessage(), 'Division by zero')) {
+                throw $e;
+            }
+            $inventoryMap = collect();
+        }
 
         $products->transform(function ($product) use ($inventoryMap) {
             $product->inventory_qty = (float) ($inventoryMap[$product->id] ?? 0);
