@@ -139,20 +139,8 @@
     <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
         <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
             @php
-                $appHeaderCompanyName = null;
                 try {
-                    if (function_exists('get_company_id') && ($cid = get_company_id())) {
-                        $row = \Illuminate\Support\Facades\DB::connection('mysql')
-                            ->table('companies')
-                            ->select('name', 'name_ar')
-                            ->where('id', $cid)
-                            ->first();
-                        if ($row) {
-                            $appHeaderCompanyName = app()->getLocale() === 'ar'
-                                ? ($row->name_ar ?: $row->name)
-                                : ($row->name ?: $row->name_ar);
-                        }
-                    }
+                    $appHeaderCompanyName = function_exists('company_header_name') ? company_header_name() : null;
                 } catch (\Throwable $e) {
                     $appHeaderCompanyName = null;
                 }
