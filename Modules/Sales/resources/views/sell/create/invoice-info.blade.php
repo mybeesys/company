@@ -1,6 +1,9 @@
 <div class="card" data-section="contact" style="border: 0;box-shadow: none">
     <div class="container">
-        <div class="d- align-items-center mb-5" @if ($quotation) style="display: none;" @endif>
+        @if ($isQuotationForm ?? false)
+            <input type="hidden" name="invoice_type" value="">
+        @else
+        <div class="d-flex align-items-center mb-5" id="div-invoice_type">
             {{-- <span class=" mt-2" data-bs-toggle="tooltip" title="@lang('accounting::lang.ref_number_note')">
                 <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.invoice_no')
 
@@ -13,13 +16,17 @@
             </span> --}}
             <label class="fs-6 fw-semibold mb-2 " style="width: 160px;">@lang('sales::lang.invoice_type') </label>
 
+            @php
+                $selectedInvoiceType = old('invoice_type', $transaction?->invoice_type ?? 'cash');
+            @endphp
             <select name="invoice_type" id="invoice_type" style="padding: 7px;width: 60%!important"
                 class="form-select select-2 form-select-solid ">
-                <option value="cash">@lang('sales::lang.cash')</option>
-                <option value="due">@lang('sales::lang.due')</option>
+                <option value="cash" @selected($selectedInvoiceType === 'cash')>@lang('sales::lang.cash')</option>
+                <option value="due" @selected(in_array($selectedInvoiceType, ['due', 'credit'], true))>@lang('sales::lang.due')</option>
             </select>
 
         </div>
+        @endif
 
         {{-- <div class="d-flex align-items-center mb-5">
             <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.issue_date')</label>

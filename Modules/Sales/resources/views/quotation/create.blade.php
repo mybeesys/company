@@ -78,7 +78,7 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-quotation') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-quotation') }}" data-invoice-document-only="1">
         @csrf
 
         <div class="container">
@@ -219,6 +219,8 @@
 @stop
 
 @section('script')
+    <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/invoice-type-account-toggle.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     {{-- <script src="{{ asset('Modules/Sales/js/clients.js') }}"></script> --}}
@@ -306,17 +308,21 @@
         $('#Delegates').select2({
             width: 'resolve'
         });
-        $('#invoice_type').select2({
-            width: 'resolve'
-        });
+        if ($('#invoice_type').length) {
+            $('#invoice_type').select2({
+                width: 'resolve'
+            });
+        }
         $('#account_id').select2();
 
         $('#payment_type').select2({
             width: 'resolve'
         });
-        $('#cash_account').select2({
-            width: 'resolve'
-        });
+        if ($('#cash_account').length) {
+            $('#cash_account').select2({
+                width: 'resolve'
+            });
+        }
 
         $('#client_id').select2({
             width: 'resolve'
@@ -1021,38 +1027,6 @@ $.ajax({
                     $("#bank_transfer").show();
                 } else {
                     $("#bank_transfer").hide();
-                }
-
-            });
-
-
-            $("#invoice_type").change(function() {
-                if ($(this).val() === "due") {
-                    // $(".pay-pament_on").hide();
-                    // $(".pay-payment_type").hide();
-                    // $(".pay-paid_amount").hide();
-                    // $(".pay-additionalNotes").hide();
-                    $('#nots_tab').tab('show');
-
-                    $("#li-payment_info").show();
-                    $("#paid_amount").val(0);
-
-                    $("#div-cash_account").hide();
-
-                    $("#card").hide();
-                    $("#bank_check").hide();
-                    $("#bank_transfer").hide();
-
-                } else {
-                    // $(".pay-pament_on").show();
-                    // $(".pay-payment_type").show();
-                    // $(".pay-paid_amount").show();
-                    // $(".pay-additionalNotes").show();
-                    $('#nots_tab').tab('show');
-
-                    $("#li-payment_info").hide();
-                    $("#div-cash_account").show();
-
                 }
 
             });

@@ -131,6 +131,21 @@
             $('#favorite-filter').change(function() {
                 dataTable.ajax.reload();
             });
+
+            const convertForm = $('#convert-to-invoice');
+            const poSelect = $('#po-items');
+
+            convertForm.on('submit', function(event) {
+                if (!poSelect.length) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!poSelect.val()) {
+                    event.preventDefault();
+                    alert(@json(__('purchases::lang.please_select_purchase_order')));
+                }
+            });
         });
 
 

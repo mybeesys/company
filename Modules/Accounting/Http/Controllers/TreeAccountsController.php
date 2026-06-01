@@ -18,6 +18,7 @@ use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Support\LedgerStatementPresenter;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\GlCodeRepairService;
 use Modules\Accounting\Utils\ContractorsAccUtil;
 use Modules\Accounting\Utils\E_commerceAccUtil;
 use Modules\Accounting\Utils\GeneralTreeAccUtil;
@@ -325,6 +326,31 @@ class TreeAccountsController extends Controller
         }
     }
 
+    public function repairGlCodes(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $result = GlCodeRepairService::repairAll();
+            DB::commit();
+
+            return redirect()->route('tree-of-accounts')->with(
+                'success',
+                __('accounting::lang.repair_gl_codes_success', [
+                    'sub_types' => $result['sub_types'],
+                    'accounts' => $result['accounts'],
+                ])
+            );
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return redirect()->back()->with(
+                'error',
+                config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong')
+            );
+        }
+    }
+
     public function createDefaultAccounts()
     {
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
@@ -452,9 +478,6 @@ class TreeAccountsController extends Controller
 
         $account_sub_account = AccountingAccountTypes::find($input['sub_account_id']);
 
-        $lastGlCode = AccountingAccount::where('account_sub_type_id', $account_sub_account->id)
-            ->max('gl_code');
-        //   dd($account_account);
         $account = AccountingAccount::create([
             'name_en' => $input['name_ar'],
             'name_ar' => $input['name_ar'],
@@ -462,7 +485,7 @@ class TreeAccountsController extends Controller
             'account_type' => $account_sub_account->account_primary_type,
             'account_sub_type_id' => $input['sub_account_id'],
             'detail_type_id' => null,
-            'gl_code' => $lastGlCode + 1,
+            'gl_code' => AccountingUtil::next_GLC_for_sub_type((int) $account_sub_account->id),
             'status' => 'active',
             'created_by' => Auth::user()->id,
             'created_at' => Carbon::now(),

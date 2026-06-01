@@ -15,7 +15,7 @@ class PerpetualInventoryAccountResolver
     {
         return AccountingAccount::query()
             ->where(function ($q) {
-                $q->where('gl_code', '11105')
+                $q->where('gl_code', '1105')
                     ->orWhere('account_category', 'inventory');
             })
             ->value('id');
@@ -51,7 +51,7 @@ class PerpetualInventoryAccountResolver
     /**
      * GL account to **credit** for perpetual inventory (COGS / purchase asset side):
      * perpetual policy + branch (or ancestor branch) with a valid linked account → use it;
-     * else default global inventory (11105 / inventory category).
+     * else default global inventory (1105 / inventory category).
      *
      * Uses {@see Establishment::withoutGlobalScopes()} so franchise rows and scopes do not hide the link,
      * and walks {@see Establishment::$parent_id} when the selling warehouse has no own link but a parent does.

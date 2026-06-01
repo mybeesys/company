@@ -11,11 +11,19 @@
                     استيراد الدليل المحاسبي حسب بنية الشجرة (حسابات رئيسية وفرعية).
                 </div>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ route('tree-of-accounts-import-template') }}" class="btn btn-light-danger">
                     <i class="ki-outline ki-file-down fs-4 me-2"></i>
                     تحميل قالب Excel
                 </a>
+                <form method="POST" action="{{ route('tree-of-accounts-repair-gl-codes') }}" class="d-inline"
+                    onsubmit="return confirm(@json(__('accounting::lang.repair_gl_codes_confirm')));">
+                    @csrf
+                    <button type="submit" class="btn btn-light-primary">
+                        <i class="ki-outline ki-wrench fs-4 me-2"></i>
+                        @lang('accounting::lang.repair_gl_codes_button')
+                    </button>
+                </form>
                 <a href="{{ route('tree-of-accounts') }}" class="btn btn-light">@lang('accounting::lang.back')</a>
             </div>
         </div>
@@ -62,7 +70,7 @@
                                 <td>نص/رقم</td>
                                 <td><span class="badge badge-light-danger">إلزامي</span></td>
                                 <td>رقم الحساب (GL Code) ويجب أن يكون <span class="fw-semibold">فريد</span>.</td>
-                                <td><code>11101</code></td>
+                                <td><code>1101</code></td>
                             </tr>
                             <tr>
                                 <td><code>name_ar</code></td>

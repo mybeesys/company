@@ -38,6 +38,9 @@ Route::middleware([
         Route::get('tree-of-accounts/import', [TreeAccountsController::class, 'importPage'])->name('tree-of-accounts-import');
         Route::get('tree-of-accounts/import/template', [TreeAccountsController::class, 'downloadImportTemplate'])->name('tree-of-accounts-import-template');
         Route::post('tree-of-accounts/import', [TreeAccountsController::class, 'importFromExcel'])->name('tree-of-accounts-import-store');
+        Route::post('tree-of-accounts/repair-gl-codes', [TreeAccountsController::class, 'repairGlCodes'])
+            ->middleware('throttle:6,1')
+            ->name('tree-of-accounts-repair-gl-codes');
         Route::get('create-account', [TreeAccountsController::class, 'create'])->name('create-account');
         Route::post('store-sub-account', [TreeAccountsController::class, 'storeSubAccount'])->name('store-sub-account');
 
