@@ -189,6 +189,7 @@
 @section('script')
     <script src="{{ url('/modules/Sales/js/clients.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/invoice-type-account-toggle.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
@@ -607,36 +608,6 @@
                     $("#bank_transfer").show();
                 } else {
                     $("#bank_transfer").hide();
-                }
-
-            });
-
-
-            $("#invoice_type").change(function() {
-                if ($(this).val() === "due") {
-
-                    $("#li-payment_info").show();
-                    $("#tab-content-payment_info").show();
-                    $("#paid_amount").val(0);
-
-
-                    $("#div-cash_account").hide();
-                    $('#nots_tab').tab('show');
-
-                    $("#card").hide();
-                    $("#bank_check").hide();
-                    $("#bank_transfer").hide();
-                    $('#lable-account_id').addClass('required');
-                    $('#account_id').attr('required', 'required');
-
-
-                } else {
-                    $('#nots_tab').tab('show');
-
-                    $("#li-payment_info").hide();
-                    $("#tab-content-payment_info").hide();
-                    $("#div-cash_account").show();
-
                 }
 
             });

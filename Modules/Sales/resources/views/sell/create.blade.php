@@ -283,6 +283,7 @@
     </script>
     <script src="{{ url('/modules/Sales/js/clients.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/invoice-type-account-toggle.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
@@ -974,43 +975,6 @@ $.ajax({
                 }
 
             });
-
-            if ($('#invoice_type').length) {
-                $("#invoice_type").change(function() {
-                    if ($(this).val() === "due") {
-
-                        $("#li-payment_info").show();
-                        $("#tab-content-payment_info").show();
-                        $("#paid_amount").val(0);
-
-                        $('#nots_tab').tab('show');
-
-                        $("#div-cash_account").hide();
-
-                        $("#card").hide();
-                        $("#bank_check").hide();
-                        $("#bank_transfer").hide();
-                        $('#client_l_id').attr('class', 'required');
-                        $('#client_id').attr('required', 'required');
-
-
-                        $('#cash_account').removeAttr('required');
-
-                    } else {
-                        $('#nots_tab').tab('show');
-
-                        $("#li-payment_info").hide();
-                        $("#tab-content-payment_info").hide();
-                        $("#div-cash_account").show();
-                        $('#cash_account').attr('required', 'required');
-                        $('#client_l_id').removeAttr('class', 'required');
-                        $('#client_id').removeAttr('required', 'required');
-
-                    }
-
-                }).trigger('change');
-            }
-
 
             document.getElementById('kt_modal_upload_attachments').addEventListener('click', function() {
                 document.getElementById('fileInput').click();

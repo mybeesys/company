@@ -16,10 +16,13 @@
             </span> --}}
             <label class="fs-6 fw-semibold mb-2 " style="width: 160px;">@lang('sales::lang.invoice_type') </label>
 
+            @php
+                $selectedInvoiceType = old('invoice_type', $transaction?->invoice_type ?? 'cash');
+            @endphp
             <select name="invoice_type" id="invoice_type" style="padding: 7px;width: 60%!important"
                 class="form-select select-2 form-select-solid ">
-                <option value="cash">@lang('sales::lang.cash')</option>
-                <option value="due">@lang('sales::lang.due')</option>
+                <option value="cash" @selected($selectedInvoiceType === 'cash')>@lang('sales::lang.cash')</option>
+                <option value="due" @selected(in_array($selectedInvoiceType, ['due', 'credit'], true))>@lang('sales::lang.due')</option>
             </select>
 
         </div>
