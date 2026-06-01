@@ -6,8 +6,6 @@
     let periodsSort = { field: 'start_date', dir: 'asc' };
     let periodsPage = 1;
     let periodsSearch = '';
-    let editFpStart = null;
-    let editFpEnd = null;
 
     function api() {
         return window.fySettingsApi;
@@ -41,11 +39,19 @@
     }
 
     function findYear(state, yearId) {
-        return state.years.find((y) => y.id === yearId);
+        if (!state?.years || yearId == null) {
+            return null;
+        }
+        const id = String(yearId);
+        return state.years.find((y) => String(y.id) === id);
     }
 
     function findPeriod(year, periodId) {
-        return year?.periods?.find((p) => p.id === periodId);
+        if (!year?.periods || periodId == null) {
+            return null;
+        }
+        const id = String(periodId);
+        return year.periods.find((p) => String(p.id) === id);
     }
 
     function showListView() {
@@ -60,9 +66,15 @@
     }
 
     function showDetailView(yearId) {
-        document.getElementById('fy-years-list-view')?.classList.add('d-none');
-        document.getElementById('fy-year-detail-view')?.classList.remove('d-none');
-        selectedYearId = yearId;
+        const list = document.getElementById('fy-years-list-view');
+        const detail = document.getElementById('fy-year-detail-view');
+        if (!list || !detail) {
+            console.warn('Financial year detail view elements not found');
+            return;
+        }
+        list.classList.add('d-none');
+        detail.classList.remove('d-none');
+        selectedYearId = String(yearId);
         if (history.replaceState) {
             const url = new URL(window.location.href);
             url.searchParams.set('year', yearId);
@@ -235,18 +247,6 @@
                 disableOpenClose
             );
         }
-        if (period.status === 'closing') {
-            html += actionBtn(
-                'close',
-                'fa-pause',
-                m.actionClose,
-                'btn-close-period',
-                true
-            );
-        }
-
-        html += actionBtn('view', 'fa-eye', m.actionView, '', false);
-        html += actionBtn('edit', 'fa-pen', m.actionEdit, '', false);
 
         return html;
     }
@@ -304,11 +304,7 @@
                     return;
                 }
                 const action = this.dataset.action;
-                if (action === 'view') {
-                    openViewModal(period);
-                } else if (action === 'edit') {
-                    openEditModal(year, period);
-                } else if (action === 'close') {
+                if (action === 'close') {
                     confirmClosePeriod(year, period);
                 } else if (action === 'open') {
                     confirmOpenPeriod(year, period);
@@ -398,46 +394,6 @@
         }
     }
 
-    function openViewModal(period) {
-        const a = api();
-        const content = document.getElementById('fy-period-view-content');
-        const lbl = window.fyPeriodViewLabels || {};
-        content.innerHTML = `
-            <div class="fy-detail-row"><dt>${lbl.name || 'Name'}</dt><dd class="fw-bold">${a.escapeHtml(period.name)}</dd></div>
-            <div class="fy-detail-row"><dt>${lbl.start || 'Start'}</dt><dd class="fy-date-num">${a.formatDisplayDate(period.start_date)}</dd></div>
-            <div class="fy-detail-row"><dt>${lbl.end || 'End'}</dt><dd class="fy-date-num">${a.formatDisplayDate(period.end_date)}</dd></div>
-            <div class="fy-detail-row"><dt>${lbl.status || 'Status'}</dt><dd>${periodStatusBadge(period.status)}</dd></div>
-        `;
-        bootstrap.Modal.getOrCreateInstance(
-            document.getElementById('fyPeriodViewModal')
-        ).show();
-    }
-
-    function openEditModal(year, period) {
-        document.getElementById('fy-edit-period-id').value = period.id;
-        document.getElementById('fy-edit-period-name').value = period.name;
-        document.getElementById('fy-edit-period-start').value = period.start_date;
-        document.getElementById('fy-edit-period-end').value = period.end_date;
-        initEditPickers();
-        bootstrap.Modal.getOrCreateInstance(
-            document.getElementById('fyPeriodEditModal')
-        ).show();
-    }
-
-    function initEditPickers() {
-        if (typeof flatpickr === 'undefined') {
-            return;
-        }
-        const opts = { dateFormat: 'Y-m-d', allowInput: true };
-        if (api()?.cfg?.locale === 'ar' && flatpickr.l10ns?.ar) {
-            opts.locale = flatpickr.l10ns.ar;
-        }
-        if (!editFpStart) {
-            editFpStart = flatpickr('#fy-edit-period-start', opts);
-            editFpEnd = flatpickr('#fy-edit-period-end', opts);
-        }
-    }
-
     function showPeriodsLoading(show) {
         document
             .getElementById('fy-periods-loading')
@@ -483,27 +439,6 @@
                 }
             });
         });
-
-        document.getElementById('fy-period-edit-form')?.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const a = api();
-            const state = a.getState();
-            const year = findYear(state, selectedYearId);
-            const periodId = document.getElementById('fy-edit-period-id').value;
-            const period = findPeriod(year, periodId);
-            if (!period) {
-                return;
-            }
-            period.name = document.getElementById('fy-edit-period-name').value.trim();
-            period.start_date = document.getElementById('fy-edit-period-start').value.trim();
-            period.end_date = document.getElementById('fy-edit-period-end').value.trim();
-            a.saveState(state);
-            bootstrap.Modal.getInstance(
-                document.getElementById('fyPeriodEditModal')
-            )?.hide();
-            renderPeriodsTable(year);
-            toastr?.success(msg().periodUpdatedSuccess);
-        });
     }
 
     function tryOpenFromUrl() {
@@ -513,18 +448,34 @@
         }
     }
 
+    window.FyFiscalPeriods = {
+        showDetailView,
+        showListView,
+    };
+
+    function wireFiscalPeriodsApi() {
+        if (!window.fySettingsApi) {
+            return false;
+        }
+        window.fySettingsApi.openYearDetail = showDetailView;
+        window.fySettingsApi.closeYearDetail = showListView;
+        return true;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        const wait = setInterval(function () {
-            if (!window.fySettingsApi) {
-                return;
-            }
-            clearInterval(wait);
+        bindGlobalEvents();
 
-            window.fySettingsApi.openYearDetail = showDetailView;
-            window.fySettingsApi.closeYearDetail = showListView;
-
-            bindGlobalEvents();
+        if (!wireFiscalPeriodsApi()) {
+            let attempts = 0;
+            const wait = setInterval(function () {
+                attempts += 1;
+                if (wireFiscalPeriodsApi() || attempts > 100) {
+                    clearInterval(wait);
+                    tryOpenFromUrl();
+                }
+            }, 50);
+        } else {
             tryOpenFromUrl();
-        }, 50);
+        }
     });
 })();

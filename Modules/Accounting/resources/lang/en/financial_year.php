@@ -60,7 +60,7 @@ return [
     'back_to_years' => 'Back to fiscal years',
     'year_details_title' => 'Fiscal year details',
     'periods_title' => 'Fiscal periods',
-    'periods_subtitle' => 'Manage monthly periods — open, close, and review details.',
+    'periods_subtitle' => 'Manage monthly periods — open or close only.',
     'periods_empty' => 'No periods for this year.',
     'search_periods' => 'Search periods...',
     'col_period_name' => 'Period name',
