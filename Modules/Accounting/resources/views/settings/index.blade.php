@@ -422,14 +422,18 @@
                 required: @json(__('accounting::financial_year.validation_required')),
                 invalidDate: @json(__('accounting::financial_year.validation_invalid_date')),
                 endBeforeStart: @json(__('accounting::financial_year.validation_end_before_start')),
-                firstYearExists: @json(__('accounting::financial_year.validation_first_year_exists')),
+                sectionSetupTitle: @json(__('accounting::financial_year.section_setup_title')),
+                sectionSetupSubtitle: @json(__('accounting::financial_year.section_setup_subtitle')),
+                sectionAddTitle: @json(__('accounting::financial_year.section_add_title')),
+                sectionAddSubtitle: @json(__('accounting::financial_year.section_add_subtitle')),
+                saveFirstYear: @json(__('accounting::financial_year.save_first_year')),
+                addYear: @json(__('accounting::financial_year.add_year')),
                 saveSuccess: @json(__('accounting::financial_year.save_success')),
                 saving: @json(__('accounting::financial_year.saving')),
                 monthsUnit: @json(__('accounting::financial_year.months_unit')),
                 daysUnit: @json(__('accounting::financial_year.days_unit')),
                 statusOpen: @json(__('accounting::financial_year.status_open')),
                 statusClosed: @json(__('accounting::financial_year.status_closed')),
-                statusUpcoming: @json(__('accounting::financial_year.status_upcoming')),
                 emptyCurrent: @json(__('accounting::financial_year.empty_current_title')),
                 dash: '—',
                 managePeriods: @json(__('accounting::financial_year.manage_periods')),
@@ -443,8 +447,6 @@
                 confirmYesDelete: @json(__('accounting::financial_year.confirm_yes_delete')),
                 periodOpen: @json(__('accounting::financial_year.period_status_open')),
                 periodClosed: @json(__('accounting::financial_year.period_status_closed')),
-                periodClosing: @json(__('accounting::financial_year.period_status_closing')),
-                periodUpcoming: @json(__('accounting::financial_year.period_status_upcoming')),
                 actionOpen: @json(__('accounting::financial_year.action_open_period')),
                 actionClose: @json(__('accounting::financial_year.action_close_period')),
                 actionView: @json(__('accounting::financial_year.action_view_period')),
@@ -465,8 +467,8 @@
             },
         };
     </script>
-    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=4"></script>
-    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=5"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=5"></script>
+    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=7"></script>
     @if ($hasAccounts ?? false)
         @include('accounting::AccountsRouting.select2-init')
     @endif

@@ -15,26 +15,30 @@
         return api()?.msg || {};
     }
 
+    function normalizePeriodStatus(status) {
+        if (status === 'closed' || status === 'closing') {
+            return 'closed';
+        }
+        return 'open';
+    }
+
     function periodStatusLabels() {
         const m = msg();
         return {
             open: m.periodOpen || 'Open',
             closed: m.periodClosed || 'Closed',
-            closing: m.periodClosing || 'Closing',
-            upcoming: m.periodUpcoming || 'Upcoming',
         };
     }
 
     function periodStatusBadge(status) {
         const labels = periodStatusLabels();
+        const normalized = normalizePeriodStatus(status);
         const map = {
             open: 'badge-fy-period-open',
             closed: 'badge-fy-period-closed',
-            closing: 'badge-fy-period-closing',
-            upcoming: 'badge-fy-period-upcoming',
         };
-        const label = labels[status] || status;
-        const cls = map[status] || 'badge-light';
+        const label = labels[normalized] || normalized;
+        const cls = map[normalized] || 'badge-light';
         return `<span class="badge ${cls} fw-semibold px-3 py-2">${label}</span>`;
     }
 
@@ -138,9 +142,9 @@
             let vx = x[field];
             let vy = y[field];
             if (field === 'status') {
-                const order = { open: 1, closing: 2, upcoming: 3, closed: 4 };
-                vx = order[vx] || 9;
-                vy = order[vy] || 9;
+                const order = { open: 1, closed: 2 };
+                vx = order[normalizePeriodStatus(vx)] || 9;
+                vy = order[normalizePeriodStatus(vy)] || 9;
             }
             if (vx < vy) {
                 return -1 * dir;
@@ -225,30 +229,11 @@
 
     function buildPeriodActions(period) {
         const m = msg();
-        const isUpcoming = period.status === 'upcoming';
-        const disableOpenClose = isUpcoming || period.status === 'closing';
-        let html = '';
-
-        if (period.status === 'closed') {
-            html += actionBtn(
-                'open',
-                'fa-unlock',
-                m.actionOpen,
-                'btn-open',
-                disableOpenClose
-            );
+        const status = normalizePeriodStatus(period.status);
+        if (status === 'closed') {
+            return actionBtn('open', 'fa-unlock', m.actionOpen, 'btn-open', false);
         }
-        if (period.status === 'open') {
-            html += actionBtn(
-                'close',
-                'fa-lock',
-                m.actionClose,
-                'btn-close-period',
-                disableOpenClose
-            );
-        }
-
-        return html;
+        return actionBtn('close', 'fa-lock', m.actionClose, 'btn-close-period', false);
     }
 
     function actionBtn(action, icon, title, extraClass, disabled) {
@@ -316,22 +301,12 @@
 
     function confirmClosePeriod(year, period) {
         const m = msg();
-        if (period.status === 'upcoming') {
-            toastr?.warning(m.periodActionDisabled);
-            return;
-        }
         const SwalApi = window.Swal;
         const runClose = () => {
-            showPeriodsLoading(true);
-            period.status = 'closing';
+            period.status = 'closed';
+            api().saveState(api().getState());
             renderPeriodsTable(year);
-            setTimeout(() => {
-                period.status = 'closed';
-                api().saveState(api().getState());
-                showPeriodsLoading(false);
-                renderPeriodsTable(year);
-                toastr?.success(m.periodClosedSuccess);
-            }, 600);
+            toastr?.success(m.periodClosedSuccess);
         };
 
         if (SwalApi?.fire) {
@@ -359,10 +334,6 @@
 
     function confirmOpenPeriod(year, period) {
         const m = msg();
-        if (period.status === 'upcoming') {
-            toastr?.warning(m.periodActionDisabled);
-            return;
-        }
         const SwalApi = window.Swal;
         const runOpen = () => {
             period.status = 'open';
