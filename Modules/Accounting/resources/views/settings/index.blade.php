@@ -415,12 +415,6 @@
         <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     @endif
     <script>
-        window.fyPeriodViewLabels = {
-            name: @json(__('accounting::financial_year.col_period_name')),
-            start: @json(__('accounting::financial_year.start_date')),
-            end: @json(__('accounting::financial_year.end_date')),
-            status: @json(__('accounting::financial_year.status')),
-        };
         window.fySettingsConfig = {
             locale: @json(app()->getLocale()),
             storageKey: 'bee_accounting_financial_years_v1',
@@ -471,8 +465,8 @@
             },
         };
     </script>
-    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=4"></script>
-    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=2"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=4"></script>
+    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=5"></script>
     @if ($hasAccounts ?? false)
         @include('accounting::AccountsRouting.select2-init')
     @endif

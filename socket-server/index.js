@@ -147,6 +147,11 @@ function resolveKitchenRooms(tenantId, establishmentId, categoryIds = []) {
   return rooms;
 }
 
+/** My Bee POS — طلبات الطاولات (establishment-orders) */
+function resolvePosOrderRooms(_tenantId, establishmentId) {
+  return [`establishment:${establishmentId}`];
+}
+
 function parseEstablishmentId(socket, body = {}) {
   const auth = socket.handshake.auth || {};
   const headerEst =
@@ -204,6 +209,22 @@ async function fetchKitchenOrders(tenantId, establishmentId, categoryIds = []) {
   return json.data ?? json.orders ?? json;
 }
 
+async function fetchEstablishmentOrders(tenantId, establishmentId) {
+  const base = LARAVEL_INTERNAL_URL.replace(/\/$/, "");
+  const url = `${base}/api/internal/realtime/establishment-orders/${establishmentId}`;
+  const res = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "X-Socket-Secret": SOCKET_INTERNAL_SECRET,
+      "X-Tenant-Id": tenantId,
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) throw new Error(`establishment orders HTTP ${res.status}`);
+  const json = await res.json();
+  return json.data ?? json;
+}
+
 async function fetchTableOrderDetails(tenantId, tableId) {
   const base = LARAVEL_INTERNAL_URL.replace(/\/$/, "");
   const url = `${base}/api/internal/realtime/tables/${tableId}/order`;
@@ -242,6 +263,27 @@ app.post("/broadcast", (req, res) => {
   }
 
   const isKitchen = body.kitchen === true || String(eventName).startsWith("kitchen:");
+  const isPosOrders =
+    body.pos_orders === true || String(eventName).startsWith("establishment_order.");
+
+  if (isPosOrders) {
+    const estId = Number(establishmentId ?? payload.establishment_id);
+    if (!estId) {
+      return res.status(422).json({ message: "establishment_id required for POS order events" });
+    }
+    const envelope = payload.event_id
+      ? payload
+      : {
+          event_id: randomUUID(),
+          schema_version: SCHEMA_VERSION,
+          ...payload,
+          event: payload.event || eventName,
+          timestamp: payload.timestamp || new Date().toISOString(),
+        };
+    const rooms = resolvePosOrderRooms(tenantId, estId);
+    emitToRooms(eventName, envelope, rooms);
+    return res.json({ ok: true, rooms, pos_orders: true });
+  }
 
   if (isKitchen) {
     const estId = Number(establishmentId ?? payload.establishment_id);
@@ -322,6 +364,7 @@ io.use(async (socket, next) => {
     : headerEst
       ? Number(headerEst)
       : null;
+  socket.data.deviceId = auth.device_id ? Number(auth.device_id) : null;
 
   next();
 });
@@ -436,11 +479,35 @@ io.on("connection", (socket) => {
     ack?.({ ok: true });
   });
 
+  socket.on("join_establishment", async (body, ack) => {
+    const estId = parseEstablishmentId(socket, body);
+    if (!estId) {
+      ack?.({ ok: false, code: "ESTABLISHMENT_REQUIRED" });
+      return;
+    }
+    socket.join(`establishment:${estId}`);
+    socket.data.posEstablishmentId = estId;
+    try {
+      const orders = await fetchEstablishmentOrders(tenantId, estId);
+      socket.emit("establishment_orders.sync", {
+        event_id: randomUUID(),
+        schema_version: SCHEMA_VERSION,
+        event: "establishment_orders.sync",
+        timestamp: new Date().toISOString(),
+        establishment_id: estId,
+        orders,
+      });
+      ack?.({ ok: true, room: `establishment:${estId}`, count: orders.length });
+    } catch (e) {
+      ack?.({ ok: true, room: `establishment:${estId}`, sync: false, error: e.message });
+    }
+  });
+
   socket.on("disconnect", () => {
     // rooms cleaned automatically
   });
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`MyBee Socket.IO listening on :${PORT} (schema v${SCHEMA_VERSION}, waiter + kitchen)`);
+  console.log(`MyBee Socket.IO listening on :${PORT} (schema v${SCHEMA_VERSION}, waiter + kitchen + POS orders)`);
 });

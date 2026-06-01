@@ -270,7 +270,7 @@
             .join('');
 
         tbody.innerHTML = rows;
-        bindYearRowActions(state, tbody);
+        bindYearRowActions(state);
         initYearActionTooltips(tbody);
     }
 
@@ -307,28 +307,54 @@
     }
 
     function findYearById(state, yearId) {
-        return state.years.find((y) => y.id === yearId);
+        if (!state?.years || yearId == null) {
+            return null;
+        }
+        const id = String(yearId);
+        return state.years.find((y) => String(y.id) === id);
     }
 
-    function bindYearRowActions(state, tbody) {
-        tbody?.querySelectorAll('[data-year-action]').forEach((btn) => {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const row = this.closest('tr');
-                const yearId = row?.dataset.yearId;
-                const year = findYearById(state, yearId);
-                if (!year) {
-                    return;
-                }
-                const action = this.dataset.yearAction;
-                if (action === 'view') {
-                    window.fySettingsApi?.openYearDetail?.(yearId);
-                } else if (action === 'edit') {
-                    openYearEditModal(year);
-                } else if (action === 'delete') {
-                    confirmDeleteYear(state, year);
-                }
-            });
+    function openYearDetailView(yearId) {
+        const id = String(yearId);
+        if (typeof window.FyFiscalPeriods?.showDetailView === 'function') {
+            window.FyFiscalPeriods.showDetailView(id);
+            return;
+        }
+        if (typeof window.fySettingsApi?.openYearDetail === 'function') {
+            window.fySettingsApi.openYearDetail(id);
+            return;
+        }
+        console.warn('Year detail view is not ready yet');
+    }
+
+    function bindYearRowActions(state) {
+        const tbody = document.getElementById('fy-history-tbody');
+        if (!tbody || tbody.dataset.fyDelegated === '1') {
+            return;
+        }
+        tbody.dataset.fyDelegated = '1';
+        tbody.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-year-action]');
+            if (!btn) {
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            const row = btn.closest('tr');
+            const yearId = row?.dataset.yearId;
+            const currentState = window.fySettingsApi?.getState?.() || state;
+            const year = findYearById(currentState, yearId);
+            if (!year) {
+                return;
+            }
+            const action = btn.dataset.yearAction;
+            if (action === 'view') {
+                openYearDetailView(yearId);
+            } else if (action === 'edit') {
+                openYearEditModal(year);
+            } else if (action === 'delete') {
+                confirmDeleteYear(currentState, year);
+            }
         });
     }
 
@@ -744,17 +770,17 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        if (typeof flatpickr === 'undefined') {
-            console.warn('flatpickr is required for financial year settings');
-            return;
-        }
-
         const state = loadState();
 
         state.years.forEach((y) => ensureYearPeriods(y));
         saveState(state);
 
-        initPickers();
+        if (typeof flatpickr !== 'undefined') {
+            initPickers();
+        } else {
+            console.warn('flatpickr not loaded — date pickers disabled on financial year form');
+        }
+
         initTooltips();
         bindForm(state);
         bindYearEditForm(state);
@@ -770,8 +796,15 @@
             ensureYearPeriods,
             refreshUi: () => refreshUi(state),
             getState: () => state,
+            openYearDetail: openYearDetailView,
+            closeYearDetail: () => window.FyFiscalPeriods?.showListView?.(),
             cfg,
             msg,
         };
+
+        if (typeof window.FyFiscalPeriods?.showDetailView === 'function') {
+            window.fySettingsApi.openYearDetail = window.FyFiscalPeriods.showDetailView;
+            window.fySettingsApi.closeYearDetail = window.FyFiscalPeriods.showListView;
+        }
     });
 })();
