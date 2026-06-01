@@ -54,7 +54,7 @@
             'permission' => 'setting.General setting.show',
         ],
     ])->filter(fn($link) => $hasQuickPermission($link['permission']))->values();
-    $unreadCount = auth()->user()->unreadNotifications->count();
+    $unreadCount = auth()->user()->unreadNotifications()->count();
 @endphp
 <div class="app-navbar app-navbar--compact flex-grow-1 d-flex align-items-center min-w-0 pe-lg-8 pe-3" id="kt_app_header_navbar">
     <div class="app-navbar-meta d-none d-lg-flex align-items-center gap-2 text-gray-600 min-w-0 me-2">

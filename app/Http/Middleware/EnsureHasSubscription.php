@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Company;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureHasSubscription
@@ -31,20 +32,42 @@ class EnsureHasSubscription
             return $next($request);
         }
 
-        $company = Company::find(get_company_id());
-        if (! $company) {
+        $companyId = get_company_id();
+        if (! $companyId) {
             return $this->handleCompanyNotFound($request);
         }
 
+        $status = Cache::remember(
+            "tenant_subscription_status:{$companyId}",
+            now()->addMinutes(10),
+            fn () => $this->resolveSubscriptionStatus($companyId)
+        );
+
+        return match ($status) {
+            'ok' => $next($request),
+            'no_company' => $this->handleCompanyNotFound($request),
+            'no_subscription' => $this->handleNoSubscription($request),
+            'expired' => $this->handleExpiredSubscription($request),
+            default => $this->handleCompanyNotFound($request),
+        };
+    }
+
+    protected function resolveSubscriptionStatus(int $companyId): string
+    {
+        $company = Company::find($companyId);
+        if (! $company) {
+            return 'no_company';
+        }
+
         if (! $company->subscription) {
-            return $this->handleNoSubscription($request);
+            return 'no_subscription';
         }
 
         if ($company->subscription->expired_at && $company->subscription->expired_at < now()) {
-            return $this->handleExpiredSubscription($request);
+            return 'expired';
         }
 
-        return $next($request);
+        return 'ok';
     }
 
     protected function handleCompanyNotFound(Request $request)

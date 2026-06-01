@@ -92,6 +92,10 @@ class CompanyController extends Controller
 
                 DB::connection('mysql')->table('companies')->where('id', $id)->update($dataToUpdate);
 
+                if (array_intersect(array_keys($dataToUpdate), ['name', 'name_ar']) && function_exists('forget_company_header_name_cache')) {
+                    forget_company_header_name_cache((int) $id);
+                }
+
                 if ($request->filled('email')) {
                     DB::connection('mysql')->table('users')->where('id', $company->user_id)->update(['email' => $request->input('email')]);
                 }

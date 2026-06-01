@@ -23,11 +23,89 @@ if (! function_exists('brand_short_name')) {
 }
 
 if (! function_exists('get_company_id')) {
-    function get_company_id()
+    /**
+     * Company id for the current tenant. Uses loaded tenant data when available
+     * to avoid an extra central DB query on every request.
+     */
+    function get_company_id(): ?int
     {
-        $subDomain = tenant('id');
+        static $companyId = null;
+        static $resolved = false;
 
-        return DB::connection('mysql')->table('tenants')->find($subDomain)?->company_id;
+        if ($resolved) {
+            return $companyId;
+        }
+
+        $resolved = true;
+
+        if (function_exists('tenancy') && tenancy()->initialized) {
+            $fromTenant = tenant('company_id');
+            if ($fromTenant !== null && $fromTenant !== '') {
+                $companyId = (int) $fromTenant;
+
+                return $companyId;
+            }
+        }
+
+        $tenantId = tenant('id');
+        if ($tenantId) {
+            $found = \Illuminate\Support\Facades\DB::connection('mysql')
+                ->table('tenants')
+                ->where('id', $tenantId)
+                ->value('company_id');
+            $companyId = $found !== null ? (int) $found : null;
+        }
+
+        return $companyId;
+    }
+}
+
+if (! function_exists('company_header_name')) {
+    /**
+     * Display name for the current company in the app header (cached per locale).
+     */
+    function company_header_name(): ?string
+    {
+        $companyId = get_company_id();
+        if (! $companyId) {
+            return null;
+        }
+
+        $locale = app()->getLocale();
+
+        return \Illuminate\Support\Facades\Cache::remember(
+            "company_header_name:{$companyId}:{$locale}",
+            now()->addHours(6),
+            function () use ($companyId, $locale) {
+                $row = \Illuminate\Support\Facades\DB::connection('mysql')
+                    ->table('companies')
+                    ->select('name', 'name_ar')
+                    ->where('id', $companyId)
+                    ->first();
+
+                if (! $row) {
+                    return null;
+                }
+
+                return $locale === 'ar'
+                    ? ($row->name_ar ?: $row->name)
+                    : ($row->name ?: $row->name_ar);
+            }
+        );
+    }
+}
+
+if (! function_exists('forget_company_header_name_cache')) {
+    function forget_company_header_name_cache(?int $companyId = null): void
+    {
+        $companyId ??= get_company_id();
+        if (! $companyId) {
+            return;
+        }
+
+        foreach (['ar', 'en'] as $locale) {
+            \Illuminate\Support\Facades\Cache::forget("company_header_name:{$companyId}:{$locale}");
+        }
     }
 }
 

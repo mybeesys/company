@@ -20,6 +20,13 @@ class Employee extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasPermissions, HasRoles, Notifiable, SoftDeletes;
 
+    /**
+     * Per-request cache for {@see hasDashboardPermission()} (direct + role-granted names).
+     *
+     * @var array{direct: array<string, true>, via_roles: array<string, true>, via_roles_ems: array<string, true>}|null
+     */
+    protected ?array $dashboardPermissionCache = null;
+
     protected $table = 'emp_employees';
 
     protected $guard_name = 'web';
@@ -135,26 +142,75 @@ class Employee extends Authenticatable
             return true;
         }
 
-        if ($permission) {
-            $permission_sections = explode('.', $permission);
-            $module = $permission_sections[0];
-            $permission_action = $permission_sections[2];
-
-            $directPermission = $this->hasDirectPermission($permission) || $this->getDirectPermissions()->where('name', "$module.all.$permission_action")->isNotEmpty();
-
-            return $directPermission || $this->hasDashboardPermissionViaRoles($permission, $module, $permission_action);
+        if (! $permission) {
+            return false;
         }
 
-        return false;
+        $permission_sections = explode('.', $permission);
+        if (count($permission_sections) < 3) {
+            return false;
+        }
+
+        $module = $permission_sections[0];
+        $permission_action = $permission_sections[2];
+        $wildcard = "{$module}.all.{$permission_action}";
+
+        $cache = $this->dashboardPermissionLookup();
+        $direct = $cache['direct'];
+        $viaRoles = $cache['via_roles'];
+        $viaRolesEms = $cache['via_roles_ems'];
+
+        return isset($direct[$permission])
+            || isset($direct[$wildcard])
+            || isset($viaRoles[$permission])
+            || isset($viaRolesEms[$wildcard]);
+    }
+
+    /**
+     * @return array{direct: array<string, true>, via_roles: array<string, true>, via_roles_ems: array<string, true>}
+     */
+    protected function dashboardPermissionLookup(): array
+    {
+        if ($this->dashboardPermissionCache !== null) {
+            return $this->dashboardPermissionCache;
+        }
+
+        $direct = [];
+        foreach ($this->getDirectPermissions()->pluck('name') as $name) {
+            $direct[$name] = true;
+        }
+
+        $viaRoles = [];
+        $viaRolesEms = [];
+        $roleIds = $this->dashboardRoles()->pluck('roles.id');
+        if ($roleIds->isNotEmpty()) {
+            $permissions = Permission::query()
+                ->whereHas('roles', fn ($q) => $q->whereIn('roles.id', $roleIds))
+                ->get(['name', 'type']);
+
+            foreach ($permissions as $perm) {
+                $viaRoles[$perm->name] = true;
+                if ($perm->type === 'ems') {
+                    $viaRolesEms[$perm->name] = true;
+                }
+            }
+        }
+
+        return $this->dashboardPermissionCache = [
+            'direct' => $direct,
+            'via_roles' => $viaRoles,
+            'via_roles_ems' => $viaRolesEms,
+        ];
     }
 
     public function hasDashboardPermissionViaRoles($permission, $module, $permission_action)
     {
-        $permissionRoles = Permission::firstWhere('name', $permission)?->roles->pluck('name');
-        $allPermissionRoles = Permission::where('name', "$module.all.$permission_action")->where('type', 'ems')->first()?->roles->pluck('name');
+        $wildcard = "{$module}.all.{$permission_action}";
+        $cache = $this->dashboardPermissionLookup();
+        $viaRoles = $cache['via_roles'];
+        $viaRolesEms = $cache['via_roles_ems'];
 
-        return ($permissionRoles && $this->dashboardRoles->pluck('name')->intersect($permissionRoles)->isNotEmpty()) ||
-            $allPermissionRoles && $this->dashboardRoles->pluck('name')->intersect($allPermissionRoles)->isNotEmpty();
+        return isset($viaRoles[$permission]) || isset($viaRolesEms[$wildcard]);
     }
 
     public function parent()
