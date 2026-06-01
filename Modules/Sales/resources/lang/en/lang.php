@@ -109,6 +109,7 @@ return [
     'quotation_expired_notice' => 'This quotation has expired (expiry date is before today).',
     'quotation_expired_convert_blocked' => 'Quotation :ref cannot be converted to a sales invoice because it has expired (expiry date: :date).',
     'quotation_expired_no_convertible' => 'No valid quotations are available for conversion. Expired quotations cannot be converted.',
+    'no_quotation_for_convert' => 'There are no quotations available to convert. Create a quotation first, then convert it to an invoice.',
     'from quotation' => 'from quotation',
     'duplicate_from_ref' => 'New editable copy — source ref: :ref',
     'Create a sales quotation' => 'Create a sales quotation',

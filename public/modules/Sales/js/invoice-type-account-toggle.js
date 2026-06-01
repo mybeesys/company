@@ -10,6 +10,18 @@
         return v === 'due' || v === 'credit';
     }
 
+    function isDocumentOnlyForm() {
+        return $('[data-invoice-document-only]').length > 0;
+    }
+
+    function applyDocumentOnlyFormUi() {
+        $('#div-cash_account').addClass('d-none').hide();
+        $('#cash_account').prop('required', false).removeAttr('required').val(null).trigger('change');
+        $('#li-payment_info, #tab-content-payment_info').hide();
+        $('#lable-account_id, #client_l_id').removeClass('required');
+        $('#account_id').prop('required', false).removeAttr('required');
+    }
+
     function applyInvoiceTypeAccountUi(invoiceType) {
         const isDeferred = isDeferredInvoiceType(invoiceType);
         const $cashWrap = $('#div-cash_account');
@@ -53,6 +65,12 @@
     }
 
     function bindInvoiceTypeAccountToggle() {
+        if (isDocumentOnlyForm()) {
+            applyDocumentOnlyFormUi();
+
+            return;
+        }
+
         const $invoiceType = $('#invoice_type');
         if (!$invoiceType.length) {
             return;
@@ -69,5 +87,6 @@
     $(bindInvoiceTypeAccountToggle);
 
     window.applyInvoiceTypeAccountUi = applyInvoiceTypeAccountUi;
+    window.applyDocumentOnlyFormUi = applyDocumentOnlyFormUi;
     window.bindInvoiceTypeAccountToggle = bindInvoiceTypeAccountToggle;
 })(jQuery);

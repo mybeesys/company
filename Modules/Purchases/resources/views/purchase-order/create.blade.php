@@ -78,7 +78,7 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-purchase-order') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-purchase-order') }}" data-invoice-document-only="1">
         @csrf
 
         <div class="container">

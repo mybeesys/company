@@ -1,3 +1,8 @@
+@php
+    $isPurchaseOrderForm = (bool) ($isPurchaseOrderForm ?? false);
+    $hideCashAccount = $isPurchaseOrderForm
+        || in_array(old('invoice_type', $transaction?->invoice_type ?? 'cash'), ['due', 'credit'], true);
+@endphp
 <div class="align-items-center mb-5 d-none" id="div-storehouse">
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('sales::fields.storehouse')</label>
     <select id="storehouse" class="form-select select-2 form-select-solid" required
@@ -8,33 +13,29 @@
             </option>
         @endforeach
     </select>
-
 </div>
 
+@if (! $isPurchaseOrderForm)
+    <div class="d-flex align-items-center mb-5 @if($hideCashAccount) d-none @endif" id="div-cash_account">
+        <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('accounting::lang.account')</label>
 
-@php
-    $hideCashAccount = ($po ?? false) || in_array(old('invoice_type', $transaction?->invoice_type ?? 'cash'), ['due', 'credit'], true);
-@endphp
-<div class="d-flex align-items-center mb-5 @if($hideCashAccount) d-none @endif" id="div-cash_account">
-    <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('accounting::lang.account')</label>
-
-    <select class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
-        @unless($hideCashAccount) required @endunless
-        style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="cash_account"
-        id="cash_account">
-
-        <option value="">{{ $paymentAccountSelect ?? __('purchases::lang.purchase_payment_account_select') }}</option>
-        @foreach ($accounts as $account)
-            <option value="{{ $account->id }}">
-                @if (app()->getLocale() == 'ar')
-                    {{ $account->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
-                @else
-                    {{ $account->name_en }} - <span class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
-                @endif
-            </option>
-        @endforeach
-    </select>
-</div>
+        <select class="form-select select-2  form-select-solid kt_ecommerce_select2_account "
+            @unless($hideCashAccount) required @endunless
+            style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="cash_account"
+            id="cash_account">
+            <option value="">{{ $paymentAccountSelect ?? __('purchases::lang.purchase_payment_account_select') }}</option>
+            @foreach ($accounts as $account)
+                <option value="{{ $account->id }}">
+                    @if (app()->getLocale() == 'ar')
+                        {{ $account->name_ar }} - <span class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                    @else
+                        {{ $account->name_en }} - <span class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                    @endif
+                </option>
+            @endforeach
+        </select>
+    </div>
+@endif
 
 <div class="d-flex align-items-center  mb-5">
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('purchases::fields.supplier')</label>

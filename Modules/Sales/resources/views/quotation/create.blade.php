@@ -78,7 +78,7 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-quotation') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-quotation') }}" data-invoice-document-only="1">
         @csrf
 
         <div class="container">
@@ -219,6 +219,8 @@
 @stop
 
 @section('script')
+    <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/invoice-type-account-toggle.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     {{-- <script src="{{ asset('Modules/Sales/js/clients.js') }}"></script> --}}
@@ -1028,32 +1030,6 @@ $.ajax({
                 }
 
             });
-
-
-            if ($('#invoice_type').length) {
-                $("#invoice_type").change(function() {
-                    if ($(this).val() === "due") {
-                        $('#nots_tab').tab('show');
-
-                        $("#li-payment_info").show();
-                        $("#paid_amount").val(0);
-
-                        $("#div-cash_account").hide();
-
-                        $("#card").hide();
-                        $("#bank_check").hide();
-                        $("#bank_transfer").hide();
-
-                    } else {
-                        $('#nots_tab').tab('show');
-
-                        $("#li-payment_info").hide();
-                        $("#div-cash_account").show();
-
-                    }
-
-                });
-            }
 
 
             document.getElementById('kt_modal_upload_attachments').addEventListener('click', function() {

@@ -81,7 +81,8 @@ class PurchasesOrderController extends Controller
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
 
-        $po = true;
+        $isPurchaseOrderForm = true;
+        $convertingFromPo = false;
         $isDuplicate = false;
         $transaction = null;
 
@@ -111,7 +112,7 @@ class PurchasesOrderController extends Controller
             $query->whereNull('unit2');
         }])->get();
 
-        return view('purchases::purchase-order.create', compact('clients', 'transaction', 'po', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate'));
+        return view('purchases::purchase-order.create', compact('clients', 'transaction', 'isPurchaseOrderForm', 'convertingFromPo', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate'));
     }
 
     /**
@@ -133,7 +134,7 @@ class PurchasesOrderController extends Controller
             }
             $transaction = Transaction::create([
                 'type' => 'purchases-order',
-                'invoice_type' => $request->invoice_type,
+                'invoice_type' => $request->filled('invoice_type') ? $request->invoice_type : null,
                 'due_date' => $request->due_date,
                 'transaction_date' => $request->transaction_date,
                 'contact_id' => $request->client_id,

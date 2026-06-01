@@ -13,7 +13,7 @@
                     <label for="quotation-items" class="form-label">@lang('sales::lang.quotation')</label>
                     @if ($quotations->isEmpty())
                         <div class="alert alert-warning mb-0">
-                            @lang('sales::lang.quotation_expired_no_convertible')
+                            @lang('sales::lang.no_quotation_for_convert')
                         </div>
                     @else
                         <select id="quotation-items" name="quotation_id" required
@@ -26,9 +26,15 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('messages.cancel')</button>
-                    <button type="submit" class="btn btn-primary" @if ($quotations->isEmpty()) disabled @endif>
-                        @lang('sales::lang.Create a sales invoice')
-                    </button>
+                    @if ($quotations->isEmpty())
+                        <a href="{{ route('create-quotation') }}" class="btn btn-primary">
+                            @lang('sales::general.add_quotation')
+                        </a>
+                    @else
+                        <button type="submit" class="btn btn-primary">
+                            @lang('sales::lang.Create a sales invoice')
+                        </button>
+                    @endif
                 </div>
             </form>
         </div>

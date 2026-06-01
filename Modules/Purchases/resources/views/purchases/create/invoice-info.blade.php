@@ -1,36 +1,28 @@
+@php
+    $isPurchaseOrderForm = (bool) ($isPurchaseOrderForm ?? false);
+    $convertingFromPo = (bool) ($convertingFromPo ?? false);
+@endphp
 <div class="card" data-section="contact" style="border: 0;box-shadow: none">
     <div class="container">
-        <div class=" align-items-center mb-5" @if ($po) style="display: none;" @endif>
-             <label class="fs-6 fw-semibold mb-2 " style="width: 160px;">@lang('sales::lang.invoice_type') </label>
+        @if ($isPurchaseOrderForm)
+            <input type="hidden" name="invoice_type" value="">
+        @else
+            <div class="d-flex align-items-center mb-5" id="div-invoice_type">
+                <label class="fs-6 fw-semibold mb-2 " style="width: 160px;">@lang('sales::lang.invoice_type') </label>
 
-            @php
-                $selectedInvoiceType = old('invoice_type', $transaction?->invoice_type ?? 'cash');
-            @endphp
-            <select name="invoice_type" id="invoice_type" style="padding: 7px;width: 60%!important" class="form-select select-2 form-select-solid ">
-                <option value="cash" @selected($selectedInvoiceType === 'cash')>@lang('sales::lang.cash')</option>
-                <option value="due" @selected(in_array($selectedInvoiceType, ['due', 'credit'], true))>@lang('sales::lang.due')</option>
-            </select>
-
-        </div>
-
-        {{-- <div class="d-flex align-items-center mb-5">
-            <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.issue_date')</label>
-            <input class="form-control form-control-solid custom-height" name="issue_date" required
-                value="{{ now()->format('Y-m-d') }}" placeholder="@lang('sales::fields.issue_date')" id="issue_date" type="date">
-        </div> --}}
-        {{-- <div class="d-flex align-items-center mb-5">
-            <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 150px;">@lang('sales::fields.payment_terms')</label>
-            <select name="payment_terms" id="payment_terms" style="padding: 7px;width: 60%!important" class="form-select select-2 form-select-solid ">
-                @foreach ($payment_terms as $key => $value)
-                    <option value="{{ $key }}">{{ $value }}</option>
-                @endforeach
-            </select>
-        </div> --}}
-
+                @php
+                    $selectedInvoiceType = old('invoice_type', $transaction?->invoice_type ?? 'cash');
+                @endphp
+                <select name="invoice_type" id="invoice_type" style="padding: 7px;width: 60%!important"
+                    class="form-select select-2 form-select-solid ">
+                    <option value="cash" @selected($selectedInvoiceType === 'cash')>@lang('sales::lang.cash')</option>
+                    <option value="due" @selected(in_array($selectedInvoiceType, ['due', 'credit'], true))>@lang('sales::lang.due')</option>
+                </select>
+            </div>
+        @endif
 
         <div class="d-flex align-items-center mb-5">
-
-            @if ($po)
+            @if ($isPurchaseOrderForm || $convertingFromPo)
                 <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.issue_date')</label>
             @else
                 <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.transaction_date')</label>
@@ -41,11 +33,8 @@
                 type="date">
         </div>
 
-
-
         <div class="d-flex align-items-center mb-5">
-
-            @if ($po)
+            @if ($isPurchaseOrderForm || $convertingFromPo)
                 <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.Expiry Date')</label>
             @else
                 <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;">@lang('sales::fields.due_date')</label>
@@ -61,14 +50,5 @@
                 @if ($transaction?->notice) value="{{ $transaction->notice }}" @endif value=""
                 placeholder="@lang('sales::fields.notice')" id="notice" type="text">
         </div>
-
-
-        {{-- Cost center & delegates were moved under supplier selector --}}
-
-
-
-
-
-
     </div>
 </div>

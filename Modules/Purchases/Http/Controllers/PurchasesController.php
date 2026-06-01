@@ -442,7 +442,8 @@ class PurchasesController extends Controller
         $establishments = Establishment::where('is_main', 0)->get();
         $countries = Country::all();
         $transaction = null;
-        $po = false;
+        $isPurchaseOrderForm = false;
+        $convertingFromPo = false;
         $isDuplicate = false;
 
         $duplicateFrom = (int) $request->input('duplicate_from', 0);
@@ -462,7 +463,7 @@ class PurchasesController extends Controller
         } elseif ($poInputId > 0) {
             $transaction = Transaction::with($purchaseLineRelations)->find($poInputId);
             if ($transaction && $transaction->type === 'purchases-order') {
-                $po = true;
+                $convertingFromPo = true;
             }
         }
 
@@ -477,7 +478,7 @@ class PurchasesController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', 'save');
         }
 
-        return view('purchases::purchases.create', compact('clients', 'settings', 'Latest_event', 'establishments', 'po', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig', 'isDuplicate'));
+        return view('purchases::purchases.create', compact('clients', 'settings', 'Latest_event', 'establishments', 'isPurchaseOrderForm', 'convertingFromPo', 'taxes', 'transaction', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig', 'isDuplicate'));
     }
 
     private function buildPurchasesInvoicePrecheckConfig(): array

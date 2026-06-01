@@ -147,7 +147,6 @@
             form.on('submit', function(event) {
                 if (!quotationSelect.length) {
                     event.preventDefault();
-                    alert(@json(__('sales::lang.quotation_expired_no_convertible')));
                     return;
                 }
 
@@ -155,7 +154,7 @@
 
                 if (!selectedQuotation) {
                     event.preventDefault();
-                    alert('@lang('sales::lang.Please select a quotation')');
+                    alert(@json(__('sales::lang.Please select a quotation')));
                     return;
                 }
 
