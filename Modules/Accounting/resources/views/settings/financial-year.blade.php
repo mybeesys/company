@@ -1,4 +1,19 @@
 <div id="fy-years-list-view">
+<section class="mb-6 fy-card p-5" id="fy-locking-section">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+        <div class="flex-grow-1">
+            <h2 class="fs-5 fw-bold text-gray-900 mb-1">@lang('accounting::financial_year.period_locking_title')</h2>
+            <p class="text-muted fs-7 mb-0">@lang('accounting::financial_year.period_locking_help')</p>
+        </div>
+        <div class="form-check form-switch form-check-custom form-check-solid">
+            <input class="form-check-input" type="checkbox" id="fy-period-locking-toggle"
+                @checked($financialPeriodLockingEnabled ?? false) />
+            <label class="form-check-label fw-semibold" for="fy-period-locking-toggle">
+                @lang('accounting::financial_year.period_locking_enabled')
+            </label>
+        </div>
+    </div>
+</section>
 {{-- Section 1: Current year dashboard --}}
 <section class="mb-8" id="fy-current-section">
     <div class="mb-4">
@@ -120,6 +135,7 @@
                 <div>
                     <h3 class="modal-title fw-bold mb-1" id="fy-add-modal-title">@lang('accounting::financial_year.section_add_title')</h3>
                     <p class="text-muted fs-7 mb-0" id="fy-add-modal-subtitle">@lang('accounting::financial_year.section_add_subtitle')</p>
+                    <p class="text-primary fs-7 mb-0 mt-2 d-none" id="fy-auto-next-hint">@lang('accounting::financial_year.auto_next_year_hint')</p>
                 </div>
                 <button type="button" class="btn btn-sm btn-icon btn-active-light-primary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i>

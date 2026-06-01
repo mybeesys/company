@@ -13,6 +13,7 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
@@ -609,6 +610,8 @@ class PurchasesController extends Controller
         if ($request->paid_amount) {
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         } else {
+            FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
+
             $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;

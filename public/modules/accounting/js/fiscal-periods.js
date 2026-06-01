@@ -15,8 +15,9 @@
         return api()?.msg || {};
     }
 
+    /** Display only: upcoming/closing → closed (DB may still store upcoming). */
     function normalizePeriodStatus(status) {
-        if (status === 'closed' || status === 'closing') {
+        if (status === 'closed' || status === 'closing' || status === 'upcoming') {
             return 'closed';
         }
         return 'open';
@@ -100,7 +101,6 @@
         }
 
         a.ensureYearPeriods(year);
-        a.saveState(state);
 
         const label =
             year.description ||
@@ -196,7 +196,7 @@
             tableWrap?.classList.remove('d-none');
             tbody.innerHTML = pageItems
                 .map((p) => {
-                    const actions = buildPeriodActions(p);
+                    const actions = buildPeriodActions(p, year);
                     return `<tr data-period-id="${a.escapeHtml(p.id)}">
                         <td class="fw-semibold text-gray-800">${a.escapeHtml(p.name)}</td>
                         <td class="fy-date-num">${a.formatDisplayDate(p.start_date)}</td>
@@ -227,11 +227,20 @@
         bindPeriodRowActions(year);
     }
 
-    function buildPeriodActions(period) {
+    function normalizeYearStatus(status) {
+        if (status === 'closed' || status === 'closing') {
+            return 'closed';
+        }
+        return 'open';
+    }
+
+    function buildPeriodActions(period, year) {
         const m = msg();
         const status = normalizePeriodStatus(period.status);
+        const yearClosed = year && normalizeYearStatus(year.status) === 'closed';
         if (status === 'closed') {
-            return actionBtn('open', 'fa-unlock', m.actionOpen, 'btn-open', false);
+            const title = yearClosed ? m.reopenYearFirst || m.actionOpen : m.actionOpen;
+            return actionBtn('open', 'fa-unlock', title, 'btn-open', yearClosed);
         }
         return actionBtn('close', 'fa-lock', m.actionClose, 'btn-close-period', false);
     }
@@ -302,11 +311,18 @@
     function confirmClosePeriod(year, period) {
         const m = msg();
         const SwalApi = window.Swal;
-        const runClose = () => {
-            period.status = 'closed';
-            api().saveState(api().getState());
-            renderPeriodsTable(year);
-            toastr?.success(m.periodClosedSuccess);
+        const runClose = async () => {
+            try {
+                await api().apiRequest('POST', api().cfg.api.closePeriod(period.id));
+                await api().reloadFromServer();
+                const freshYear = findYear(api().getState(), year.id);
+                if (freshYear) {
+                    renderPeriodsTable(freshYear);
+                }
+                toastr?.success(m.periodClosedSuccess);
+            } catch (err) {
+                toastr?.error(err.message);
+            }
         };
 
         if (SwalApi?.fire) {
@@ -335,11 +351,18 @@
     function confirmOpenPeriod(year, period) {
         const m = msg();
         const SwalApi = window.Swal;
-        const runOpen = () => {
-            period.status = 'open';
-            api().saveState(api().getState());
-            renderPeriodsTable(year);
-            toastr?.success(m.periodOpenedSuccess);
+        const runOpen = async () => {
+            try {
+                await api().apiRequest('POST', api().cfg.api.openPeriod(period.id));
+                await api().reloadFromServer();
+                const freshYear = findYear(api().getState(), year.id);
+                if (freshYear) {
+                    renderPeriodsTable(freshYear);
+                }
+                toastr?.success(m.periodOpenedSuccess);
+            } catch (err) {
+                toastr?.error(err.message);
+            }
         };
 
         if (SwalApi?.fire) {

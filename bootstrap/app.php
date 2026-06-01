@@ -9,6 +9,8 @@ use App\Http\Middleware\SetApiLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Exceptions\FiscalPeriodException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -35,5 +37,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (FiscalPeriodException $e, $request) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        });
     })->create();

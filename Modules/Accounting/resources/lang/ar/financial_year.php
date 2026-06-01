@@ -84,7 +84,6 @@ return [
     'period_status_closed' => 'مغلقة',
     'period_status_closing' => 'قيد الإغلاق',
     'period_status_upcoming' => 'مستقبلية',
-
     'action_open_period' => 'فتح هذه الفترة',
     'action_close_period' => 'إغلاق هذه الفترة',
     'action_view_period' => 'عرض تفاصيل الفترة',
@@ -101,4 +100,21 @@ return [
     'period_updated_success' => 'تم تحديث بيانات الفترة.',
     'period_action_disabled' => 'لا يمكن تنفيذ هذا الإجراء على فترة مستقبلية.',
     'showing_periods' => 'عرض :from–:to من :total فترة',
+
+    'period_locking_title' => 'قفل الفترات المحاسبية',
+    'period_locking_help' => 'عند التفعيل، يُرفض ترحيل أي قيد خارج سنة مالية مفتوحة وفترة مفتوحة. إن لم تُعرَّف سنوات بعد، يستمر النظام بالعمل (وضع توافق).',
+    'period_locking_enabled' => 'تفعيل قفل الفترات على مستوى الخادم',
+    'period_locking_saved' => 'تم حفظ إعداد قفل الفترات.',
+    'api_error' => 'تعذّر حفظ البيانات. حاول مرة أخرى.',
+    'reopen_year_first' => 'السنة المالية «:year» مغلقة. افتح السنة من تعديل السنة المالية ثم أعد فتح الفترة.',
+    'cannot_delete_year_with_activity' => 'لا يمكن حذف سنة مالية تحتوي حركات محاسبية ضمن تواريخها.',
+    'year_dates_overlap' => 'تواريخ السنة تتقاطع مع سنة مالية موجودة.',
+    'auto_next_year_hint' => 'السنة التالية تُحسب تلقائياً: من اليوم التالي لنهاية آخر سنة ولمدة 12 شهراً.',
+
+    'exceptions' => [
+        'year_not_found' => 'لا توجد سنة مالية تغطي تاريخ العملية (:date).',
+        'year_closed' => 'السنة المالية «:year» مغلقة — لا يُسمح بالترحيل بتاريخ :date.',
+        'period_closed' => 'الفترة المحاسبية «:period» مغلقة — لا يُسمح بالترحيل بتاريخ :date.',
+        'no_open_year' => 'لا توجد سنة مالية مفتوحة نشطة.',
+    ],
 ];

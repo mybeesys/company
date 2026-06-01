@@ -9,6 +9,7 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Transaction;
@@ -225,6 +226,8 @@ class TransactionUtils
             'payment_ref_no' => $payment_ref_no,
             'account_id' => $account_id,
         ]);
+
+        FiscalPeriodGatekeeper::assertPostable($payment_on);
 
         $acc_trans_mapping = new AccountingAccTransMapping;
 
@@ -445,6 +448,8 @@ class TransactionUtils
         $payment->payment_type = $transaction->invoice_type;
         $payment->note = $request->input('additionalNotes');
         $payment->save();
+
+        FiscalPeriodGatekeeper::assertPostable($payment_on);
 
         $acc_trans_mapping = new AccountingAccTransMapping;
 

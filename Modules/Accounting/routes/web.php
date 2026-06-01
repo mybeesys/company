@@ -5,6 +5,7 @@ use Modules\Accounting\Http\Controllers\AccountingDashboardController;
 use Modules\Accounting\Http\Controllers\AccountingStagingResetController;
 use Modules\Accounting\Http\Controllers\AccountingReportsController;
 use Modules\Accounting\Http\Controllers\AccountingSettingsController;
+use Modules\Accounting\Http\Controllers\FinancialYearSettingsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
@@ -57,6 +58,17 @@ Route::middleware([
         Route::get('accounts-dropdown', [TreeAccountsController::class, 'accountsDropdown'])->name('accounts-dropdown');
 
         Route::get('accounting-settings', [AccountingSettingsController::class, 'index'])->name('accounting-settings');
+
+        Route::prefix('accounting/financial-years')->name('accounting.financial-years.')->group(function () {
+            Route::get('/', [FinancialYearSettingsController::class, 'index'])->name('index');
+            Route::get('next-range', [FinancialYearSettingsController::class, 'nextRange'])->name('next-range');
+            Route::post('/', [FinancialYearSettingsController::class, 'store'])->name('store');
+            Route::put('{id}', [FinancialYearSettingsController::class, 'update'])->whereNumber('id')->name('update');
+            Route::delete('{id}', [FinancialYearSettingsController::class, 'destroy'])->whereNumber('id')->name('destroy');
+            Route::put('settings/locking', [FinancialYearSettingsController::class, 'updateLocking'])->name('locking');
+            Route::post('periods/{id}/close', [FinancialYearSettingsController::class, 'closePeriod'])->whereNumber('id')->name('periods.close');
+            Route::post('periods/{id}/open', [FinancialYearSettingsController::class, 'openPeriod'])->whereNumber('id')->name('periods.open');
+        });
 
         Route::get('accounts-routing', [AccountsRoutingController::class, 'index'])->name('accounts-routing');
         Route::post('accounts-routing-store', [AccountsRoutingController::class, 'store'])->name('accounts-routing-store');

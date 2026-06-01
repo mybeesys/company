@@ -1588,6 +1588,7 @@ class AccountingReportsController extends Controller
 
         $query = AccountingAccTransMapping::query()
             ->where('type', 'journal_entry')
+            ->where('is_manual', 0)
             ->when($startDate, fn ($q) => $q->whereDate('operation_date', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->whereDate('operation_date', '<=', $endDate))
             ->when($refNo, fn ($q) => $q->where('ref_no', 'like', '%'.$refNo.'%'))
@@ -1607,7 +1608,7 @@ class AccountingReportsController extends Controller
 
         $this->applyJournalReportSourceFilter($query, $this->normalizeJournalSources($request));
 
-        return $query->orderByDesc('operation_date');
+        return $query->orderByDesc('id');
     }
 
     /**
@@ -1615,7 +1616,7 @@ class AccountingReportsController extends Controller
      */
     private function normalizeJournalSources(Request $request): array
     {
-        $allowed = ['sales', 'purchases', 'receipt_voucher', 'payment_voucher', 'manual_journal'];
+        $allowed = ['sales', 'purchases', 'receipt_voucher', 'payment_voucher'];
         $raw = $request->input('journal_source');
         if ($raw === null || $raw === '' || $raw === 'all') {
             return [];
@@ -1665,7 +1666,6 @@ class AccountingReportsController extends Controller
                         'payment_voucher' => $sub->whereHas('transactions', function ($q) {
                             $q->where('sub_type', 'payment_voucher');
                         }),
-                        'manual_journal' => $sub->where('is_manual', 1),
                         default => null,
                     };
                 });

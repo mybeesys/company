@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Exceptions\FiscalPeriodException;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Services\StandaloneVoucherJournalPoster;
 use Modules\Accounting\Utils\StandaloneVoucherHelper;
 use Mpdf\Mpdf;
 
@@ -95,6 +98,8 @@ class ReceiptVouchersController extends Controller
         ]);
 
         try {
+            FiscalPeriodGatekeeper::assertPostable($validated['pament_on']);
+
             DB::beginTransaction();
 
             $note = $validated['additionalNotes'];
@@ -111,6 +116,13 @@ class ReceiptVouchersController extends Controller
                 'note' => $note,
             ];
 
+            $mapping = StandaloneVoucherJournalPoster::createMapping(
+                $validated['pament_on'],
+                $note,
+                __('menuItemLang.receipt_vouchers')
+            );
+            $debit_data['acc_trans_mapping_id'] = $mapping->id;
+
             $debit = AccountingAccountsTransaction::query()->create($debit_data);
 
             $credit_data = $debit_data;
@@ -123,9 +135,15 @@ class ReceiptVouchersController extends Controller
             $debit->transaction_id = $credit->id;
             $debit->save();
 
+            StandaloneVoucherJournalPoster::linkLines($debit, $credit, $mapping);
+
             DB::commit();
 
             return redirect()->route('receipt-vouchers')->with('success', __('messages.add_successfully'));
+        } catch (FiscalPeriodException $e) {
+            DB::rollBack();
+
+            return redirect()->route('receipt-vouchers')->with('error', $e->getMessage());
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -219,6 +237,8 @@ class ReceiptVouchersController extends Controller
         ]);
 
         try {
+            FiscalPeriodGatekeeper::assertPostable($validated['pament_on']);
+
             [$debit, $credit] = StandaloneVoucherHelper::receiptLines($id);
 
             DB::beginTransaction();
@@ -244,9 +264,21 @@ class ReceiptVouchersController extends Controller
                 'note' => $note,
             ]);
 
+            StandaloneVoucherJournalPoster::syncMapping(
+                $debit->fresh(),
+                $credit->fresh(),
+                $date,
+                $note,
+                __('menuItemLang.receipt_vouchers')
+            );
+
             DB::commit();
 
             return redirect()->route('receipt-vouchers')->with('success', __('messages.updated_successfully'));
+        } catch (FiscalPeriodException $e) {
+            DB::rollBack();
+
+            return redirect()->route('receipt-vouchers')->with('error', $e->getMessage());
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -262,6 +294,7 @@ class ReceiptVouchersController extends Controller
         try {
             [$debit, $credit] = StandaloneVoucherHelper::receiptLines((int) $id);
             DB::beginTransaction();
+            StandaloneVoucherJournalPoster::deleteMappingForLines($debit, $credit);
             $debit->delete();
             $credit->delete();
             DB::commit();

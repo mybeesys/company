@@ -418,6 +418,18 @@
         window.fySettingsConfig = {
             locale: @json(app()->getLocale()),
             storageKey: 'bee_accounting_financial_years_v1',
+            csrfToken: @json(csrf_token()),
+            lockingEnabled: @json($financialPeriodLockingEnabled ?? false),
+            api: {
+                index: @json(route('accounting.financial-years.index')),
+                store: @json(route('accounting.financial-years.store')),
+                update: (id) => @json(url('accounting/financial-years')) + '/' + id,
+                destroy: (id) => @json(url('accounting/financial-years')) + '/' + id,
+                locking: @json(route('accounting.financial-years.locking')),
+                nextRange: @json(route('accounting.financial-years.next-range')),
+                closePeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/close',
+                openPeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/open',
+            },
             messages: {
                 required: @json(__('accounting::financial_year.validation_required')),
                 invalidDate: @json(__('accounting::financial_year.validation_invalid_date')),
@@ -447,6 +459,7 @@
                 confirmYesDelete: @json(__('accounting::financial_year.confirm_yes_delete')),
                 periodOpen: @json(__('accounting::financial_year.period_status_open')),
                 periodClosed: @json(__('accounting::financial_year.period_status_closed')),
+                periodUpcoming: @json(__('accounting::financial_year.period_status_upcoming')),
                 actionOpen: @json(__('accounting::financial_year.action_open_period')),
                 actionClose: @json(__('accounting::financial_year.action_close_period')),
                 actionView: @json(__('accounting::financial_year.action_view_period')),
@@ -464,11 +477,14 @@
                 showingPeriods: @json(__('accounting::financial_year.showing_periods')),
                 periodsEmpty: @json(__('accounting::financial_year.periods_empty')),
                 cancel: @json(__('messages.cancel')),
+                apiError: @json(__('accounting::financial_year.api_error')),
+                periodLockingSaved: @json(__('accounting::financial_year.period_locking_saved')),
+                reopenYearFirst: @json(__('accounting::financial_year.reopen_year_first', ['year' => ':year'])),
             },
         };
     </script>
-    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=5"></script>
-    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=7"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=10"></script>
+    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=12"></script>
     @if ($hasAccounts ?? false)
         @include('accounting::AccountsRouting.select2-init')
     @endif

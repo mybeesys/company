@@ -84,7 +84,6 @@ return [
     'period_status_closed' => 'Closed',
     'period_status_closing' => 'Closing',
     'period_status_upcoming' => 'Upcoming',
-
     'action_open_period' => 'Open this period',
     'action_close_period' => 'Close this period',
     'action_view_period' => 'View period details',
@@ -101,4 +100,21 @@ return [
     'period_updated_success' => 'Period updated.',
     'period_action_disabled' => 'This action is not allowed on an upcoming period.',
     'showing_periods' => 'Showing :from–:to of :total periods',
+
+    'period_locking_title' => 'Accounting period locking',
+    'period_locking_help' => 'When enabled, posting is rejected unless the operation date falls in an open fiscal year and open period. If no years exist yet, the system keeps working (compatibility mode).',
+    'period_locking_enabled' => 'Enforce period locking on the server',
+    'period_locking_saved' => 'Period locking setting saved.',
+    'api_error' => 'Could not save data. Please try again.',
+    'reopen_year_first' => 'Fiscal year «:year» is closed. Reopen the year from year settings, then reopen the period.',
+    'cannot_delete_year_with_activity' => 'Cannot delete a fiscal year that has accounting activity within its dates.',
+    'year_dates_overlap' => 'These dates overlap an existing fiscal year.',
+    'auto_next_year_hint' => 'The next year is calculated automatically: day after the previous year end, for 12 months.',
+
+    'exceptions' => [
+        'year_not_found' => 'No fiscal year covers operation date :date.',
+        'year_closed' => 'Fiscal year «:year» is closed — posting on :date is not allowed.',
+        'period_closed' => 'Fiscal period «:period» is closed — posting on :date is not allowed.',
+        'no_open_year' => 'No active open fiscal year.',
+    ],
 ];

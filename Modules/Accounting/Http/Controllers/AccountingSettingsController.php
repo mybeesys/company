@@ -4,6 +4,7 @@ namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\General\Models\Setting;
 
 class AccountingSettingsController extends Controller
 {
@@ -23,7 +24,10 @@ class AccountingSettingsController extends Controller
         }
 
         return view('accounting::settings.index', array_merge(
-            ['activeTab' => $activeTab],
+            [
+                'activeTab' => $activeTab,
+                'financialPeriodLockingEnabled' => Setting::isFinancialPeriodLockingEnabled(),
+            ],
             $routing
         ));
     }
