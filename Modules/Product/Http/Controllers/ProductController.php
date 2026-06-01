@@ -411,7 +411,7 @@ class ProductController extends Controller
                         $tran['unit2'] = null;
                         $id = UnitTransfer::create($tran)->id;
                         $inserted['id'] = $id;
-                        $inserted['unit2'] = $transfer['unit2'];
+                        $inserted['unit2'] = $transfer['unit2'] ?? null;
                         $newid['newId'] = $id;
                         $ids[] = $newid;
                         $insertedIds[] = $inserted;
@@ -430,7 +430,7 @@ class ProductController extends Controller
                 }
                 foreach ($insertedIds as $transfer) {
                     foreach ($ids as $updateId) {
-                        if ($transfer['unit2'] == $updateId['oldId']) {
+                        if (($transfer['unit2'] ?? null) == $updateId['oldId']) {
                             $updateObject = UnitTransfer::find($transfer['id']);
                             $updateObject->unit2 = $updateId['newId'];
                             $updateObject->save();
@@ -858,12 +858,12 @@ class ProductController extends Controller
                 'unit2' => null,
             ];
             $newId = UnitTransfer::create($tran)->id;
-            $insertedIds[] = ['id' => $newId, 'unit2' => $transfer['unit2']];
+            $insertedIds[] = ['id' => $newId, 'unit2' => $transfer['unit2'] ?? null];
             $ids[] = ['oldId' => $transfer['id'], 'newId' => $newId];
         }
         foreach ($insertedIds as $transfer) {
             foreach ($ids as $updateId) {
-                if ($transfer['unit2'] == $updateId['oldId']) {
+                if (($transfer['unit2'] ?? null) == $updateId['oldId']) {
                     $updateObject = UnitTransfer::find($transfer['id']);
                     $updateObject->unit2 = $updateId['newId'];
                     $updateObject->save();

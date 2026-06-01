@@ -7,6 +7,8 @@ return [
 
     'section_setup_title' => 'First financial year setup',
     'section_setup_subtitle' => 'Define your opening fiscal period. It does not have to span 12 months — it may start on any date.',
+    'section_add_title' => 'Add fiscal year',
+    'section_add_subtitle' => 'Create another fiscal year with its dates and status (open or closed).',
     'section_current_title' => 'Current year overview',
     'section_history_title' => 'Financial years history',
 
@@ -17,8 +19,6 @@ return [
     'status' => 'Status',
     'status_open' => 'Open',
     'status_closed' => 'Closed',
-    'status_upcoming' => 'Upcoming',
-
     'start_date_help' => 'First day of the fiscal period — may differ from the calendar year.',
     'end_date_help' => 'Last day of the fiscal period. Must be on or after the start date.',
     'description_help' => 'Label shown in reports and the years list (optional).',
@@ -26,11 +26,12 @@ return [
 
     'tooltip_start_date' => 'First day transactions are recorded in this fiscal year.',
     'tooltip_end_date' => 'Last day of the period before year-end close or a new year.',
-    'tooltip_status' => 'Open: active | Closed: ended | Upcoming: not started yet.',
+    'tooltip_status' => 'Open: active for entries | Closed: ended.',
 
-    'save_first_year' => 'Save financial year',
+    'save_first_year' => 'Save fiscal year',
+    'add_year' => 'Add fiscal year',
     'saving' => 'Saving...',
-    'save_success' => 'First financial year saved successfully.',
+    'save_success' => 'Fiscal year saved successfully.',
     'auto_years_notice' => 'Subsequent fiscal years are created automatically as 12-month periods.',
     'auto_years_notice_title' => 'Note',
 
@@ -47,9 +48,9 @@ return [
     'col_status' => 'Status',
 
     'empty_history_title' => 'No fiscal years yet',
-    'empty_history_text' => 'After saving the first year, it will appear here with a summary above.',
+    'empty_history_text' => 'Click «Add fiscal year» to create your first year and see it listed here.',
     'empty_current_title' => 'No fiscal year defined',
-    'empty_current_text' => 'Complete the form below to create your opening fiscal year.',
+    'empty_current_text' => 'Click «Add fiscal year» to create your opening fiscal year.',
 
     'validation_required' => 'This field is required.',
     'validation_invalid_date' => 'Invalid date.',
