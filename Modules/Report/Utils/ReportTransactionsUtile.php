@@ -1302,10 +1302,49 @@ class ReportTransactionsUtile
     public static function computePercentChange(float $baseline, float $current): ?float
     {
         if (abs($baseline) < 0.0000001) {
-            return null;
+            return abs($current) < 0.0000001 ? 0.0 : null;
         }
 
         return (($current - $baseline) / $baseline) * 100;
+    }
+
+    /**
+     * Numeric cast for sell-line quantity stored as string (qyt).
+     */
+    public static function sellLineQtyNumericSql(string $qtyColumn = 'tsl.qyt'): string
+    {
+        return 'CAST(REPLACE(TRIM('.$qtyColumn.'), ",", ".") AS DECIMAL(24,6))';
+    }
+
+    public static function sellLineQtySumSql(string $qtyColumn = 'tsl.qyt', ?string $alias = 'qty'): string
+    {
+        $expr = 'COALESCE(SUM('.self::sellLineQtyNumericSql($qtyColumn).'), 0)';
+
+        return $alias !== null && $alias !== '' ? $expr.' as '.$alias : $expr;
+    }
+
+    public static function sellLineSubtotalSumSql(
+        string $qtyColumn = 'tsl.qyt',
+        string $priceColumn = 'tsl.unit_price_inc_tax',
+        ?string $alias = 'subtotal'
+    ): string {
+        $qty = self::sellLineQtyNumericSql($qtyColumn);
+        $expr = 'COALESCE(SUM('.$qty.' * '.$priceColumn.'), 0)';
+
+        return $alias !== null && $alias !== '' ? $expr.' as '.$alias : $expr;
+    }
+
+    public static function formatPercentChangeForDisplay(?float $percent, float $baseline, float $current): string
+    {
+        if ($percent !== null) {
+            return number_format($percent, 2).'%';
+        }
+
+        if (abs($baseline) < 0.0000001 && abs($current) > 0.0000001) {
+            return __('report::general.sales_comparison_pct_new');
+        }
+
+        return '—';
     }
 
     /**
@@ -1317,13 +1356,6 @@ class ReportTransactionsUtile
     {
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
-        $fmtPct = static function ($v) {
-            if ($v === null) {
-                return '—';
-            }
-
-            return number_format($v, 2).'%';
-        };
         $fmtAvg = static function ($v) {
             if ($v === null) {
                 return '—';
@@ -1352,9 +1384,27 @@ class ReportTransactionsUtile
             ->editColumn('subtotal_period_b', fn ($row) => $fmt($row->subtotal_period_b))
             ->editColumn('lines_period_b', fn ($row) => (string) (int) $row->lines_period_b)
             ->editColumn('qty_difference', fn ($row) => $fmtQty($row->qty_difference))
-            ->editColumn('qty_change_percent', fn ($row) => $fmtPct($row->qty_change_percent))
+            ->editColumn('qty_change_percent', function ($row) {
+                $qtyA = (float) ($row->qty_period_a ?? 0);
+                $qtyB = (float) ($row->qty_period_b ?? 0);
+
+                return self::formatPercentChangeForDisplay(
+                    self::computePercentChange($qtyA, $qtyB),
+                    $qtyA,
+                    $qtyB
+                );
+            })
             ->editColumn('subtotal_difference', fn ($row) => $fmt($row->subtotal_difference))
-            ->editColumn('subtotal_change_percent', fn ($row) => $fmtPct($row->subtotal_change_percent))
+            ->editColumn('subtotal_change_percent', function ($row) {
+                $subA = (float) ($row->subtotal_period_a ?? 0);
+                $subB = (float) ($row->subtotal_period_b ?? 0);
+
+                return self::formatPercentChangeForDisplay(
+                    self::computePercentChange($subA, $subB),
+                    $subA,
+                    $subB
+                );
+            })
             ->editColumn('discount_difference', fn ($row) => $fmt($row->discount_difference))
             ->editColumn('tax_difference', fn ($row) => $fmt($row->tax_difference))
             ->editColumn('lines_difference', fn ($row) => (string) (int) $row->lines_difference)

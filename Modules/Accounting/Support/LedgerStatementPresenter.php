@@ -156,8 +156,6 @@ final class LedgerStatementPresenter
      *   date: string,
      *   ref: string,
      *   description: string,
-     *   due: string,
-     *   currency: string,
      *   debit: string,
      *   credit: string,
      *   balance: string,
@@ -171,7 +169,6 @@ final class LedgerStatementPresenter
         bool $localeAr,
         bool $showTransactionType
     ): array {
-        $currency = self::defaultCurrency();
         $balance = $openingBalance;
         $rows = [];
 
@@ -193,13 +190,10 @@ final class LedgerStatementPresenter
                 $ref = trim($ref.' '.$typeLabel);
             }
 
-            $description = trim((string) ($tx->note ?? ''));
-            if ($description === '' && $tx->accTransMapping?->note) {
-                $description = trim((string) $tx->accTransMapping->note);
-            }
-            if ($description === '') {
-                $description = '—';
-            }
+            $description = AccountingNote::resolveForDisplay(
+                $tx->note,
+                $tx->accTransMapping?->note
+            );
 
             $opDate = $tx->operation_date ? (string) $tx->operation_date : null;
 
@@ -207,8 +201,6 @@ final class LedgerStatementPresenter
                 'date' => self::formatDate($opDate),
                 'ref' => $ref,
                 'description' => $description,
-                'due' => self::formatDate($opDate),
-                'currency' => $currency,
                 'debit' => self::formatAmount($debitAmt, true),
                 'credit' => self::formatAmount($creditAmt, true),
                 'balance' => self::formatSignedBalance($balance),

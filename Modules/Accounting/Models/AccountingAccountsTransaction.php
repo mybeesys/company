@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Modules\Employee\Models\Employee;
 use Modules\General\Models\Transaction;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\General\Models\TransactionPayments;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,6 +20,11 @@ class AccountingAccountsTransaction extends Model
     protected $guarded = ['id'];
 
     protected $table = 'accounting_accounts_transactions';
+
+    public function setNoteAttribute(mixed $value): void
+    {
+        $this->attributes['note'] = AccountingNote::normalizeForStorage($value);
+    }
 
     public function account()
     {

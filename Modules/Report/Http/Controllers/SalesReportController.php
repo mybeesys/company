@@ -969,11 +969,12 @@ class SalesReportController extends Controller
     private function salesComparisonPeriodTotals(Request $request, string $from, string $to): object
     {
         return $this->buildSalesComparisonLinesQuery($request, false)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->selectRaw('COALESCE(SUM(tsl.qyt), 0) as qty')
+            ->whereDate('t.transaction_date', '>=', $from)
+            ->whereDate('t.transaction_date', '<=', $to)
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('COALESCE(SUM(tsl.discount_amount), 0) as discount')
             ->selectRaw('COALESCE(SUM(tsl.tax_value), 0) as tax')
-            ->selectRaw('COALESCE(SUM(tsl.qyt * tsl.unit_price_inc_tax), 0) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->first();
     }
@@ -987,12 +988,13 @@ class SalesReportController extends Controller
 
         $fetchByProduct = function (string $from, string $to) use ($request) {
             return $this->buildSalesComparisonLinesQuery($request, false)
-                ->whereBetween('t.transaction_date', [$from, $to])
+                ->whereDate('t.transaction_date', '>=', $from)
+                ->whereDate('t.transaction_date', '<=', $to)
                 ->groupBy('tsl.product_id')
                 ->selectRaw('tsl.product_id as product_id')
                 ->selectRaw('MAX(p.name_ar) as name_ar')
                 ->selectRaw('MAX(p.name_en) as name_en')
-                ->selectRaw('COALESCE(SUM(tsl.qyt * tsl.unit_price_inc_tax), 0) as subtotal')
+                ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
                 ->get()
                 ->keyBy('product_id');
         };
@@ -1032,14 +1034,16 @@ class SalesReportController extends Controller
      * Aggregated sell lines per product, branch, and optionally customer for one date range.
      *
      * @param  list<int>|null  $mysqlWeekdayOneToSeven  Optional MySQL DAYOFWEEK() values (1=Sunday … 7=Saturday). When set, only lines on those weekdays are included.
-     * @param  bool  $groupByCustomer  When false, quantities and revenue are summed across all customers for each product–branch (weekday report).
+     * @param  bool  $groupByCustomer  Must stay false for sales comparison (never split rows by customer).
+     * @param  bool  $groupByEstablishment  When false, sums across all branches per product (used when no branch filter).
      */
     private function aggregateSalesComparisonPeriod(
         Request $request,
         string $from,
         string $to,
         ?array $mysqlWeekdayOneToSeven = null,
-        bool $groupByCustomer = true
+        bool $groupByCustomer = false,
+        bool $groupByEstablishment = true
     ): \Illuminate\Support\Collection {
         $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
 
@@ -1056,31 +1060,81 @@ class SalesReportController extends Controller
 
         $q = $q
             ->selectRaw('tsl.product_id as product_id')
-            ->selectRaw('t.establishment_id as establishment_id')
             ->selectRaw('MAX(p.name_ar) as product_name_ar')
             ->selectRaw('MAX(p.name_en) as product_name_en')
             ->selectRaw('MAX(p.SKU) as sku')
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN cat.name_ar ELSE cat.name_en END) as category")
-            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory")
-            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
-            ->selectRaw('SUM(tsl.qyt) as qty')
-            ->selectRaw('SUM(tsl.discount_amount) as discount')
-            ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
-            ->selectRaw('COUNT(*) as line_count');
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory");
 
-        if ($groupByCustomer) {
-            $rows = $q->groupBy('tsl.product_id', 't.establishment_id', 't.contact_id')
-                ->selectRaw('t.contact_id as contact_id')
-                ->selectRaw('MAX(c.name) as customer')
-                ->get();
-
-            return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id.'|'.$r->contact_id);
+        if ($groupByEstablishment) {
+            $q->selectRaw('COALESCE(t.establishment_id, 0) as establishment_id')
+                ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name");
         }
 
-        $rows = $q->groupBy('tsl.product_id', 't.establishment_id')->get();
+        $q = $q
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
+            ->selectRaw('SUM(tsl.discount_amount) as discount')
+            ->selectRaw('SUM(tsl.tax_value) as tax')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
+            ->selectRaw('COUNT(*) as line_count');
 
-        return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id);
+        $groupColumns = ['tsl.product_id'];
+        if ($groupByEstablishment) {
+            $groupColumns[] = DB::raw('COALESCE(t.establishment_id, 0)');
+        }
+
+        if ($groupByCustomer) {
+            $groupColumns[] = 't.contact_id';
+            $q->selectRaw('t.contact_id as contact_id')
+                ->selectRaw('MAX(c.name) as customer');
+        }
+
+        $rows = $q->groupBy($groupColumns)->get();
+
+        return $rows->keyBy(function ($r) use ($groupByEstablishment, $groupByCustomer) {
+            $parts = [(string) $r->product_id];
+            if ($groupByEstablishment) {
+                $parts[] = (string) ($r->establishment_id ?? 0);
+            }
+            if ($groupByCustomer) {
+                $parts[] = (string) ($r->contact_id ?? 0);
+            }
+
+            return implode('|', $parts);
+        });
+    }
+
+    /**
+     * @return array{group_by_customer: bool, group_by_establishment: bool}
+     */
+    private function salesComparisonAggregationOptions(Request $request): array
+    {
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+
+        return [
+            'group_by_customer' => false,
+            'group_by_establishment' => $branchIds->isNotEmpty(),
+        ];
+    }
+
+    private function salesComparisonEstablishmentColumnLabel(Request $request): string
+    {
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+
+        if ($branchIds->count() === 1) {
+            $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+            $name = DB::table('est_establishments')
+                ->where('id', $branchIds->first())
+                ->value($locale === 'ar' ? 'name' : 'name_en');
+
+            return $name !== null && $name !== '' ? (string) $name : __('report::general.sales_comparison_all_branches');
+        }
+
+        if ($branchIds->count() > 1) {
+            return __('report::general.sales_comparison_branches_filtered');
+        }
+
+        return __('report::general.sales_comparison_all_branches');
     }
 
     private function applyProductPurchaseReportFilters($query, Request $request): void
@@ -3071,13 +3125,6 @@ SUM(
 
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
-        $fmtPct = static function ($v) {
-            if ($v === null) {
-                return '—';
-            }
-
-            return number_format($v, 2).'%';
-        };
         $fmtAvg = static function ($v) {
             if ($v === null) {
                 return '—';
@@ -3106,13 +3153,38 @@ SUM(
             'subtotal_period_b' => $fmt($sumSubB),
             'lines_period_b' => (string) $sumLinesB,
             'qty_difference' => $fmtQty($sumQtyB - $sumQtyA),
-            'qty_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($sumQtyA, $sumQtyB)),
+            'qty_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($sumQtyA, $sumQtyB),
+                $sumQtyA,
+                $sumQtyB
+            ),
             'subtotal_difference' => $fmt($sumSubB - $sumSubA),
-            'subtotal_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($sumSubA, $sumSubB)),
+            'subtotal_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($sumSubA, $sumSubB),
+                $sumSubA,
+                $sumSubB
+            ),
             'discount_difference' => $fmt($sumDiscB - $sumDiscA),
             'tax_difference' => $fmt($sumTaxB - $sumTaxA),
             'lines_difference' => (string) ($sumLinesB - $sumLinesA),
         ];
+    }
+
+    private function salesComparisonCustomerColumnLabel(Request $request): string
+    {
+        $customerIds = collect($request->input('customer_id'))->filter()->values();
+
+        if ($customerIds->count() === 1) {
+            $name = DB::table('cs_contacts')->where('id', $customerIds->first())->value('name');
+
+            return $name !== null && $name !== '' ? (string) $name : __('report::general.weekday_report_customer_rollup');
+        }
+
+        if ($customerIds->count() > 1) {
+            return __('report::general.sales_comparison_customers_filtered');
+        }
+
+        return __('report::general.weekday_report_customer_rollup');
     }
 
     private function buildSalesComparisonMergedCollection(Request $request): ?Collection
@@ -3133,8 +3205,25 @@ SUM(
         [$aFrom, $aTo] = $periodA;
         [$bFrom, $bTo] = $periodB;
 
-        $aggA = $this->aggregateSalesComparisonPeriod($request, $aFrom, $aTo);
-        $aggB = $this->aggregateSalesComparisonPeriod($request, $bFrom, $bTo);
+        $aggOptions = $this->salesComparisonAggregationOptions($request);
+        $aggA = $this->aggregateSalesComparisonPeriod(
+            $request,
+            $aFrom,
+            $aTo,
+            null,
+            $aggOptions['group_by_customer'],
+            $aggOptions['group_by_establishment']
+        );
+        $aggB = $this->aggregateSalesComparisonPeriod(
+            $request,
+            $bFrom,
+            $bTo,
+            null,
+            $aggOptions['group_by_customer'],
+            $aggOptions['group_by_establishment']
+        );
+        $customerLabel = $this->salesComparisonCustomerColumnLabel($request);
+        $establishmentLabel = $this->salesComparisonEstablishmentColumnLabel($request);
 
         $allKeys = $aggA->keys()->merge($aggB->keys())->unique()->values();
         $merged = collect();
@@ -3144,16 +3233,16 @@ SUM(
             $rowB = $aggB->get($key);
             $base = $rowA ?? $rowB;
 
-            $qtyA = (float) ($rowA->qty ?? 0);
-            $qtyB = (float) ($rowB->qty ?? 0);
-            $discA = (float) ($rowA->discount ?? 0);
-            $discB = (float) ($rowB->discount ?? 0);
-            $taxA = (float) ($rowA->tax ?? 0);
-            $taxB = (float) ($rowB->tax ?? 0);
-            $subA = (float) ($rowA->subtotal ?? 0);
-            $subB = (float) ($rowB->subtotal ?? 0);
-            $linesA = (int) ($rowA->line_count ?? 0);
-            $linesB = (int) ($rowB->line_count ?? 0);
+            $qtyA = (float) ($rowA?->qty ?? 0);
+            $qtyB = (float) ($rowB?->qty ?? 0);
+            $discA = (float) ($rowA?->discount ?? 0);
+            $discB = (float) ($rowB?->discount ?? 0);
+            $taxA = (float) ($rowA?->tax ?? 0);
+            $taxB = (float) ($rowB?->tax ?? 0);
+            $subA = (float) ($rowA?->subtotal ?? 0);
+            $subB = (float) ($rowB?->subtotal ?? 0);
+            $linesA = (int) ($rowA?->line_count ?? 0);
+            $linesB = (int) ($rowB?->line_count ?? 0);
 
             $avgA = $qtyA > 0 ? $subA / $qtyA : null;
             $avgB = $qtyB > 0 ? $subB / $qtyB : null;
@@ -3162,9 +3251,11 @@ SUM(
                 'product_name' => app()->getLocale() === 'ar' ? $base->product_name_ar : $base->product_name_en,
                 'category' => $base->category ?? '--',
                 'subcategory' => $base->subcategory ?? '--',
-                'establishment_name' => $base->establishment_name ?? '--',
+                'establishment_name' => $aggOptions['group_by_establishment']
+                    ? ($base->establishment_name ?? '--')
+                    : $establishmentLabel,
                 'SKU' => $base->sku ?? '--',
-                'customer' => $base->customer ?? '--',
+                'customer' => $customerLabel,
                 'qty_period_a' => $qtyA,
                 'avg_unit_price_period_a' => $avgA,
                 'discount_period_a' => $discA,
@@ -3908,10 +3999,10 @@ SUM(
 
         $rows = $q
             ->selectRaw('DAYOFWEEK(DATE(t.transaction_date)) as mysql_dow')
-            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('SUM(tsl.discount_amount) as discount')
             ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->groupBy(DB::raw('DAYOFWEEK(DATE(t.transaction_date))'))
             ->orderBy('mysql_dow')
@@ -3944,10 +4035,10 @@ SUM(
 
         $rows = $q
             ->selectRaw('DATE(t.transaction_date) as tx_date')
-            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('SUM(tsl.discount_amount) as discount')
             ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->groupBy(DB::raw('DATE(t.transaction_date)'))
             ->orderBy('tx_date')
@@ -3987,16 +4078,16 @@ SUM(
             $rowA = $aggA->get($mysqlDow);
             $rowB = $aggB->get($mysqlDow);
 
-            $qtyA = (float) ($rowA->qty ?? 0);
-            $qtyB = (float) ($rowB->qty ?? 0);
-            $discA = (float) ($rowA->discount ?? 0);
-            $discB = (float) ($rowB->discount ?? 0);
-            $taxA = (float) ($rowA->tax ?? 0);
-            $taxB = (float) ($rowB->tax ?? 0);
-            $subA = (float) ($rowA->subtotal ?? 0);
-            $subB = (float) ($rowB->subtotal ?? 0);
-            $linesA = (int) ($rowA->line_count ?? 0);
-            $linesB = (int) ($rowB->line_count ?? 0);
+            $qtyA = (float) ($rowA?->qty ?? 0);
+            $qtyB = (float) ($rowB?->qty ?? 0);
+            $discA = (float) ($rowA?->discount ?? 0);
+            $discB = (float) ($rowB?->discount ?? 0);
+            $taxA = (float) ($rowA?->tax ?? 0);
+            $taxB = (float) ($rowB?->tax ?? 0);
+            $subA = (float) ($rowA?->subtotal ?? 0);
+            $subB = (float) ($rowB?->subtotal ?? 0);
+            $linesA = (int) ($rowA?->line_count ?? 0);
+            $linesB = (int) ($rowB?->line_count ?? 0);
 
             $avgA = $qtyA > 0 ? $subA / $qtyA : null;
             $avgB = $qtyB > 0 ? $subB / $qtyB : null;
@@ -4164,10 +4255,10 @@ SUM(
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN cat.name_ar ELSE cat.name_en END) as category")
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory")
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
-            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('SUM(tsl.discount_amount) as discount')
             ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->groupBy(DB::raw('DATE(t.transaction_date)'), 'tsl.product_id', 't.establishment_id')
             ->orderBy('tx_date')
@@ -4254,16 +4345,16 @@ SUM(
             $rowB = $aggB->get($key);
             $base = $rowA ?? $rowB;
 
-            $qtyA = (float) ($rowA->qty ?? 0);
-            $qtyB = (float) ($rowB->qty ?? 0);
-            $discA = (float) ($rowA->discount ?? 0);
-            $discB = (float) ($rowB->discount ?? 0);
-            $taxA = (float) ($rowA->tax ?? 0);
-            $taxB = (float) ($rowB->tax ?? 0);
-            $subA = (float) ($rowA->subtotal ?? 0);
-            $subB = (float) ($rowB->subtotal ?? 0);
-            $linesA = (int) ($rowA->line_count ?? 0);
-            $linesB = (int) ($rowB->line_count ?? 0);
+            $qtyA = (float) ($rowA?->qty ?? 0);
+            $qtyB = (float) ($rowB?->qty ?? 0);
+            $discA = (float) ($rowA?->discount ?? 0);
+            $discB = (float) ($rowB?->discount ?? 0);
+            $taxA = (float) ($rowA?->tax ?? 0);
+            $taxB = (float) ($rowB?->tax ?? 0);
+            $subA = (float) ($rowA?->subtotal ?? 0);
+            $subB = (float) ($rowB?->subtotal ?? 0);
+            $linesA = (int) ($rowA?->line_count ?? 0);
+            $linesB = (int) ($rowB?->line_count ?? 0);
 
             $avgA = $qtyA > 0 ? $subA / $qtyA : null;
             $avgB = $qtyB > 0 ? $subB / $qtyB : null;
@@ -4307,13 +4398,6 @@ SUM(
     {
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
-        $fmtPct = static function ($v) {
-            if ($v === null) {
-                return '—';
-            }
-
-            return number_format($v, 2).'%';
-        };
         $fmtAvg = static function ($v) {
             if ($v === null) {
                 return '—';
@@ -4347,9 +4431,17 @@ SUM(
             'subtotal_period_b' => $fmt($subB),
             'lines_period_b' => (string) (int) $row->lines_period_b,
             'qty_difference' => $fmtQty($row->qty_difference),
-            'qty_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($qtyA, $qtyB)),
+            'qty_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($qtyA, $qtyB),
+                $qtyA,
+                $qtyB
+            ),
             'subtotal_difference' => $fmt($row->subtotal_difference),
-            'subtotal_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($subA, $subB)),
+            'subtotal_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($subA, $subB),
+                $subA,
+                $subB
+            ),
             'discount_difference' => $fmt($row->discount_difference),
             'tax_difference' => $fmt($row->tax_difference),
             'lines_difference' => (string) (int) $row->lines_difference,

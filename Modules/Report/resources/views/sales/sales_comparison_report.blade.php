@@ -181,6 +181,30 @@
         margin-bottom: 1.25rem;
     }
 
+    .sc-gear-btn {
+        color: #e9b71f !important;
+        border: 0;
+        background: transparent;
+    }
+
+    .sc-gear-btn i {
+        color: #e9b71f !important;
+    }
+
+    .sc-gear-btn:hover,
+    .sc-gear-btn:focus,
+    .sc-gear-btn.show {
+        color: #d4a419 !important;
+        background-color: rgba(233, 183, 31, 0.14) !important;
+        box-shadow: none;
+    }
+
+    .sc-gear-btn:hover i,
+    .sc-gear-btn:focus i,
+    .sc-gear-btn.show i {
+        color: #d4a419 !important;
+    }
+
     .sc-table-search-pill {
         width: 100%;
         max-width: 680px;
@@ -557,6 +581,7 @@
                         </div>
                     </div>
                 </div>
+                <p class="text-muted fs-7 mb-3 px-1">@lang('report::general.sales_comparison_row_scope_hint')</p>
                 <div class="table-responsive">
                 <table class="table align-middle table-striped table-row-bordered fs-6 gy-5 sc-table" id="kt_SalesComparison_table" style="width:100%">
                     <thead>
@@ -633,7 +658,7 @@
     let scRestoringFilters = false;
     let scPendingTableSearch = '';
     const SC_FILTER_STORAGE_KEY = 'salesComparisonReport:v1';
-    const SC_COLUMN_VISIBILITY_STORAGE_KEY = 'salesComparisonReport:columns:v6';
+    const SC_COLUMN_VISIBILITY_STORAGE_KEY = 'salesComparisonReport:columns:v7';
     let scHiddenColumns = {};
     const SC_COLUMN_COUNT = 25;
     const SC_FOOTER_KEYS = @json($scColumnPickerKeys);
@@ -818,7 +843,15 @@
         return isNaN(idx) ? [] : [idx];
     }
 
+    function scIsCustomerColumnForcedHidden() {
+        return (($('#customerFilter').val() || []).length === 0);
+    }
+
     function scIsColHidden(idx) {
+        if (idx === 5 && scIsCustomerColumnForcedHidden()) {
+            return true;
+        }
+
         return scHiddenColumns[idx] === true;
     }
 
@@ -878,7 +911,11 @@
 
     function scSyncPickerCheckboxesFromState() {
         SC_CONTEXT_KEYS.forEach(function(key, idx) {
-            $('#sc_col_' + key).prop('checked', !scIsColHidden(idx));
+            const $cb = $('#sc_col_' + key);
+            $cb.prop('checked', !scIsColHidden(idx));
+            if (key === 'customer') {
+                $cb.prop('disabled', scIsCustomerColumnForcedHidden());
+            }
         });
         SC_COLUMN_GROUPS.forEach(function(g) {
             const allOn = g.indices.every(function(i) { return !scIsColHidden(i); });
@@ -1635,8 +1672,15 @@
                 }
             });
 
+            $('#customerFilter').on('change', function() {
+                scSyncPickerCheckboxesFromState();
+                scApplyColumnVisibilityToDom();
+            });
+
             $('#applyFilter').on('click', function() {
                 saveSalesComparisonFilterState();
+                scSyncPickerCheckboxesFromState();
+                scApplyColumnVisibilityToDom();
                 dataTable.ajax.reload();
                 if ($('#showChartsToggle').is(':checked')) {
                     refreshSalesComparisonCharts();
