@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(request()->boolean('embed') ? 'layouts.embed' : 'layouts.app')
 @section('title', __('franchise::lang.branches_mgmt'))
 
 @section('content')

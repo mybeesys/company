@@ -16,27 +16,27 @@ return [
         'icon' => 'fas fa-certificate',
         'permission' => 'Franchise Companies.all.show',
         'subMenu' => [
-            [
-                'name' => 'franchise_com',
-                'url' => 'franchise/companies',
-                'permission' => 'Franchise Companies.all.show',
-            ],
-            [
-                'name' => 'branches_mgmt',
-                'url' => 'franchise/branches',
-                'permission' => 'Franchise Companies.all.show',
-            ],
-            [
-                'name' => 'franchise_product_mgmt',
-                'url' => 'franchise/products-management',
-                'permission' => 'Franchise Companies.all.show',
-            ],
-            [
-                'name' => 'custom_menus_mgmt',
-                'url' => 'franchise/custom-menus',
-                'permission' => 'Franchise Companies.all.show',
-            ],
-
+            // Temporarily hidden — unified hub at franchise/companies with horizontal tabs
+            // [
+            //     'name' => 'franchise_com',
+            //     'url' => 'franchise/companies',
+            //     'permission' => 'Franchise Companies.all.show',
+            // ],
+            // [
+            //     'name' => 'branches_mgmt',
+            //     'url' => 'franchise/companies?tab=branches',
+            //     'permission' => 'Franchise Companies.all.show',
+            // ],
+            // [
+            //     'name' => 'franchise_product_mgmt',
+            //     'url' => 'franchise/companies?tab=products',
+            //     'permission' => 'Franchise Companies.all.show',
+            // ],
+            // [
+            //     'name' => 'custom_menus_mgmt',
+            //     'url' => 'franchise/companies?tab=menus',
+            //     'permission' => 'Franchise Companies.all.show',
+            // ],
         ],
     ],
 

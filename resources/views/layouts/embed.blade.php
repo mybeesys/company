@@ -19,39 +19,84 @@
             padding: 0;
             height: auto !important;
             min-height: 0 !important;
-            overflow: visible !important;
+            max-height: none !important;
+            overflow: hidden !important;
+        }
+        #embed-content-root {
+            display: block;
+            width: 100%;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible;
         }
     </style>
 </head>
 <body class="dashboard-embed-body">
-    @yield('content')
+    <div id="embed-content-root">
+        @yield('content')
+    </div>
     @include('layouts.js-references')
     @yield('script')
     <script>
         (function () {
+            var reportTimer = null;
+            var lastReported = 0;
+
+            function measureEmbedHeight() {
+                var root = document.getElementById('embed-content-root');
+                if (!root) {
+                    return 0;
+                }
+
+                var rect = root.getBoundingClientRect();
+                var height = Math.max(rect.height, root.scrollHeight);
+
+                return Math.ceil(height) + 12;
+            }
+
             function reportEmbedHeight() {
-                var height = Math.max(
-                    document.body.scrollHeight,
-                    document.documentElement.scrollHeight,
-                    document.body.offsetHeight,
-                    document.documentElement.offsetHeight
-                );
-                if (window.parent !== window) {
+                if (window.parent === window) {
+                    return;
+                }
+
+                clearTimeout(reportTimer);
+                reportTimer = setTimeout(function () {
+                    var height = measureEmbedHeight();
+                    if (height < 80 || Math.abs(height - lastReported) < 6) {
+                        return;
+                    }
+                    lastReported = height;
                     window.parent.postMessage(
                         { type: 'dashboard-embed-height', height: height },
                         window.location.origin
                     );
-                }
+                }, 80);
             }
+
+            window.reportEmbedHeight = reportEmbedHeight;
 
             window.addEventListener('load', reportEmbedHeight);
-            window.addEventListener('resize', reportEmbedHeight);
 
-            if (typeof ResizeObserver !== 'undefined' && document.body) {
-                new ResizeObserver(reportEmbedHeight).observe(document.body);
+            var rootEl = document.getElementById('embed-content-root');
+            if (typeof ResizeObserver !== 'undefined' && rootEl) {
+                new ResizeObserver(reportEmbedHeight).observe(rootEl);
             }
 
-            [400, 1200, 2500].forEach(function (ms) {
+            if (window.MutationObserver && rootEl) {
+                new MutationObserver(function () {
+                    reportEmbedHeight();
+                }).observe(rootEl, { childList: true, subtree: true });
+            }
+
+            if (window.jQuery) {
+                jQuery(document).on(
+                    'init.dt draw.dt shown.bs.collapse hidden.bs.collapse shown.bs.modal hidden.bs.modal',
+                    reportEmbedHeight
+                );
+            }
+
+            [150, 600, 1500, 3000].forEach(function (ms) {
                 setTimeout(reportEmbedHeight, ms);
             });
         })();

@@ -1,12 +1,12 @@
 (function () {
     'use strict';
 
-    const cfg = window.dashboardHubConfig || { activeTab: 'overview', tabs: {} };
-    const tabButtons = document.querySelectorAll('#dashboardHubTabs [data-dashboard-tab]');
-    const overviewWrap = document.getElementById('dashboard-hub-overview-wrap');
-    const embedWrap = document.getElementById('dashboard-hub-embed-wrap');
-    const iframe = document.getElementById('dashboard-hub-iframe');
-    const loadingEl = document.getElementById('dashboard-hub-loading');
+    const cfg = window.franchiseHubConfig || { activeTab: 'companies', tabs: {} };
+    const tabButtons = document.querySelectorAll('#franchiseHubTabs [data-franchise-tab]');
+    const companiesWrap = document.getElementById('franchise-hub-companies-wrap');
+    const embedWrap = document.getElementById('franchise-hub-embed-wrap');
+    const iframe = document.getElementById('franchise-hub-iframe');
+    const loadingEl = document.getElementById('franchise-hub-loading');
     const loadedUrls = {};
     let resizeRetries = [];
     let lastIframeHeight = 0;
@@ -72,7 +72,7 @@
             return;
         }
         const url = new URL(window.location.href);
-        if (!tabId || tabId === 'overview') {
+        if (!tabId || tabId === 'companies') {
             url.searchParams.delete('tab');
         } else {
             url.searchParams.set('tab', tabId);
@@ -80,9 +80,9 @@
         history.replaceState(null, '', url.toString());
     }
 
-    function showOverview() {
+    function showCompanies() {
         clearResizeRetries();
-        overviewWrap?.classList.remove('d-none');
+        companiesWrap?.classList.remove('d-none');
         embedWrap?.classList.add('d-none');
         if (iframe) {
             iframe.classList.remove('is-visible');
@@ -91,10 +91,16 @@
             lastIframeHeight = 0;
         }
         loadingEl?.classList.add('d-none');
+        if (typeof window.initFranchiseCompaniesTable === 'function') {
+            window.initFranchiseCompaniesTable();
+        }
+        if (window.companiesTable) {
+            window.companiesTable.columns.adjust();
+        }
     }
 
     function showEmbed(url) {
-        overviewWrap?.classList.add('d-none');
+        companiesWrap?.classList.add('d-none');
         embedWrap?.classList.remove('d-none');
 
         if (!iframe || !url) {
@@ -127,13 +133,13 @@
         }
 
         tabButtons.forEach(function (btn) {
-            const isActive = btn.getAttribute('data-dashboard-tab') === tabId;
+            const isActive = btn.getAttribute('data-franchise-tab') === tabId;
             btn.classList.toggle('active', isActive);
             btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
 
         if (meta.type === 'inline') {
-            showOverview();
+            showCompanies();
         } else if (meta.embed_url) {
             showEmbed(meta.embed_url);
         }
@@ -145,9 +151,9 @@
 
     tabButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
-            activateTab(btn.getAttribute('data-dashboard-tab'));
+            activateTab(btn.getAttribute('data-franchise-tab'));
         });
     });
 
-    activateTab(cfg.activeTab || 'overview', false);
+    activateTab(cfg.activeTab || 'companies', false);
 })();

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(request()->boolean('embed') ? 'layouts.embed' : 'layouts.app')
 @section('title', __('menuItemLang.custom_menus_mgmt'))
 
 @section('content')

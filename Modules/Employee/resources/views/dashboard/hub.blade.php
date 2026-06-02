@@ -58,10 +58,11 @@
         }
         #dashboard-hub-iframe {
             width: 100%;
-            height: 320px;
+            height: 0;
+            min-height: 0;
             border: 0;
             border-radius: 14px;
-            background: #fff;
+            background: #f5f8fa;
             display: none;
             overflow: hidden;
             vertical-align: top;
@@ -109,6 +110,7 @@
                 </div>
                 <iframe id="dashboard-hub-iframe"
                     title="@lang('employee::main.dashboard_hub_iframe_title')"
+                    scrolling="no"
                     class="{{ $activeDashboardTab === 'overview' ? '' : 'is-visible' }}"></iframe>
             </div>
         </div>
@@ -126,7 +128,7 @@
             ]]))
         };
     </script>
-    <script src="{{ asset('js/dashboard-hub.js') }}?v=3"></script>
+    <script src="{{ asset('js/dashboard-hub.js') }}?v=5"></script>
     <script>
         (function () {
             var lang = '{{ app()->getLocale() }}';
