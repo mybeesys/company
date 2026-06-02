@@ -27,10 +27,9 @@ class FiscalPeriodGenerator
                 $periodEnd = $end->copy();
             }
 
-            $status = FiscalPeriod::STATUS_OPEN;
-            if ($periodStart->gt($today)) {
-                $status = FiscalPeriod::STATUS_UPCOMING;
-            }
+            $status = $periodStart->gt($today)
+                ? FiscalPeriod::STATUS_CLOSED
+                : FiscalPeriod::STATUS_OPEN;
 
             $periods->push([
                 'name' => $this->periodName($periodStart),

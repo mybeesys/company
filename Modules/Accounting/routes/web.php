@@ -5,6 +5,7 @@ use Modules\Accounting\Http\Controllers\AccountingDashboardController;
 use Modules\Accounting\Http\Controllers\AccountingStagingResetController;
 use Modules\Accounting\Http\Controllers\AccountingReportsController;
 use Modules\Accounting\Http\Controllers\AccountingSettingsController;
+use Modules\Accounting\Http\Controllers\FinancialYearPagesController;
 use Modules\Accounting\Http\Controllers\FinancialYearSettingsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
@@ -63,11 +64,27 @@ Route::middleware([
             Route::get('/', [FinancialYearSettingsController::class, 'index'])->name('index');
             Route::get('next-range', [FinancialYearSettingsController::class, 'nextRange'])->name('next-range');
             Route::post('/', [FinancialYearSettingsController::class, 'store'])->name('store');
-            Route::put('{id}', [FinancialYearSettingsController::class, 'update'])->whereNumber('id')->name('update');
-            Route::delete('{id}', [FinancialYearSettingsController::class, 'destroy'])->whereNumber('id')->name('destroy');
             Route::put('settings/locking', [FinancialYearSettingsController::class, 'updateLocking'])->name('locking');
+
+            Route::get('periods/{periodId}/view', [FinancialYearPagesController::class, 'showPeriod'])->whereNumber('periodId')->name('periods.view');
+            Route::get('periods/{periodId}/report', [FinancialYearPagesController::class, 'reportPeriod'])->whereNumber('periodId')->name('periods.report');
+            Route::get('periods/{periodId}/report/print', [FinancialYearPagesController::class, 'reportPeriodPrint'])->whereNumber('periodId')->name('periods.report.print');
+            Route::get('periods/{periodId}/report/pdf', [FinancialYearPagesController::class, 'exportPeriodPdf'])->whereNumber('periodId')->name('periods.report.pdf');
+            Route::put('periods/{periodId}', [FinancialYearSettingsController::class, 'updatePeriod'])->whereNumber('periodId')->name('periods.update');
+            Route::delete('periods/{periodId}', [FinancialYearSettingsController::class, 'destroyPeriod'])->whereNumber('periodId')->name('periods.destroy');
             Route::post('periods/{id}/close', [FinancialYearSettingsController::class, 'closePeriod'])->whereNumber('id')->name('periods.close');
             Route::post('periods/{id}/open', [FinancialYearSettingsController::class, 'openPeriod'])->whereNumber('id')->name('periods.open');
+
+            Route::get('{id}/view', [FinancialYearPagesController::class, 'showYear'])->whereNumber('id')->name('view');
+            Route::get('{id}/report', [FinancialYearPagesController::class, 'reportYear'])->whereNumber('id')->name('report');
+            Route::get('{id}/report/print', [FinancialYearPagesController::class, 'reportYearPrint'])->whereNumber('id')->name('report.print');
+            Route::get('{id}/report/pdf', [FinancialYearPagesController::class, 'exportYearPdf'])->whereNumber('id')->name('report.pdf');
+
+            Route::post('{id}/close', [FinancialYearSettingsController::class, 'closeYear'])->whereNumber('id')->name('close');
+            Route::post('{id}/open', [FinancialYearSettingsController::class, 'openYear'])->whereNumber('id')->name('open');
+
+            Route::put('{id}', [FinancialYearSettingsController::class, 'update'])->whereNumber('id')->name('update');
+            Route::delete('{id}', [FinancialYearSettingsController::class, 'destroy'])->whereNumber('id')->name('destroy');
         });
 
         Route::get('accounts-routing', [AccountsRoutingController::class, 'index'])->name('accounts-routing');

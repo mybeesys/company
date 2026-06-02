@@ -8,13 +8,20 @@ use Modules\Accounting\Models\FiscalPeriod;
 class FiscalPeriodStatusSync
 {
     /**
-     * Promote periods whose start date has arrived but were still marked upcoming at creation time.
+     * Promote future periods (stored closed/upcoming) to open when their start date arrives.
      */
     public static function promoteStartedPeriods(?int $financialYearId = null): void
     {
         $query = FiscalPeriod::query()
-            ->where('status', FiscalPeriod::STATUS_UPCOMING)
-            ->whereDate('start_date', '<=', Carbon::today());
+            ->whereDate('start_date', '<=', Carbon::today())
+            ->where(function ($q) {
+                $q->where('status', FiscalPeriod::STATUS_UPCOMING)
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', FiscalPeriod::STATUS_CLOSED)
+                            ->whereNull('closed_at')
+                            ->whereNull('closed_by');
+                    });
+            });
 
         if ($financialYearId !== null) {
             $query->where('financial_year_id', $financialYearId);

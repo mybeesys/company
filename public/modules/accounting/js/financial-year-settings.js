@@ -303,7 +303,7 @@
                     <td class="text-center">${statusBadgeHtml(y.status)}</td>
                     <td class="text-end">
                         <div class="d-inline-flex gap-1 flex-wrap justify-content-end fy-year-actions">
-                            ${buildYearActionsHtml(y.id)}
+                            ${buildYearActionsHtml(y)}
                         </div>
                     </td>
                 </tr>`;
@@ -329,11 +329,35 @@
             .replace(/</g, '&lt;');
     }
 
-    function buildYearActionsHtml() {
+    function buildYearActionsHtml(year) {
+        const hasActivity = !!year?.has_activity;
+        const status = normalizeYearStatus(year?.status);
+
+        const view = yearActionBtn('view', 'fa-eye', msg.actionViewYear || 'View');
+        const report = yearActionBtn('report', 'fa-file-lines', msg.actionYearReport || 'Report');
+
+        if (!hasActivity) {
+            return (
+                view +
+                report +
+                yearActionBtn('edit', 'fa-pen', msg.actionEditYear || 'Edit') +
+                yearActionBtn('delete', 'fa-trash', msg.actionDeleteYear || 'Delete', 'btn-delete-year')
+            );
+        }
+
+        // Has activity: hide delete, replace edit with year lock/unlock.
+        if (status === 'closed') {
+            return (
+                view +
+                report +
+                yearActionBtn('year_open', 'fa-lock-open', msg.actionOpenYear || 'Open year', 'btn-year-open')
+            );
+        }
+
         return (
-            yearActionBtn('view', 'fa-eye', msg.actionViewYear || 'View') +
-            yearActionBtn('edit', 'fa-pen', msg.actionEditYear || 'Edit') +
-            yearActionBtn('delete', 'fa-trash', msg.actionDeleteYear || 'Delete', 'btn-delete-year')
+            view +
+            report +
+            yearActionBtn('year_close', 'fa-lock', msg.actionCloseYear || 'Close year', 'btn-year-close')
         );
     }
 
@@ -391,12 +415,96 @@
             const action = btn.dataset.yearAction;
             if (action === 'view') {
                 openYearDetailView(yearId);
+            } else if (action === 'report') {
+                if (cfg.api?.reportYear) {
+                    window.location.href = cfg.api.reportYear(yearId);
+                }
             } else if (action === 'edit') {
                 openYearEditModal(year);
             } else if (action === 'delete') {
                 confirmDeleteYear(currentState, year);
+            } else if (action === 'year_close') {
+                confirmCloseYear(currentState, year);
+            } else if (action === 'year_open') {
+                confirmOpenYear(currentState, year);
             }
         });
+    }
+
+    function confirmCloseYear(state, year) {
+        const label = year.description || `FY ${parseDate(year.end_date)?.getFullYear() || ''}`;
+        const SwalApi = window.Swal;
+
+        const runClose = async () => {
+            try {
+                await apiRequest('POST', cfg.api.closeYear(year.id));
+                await reloadFromServer();
+                refreshUi(loadState());
+                toastr?.success(msg.yearClosedSuccess || msg.periodLockingSaved || 'Saved');
+            } catch (err) {
+                toastr?.error(err.message);
+            }
+        };
+
+        if (SwalApi?.fire) {
+            SwalApi.fire({
+                title: msg.confirmCloseYearTitle || 'Close fiscal year?',
+                text: (msg.confirmCloseYearText || 'Close «:name»').replace(':name', label),
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: msg.confirmYesCloseYear || msg.confirmYesClose || 'Yes',
+                cancelButtonText: msg.cancel,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-light',
+                },
+            }).then((r) => {
+                if (r.isConfirmed) {
+                    runClose();
+                }
+            });
+        } else if (confirm(msg.confirmCloseYearTitle || 'Close fiscal year?')) {
+            runClose();
+        }
+    }
+
+    function confirmOpenYear(state, year) {
+        const label = year.description || `FY ${parseDate(year.end_date)?.getFullYear() || ''}`;
+        const SwalApi = window.Swal;
+
+        const runOpen = async () => {
+            try {
+                await apiRequest('POST', cfg.api.openYear(year.id));
+                await reloadFromServer();
+                refreshUi(loadState());
+                toastr?.success(msg.yearOpenedSuccess || msg.periodLockingSaved || 'Saved');
+            } catch (err) {
+                toastr?.error(err.message);
+            }
+        };
+
+        if (SwalApi?.fire) {
+            SwalApi.fire({
+                title: msg.confirmOpenYearTitle || 'Open fiscal year?',
+                text: (msg.confirmOpenYearText || 'Open «:name»').replace(':name', label),
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: msg.confirmYesOpenYear || msg.confirmYesOpen || 'Yes',
+                cancelButtonText: msg.cancel,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-light',
+                },
+            }).then((r) => {
+                if (r.isConfirmed) {
+                    runOpen();
+                }
+            });
+        } else if (confirm(msg.confirmOpenYearTitle || 'Open fiscal year?')) {
+            runOpen();
+        }
     }
 
     function openYearEditModal(year) {
@@ -789,7 +897,7 @@
     }
 
     function bindAddYearButtons(state) {
-        ['fy-btn-add-year', 'fy-btn-add-year-empty', 'fy-btn-add-year-current'].forEach(
+        ['fy-btn-add-year', 'fy-btn-add-year-current'].forEach(
             (id) => {
                 document.getElementById(id)?.addEventListener('click', function () {
                     openAddYearModal(state);
@@ -811,9 +919,16 @@
         }
     }
 
+    function updateAddYearButtonsVisibility(state) {
+        const hasYears = state.years.length > 0;
+        document.getElementById('fy-btn-add-year')?.classList.toggle('d-none', !hasYears);
+        document.getElementById('fy-btn-add-year-current')?.classList.toggle('d-none', hasYears);
+    }
+
     function refreshUi(state) {
         renderDashboard(state);
         renderTable(state);
+        updateAddYearButtonsVisibility(state);
         state.firstSaved = state.years.length > 0;
     }
 

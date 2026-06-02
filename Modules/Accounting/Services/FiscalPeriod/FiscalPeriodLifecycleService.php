@@ -61,4 +61,17 @@ class FiscalPeriodLifecycleService
 
         return $year->fresh(['periods']);
     }
+
+    public function openYear(FinancialYear $year): FinancialYear
+    {
+        $year->periods()->update([
+            'status' => FiscalPeriod::STATUS_OPEN,
+            'closed_at' => null,
+            'closed_by' => null,
+        ]);
+
+        $year->update(['status' => FinancialYear::STATUS_OPEN]);
+
+        return $year->fresh(['periods']);
+    }
 }

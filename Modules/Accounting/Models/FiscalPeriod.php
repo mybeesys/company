@@ -4,6 +4,7 @@ namespace Modules\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Employee\Models\Employee;
 
 class FiscalPeriod extends Model
 {
@@ -28,11 +29,28 @@ class FiscalPeriod extends Model
         return $this->belongsTo(FinancialYear::class);
     }
 
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'created_by');
+    }
+
     public function allowsPosting(): bool
     {
         return $this->status === self::STATUS_OPEN
             && $this->financialYear
             && $this->financialYear->isOpen();
+    }
+
+    /**
+     * UI/report label: upcoming & closing are shown as closed (مغلقة).
+     */
+    public function displayStatus(): string
+    {
+        if (in_array($this->status, [self::STATUS_CLOSED, self::STATUS_CLOSING, self::STATUS_UPCOMING], true)) {
+            return self::STATUS_CLOSED;
+        }
+
+        return self::STATUS_OPEN;
     }
 
     public function scopeOpen($query)

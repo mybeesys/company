@@ -18,7 +18,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Models\PeriodicInventory;
-use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Services\FiscalPeriod\PeriodicInventoryFiscalGuard;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Setting;
@@ -235,6 +235,12 @@ class PeriodicInventoryController extends Controller
 
         $countDate = (string) $request->input('count_date', $request->input('end_date'));
 
+        try {
+            PeriodicInventoryFiscalGuard::assertPostable($countDate);
+        } catch (FiscalPeriodException $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
         $establishment_id = $request->establishment;
         $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
         $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate);
@@ -281,6 +287,13 @@ class PeriodicInventoryController extends Controller
         ]);
 
         $countDate = (string) $request->input('count_date', $request->input('end_date'));
+
+        try {
+            PeriodicInventoryFiscalGuard::assertPostable($countDate);
+        } catch (FiscalPeriodException $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
         $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
         $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate, $inventory);
 
@@ -324,18 +337,20 @@ class PeriodicInventoryController extends Controller
         }
 
         try {
-            FiscalPeriodGatekeeper::assertPostable($inventory->end_date ?? now());
+            PeriodicInventoryFiscalGuard::assertInventoryPeriodPostable($inventory);
         } catch (FiscalPeriodException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+
+        $countAt = Carbon::parse($inventory->end_date)->endOfDay();
 
         DB::beginTransaction();
         try {
             $ref_no = SalesUtile::generateReferenceNumber('period');
             $transaction = Transaction::create([
                 'type' => 'period',
-                'due_date' => now(),
-                'transaction_date' => now(),
+                'due_date' => $countAt,
+                'transaction_date' => $countAt,
                 'created_by' => Auth::user()->id,
                 'ref_no' => $ref_no,
                 'status' => 'approved',
@@ -382,6 +397,10 @@ class PeriodicInventoryController extends Controller
             $inventory->save();
 
             DB::commit();
+        } catch (FiscalPeriodException $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             DB::rollBack();
             throw $e;
@@ -497,7 +516,7 @@ class PeriodicInventoryController extends Controller
 
                 $ref_number = AccountingUtil::generateReferenceNumber('journal_entry');
 
-                FiscalPeriodGatekeeper::assertPostable($inventory->end_date ?? now());
+                PeriodicInventoryFiscalGuard::assertInventoryPeriodPostable($inventory);
 
                 $operationDate = Carbon::parse($inventory->end_date)->endOfDay()->format('Y-m-d H:i:s');
 

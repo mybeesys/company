@@ -117,6 +117,12 @@
             year.status
         );
 
+        const reportYearLink = document.getElementById('fy-detail-report-year-link');
+        if (reportYearLink && a.cfg?.api?.reportYear) {
+            reportYearLink.href = a.cfg.api.reportYear(year.id);
+            reportYearLink.classList.remove('d-none');
+        }
+
         periodsPage = 1;
         renderPeriodsTable(year);
         initDetailTooltips();
@@ -236,13 +242,25 @@
 
     function buildPeriodActions(period, year) {
         const m = msg();
+        let html = '';
+
         const status = normalizePeriodStatus(period.status);
         const yearClosed = year && normalizeYearStatus(year.status) === 'closed';
         if (status === 'closed') {
             const title = yearClosed ? m.reopenYearFirst || m.actionOpen : m.actionOpen;
-            return actionBtn('open', 'fa-unlock', title, 'btn-open', yearClosed);
+            html += actionBtn('open', 'fa-unlock', title, 'btn-open', yearClosed);
+        } else {
+            html += actionBtn('close', 'fa-lock', m.actionClose, 'btn-close-period', false);
         }
-        return actionBtn('close', 'fa-lock', m.actionClose, 'btn-close-period', false);
+
+        html += actionBtn(
+            'report',
+            'fa-file-lines',
+            m.actionPeriodReport || 'Report',
+            'btn-report-period'
+        );
+
+        return html;
     }
 
     function actionBtn(action, icon, title, extraClass, disabled) {
@@ -298,7 +316,10 @@
                     return;
                 }
                 const action = this.dataset.action;
-                if (action === 'close') {
+                const cfg = api()?.cfg;
+                if (action === 'report' && cfg?.api?.reportPeriod) {
+                    window.location.href = cfg.api.reportPeriod(period.id);
+                } else if (action === 'close') {
                     confirmClosePeriod(year, period);
                 } else if (action === 'open') {
                     confirmOpenPeriod(year, period);

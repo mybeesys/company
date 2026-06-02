@@ -371,24 +371,20 @@
 
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-5 border-0 fw-semibold" id="accountingSettingsTabs">
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800 {{ ($activeTab ?? 'financial-year') === 'financial-year' ? 'active' : '' }}"
-                    data-bs-toggle="tab" href="#financial_year_settings_tab" role="tab">
-                    @lang('accounting::financial_year.financial_year_settings')
+                <a class="nav-link justify-content-center text-active-gray-800 {{ ($activeTab ?? 'accounts-routing') === 'accounts-routing' ? 'active' : '' }}"
+                    data-bs-toggle="tab" href="#accounts_routing_settings_tab" role="tab">
+                    @lang('accounting::financial_year.accounts_routing_tab')
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800 {{ ($activeTab ?? '') === 'accounts-routing' ? 'active' : '' }}"
-                    data-bs-toggle="tab" href="#accounts_routing_settings_tab" role="tab">
-                    @lang('accounting::financial_year.accounts_routing_tab')
+                <a class="nav-link justify-content-center text-active-gray-800 {{ ($activeTab ?? '') === 'financial-year' ? 'active' : '' }}"
+                    data-bs-toggle="tab" href="#financial_year_settings_tab" role="tab">
+                    @lang('accounting::financial_year.financial_year_settings')
                 </a>
             </li>
         </ul>
 
         <div class="tab-content" id="accountingSettingsTabContent">
-            <div class="tab-pane fade {{ ($activeTab ?? 'financial-year') === 'financial-year' ? 'show active' : '' }}"
-                id="financial_year_settings_tab" role="tabpanel">
-                @include('accounting::settings.financial-year')
-            </div>
             <div class="tab-pane fade {{ ($activeTab ?? '') === 'accounts-routing' ? 'show active' : '' }}"
                 id="accounts_routing_settings_tab" role="tabpanel">
                 @if ($hasAccounts ?? false)
@@ -404,6 +400,10 @@
                         </div>
                     </div>
                 @endif
+            </div>
+            <div class="tab-pane fade {{ ($activeTab ?? '') === 'financial-year' ? 'show active' : '' }}"
+                id="financial_year_settings_tab" role="tabpanel">
+                @include('accounting::settings.financial-year')
             </div>
         </div>
     </div>
@@ -427,8 +427,15 @@
                 destroy: (id) => @json(url('accounting/financial-years')) + '/' + id,
                 locking: @json(route('accounting.financial-years.locking')),
                 nextRange: @json(route('accounting.financial-years.next-range')),
+                closeYear: (id) => @json(url('accounting/financial-years')) + '/' + id + '/close',
+                openYear: (id) => @json(url('accounting/financial-years')) + '/' + id + '/open',
                 closePeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/close',
                 openPeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/open',
+                updatePeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id,
+                destroyPeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id,
+                reportYear: (id) => @json(url('accounting/financial-years')) + '/' + id + '/report',
+                viewPeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/view',
+                reportPeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/report',
             },
             messages: {
                 required: @json(__('accounting::financial_year.validation_required')),
@@ -452,11 +459,27 @@
                 actionViewYear: @json(__('accounting::financial_year.action_view_year')),
                 actionEditYear: @json(__('accounting::financial_year.action_edit_year')),
                 actionDeleteYear: @json(__('accounting::financial_year.action_delete_year')),
+                actionCloseYear: @json(__('accounting::financial_year.action_close_year')),
+                actionOpenYear: @json(__('accounting::financial_year.action_open_year')),
+                actionYearReport: @json(__('accounting::financial_year.action_year_report')),
+                actionPeriodReport: @json(__('accounting::financial_year.action_period_report')),
+                actionDeletePeriod: @json(__('accounting::financial_year.action_delete_period')),
+                confirmDeletePeriodTitle: @json(__('accounting::financial_year.confirm_delete_period_title')),
+                confirmDeletePeriodText: @json(__('accounting::financial_year.confirm_delete_period_text')),
+                periodDeletedSuccess: @json(__('accounting::financial_year.period_deleted_success')),
                 yearUpdatedSuccess: @json(__('accounting::financial_year.year_updated_success')),
                 yearDeletedSuccess: @json(__('accounting::financial_year.year_deleted_success')),
+                yearClosedSuccess: @json(__('accounting::financial_year.year_closed_success')),
+                yearOpenedSuccess: @json(__('accounting::financial_year.year_opened_success')),
                 confirmDeleteYearTitle: @json(__('accounting::financial_year.confirm_delete_year_title')),
                 confirmDeleteYearText: @json(__('accounting::financial_year.confirm_delete_year_text')),
                 confirmYesDelete: @json(__('accounting::financial_year.confirm_yes_delete')),
+                confirmCloseYearTitle: @json(__('accounting::financial_year.confirm_close_year_title')),
+                confirmCloseYearText: @json(__('accounting::financial_year.confirm_close_year_text')),
+                confirmOpenYearTitle: @json(__('accounting::financial_year.confirm_open_year_title')),
+                confirmOpenYearText: @json(__('accounting::financial_year.confirm_open_year_text')),
+                confirmYesCloseYear: @json(__('accounting::financial_year.confirm_yes_close_year')),
+                confirmYesOpenYear: @json(__('accounting::financial_year.confirm_yes_open_year')),
                 periodOpen: @json(__('accounting::financial_year.period_status_open')),
                 periodClosed: @json(__('accounting::financial_year.period_status_closed')),
                 periodUpcoming: @json(__('accounting::financial_year.period_status_upcoming')),
@@ -483,8 +506,8 @@
             },
         };
     </script>
-    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=10"></script>
-    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=12"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=13"></script>
+    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=15"></script>
     @if ($hasAccounts ?? false)
         @include('accounting::AccountsRouting.select2-init')
     @endif

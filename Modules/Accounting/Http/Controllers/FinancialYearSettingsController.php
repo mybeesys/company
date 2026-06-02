@@ -12,6 +12,7 @@ use Modules\Accounting\Models\FiscalPeriod;
 use Modules\Accounting\Services\FiscalPeriod\FinancialYearApiPresenter;
 use Modules\Accounting\Services\FiscalPeriod\FinancialYearService;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodLifecycleService;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodMaintenanceService;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodStatusSync;
 use Modules\General\Models\Setting;
 
@@ -19,7 +20,8 @@ class FinancialYearSettingsController extends Controller
 {
     public function __construct(
         private readonly FinancialYearService $yearService,
-        private readonly FiscalPeriodLifecycleService $lifecycle
+        private readonly FiscalPeriodLifecycleService $lifecycle,
+        private readonly FiscalPeriodMaintenanceService $periodMaintenance
     ) {}
 
     public function nextRange(): JsonResponse
@@ -130,6 +132,83 @@ class FinancialYearSettingsController extends Controller
 
             return response()->json([
                 'message' => __('accounting::financial_year.year_deleted_success'),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
+    public function closeYear(int $id): JsonResponse
+    {
+        $year = FinancialYear::query()->findOrFail($id);
+
+        try {
+            $year = $this->lifecycle->closeYear($year);
+
+            return response()->json([
+                'message' => __('messages.add_successfully'),
+                'year' => FinancialYearApiPresenter::year($year),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
+    public function openYear(int $id): JsonResponse
+    {
+        $year = FinancialYear::query()->findOrFail($id);
+
+        try {
+            $year = $this->lifecycle->openYear($year);
+
+            return response()->json([
+                'message' => __('messages.add_successfully'),
+                'year' => FinancialYearApiPresenter::year($year),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
+    public function updatePeriod(Request $request, int $periodId): JsonResponse
+    {
+        $period = FiscalPeriod::query()->findOrFail($periodId);
+
+        $validated = $request->validate([
+            'name' => ['sometimes', 'string', 'max:191'],
+            'start_date' => ['sometimes', 'date'],
+            'end_date' => ['sometimes', 'date'],
+            'status' => ['sometimes', 'in:open,closed,closing,upcoming'],
+        ]);
+
+        if (isset($validated['start_date'], $validated['end_date'])
+            && $validated['end_date'] < $validated['start_date']) {
+            return response()->json([
+                'message' => __('accounting::financial_year.validation_end_before_start'),
+            ], 422);
+        }
+
+        try {
+            $period = $this->periodMaintenance->update($period, $validated);
+
+            return response()->json([
+                'message' => __('accounting::financial_year.period_updated_success'),
+                'period' => FinancialYearApiPresenter::period($period),
+            ]);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
+    public function destroyPeriod(int $periodId): JsonResponse
+    {
+        $period = FiscalPeriod::query()->findOrFail($periodId);
+
+        try {
+            $this->periodMaintenance->delete($period);
+
+            return response()->json([
+                'message' => __('accounting::financial_year.period_deleted_success'),
             ]);
         } catch (\Throwable $e) {
             return $this->errorResponse($e);

@@ -4,6 +4,7 @@ namespace Modules\Accounting\Services\FiscalPeriod;
 
 use Modules\Accounting\Models\FinancialYear;
 use Modules\Accounting\Models\FiscalPeriod;
+use Modules\Accounting\Services\FiscalPeriod\FinancialYearActivityChecker;
 
 class FinancialYearApiPresenter
 {
@@ -19,6 +20,7 @@ class FinancialYearApiPresenter
             'name' => $year->name,
             'status' => $year->status,
             'is_first_year' => (bool) $year->is_first_year,
+            'has_activity' => FinancialYearActivityChecker::hasActivity($year),
             'created_at' => $year->created_at?->toIso8601String(),
             'periods' => $year->periods->map(fn (FiscalPeriod $p) => self::period($p))->values()->all(),
         ];

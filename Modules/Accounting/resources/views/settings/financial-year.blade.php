@@ -25,7 +25,7 @@
         <h3 class="fs-5 fw-bold text-gray-800 mb-2">@lang('accounting::financial_year.empty_current_title')</h3>
         <p class="text-muted mb-0 mx-auto" style="max-width: 420px;">@lang('accounting::financial_year.empty_current_text')</p>
         <button type="button" class="btn btn-primary mt-5" id="fy-btn-add-year-current">
-            <i class="fas fa-plus me-2"></i>@lang('accounting::financial_year.add_year')
+            <i class="fas fa-plus me-2"></i>@lang('accounting::financial_year.save_first_year')
         </button>
     </div>
 
@@ -100,9 +100,6 @@
                 <p class="text-muted mb-0 mx-auto px-4" style="max-width: 440px;">
                     @lang('accounting::financial_year.empty_history_text')
                 </p>
-                <button type="button" class="btn btn-primary mt-5" id="fy-btn-add-year-empty">
-                    <i class="fas fa-plus me-2"></i>@lang('accounting::financial_year.add_year')
-                </button>
             </div>
 
             <div class="table-responsive fy-years-table-wrap d-none" id="fy-history-table-wrap">

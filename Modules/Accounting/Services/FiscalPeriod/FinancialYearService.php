@@ -77,6 +77,10 @@ class FinancialYearService
                 $year->update($payload);
             }
 
+            if (isset($payload['status'])) {
+                $this->syncPeriodsWithYearStatus($year->fresh(), $payload['status']);
+            }
+
             if ($datesChanged) {
                 $year->periods()->delete();
                 $this->syncPeriods($year->fresh());
@@ -127,6 +131,27 @@ class FinancialYearService
                 'end_date' => $row['end_date'],
                 'status' => $row['status'],
                 'created_by' => Auth::id(),
+            ]);
+        }
+    }
+
+    private function syncPeriodsWithYearStatus(FinancialYear $year, string $status): void
+    {
+        if ($status === FinancialYear::STATUS_OPEN) {
+            $year->periods()->update([
+                'status' => FiscalPeriod::STATUS_OPEN,
+                'closed_at' => null,
+                'closed_by' => null,
+            ]);
+
+            return;
+        }
+
+        if (in_array($status, [FinancialYear::STATUS_CLOSED, FinancialYear::STATUS_CLOSING], true)) {
+            $year->periods()->update([
+                'status' => FiscalPeriod::STATUS_CLOSED,
+                'closed_at' => now(),
+                'closed_by' => Auth::id(),
             ]);
         }
     }

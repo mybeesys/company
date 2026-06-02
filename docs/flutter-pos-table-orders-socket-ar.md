@@ -69,6 +69,35 @@ IO.Socket connectPosTableOrdersSocket({
 
 **مهم:** لا تضف `/socket.io/` في الـ host — استخدم `.setPath('/socket.io/')`.
 
+### ⚠️ إذا ظهر `timeout` والمطبخ/الويتر يعملان
+
+السبب **ليس** السيرفر — نفس Socket لكل التطبيقات. الفرق في **كود POS**:
+
+| التطبيق | URL الصحيح |
+|---------|------------|
+| Kitchen / Waiter | `https://test1.my-bee.info` |
+| POS (عندكم الآن) | `http://test1.my-bee.info` ← **غلط غالباً** |
+
+```dart
+// ❌ يسبب timeout (كما في اللوج)
+final url = 'http://$tenantId.my-bee.info';
+final url = 'http://$tenantId.my-bee.info:80';
+
+// ✅ نفس REST والتطبيقات الأخرى
+final url = 'https://$tenantId.my-bee.info';
+```
+
+- **لا تفرض `:80`** — `socket_io_client` يبني المسار بنفسه مع `.setPath('/socket.io/')`.
+- استخدم **نفس `baseUrl`** الذي يعمل مع `GET /api/establishment-orders` (إن REST على https فالسوكت https).
+
+```dart
+String socketBaseUrl(String tenantId) {
+  final rest = ApiConstants.baseUrl; // مثلاً https://test1.my-bee.info/api
+  final uri = Uri.parse(rest);
+  return '${uri.scheme}://${uri.host}'; // https://test1.my-bee.info
+}
+```
+
 ---
 
 ## 3. أحداث Client → Server
@@ -292,7 +321,8 @@ curl -Ik "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
 
 | خطأ | الحل |
 |-----|------|
-| `timeout` | `https` + Apache proxy `/socket.io/` |
+| `timeout` + اللوج يقول `http://` | غيّر إلى **https** مثل Kitchen/Waiter — لا `:80` |
+| `timeout` + https | Apache: `ProxyPass /socket.io/` في `laravel.conf` |
 | `INVALID_TOKEN` | token جديد + `pm2 restart` بعد `git pull` |
 
 ---

@@ -13,9 +13,10 @@ class AccountingSettingsController extends Controller
      */
     public function index(Request $request)
     {
-        $activeTab = $request->query('tab') === 'accounts-routing'
-            ? 'accounts-routing'
-            : 'financial-year';
+        // Default to accounts routing tab (ERP setup-first flow).
+        $activeTab = $request->query('tab') === 'financial-year'
+            ? 'financial-year'
+            : 'accounts-routing';
 
         $routing = AccountsRoutingController::routingSettingsData();
 
