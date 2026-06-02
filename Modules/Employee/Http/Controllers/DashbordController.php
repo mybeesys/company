@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Modules\Employee\Services\DashboardHubService;
 use Modules\General\Models\Transaction;
 use Modules\Reservation\Events\OrderCreated;
 
@@ -337,7 +338,13 @@ class DashbordController extends Controller
             : 0;
         $periodNet = $periodSales - $periodPurchases - $periodExpenses;
 
-        return view('employee::dashboard', compact(
+        $hubService = app(DashboardHubService::class);
+        $dashboardTabs = $hubService->visibleTabs();
+        $activeDashboardTab = $hubService->resolveActiveTab($dashboardTabs, $request);
+
+        return view('employee::dashboard.hub', compact(
+            'dashboardTabs',
+            'activeDashboardTab',
             'formattedTodaySales',
             'dailyChangePercent',
             'formattedCurrentMonthSales',

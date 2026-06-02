@@ -24,19 +24,19 @@
             'permission' => 'reports_module.all.show',
         ],
         [
-            'url' => '/income-statement',
+            'url' => '/accounting-reports',
             'label' => __('general.accounting_reports'),
             'icon' => 'ki-outline ki-chart-line-up',
             'permission' => 'accountingReports.all.show',
         ],
         [
-            'url' => '/inventory-dashboard',
+            'url' => '/dashboard?tab=inventory',
             'label' => __('general.inventory_dashboard'),
             'icon' => 'ki-outline ki-package',
             'permission' => 'inventory.dashboard.show',
         ],
         [
-            'url' => '/sales-dashbord',
+            'url' => '/dashboard?tab=sales',
             'label' => __('general.sales_dashboard'),
             'icon' => 'ki-outline ki-dollar',
             'permission' => 'sales.all.show',

@@ -46,11 +46,12 @@ return [
         'icon' => 'fas fa-shopping-cart',
         'permission' => 'products.all.show',
         'subMenu' => [
-            [
-                'name' => 'product_dashboard',
-                'url' => 'product-dashboard',
-                'permission' => 'products.dashboard.show',
-            ],
+            // Temporarily hidden — dashboards are in main /dashboard hub tabs
+            // [
+            //     'name' => 'product_dashboard',
+            //     'url' => 'dashboard?tab=products',
+            //     'permission' => 'products.dashboard.show',
+            // ],
             [
 
                 'name' => 'products',
@@ -136,11 +137,12 @@ return [
         'permission' => '',
         'icon' => 'fas fa-building',
         'subMenu' => [
-            [
-                'name' => 'inventory_dashboard',
-                'url' => 'inventory-dashboard',
-                'permission' => 'inventory.dashboard.show',
-            ],
+            // Temporarily hidden — dashboards are in main /dashboard hub tabs
+            // [
+            //     'name' => 'inventory_dashboard',
+            //     'url' => 'dashboard?tab=inventory',
+            //     'permission' => 'inventory.dashboard.show',
+            // ],
             [
                 'name' => 'inventory',
                 'url' => 'productInventory',
@@ -180,11 +182,12 @@ return [
         'permission' => 'sales.all.show',
         'subMenu' => [
 
-            [
-                'name' => 'sales-dashbord',
-                'url' => 'sales-dashbord',
-                'permission' => 'sales.all.show',
-            ],
+            // Temporarily hidden — dashboards are in main /dashboard hub tabs
+            // [
+            //     'name' => 'sales-dashbord',
+            //     'url' => 'dashboard?tab=sales',
+            //     'permission' => 'sales.all.show',
+            // ],
             [
                 'name' => 'clients',
                 'url' => 'clients',
@@ -230,11 +233,12 @@ return [
         'icon' => 'fas fa-shopping-cart',
         'permission' => 'purchases.all.show',
         'subMenu' => [
-            [
-                'name' => 'purchase-dashbord',
-                'url' => 'purchase-dashbord',
-                'permission' => 'purchases.all.show',
-            ],
+            // Temporarily hidden — dashboards are in main /dashboard hub tabs
+            // [
+            //     'name' => 'purchase-dashbord',
+            //     'url' => 'dashboard?tab=purchases',
+            //     'permission' => 'purchases.all.show',
+            // ],
             [
                 'name' => 'suppliers',
                 'url' => 'suppliers',
@@ -272,34 +276,25 @@ return [
 
     [
         'name' => 'accounting_module',
-        'url' => 'dashboard',
+        'url' => 'tree-of-accounts',
         'icon' => 'fas fa-calculator',
         'permission' => 'accounting.all.show',
         'subMenu' => [
-            [
-                'name' => 'accounting_dashboard',
-                'url' => 'accounting-dashboard',
-                'permission' => 'accounting.Dashboard.show',
-            ],
+            // Temporarily hidden — dashboards are in main /dashboard hub tabs
+            // [
+            //     'name' => 'accounting_dashboard',
+            //     'url' => 'dashboard?tab=accounting',
+            //     'permission' => 'accounting.Dashboard.show',
+            // ],
             [
                 'name' => 'chart_of_accounts',
                 'url' => 'tree-of-accounts',
                 'permission' => 'accounting.Accounts tree.show',
             ],
             [
-                'name' => 'accounting_settings',
-                'url' => 'accounting-settings',
-                'permission' => 'accounting.all.show',
-            ],
-            [
                 'name' => 'journalEntry',
                 'url' => 'journal-entry-index',
                 'permission' => 'accounting.Daily entries.show',
-            ],
-            [
-                'name' => 'costCenter',
-                'url' => 'cost-center-index',
-                'permission' => 'accounting.Cost center.show',
             ],
             [
                 'name' => 'receipt_vouchers',
@@ -311,26 +306,32 @@ return [
                 'url' => 'payment-vouchers',
                 'permission' => 'accounting.Payment vouchers.show',
             ],
-
             [
                 'name' => 'expenses_manage',
                 'url' => 'expenses/manage',
                 'permission' => ['accounting.all.show', 'accounting.Payment vouchers.show'],
             ],
             [
+                'name' => 'costCenter',
+                'url' => 'cost-center-index',
+                'permission' => 'accounting.Cost center.show',
+            ],
+            [
                 'name' => 'periodic',
                 'url' => 'inventory/periodic-inventory',
                 'permission' => 'accounting.Payment vouchers.show',
             ],
-
+            [
+                'name' => 'accounting_settings',
+                'url' => 'accounting-settings',
+                'permission' => 'accounting.all.show',
+            ],
+            [
+                'name' => 'accounting_reports',
+                'url' => 'accounting-reports',
+                'permission' => 'accountingReports.all.show',
+            ],
         ],
-    ],
-    [
-        'name' => 'accounting_reports',
-        'url' => 'accounting-reports',
-        'icon' => 'fas fa-bar-chart',
-        'permission' => 'accountingReports.all.show',
-        'subMenu' => [],
     ],
 
     // [

@@ -134,6 +134,7 @@ return [
     'type-service' => 'Type of services',
     'purchase-sell' => 'Purchase and sell',
     'accounting_reports' => 'Accounting Reports',
+    'accounting_reports_hub' => 'All reports',
     'income-statement' => 'Income statement',
     'trial-balance' => 'Trial balance',
     'ledger' => 'Ledger',
