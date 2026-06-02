@@ -12,6 +12,10 @@
         };
 
         $menuItemIsActive = function (array $item) use (&$menuItemIsActive, $menuUrlIsActive): bool {
+            if (! empty($item['name'] ?? '') && menu_hub_is_active($item['name'])) {
+                return true;
+            }
+
             if (! empty($item['url'] ?? '') && $menuUrlIsActive($item['url'])) {
                 return true;
             }

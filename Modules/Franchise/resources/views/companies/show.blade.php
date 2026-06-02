@@ -1,4 +1,4 @@
-@extends(request()->boolean('embed') ? 'layouts.embed' : 'layouts.app')
+@extends('layouts.app')
 
 @section('title', $company->name_ar)
 

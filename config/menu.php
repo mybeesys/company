@@ -133,26 +133,15 @@ return [
     ],
     [
         'name' => 'inventory_module',
-        'url' => 'productInventory',
+        'url' => '#',
         'permission' => '',
-        'icon' => 'fas fa-building',
+        'icon' => 'fas fa-warehouse',
         'subMenu' => [
-            // Temporarily hidden — dashboards are in main /dashboard hub tabs
-            // [
-            //     'name' => 'inventory_dashboard',
-            //     'url' => 'dashboard?tab=inventory',
-            //     'permission' => 'inventory.dashboard.show',
-            // ],
             [
                 'name' => 'inventory',
                 'url' => 'productInventory',
                 'permission' => 'inventory.product.show',
             ],
-            // [
-            //     'name' => 'po',
-            //     'url' => 'purchaseOrder',
-            //     'permission' => 'inventory.purchaseOrder.show',
-            // ],
             [
                 'name' => 'prep',
                 'url' => 'prep',
@@ -181,39 +170,25 @@ return [
         'icon' => 'fas fa-dollar-sign',
         'permission' => 'sales.all.show',
         'subMenu' => [
-
-            // Temporarily hidden — dashboards are in main /dashboard hub tabs
-            // [
-            //     'name' => 'sales-dashbord',
-            //     'url' => 'dashboard?tab=sales',
-            //     'permission' => 'sales.all.show',
-            // ],
-            [
-                'name' => 'clients',
-                'url' => 'clients',
-                'permission' => 'sales.Customers.show',
-            ],
             [
                 'name' => 'quotations',
                 'url' => 'quotations',
                 'permission' => 'sales.Quotations.show',
             ],
-
             [
                 'name' => 'invoices',
                 'url' => 'invoices',
                 'permission' => 'sales.Sell invoices.show',
             ],
-            // Temporarily hidden from sidebar — re-enable when favorites are ready
-            // [
-            //     'name' => 'sales_favorites',
-            //     'url' => 'sales-favorites',
-            //     'permission' => 'sales.Sell invoices.show',
-            // ],
             [
                 'name' => 'sell-return',
                 'url' => 'sell-return',
                 'permission' => 'sales.Sell returns.show',
+            ],
+            [
+                'name' => 'clients',
+                'url' => 'clients',
+                'permission' => 'sales.Customers.show',
             ],
             [
                 'name' => 'customer_receipts',
@@ -233,12 +208,6 @@ return [
         'icon' => 'fas fa-shopping-cart',
         'permission' => 'purchases.all.show',
         'subMenu' => [
-            // Temporarily hidden — dashboards are in main /dashboard hub tabs
-            // [
-            //     'name' => 'purchase-dashbord',
-            //     'url' => 'dashboard?tab=purchases',
-            //     'permission' => 'purchases.all.show',
-            // ],
             [
                 'name' => 'suppliers',
                 'url' => 'suppliers',
@@ -254,12 +223,6 @@ return [
                 'url' => 'purchase-invoices',
                 'permission' => 'purchases.Purchase invoices.show',
             ],
-            // Temporarily hidden from sidebar — re-enable when favorites are ready
-            // [
-            //     'name' => 'purchases_favorites',
-            //     'url' => 'purchases-favorites',
-            //     'permission' => 'purchases.Purchase invoices.show',
-            // ],
             [
                 'name' => 'purchases-return',
                 'url' => 'purchases-return',
@@ -270,7 +233,6 @@ return [
                 'url' => 'suppliers-receipts',
                 'permission' => 'purchases.Supplier vouchers.show',
             ],
-
         ],
     ],
 

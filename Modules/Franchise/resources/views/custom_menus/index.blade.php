@@ -1,7 +1,9 @@
-@extends(request()->boolean('embed') ? 'layouts.embed' : 'layouts.app')
+@extends('layouts.app')
 @section('title', __('menuItemLang.custom_menus_mgmt'))
 
 @section('content')
+    @include('franchise::partials.hub-tabs')
+
     <div class="card mb-7 shadow-sm">
         <div class="card-body">
             <div class="d-flex flex-stack flex-wrap">

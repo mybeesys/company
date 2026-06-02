@@ -13,7 +13,6 @@
 @stop
 @section('content')
 
-
     @if (count($transaction) == 0)
         <div class="card1 h-md-100 my-5" dir="ltr">
             <div class="card-body d-flex flex-column flex-center">

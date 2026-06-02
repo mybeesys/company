@@ -29,9 +29,9 @@
             }
         });
 
-        $('#franchise-hub-companies-wrap .filter-tab').on('click', function (e) {
+        $('.filter-tab').on('click', function (e) {
             e.preventDefault();
-            $('#franchise-hub-companies-wrap .filter-tab').removeClass('active');
+            $('.filter-tab').removeClass('active');
             $(this).addClass('active');
             currentView = $(this).data('view');
             companiesTable.draw();
@@ -39,11 +39,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        if (document.getElementById('franchise-hub-companies-wrap') && !document.getElementById('franchise-hub-companies-wrap').classList.contains('d-none')) {
+        if (document.getElementById('companies_table')) {
             initCompaniesTable();
         }
-
-        window.initFranchiseCompaniesTable = initCompaniesTable;
     });
 
     function addCompanyModal() {

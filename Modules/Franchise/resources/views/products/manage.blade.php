@@ -1,7 +1,9 @@
-@extends(request()->boolean('embed') ? 'layouts.embed' : 'layouts.app')
+@extends('layouts.app')
 @section('title', __('franchise::lang.manage_franchise_products'))
 
 @section('content')
+    @include('franchise::partials.hub-tabs')
+
     @php
         $productsData = [];
         foreach ($categories as $cat) {

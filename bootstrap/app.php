@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CentralAppAuthenticate;
+use App\Http\Middleware\DetectEmbedRequest;
 use App\Http\Middleware\VerifySocketInternalSecret;
 use App\Http\Middleware\CleanJsonNoiseMiddleware;
 use App\Http\Middleware\EnsureHasSubscription;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'socket.internal' => VerifySocketInternalSecret::class,
         ]);
         $middleware->web(append: [
+            DetectEmbedRequest::class,
             LocalizationMiddleware::class,
             EnsureHasSubscription::class,
             CleanJsonNoiseMiddleware::class,

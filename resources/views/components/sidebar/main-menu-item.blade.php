@@ -8,12 +8,17 @@
     }
     $path = ($url !== null && $url !== '') ? ltrim($url, '/') : '';
     $href = $path !== '' ? '/'.$path : '#';
+
+    $menuIsActive = $path !== '' && (request()->is($path) || request()->is($path.'/*'));
+    if (! $menuIsActive && menu_hub_is_active($name)) {
+        $menuIsActive = true;
+    }
 @endphp
 
 <span class="menu-item">
     <a @class([
         'menu-link',
-        'active' => $path !== '' && (request()->is($path) || request()->is($path.'/*')),
+        'active' => $menuIsActive,
     ]) href="{{ $href }}">
 
         @if (!$icon)

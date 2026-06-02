@@ -35,10 +35,6 @@ class FranchiseHubService
 
     protected function userCanSeeTab(?Authenticatable $user, array $tab): bool
     {
-        if (($tab['type'] ?? '') === 'inline') {
-            return true;
-        }
-
         $permission = $tab['permission'] ?? null;
 
         if ($permission === null || $permission === '') {
@@ -54,12 +50,6 @@ class FranchiseHubService
 
     protected function prepareTab(array $tab): array
     {
-        if (($tab['type'] ?? '') === 'inline') {
-            return $tab;
-        }
-
-        $tab['embed_url'] = route($tab['route'], ['embed' => 1]);
-
         return $tab;
     }
 }

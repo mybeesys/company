@@ -6,14 +6,13 @@
 return [
     [
         'id' => 'companies',
-        'type' => 'inline',
         'label' => 'menuItemLang.franchise_com',
         'icon' => 'fas fa-building',
+        'route' => 'franchise.companies.index',
         'permission' => 'Franchise Companies.all.show',
     ],
     [
         'id' => 'branches',
-        'type' => 'embed',
         'label' => 'menuItemLang.branches_mgmt',
         'icon' => 'fas fa-code-branch',
         'route' => 'franchise.branches.index',
@@ -21,7 +20,6 @@ return [
     ],
     [
         'id' => 'products',
-        'type' => 'embed',
         'label' => 'menuItemLang.franchise_product_mgmt',
         'icon' => 'fas fa-boxes-stacked',
         'route' => 'franchise.products.index',
@@ -29,7 +27,6 @@ return [
     ],
     [
         'id' => 'menus',
-        'type' => 'embed',
         'label' => 'menuItemLang.custom_menus_mgmt',
         'icon' => 'fas fa-list',
         'route' => 'franchise.franchise.custom_menus.index',

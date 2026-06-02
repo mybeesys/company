@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Franchise\Models\FranchiseCompanies;
-use Modules\Franchise\Services\FranchiseHubService;
 use Yajra\DataTables\Facades\DataTables;
 
 class FranchiseCompanyController extends Controller
@@ -78,11 +77,7 @@ class FranchiseCompanyController extends Controller
                 ->make(true);
         }
 
-        $hubService = app(FranchiseHubService::class);
-        $franchiseTabs = $hubService->visibleTabs();
-        $activeFranchiseTab = $hubService->resolveActiveTab($franchiseTabs, $request);
-
-        return view('franchise::companies.hub', compact('franchiseTabs', 'activeFranchiseTab'));
+        return view('franchise::companies.index');
     }
 
     public function store(Request $request)
