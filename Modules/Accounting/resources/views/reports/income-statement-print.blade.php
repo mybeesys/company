@@ -5,7 +5,7 @@
     <title>{{ __('accounting::lang.income_list') }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #111827; margin: 0; padding: 0; }
-        .header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #1B84FF; padding-bottom: 8px; }
+        .header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #e9b71f; padding-bottom: 8px; }
         .header h1 { font-size: 16px; margin: 0 0 4px; }
         .muted { color: #64748b; font-size: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; font-variant-numeric: tabular-nums; }
@@ -13,7 +13,7 @@
         thead th { background: #e5e7eb; font-size: 10px; text-transform: uppercase; }
         td.amount { text-align: {{ app()->getLocale() == 'ar' ? 'left' : 'right' }}; font-family: DejaVu Sans Mono, monospace; white-space: nowrap; }
         td.amount.neg { color: #F8285A; }
-        tr.section td { background: #F9F9F9; font-weight: 700; font-size: 10px; color: #1B84FF; border-top: 2px solid #DBDFE9; }
+        tr.section td { background: #F9F9F9; font-weight: 700; font-size: 10px; color: #e9b71f; border-top: 2px solid #DBDFE9; }
         tr.subtotal td { background: #F1F1F4; font-weight: 600; }
         tr.grand td { background: #E9F3FF; font-weight: 700; }
         tr.profit td { background: #d1f4dd; font-weight: 700; }

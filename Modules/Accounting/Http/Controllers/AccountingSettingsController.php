@@ -4,6 +4,7 @@ namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\General\Models\Setting;
 
 class AccountingSettingsController extends Controller
 {
@@ -12,9 +13,10 @@ class AccountingSettingsController extends Controller
      */
     public function index(Request $request)
     {
-        $activeTab = $request->query('tab') === 'accounts-routing'
-            ? 'accounts-routing'
-            : 'financial-year';
+        // Default to accounts routing tab (ERP setup-first flow).
+        $activeTab = $request->query('tab') === 'financial-year'
+            ? 'financial-year'
+            : 'accounts-routing';
 
         $routing = AccountsRoutingController::routingSettingsData();
 
@@ -23,7 +25,10 @@ class AccountingSettingsController extends Controller
         }
 
         return view('accounting::settings.index', array_merge(
-            ['activeTab' => $activeTab],
+            [
+                'activeTab' => $activeTab,
+                'financialPeriodLockingEnabled' => Setting::isFinancialPeriodLockingEnabled(),
+            ],
             $routing
         ));
     }

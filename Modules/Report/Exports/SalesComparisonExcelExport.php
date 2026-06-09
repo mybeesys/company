@@ -357,13 +357,6 @@ class SalesComparisonExcelExport implements FromArray, WithColumnWidths, WithEve
     {
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
-        $fmtPct = static function ($v) {
-            if ($v === null) {
-                return '—';
-            }
-
-            return number_format($v, 2).'%';
-        };
         $fmtAvg = static function ($v) {
             if ($v === null) {
                 return '—';
@@ -399,15 +392,23 @@ class SalesComparisonExcelExport implements FromArray, WithColumnWidths, WithEve
             $fmt($row->subtotal_period_b),
             (string) (int) $row->lines_period_b,
             $fmtQty($row->qty_difference),
-            $fmtPct(ReportTransactionsUtile::computePercentChange(
+            ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange(
+                    (float) $row->qty_period_a,
+                    (float) $row->qty_period_b
+                ),
                 (float) $row->qty_period_a,
                 (float) $row->qty_period_b
-            )),
+            ),
             $fmt($row->subtotal_difference),
-            $fmtPct(ReportTransactionsUtile::computePercentChange(
+            ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange(
+                    (float) $row->subtotal_period_a,
+                    (float) $row->subtotal_period_b
+                ),
                 (float) $row->subtotal_period_a,
                 (float) $row->subtotal_period_b
-            )),
+            ),
             $fmt($row->discount_difference),
             $fmt($row->tax_difference),
             (string) (int) $row->lines_difference,

@@ -8,6 +8,6 @@ class MainController extends Controller
 {
     public function index()
     {
-        return view('employee::dashboard');
+        return redirect()->route('dashboard');
     }
 }

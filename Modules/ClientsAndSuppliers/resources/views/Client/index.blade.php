@@ -13,7 +13,6 @@
 @stop
 @section('content')
 
-
     <div class="card card-flush">
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="{{ $business_type }}" url="{{ $create_url }}" module="clientsandsuppliers">

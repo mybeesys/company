@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 
@@ -61,6 +62,8 @@ class ContactUtils
         $customer = Contact::find($customerId);
 
         if ($customer && $customer->account) {
+            FiscalPeriodGatekeeper::assertPostable(now());
+
             $ref_number = AccountingUtil::generateReferenceNumber('contact_balance');
             $acc_trans_mapping = new AccountingAccTransMapping;
 
@@ -92,6 +95,8 @@ class ContactUtils
         $supplier = Contact::find($supplierId);
 
         if ($supplier && $supplier->account) {
+            FiscalPeriodGatekeeper::assertPostable(now());
+
             $ref_number = AccountingUtil::generateReferenceNumber('contact_balance');
             $acc_trans_mapping = new AccountingAccTransMapping;
 

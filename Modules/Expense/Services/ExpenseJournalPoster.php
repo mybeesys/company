@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Expense\Models\Expense;
 use Modules\Expense\Support\VatLedgerAccount;
@@ -35,6 +36,8 @@ final class ExpenseJournalPoster
         }
 
         return DB::transaction(function () use ($expense, $gross, $tax, $net, $expenseAccountId, $treasuryAccountId, $costCenterId, $vatAccount) {
+            FiscalPeriodGatekeeper::assertPostable($expense->date);
+
             $mapping = new AccountingAccTransMapping;
             $mapping->ref_no = AccountingUtil::generateReferenceNumber('journal_entry');
             $mapping->type = 'journal_entry';

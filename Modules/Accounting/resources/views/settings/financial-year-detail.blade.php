@@ -33,6 +33,11 @@
                             <dd id="fy-detail-status">—</dd>
                         </div>
                     </dl>
+                    <div class="mt-4">
+                        <a href="#" id="fy-detail-report-year-link" class="btn btn-sm btn-light-primary w-100 d-none">
+                            <i class="fas fa-file-lines me-1"></i> @lang('accounting::financial_year.action_year_report')
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,7 +84,7 @@
                                         @lang('accounting::financial_year.col_status')
                                         <i class="fas fa-sort fy-sort-icon"></i>
                                     </th>
-                                    <th class="text-end min-w-140px">@lang('accounting::financial_year.col_actions')</th>
+                                    <th class="text-end min-w-120px">@lang('accounting::financial_year.col_actions')</th>
                                 </tr>
                             </thead>
                             <tbody id="fy-periods-tbody"></tbody>

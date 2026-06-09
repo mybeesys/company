@@ -220,3 +220,94 @@ if (! function_exists('get_name_by_lang')) {
         return $name;
     }
 }
+
+if (! function_exists('is_embed_request')) {
+    function is_embed_request(): bool
+    {
+        return request()->boolean('embed');
+    }
+}
+
+if (! function_exists('app_layout')) {
+    /**
+     * Full app shell or minimal embed layout (hub iframe / ?embed=1).
+     */
+    function app_layout(string $default = 'layouts.app'): string
+    {
+        return is_embed_request() ? 'layouts.embed' : $default;
+    }
+}
+
+if (! function_exists('embed_url')) {
+    /**
+     * Append embed=1 when the current request is embedded.
+     */
+    function embed_url(string $url): string
+    {
+        if (! is_embed_request()) {
+            return $url;
+        }
+
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        if (str_contains($url, 'embed=1')) {
+            return $url;
+        }
+
+        return $url.$separator.'embed=1';
+    }
+}
+
+if (! function_exists('menu_hub_is_active')) {
+    /**
+     * True when the current page belongs to a hub module (sales, purchases, franchise).
+     */
+    function menu_hub_is_active(?string $menuName): bool
+    {
+        if ($menuName === null || $menuName === '') {
+            return false;
+        }
+
+        $hub = config("menu_hubs.{$menuName}");
+        if (! is_array($hub)) {
+            return false;
+        }
+
+        if (! empty($hub['path_prefix'])) {
+            $prefix = ltrim((string) $hub['path_prefix'], '/');
+            if (request()->is($prefix) || request()->is($prefix.'/*')) {
+                return true;
+            }
+        }
+
+        foreach ($hub['path_prefixes'] ?? [] as $prefix) {
+            $prefix = ltrim((string) $prefix, '/');
+            if ($prefix !== '' && (request()->is($prefix) || request()->is($prefix.'/*'))) {
+                return true;
+            }
+        }
+
+        $routeName = request()->route()?->getName();
+        if ($routeName === null || $routeName === '') {
+            return false;
+        }
+
+        $tabRoutes = collect(config($hub['tabs_config'] ?? [], []))
+            ->pluck('route')
+            ->filter();
+
+        $allRoutes = $tabRoutes->merge($hub['extra_routes'] ?? []);
+
+        if ($allRoutes->contains($routeName)) {
+            return true;
+        }
+
+        foreach ($hub['route_prefixes'] ?? [] as $prefix) {
+            if (str_starts_with($routeName, (string) $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

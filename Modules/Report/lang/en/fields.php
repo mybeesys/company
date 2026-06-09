@@ -30,11 +30,11 @@ return [
     'payment_method' => 'Payment Method',
     'sales' => 'Sales',
     'establishment_name' => 'Branch Name',
-    'transfer_in_out' => 'Transfer(in/out)',
+    'transfer_in_out' => 'Movement from / to',
     'process' => 'Process',
     'quantity' => 'Quantity',
     'type' => 'Transfer type ',
-    'transfer_date' => 'Transfer Date',
+    'transfer_date' => 'Transaction date',
     'payment_status' => 'Payment Status',
     'final_total' => 'Final Total',
     'remaining_amount' => 'Remaining Amount',
@@ -157,7 +157,12 @@ return [
 
     // Reports
     'total_expense' => 'Total Expense',
-    'register_report_details' => 'View details of register report',
+    'register_report_details' => 'View cash register sessions with payment totals by method',
+    'register_transactions' => 'Register transactions',
+    'transaction_date' => 'Date & time',
+    'transaction_type' => 'Transaction type',
+    'amount' => 'Amount',
+    'no_register_transactions' => 'No transactions recorded for this register',
 
     // Sales comparison (two periods)
     'qty_period_a' => 'Qty',

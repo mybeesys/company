@@ -445,7 +445,7 @@
                 new ApexCharts(document.querySelector('#expenseTrendChart'), {
                     series: [{ name: @json(__('accounting::lang.expense_report_gross')), data: trendGross }],
                     chart: { type: 'area', height: 300, toolbar: { show: false }, fontFamily: 'inherit' },
-                    colors: chartColors.length ? [chartColors[0]] : ['#1B84FF'],
+                    colors: chartColors.length ? [chartColors[0]] : ['#e9b71f'],
                     stroke: { curve: 'smooth', width: 2 },
                     fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
                     xaxis: { categories: trendLabels },

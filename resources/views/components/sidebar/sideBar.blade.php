@@ -2,6 +2,32 @@
     class="app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-0 mb-5">
     @php
         $isPeriodicPolicyEnabled = \Modules\General\Models\Setting::isPeriodicInventory();
+
+        $menuUrlIsActive = function (?string $url): bool {
+            if ($url === null || $url === '') {
+                return false;
+            }
+
+            return request()->is($url) || request()->is($url.'/*');
+        };
+
+        $menuItemIsActive = function (array $item) use (&$menuItemIsActive, $menuUrlIsActive): bool {
+            if (! empty($item['name'] ?? '') && menu_hub_is_active($item['name'])) {
+                return true;
+            }
+
+            if (! empty($item['url'] ?? '') && $menuUrlIsActive($item['url'])) {
+                return true;
+            }
+
+            foreach ($item['subMenu'] ?? [] as $child) {
+                if ($menuItemIsActive($child)) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
     @endphp
     @foreach (config('menu') as $menuItem)
     @php
@@ -42,7 +68,7 @@
     });
 
     $isSubmenuActive = $visibleSubmenuItems->contains(
-    fn($submenuItem) => request()->is($submenuItem['url']) || request()->is($submenuItem['url'] . '/*')
+        fn ($submenuItem) => $menuItemIsActive($submenuItem)
     );
     @endphp
 
@@ -103,7 +129,7 @@
             });
 
             $isSubsubmenuActive = $visibleSubsubmenuItems->contains(
-            fn($item) => request()->is($item['url']) || request()->is($item['url'] . '/*')
+                fn ($item) => $menuItemIsActive($item)
             );
             @endphp
 

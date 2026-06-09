@@ -12,6 +12,7 @@
     type="text/css" />
 <link href="/assets/plugins/global/plugins.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
 <link href="/assets/css/style.bundle{{ $rtl_files }}.css" rel="stylesheet" type="text/css" />
+<link href="/assets/css/brand-theme.css" rel="stylesheet" type="text/css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=League+Gothic&display=swap"
@@ -54,7 +55,7 @@
     }
 
     tr:hover:not(.not-hover) {
-        background: #cae0fa !important;
+        background: #f8efcf !important;
         /* font-style: italic; */
 
         /* font-weight: bold !important; */
@@ -86,11 +87,11 @@
     .link-underline {
         text-decoration: underline !important;
         cursor: pointer !important;
-        color: #007bff !important;
+        color: var(--bs-primary) !important;
     }
 
     .link-underline:hover {
-        color: #0056b3 !important;
+        color: var(--bs-link-hover-color) !important;
         text-decoration: underline !important;
     }
 

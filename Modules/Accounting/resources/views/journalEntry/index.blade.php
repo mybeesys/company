@@ -25,6 +25,8 @@
 @stop
 @section('content')
 
+    <p class="text-muted small mb-4">{{ __('accounting::lang.journal_entry_manual_only') }}</p>
+
     <div class="row g-3 align-items-end">
 
         <div class="col-md-3">

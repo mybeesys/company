@@ -1,194 +1,157 @@
 <!DOCTYPE html>
-@php
-    $local = session()->get('locale');
-
-
-
-@endphp
-<html >
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Print: {{ $journal->ref_no }}</title>
-    <style>
-        * {
-            font-family: DejaVu Sans !important;
-        }
-
-        body {
-            font-size: 16px;
-            font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
-            padding: 10px;
-            margin: 10px;
-
-            color: #777;
-        }
-
-
-        body {
-            color: #777;
-            }
-
-
-
-        .table_component {
-            overflow: auto;
-        }
-
-        .table_component table {
-            border: 1px solid #dededf;
-            /* height: 99%; */
-            table-layout: auto;
-            border-collapse: collapse;
-            border-spacing: 1px;
-            /* text-align: right; */
-            page-break-before: avoid;
-            page-break-after: avoid;
-            /* direction: ltr; */
-            width: 100%;
-            /* text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};  border: 1px solid; */
-            font-family: 'DejaVu Sans', 'Roboto', 'Montserrat', 'Open Sans', sans-serif;
-        }
-
-        .table_component caption {
-            caption-side: top;
-            /* text-align: {{ session()->get('locale') == 'ar' ? 'right' : 'left' }};  */
-           }
-
-        .table_component th {
-            border: 1px solid #dededf;
-            background-color: #eceff1;
-            color: #000000;
-            padding: 7px;
-            text-align: center;
-        }
-
-        .table_component td {
-            border: 1px solid #dededf;
-            background-color: #ffffff;
-            color: #000000;
-            padding: 7px;
-        }
-
-        body {
-    direction: {{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }};
-    text-align: {{ app()->getLocale() == 'ar' ? 'right' : 'left' }};
-}
-
-table {
-    direction: {{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }};
-}
-
-        td {
-            padding: 10px;
-            margin: 10px;
-        }
-
-        @media print {
-            .no-print {
-                display: none;
-            }
-        }
-    </style>
-
+    <title>{{ __('accounting::lang.print_journalEntry') }}: {{ $journal->ref_no ?? '' }}</title>
+    @include('accounting::journalEntry.partials._print_styles')
     <script>
         window.onload = function() {
             window.print();
         };
-
         window.onafterprint = function() {
-            window.location.href = "{{ route('journal-entry-index') }}";
+            window.location.href = @json(route('journal-entry-index'));
         };
     </script>
 </head>
+<body class="mj-print-body">
+@php
+    $localeAr = app()->getLocale() === 'ar';
+    $journal->loadMissing([
+        'added_by',
+        'transactions.account',
+        'transactions.costCenter',
+    ]);
 
+    $totalDebit = 0.0;
+    $totalCredit = 0.0;
+    foreach ($journal->transactions as $tx) {
+        if ($tx->type === 'debit') {
+            $totalDebit += (float) $tx->amount;
+        } elseif ($tx->type === 'credit') {
+            $totalCredit += (float) $tx->amount;
+        }
+    }
+    $diff = round($totalDebit - $totalCredit, 2);
+    $isBalanced = abs($diff) < 0.005;
+    $opDate = $journal->operation_date
+        ? \Illuminate\Support\Carbon::parse($journal->operation_date)->format('Y-m-d')
+        : '—';
+@endphp
 
-<body >
+@include('accounting::journalEntry.partials._print_header', ['journal' => $journal])
 
-    <div class="template-header">
-
-    </div>
-
-    <div class="section">
-        <div class="section-header">
-            <p>@lang('accounting::fields.ref_no'): {{ $journal->ref_no }}</p>
-            <p>@lang('accounting::lang.operation_date'): {{ \Carbon\Carbon::parse($journal->operation_date)->format('Y-m-d') }}</p>
-            <p>@lang('accounting::lang.additionalNotes'): {{ $journal->note }}</p>
-
+<article class="jr-entry">
+    <header class="jr-entry-header">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+            @if ($isBalanced)
+                <span class="jr-badge-balanced">✓ {{ __('accounting::lang.balanced') }}</span>
+            @else
+                <span class="jr-badge-unbalanced">! {{ __('accounting::lang.unbalanced') }}</span>
+            @endif
+            <span class="jr-badge-manual">{{ __('accounting::lang.journal_source_manual_journal') }}</span>
         </div>
 
-        <div class="content table_component">
-            <table class="table table-bordered table-striped hide-footer" id="journal_table">
-                <thead>
-                    <tr>
-                        <th>@lang('accounting::lang.account')</th>
-                        <th>@lang('accounting::lang.cost_center')</th>
-                        <th>@lang('accounting::lang.debit')</th>
-                        <th>@lang('accounting::lang.credit')</th>
-                        <th>@lang('accounting::lang.added_by')</th>
-                        <th>@lang('accounting::lang.additionalNotes')</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @php
-                        $total_debit = 0;
-                        $total_credit = 0;
-                    @endphp
-                    @foreach ($journal->transactions as $transaction)
-                        <tr>
-                            <td>{{ $transaction->account->gl_code }} -
-                                {{ app()->getLocale() == 'ar' ? $transaction->account->name_ar : $transaction->account->name_en }}
-                            </td>
-                            <td>{{ $transaction->cost_center ? (app()->getLocale() == 'ar' ? $transaction->cost_center->name_ar : $transaction->cost_center->name_en) : '--' }}
-                            </td>
-                            <td>
-                                @if ($transaction->type == 'debit')
-                                    {{ $transaction->amount }}
-                                    @php
-                                        $total_debit += $transaction->amount;
-                                    @endphp
-                                @else
-                                    0.0
-                                @endif
-                            </td>
-                            <td>
-                                @if ($transaction->type == 'credit')
-                                    {{ $transaction->amount }}
-                                    @php
-                                        $total_credit += $transaction->amount;
-                                    @endphp
-                                @else
-                                    0.0
-                                @endif
-                            </td>
-                            <td>{{ $transaction->createdBy->name }}</td>
-                            <td>{{ $transaction->note }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="2" class="text-center"><strong>@lang('messages.total')</strong></td>
-                        <td><strong>{{ $total_debit }}</strong></td>
-                        <td><strong>{{ $total_credit }}</strong></td>
-                        @php
-                            $diff = round((float) $total_debit - (float) $total_credit, 2);
-                            $budgetDifferenceText = __('accounting::lang.The journal entry is unbalanced with a difference of');
-                            $text = $budgetDifferenceText . ' : ( ' . number_format(abs($diff), 2) . ' ) ';
-                        @endphp
-                        <td colspan="2" id="Budget" style="text-align: center;color:red">
-                            {{ abs($diff) > 0.005 ? $text : '' }}
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-
-            <hr style="width:100%;margin-left:0">
-
-
+        <div class="jr-entry-header-grid">
+            <div class="jr-meta-item">
+                <label>{{ __('accounting::lang.journal_entry_no') }}</label>
+                <span class="value value--mono">#{{ $journal->id }}</span>
+            </div>
+            <div class="jr-meta-item">
+                <label>{{ __('accounting::lang.ref_no') }}</label>
+                <span class="value value--mono">{{ $journal->ref_no }}</span>
+            </div>
+            <div class="jr-meta-item">
+                <label>{{ __('accounting::lang.journalEntry_date') }}</label>
+                <span class="value">{{ $opDate }}</span>
+            </div>
+            <div class="jr-meta-item">
+                <label>{{ __('accounting::lang.created_by') }}</label>
+                <span class="value">{{ $journal->added_by?->name ?? '—' }}</span>
+            </div>
+            <div class="jr-meta-item">
+                <label>{{ __('accounting::lang.journal_status') }}</label>
+                <span class="value">{{ $isBalanced ? __('accounting::lang.balanced') : __('accounting::lang.unbalanced') }}</span>
+            </div>
+            @if (! empty($journal->note))
+                <div class="jr-meta-item" style="grid-column: 1 / -1;">
+                    <label>{{ __('accounting::lang.additionalNotes') }}</label>
+                    <span class="value" style="font-weight:400;">{{ $journal->note }}</span>
+                </div>
+            @endif
         </div>
-    </div>
+    </header>
+
+    <table class="jr-lines-table">
+        <thead>
+            <tr>
+                <th class="col-gl">{{ __('accounting::lang.gl_code') }}</th>
+                <th>{{ __('accounting::lang.account_name') }}</th>
+                <th>{{ __('accounting::lang.cost_center') }}</th>
+                <th>{{ __('accounting::lang.line_description') }}</th>
+                <th class="col-amount">{{ __('accounting::lang.debit') }}</th>
+                <th class="col-amount">{{ __('accounting::lang.credit') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($journal->transactions as $transaction)
+                @php
+                    $account = $transaction->account;
+                    $accountName = $account
+                        ? ($localeAr ? ($account->name_ar ?: $account->name_en) : ($account->name_en ?: $account->name_ar))
+                        : '—';
+                    $cc = $transaction->costCenter;
+                    $ccLabel = $cc
+                        ? ($localeAr ? ($cc->name_ar ?: $cc->name_en) : ($cc->name_en ?: $cc->name_ar))
+                        : '—';
+                    $amt = number_format((float) $transaction->amount, 2);
+                @endphp
+                <tr>
+                    <td class="col-gl">{{ $account->gl_code ?? '—' }}</td>
+                    <td>{{ $accountName }}</td>
+                    <td>{{ $ccLabel }}</td>
+                    <td>{{ $transaction->note ?: '—' }}</td>
+                    <td class="col-amount {{ $transaction->type === 'debit' ? 'amount-debit' : 'amount-empty' }}">
+                        {{ $transaction->type === 'debit' ? $amt : '—' }}
+                    </td>
+                    <td class="col-amount {{ $transaction->type === 'credit' ? 'amount-credit' : 'amount-empty' }}">
+                        {{ $transaction->type === 'credit' ? $amt : '—' }}
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <footer class="jr-entry-footer">
+        <div class="jr-footer-totals">
+            <div class="jr-footer-amounts">
+                <span>
+                    {{ __('accounting::lang.debit') }}:
+                    <strong style="color:var(--jr-debit);">{{ number_format($totalDebit, 2) }}</strong>
+                </span>
+                <span>
+                    {{ __('accounting::lang.credit') }}:
+                    <strong style="color:var(--jr-credit);">{{ number_format($totalCredit, 2) }}</strong>
+                </span>
+                @if (! $isBalanced)
+                    <span style="color:#8a7344;">
+                        {{ __('accounting::lang.difference') }}:
+                        <strong>{{ number_format(abs($diff), 2) }}</strong>
+                    </span>
+                @endif
+            </div>
+            @if ($isBalanced)
+                <span class="jr-badge-balanced">✓ {{ __('accounting::lang.balanced') }}</span>
+            @endif
+        </div>
+    </footer>
+</article>
+
+<div class="mj-print-actions no-print">
+    <button type="button" class="btn-primary" onclick="window.print()">{{ __('general.print') }}</button>
+    <a href="{{ route('journal-entry-show', $journal->id) }}">{{ __('accounting::lang.view_journalEntry') }}</a>
+    <a href="{{ route('journal-entry-index') }}">{{ __('accounting::lang.journalEntry') }}</a>
+</div>
+
 </body>
-
 </html>

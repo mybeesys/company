@@ -5,6 +5,42 @@
     const STORAGE_KEY = cfg.storageKey || 'bee_accounting_financial_years_v1';
     const msg = cfg.messages || {};
 
+    let serverState = { years: [], firstSaved: false, locking_enabled: !!cfg.lockingEnabled };
+
+    async function apiRequest(method, url, body) {
+        const headers = {
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': cfg.csrfToken || '',
+            'X-Requested-With': 'XMLHttpRequest',
+        };
+        const opts = { method, headers };
+        if (body !== undefined) {
+            headers['Content-Type'] = 'application/json';
+            opts.body = JSON.stringify(body);
+        }
+        const res = await fetch(url, opts);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            throw new Error(data.message || msg.apiError || 'Error');
+        }
+        return data;
+    }
+
+    async function reloadFromServer() {
+        const data = await apiRequest('GET', cfg.api.index);
+        serverState = {
+            years: Array.isArray(data.years) ? data.years : [],
+            firstSaved: !!data.first_saved,
+            locking_enabled: !!data.locking_enabled,
+        };
+        normalizeFinancialData(serverState);
+        const toggle = document.getElementById('fy-period-locking-toggle');
+        if (toggle) {
+            toggle.checked = serverState.locking_enabled;
+        }
+        return serverState;
+    }
+
     const STATUS_LABELS = {
         open: msg.statusOpen || 'Open',
         closed: msg.statusClosed || 'Closed',
@@ -22,8 +58,9 @@
         return 'open';
     }
 
+    /** Display only: upcoming/closing → مغلقة */
     function normalizePeriodStatus(status) {
-        if (status === 'closed' || status === 'closing') {
+        if (status === 'closed' || status === 'closing' || status === 'upcoming') {
             return 'closed';
         }
         return 'open';
@@ -45,23 +82,11 @@
     let fpEditYearEnd = null;
 
     function loadState() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                return { years: [], firstSaved: false };
-            }
-            const parsed = JSON.parse(raw);
-            return {
-                years: Array.isArray(parsed.years) ? parsed.years : [],
-                firstSaved: !!parsed.firstSaved,
-            };
-        } catch (e) {
-            return { years: [], firstSaved: false };
-        }
+        return serverState;
     }
 
     function saveState(state) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        serverState = state;
     }
 
     function parseDate(str) {
@@ -278,7 +303,7 @@
                     <td class="text-center">${statusBadgeHtml(y.status)}</td>
                     <td class="text-end">
                         <div class="d-inline-flex gap-1 flex-wrap justify-content-end fy-year-actions">
-                            ${buildYearActionsHtml(y.id)}
+                            ${buildYearActionsHtml(y)}
                         </div>
                     </td>
                 </tr>`;
@@ -304,11 +329,35 @@
             .replace(/</g, '&lt;');
     }
 
-    function buildYearActionsHtml() {
+    function buildYearActionsHtml(year) {
+        const hasActivity = !!year?.has_activity;
+        const status = normalizeYearStatus(year?.status);
+
+        const view = yearActionBtn('view', 'fa-eye', msg.actionViewYear || 'View');
+        const report = yearActionBtn('report', 'fa-file-lines', msg.actionYearReport || 'Report');
+
+        if (!hasActivity) {
+            return (
+                view +
+                report +
+                yearActionBtn('edit', 'fa-pen', msg.actionEditYear || 'Edit') +
+                yearActionBtn('delete', 'fa-trash', msg.actionDeleteYear || 'Delete', 'btn-delete-year')
+            );
+        }
+
+        // Has activity: hide delete, replace edit with year lock/unlock.
+        if (status === 'closed') {
+            return (
+                view +
+                report +
+                yearActionBtn('year_open', 'fa-lock-open', msg.actionOpenYear || 'Open year', 'btn-year-open')
+            );
+        }
+
         return (
-            yearActionBtn('view', 'fa-eye', msg.actionViewYear || 'View') +
-            yearActionBtn('edit', 'fa-pen', msg.actionEditYear || 'Edit') +
-            yearActionBtn('delete', 'fa-trash', msg.actionDeleteYear || 'Delete', 'btn-delete-year')
+            view +
+            report +
+            yearActionBtn('year_close', 'fa-lock', msg.actionCloseYear || 'Close year', 'btn-year-close')
         );
     }
 
@@ -366,12 +415,96 @@
             const action = btn.dataset.yearAction;
             if (action === 'view') {
                 openYearDetailView(yearId);
+            } else if (action === 'report') {
+                if (cfg.api?.reportYear) {
+                    window.location.href = cfg.api.reportYear(yearId);
+                }
             } else if (action === 'edit') {
                 openYearEditModal(year);
             } else if (action === 'delete') {
                 confirmDeleteYear(currentState, year);
+            } else if (action === 'year_close') {
+                confirmCloseYear(currentState, year);
+            } else if (action === 'year_open') {
+                confirmOpenYear(currentState, year);
             }
         });
+    }
+
+    function confirmCloseYear(state, year) {
+        const label = year.description || `FY ${parseDate(year.end_date)?.getFullYear() || ''}`;
+        const SwalApi = window.Swal;
+
+        const runClose = async () => {
+            try {
+                await apiRequest('POST', cfg.api.closeYear(year.id));
+                await reloadFromServer();
+                refreshUi(loadState());
+                toastr?.success(msg.yearClosedSuccess || msg.periodLockingSaved || 'Saved');
+            } catch (err) {
+                toastr?.error(err.message);
+            }
+        };
+
+        if (SwalApi?.fire) {
+            SwalApi.fire({
+                title: msg.confirmCloseYearTitle || 'Close fiscal year?',
+                text: (msg.confirmCloseYearText || 'Close «:name»').replace(':name', label),
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: msg.confirmYesCloseYear || msg.confirmYesClose || 'Yes',
+                cancelButtonText: msg.cancel,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-light',
+                },
+            }).then((r) => {
+                if (r.isConfirmed) {
+                    runClose();
+                }
+            });
+        } else if (confirm(msg.confirmCloseYearTitle || 'Close fiscal year?')) {
+            runClose();
+        }
+    }
+
+    function confirmOpenYear(state, year) {
+        const label = year.description || `FY ${parseDate(year.end_date)?.getFullYear() || ''}`;
+        const SwalApi = window.Swal;
+
+        const runOpen = async () => {
+            try {
+                await apiRequest('POST', cfg.api.openYear(year.id));
+                await reloadFromServer();
+                refreshUi(loadState());
+                toastr?.success(msg.yearOpenedSuccess || msg.periodLockingSaved || 'Saved');
+            } catch (err) {
+                toastr?.error(err.message);
+            }
+        };
+
+        if (SwalApi?.fire) {
+            SwalApi.fire({
+                title: msg.confirmOpenYearTitle || 'Open fiscal year?',
+                text: (msg.confirmOpenYearText || 'Open «:name»').replace(':name', label),
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: msg.confirmYesOpenYear || msg.confirmYesOpen || 'Yes',
+                cancelButtonText: msg.cancel,
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-light',
+                },
+            }).then((r) => {
+                if (r.isConfirmed) {
+                    runOpen();
+                }
+            });
+        } else if (confirm(msg.confirmOpenYearTitle || 'Open fiscal year?')) {
+            runOpen();
+        }
     }
 
     function openYearEditModal(year) {
@@ -482,16 +615,20 @@
             year.description ||
             `FY ${parseDate(year.end_date)?.getFullYear() || ''}`;
         const SwalApi = window.Swal;
-        const runDelete = () => {
-            state.years = state.years.filter((y) => y.id !== year.id);
-            state.firstSaved = state.years.length > 0;
-            saveState(state);
-            if (selectedYearIdMatches(year.id)) {
-                window.fySettingsApi?.closeYearDetail?.();
-            }
-            refreshUi(state);
-            if (typeof toastr !== 'undefined') {
-                toastr.success(msg.yearDeletedSuccess);
+        const runDelete = async () => {
+            try {
+                await apiRequest('DELETE', cfg.api.destroy(year.id));
+                await reloadFromServer();
+                const fresh = loadState();
+                if (selectedYearIdMatches(year.id)) {
+                    window.fySettingsApi?.closeYearDetail?.();
+                }
+                refreshUi(fresh);
+                if (typeof toastr !== 'undefined') {
+                    toastr.success(msg.yearDeletedSuccess);
+                }
+            } catch (err) {
+                toastr?.error(err.message);
             }
         };
 
@@ -558,19 +695,23 @@
                     : '';
             }
 
-            if (datesChanged) {
-                year.periods = generatePeriodsForYear(newStart, newEnd);
-            }
-
-            saveState(state);
-            bootstrap.Modal.getInstance(document.getElementById('fyYearEditModal'))?.hide();
-            refreshUi(state);
-            if (selectedYearIdMatches(yearId)) {
-                window.fySettingsApi?.openYearDetail?.(yearId);
-            }
-            if (typeof toastr !== 'undefined') {
-                toastr.success(msg.yearUpdatedSuccess);
-            }
+            apiRequest('PUT', cfg.api.update(yearId), {
+                start_date: newStart,
+                end_date: newEnd,
+                description: year.description,
+                status: year.status,
+            })
+                .then(async () => {
+                    await reloadFromServer();
+                    const fresh = loadState();
+                    bootstrap.Modal.getInstance(document.getElementById('fyYearEditModal'))?.hide();
+                    refreshUi(fresh);
+                    if (selectedYearIdMatches(yearId)) {
+                        window.fySettingsApi?.openYearDetail?.(yearId);
+                    }
+                    toastr?.success(msg.yearUpdatedSuccess);
+                })
+                .catch((err) => toastr?.error(err.message));
         });
     }
 
@@ -678,6 +819,51 @@
         }
     }
 
+    function setAddYearFieldsReadonly(readonly) {
+        ['#fy_start_date', '#fy_end_date'].forEach((sel) => {
+            const el = document.querySelector(sel);
+            if (el) {
+                el.readOnly = readonly;
+                el.classList.toggle('bg-light', readonly);
+            }
+        });
+        const hint = document.getElementById('fy-auto-next-hint');
+        if (hint) {
+            hint.classList.toggle('d-none', !readonly);
+        }
+    }
+
+    async function prefetchNextYearDates(form) {
+        if (!cfg.api?.nextRange) {
+            return;
+        }
+        try {
+            const data = await apiRequest('GET', cfg.api.nextRange);
+            const startInput = form.querySelector('#fy_start_date');
+            const endInput = form.querySelector('#fy_end_date');
+            const descInput = form.querySelector('[name="description"]');
+            if (startInput) {
+                startInput.value = data.start_date;
+            }
+            if (endInput) {
+                endInput.value = data.end_date;
+            }
+            if (descInput && data.name) {
+                descInput.value = data.name;
+            }
+            if (fpStart && data.start_date) {
+                fpStart.setDate(data.start_date, false);
+            }
+            if (fpEnd && data.end_date) {
+                fpEnd.setDate(data.end_date, false);
+            }
+            setAddYearFieldsReadonly(true);
+        } catch (err) {
+            setAddYearFieldsReadonly(false);
+            toastr?.error(err.message);
+        }
+    }
+
     function openAddYearModal(state) {
         const form = document.getElementById('fy-add-year-form');
         if (!form) {
@@ -686,8 +872,12 @@
         const hasYears = state.years.length > 0;
         setAddModalCopy(hasYears);
         resetAddYearForm(form);
+        setAddYearFieldsReadonly(false);
         initAddPickers();
         initAddModalTooltips();
+        if (hasYears) {
+            prefetchNextYearDates(form);
+        }
         const modalEl = document.getElementById('fyYearAddModal');
         if (modalEl && window.bootstrap?.Modal) {
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -707,7 +897,7 @@
     }
 
     function bindAddYearButtons(state) {
-        ['fy-btn-add-year', 'fy-btn-add-year-empty', 'fy-btn-add-year-current'].forEach(
+        ['fy-btn-add-year', 'fy-btn-add-year-current'].forEach(
             (id) => {
                 document.getElementById(id)?.addEventListener('click', function () {
                     openAddYearModal(state);
@@ -729,9 +919,16 @@
         }
     }
 
+    function updateAddYearButtonsVisibility(state) {
+        const hasYears = state.years.length > 0;
+        document.getElementById('fy-btn-add-year')?.classList.toggle('d-none', !hasYears);
+        document.getElementById('fy-btn-add-year-current')?.classList.toggle('d-none', hasYears);
+    }
+
     function refreshUi(state) {
         renderDashboard(state);
         renderTable(state);
+        updateAddYearButtonsVisibility(state);
         state.firstSaved = state.years.length > 0;
     }
 
@@ -820,32 +1017,33 @@
                     : '';
             }
 
-            setTimeout(function () {
-                payload.periods = generatePeriodsForYear(
-                    payload.start_date,
-                    payload.end_date
-                );
-                payload.status = normalizeYearStatus(payload.status);
-                state.years.push(payload);
-                saveState(state);
-
-                loading?.classList.remove('is-active');
-                saveBtn?.removeAttribute('disabled');
-                resetAddYearForm(form);
-
-                const modalEl = document.getElementById('fyYearAddModal');
-                bootstrap.Modal.getInstance(modalEl)?.hide();
-
-                showTableLoading(true);
-                setTimeout(function () {
-                    showTableLoading(false);
-                    refreshUi(state);
-                }, 400);
-
-                if (typeof toastr !== 'undefined') {
-                    toastr.success(msg.saveSuccess);
-                }
-            }, 700);
+            const hasYears = state.years.length > 0;
+            apiRequest('POST', cfg.api.store, {
+                start_date: payload.start_date,
+                end_date: payload.end_date,
+                description: payload.description,
+                status: payload.status,
+                auto_next: hasYears,
+            })
+                .then(async () => {
+                    await reloadFromServer();
+                    const fresh = loadState();
+                    loading?.classList.remove('is-active');
+                    saveBtn?.removeAttribute('disabled');
+                    resetAddYearForm(form);
+                    bootstrap.Modal.getInstance(document.getElementById('fyYearAddModal'))?.hide();
+                    showTableLoading(true);
+                    setTimeout(function () {
+                        showTableLoading(false);
+                        refreshUi(fresh);
+                    }, 300);
+                    toastr?.success(msg.saveSuccess);
+                })
+                .catch((err) => {
+                    loading?.classList.remove('is-active');
+                    saveBtn?.removeAttribute('disabled');
+                    toastr?.error(err.message);
+                });
         });
 
         ['#fy_start_date', '#fy_end_date', '#fy_status'].forEach((sel) => {
@@ -855,16 +1053,35 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const state = loadState();
+    function bindLockingToggle() {
+        document.getElementById('fy-period-locking-toggle')?.addEventListener('change', function () {
+            apiRequest('PUT', cfg.api.locking, { enabled: this.checked })
+                .then((data) => {
+                    serverState.locking_enabled = !!data.locking_enabled;
+                    toastr?.success(msg.periodLockingSaved);
+                })
+                .catch((err) => {
+                    this.checked = !this.checked;
+                    toastr?.error(err.message);
+                });
+        });
+    }
 
-        normalizeFinancialData(state);
-        saveState(state);
+    document.addEventListener('DOMContentLoaded', async function () {
+        try {
+            await reloadFromServer();
+        } catch (err) {
+            console.warn('Financial years API:', err);
+            serverState = { years: [], firstSaved: false, locking_enabled: !!cfg.lockingEnabled };
+        }
+
+        const state = loadState();
 
         initTooltips();
         bindAddYearButtons(state);
         bindForm(state);
         bindYearEditForm(state);
+        bindLockingToggle();
         refreshUi(state);
 
         if (!state.years.length) {
@@ -874,13 +1091,15 @@
         window.fySettingsApi = {
             loadState,
             saveState,
+            reloadFromServer,
+            apiRequest,
             parseDate,
             formatDisplayDate,
             statusBadgeHtml,
             escapeHtml,
             ensureYearPeriods,
-            refreshUi: () => refreshUi(state),
-            getState: () => state,
+            refreshUi: () => refreshUi(loadState()),
+            getState: () => loadState(),
             openYearDetail: openYearDetailView,
             closeYearDetail: () => window.FyFiscalPeriods?.showListView?.(),
             cfg,

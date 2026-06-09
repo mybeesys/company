@@ -641,12 +641,13 @@
                                     </td>
                                     <td class="@if (!$ledgerColShow('narration')) d-none @endif" data-ledger-col="narration">
                                         @php
-                                            $ledgerNarr = trim((string) ($transactions->note ?? ''));
-                                            if ($ledgerNarr === '' && $transactions->accTransMapping && $transactions->accTransMapping->note) {
-                                                $ledgerNarr = trim((string) $transactions->accTransMapping->note);
-                                            }
+                                            $ledgerNarr = \Modules\Accounting\Support\AccountingNote::resolveForDisplay(
+                                                $transactions->note,
+                                                $transactions->accTransMapping?->note,
+                                                true
+                                            );
                                         @endphp
-                                        <span class="text-gray-800 fs-7">{{ $ledgerNarr !== '' ? $ledgerNarr : '—' }}</span>
+                                        <span class="text-gray-800 fs-7">{{ $ledgerNarr }}</span>
                                     </td>
                                     <td class="@if (!$ledgerColShow('cost_center')) d-none @endif" data-ledger-col="cost_center">
                                         <span class="text-muted fw-semibold text-muted d-block fs-7">

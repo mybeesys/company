@@ -72,10 +72,17 @@
                         'hint' => __('report::purchase.product-inventory-summary_details'),
                         'icon' => 'bi bi-bar-chart-line',
                     ],
+                    // Temporarily hidden — use Product-Stock-Report instead
+                    // [
+                    //     'title' => __('menuItemLang.product-movement-report'),
+                    //     'route' => route('product-movement-report'),
+                    //     'hint' => __('report::purchase.product_movement_report_details'),
+                    //     'icon' => 'bi bi-arrow-left-right',
+                    // ],
                     [
                         'title' => __('menuItemLang.product-inventory'),
                         'route' => route('Product-Stock-Report'),
-                        'hint' => __('report::purchase.product-inventory-summary_details'),
+                        'hint' => __('report::purchase.product_stock_report_details'),
                         'icon' => 'bi bi-archive',
                     ],
                 ],
@@ -196,8 +203,8 @@
         }
 
         .report-kpi-primary .report-kpi-icon {
-            background: #eef6ff;
-            color: #0095e8;
+            background: var(--bs-primary-light);
+            color: var(--bs-primary);
         }
 
         .report-kpi-success .report-kpi-icon {
@@ -251,8 +258,8 @@
         }
 
         .report-link-primary .report-link-icon {
-            background: #eef6ff;
-            color: #0095e8;
+            background: var(--bs-primary-light);
+            color: var(--bs-primary);
         }
 
         .report-link-success .report-link-icon {

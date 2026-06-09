@@ -62,9 +62,9 @@
         }
 
         .app-header.app-header--compact .app-header-logo-img {
-            height: 42px;
+            height: 64px;
             width: auto;
-            max-height: 42px;
+            max-height: 64px;
             object-fit: contain;
             flex-shrink: 0;
         }
@@ -105,17 +105,22 @@
     data-kt-app-sidebar-minimize="{{ (session('sidebar_minimize') == false ? 'on' : 'off') ?? 'off' }}" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true"
     data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true"
     data-kt-app-aside-enabled="false" data-kt-app-aside-fixed="false" data-kt-app-aside-push-toolbar="true"
-    data-kt-app-aside-push-footer="true" class="app-default">
+    data-kt-app-aside-push-footer="true" class="app-default{{ session('show_post_login_splash') ? ' post-login-splash-active' : '' }}">
+    @if (session('show_post_login_splash'))
+        @include('components.post-login-splash')
+    @endif
     <div id="ajax-progress-bar" class="progress position-fixed top-0 start-0 w-100"
         style="height: 5px; z-index: 3000; display: none; background-color: #ffffff00">
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
-    <div id="initial-loader" class="page-loader">
-        <span class="spinner-border text-warning" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </span>
-    </div>
+    @unless (session('show_post_login_splash'))
+        <div id="initial-loader" class="page-loader">
+            <span class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </span>
+        </div>
+    @endunless
     <!--begin::Theme mode setup on page load-->
     <script>
         var defaultThemeMode = "light";
@@ -165,7 +170,7 @@
                             <span class="app-header-company-name text-truncate text-gray-800" title="{{ $appHeaderCompanyName }}">{{ $appHeaderCompanyName }}</span>
                         @endif
                         <a href="/" class="app-sidebar-logo app-header-logo-link d-inline-flex align-items-center py-1 text-decoration-none flex-shrink-0">
-                            <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-11.png" class="app-header-logo-img" />
+                            <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-01.png" class="app-header-logo-img" />
                         </a>
                     </div>
                     @include('components.navBar')

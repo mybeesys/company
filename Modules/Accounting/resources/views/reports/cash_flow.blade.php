@@ -405,7 +405,7 @@
                         { name: @json(__('accounting::lang.net_cash_flows')), data: trendNet },
                     ],
                     chart: { type: 'line', height: 280, toolbar: { show: false }, fontFamily: 'inherit' },
-                    colors: ['#17C653', '#F8285A', '#1B84FF'],
+                    colors: ['#17C653', '#F8285A', '#e9b71f'],
                     stroke: { curve: 'smooth', width: 2 },
                     xaxis: { categories: trendLabels },
                     yaxis: { labels: { formatter: (v) => formatChartAmount(v) } },

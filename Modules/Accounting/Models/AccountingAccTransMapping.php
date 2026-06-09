@@ -4,6 +4,7 @@ namespace Modules\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Employee\Models\Employee;
 
 // use Modules\Accounting\Database\Factories\AccountingAccTransMappingFactory;
@@ -16,6 +17,11 @@ class AccountingAccTransMapping extends Model
      * The attributes that are mass assignable.
      */
     protected $guarded = ['id'];
+
+    public function setNoteAttribute(mixed $value): void
+    {
+        $this->attributes['note'] = AccountingNote::normalizeForStorage($value);
+    }
 
     public function added_by()
     {

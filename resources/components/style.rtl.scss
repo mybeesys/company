@@ -1,7 +1,6 @@
 
 @use "@/assets/css/style.bundle.rtl.css";
 
-
 @font-face {
   font-family: "Cairo";
   src: url("https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=League+Gothic&display=swap") format("stylesheet");
@@ -17,7 +16,7 @@ body {
   label{
    padding: 5px;
    font-size: medium;
-   color: #1B84FF;
+   color: var(--bs-primary);
   }
 }
 
@@ -180,10 +179,18 @@ body {
   
 .p-checkbox.p-highlight .p-checkbox-box 
 {
-  @extend .form-check-input;
-  border-color:#1B84FF !important;
-  background:#1B84FF !important;
-  color: white !important;
+@extend .form-check-input;
+border-color: var(--bs-primary) !important;
+background: var(--bs-primary) !important;
+color: white !important;
+}
+
+.p-inputswitch.p-highlight .p-inputswitch-slider {
+    background: #e9b71f !important;
+}
+
+.p-inputswitch:not(.p-disabled):has(.p-inputswitch-input:hover).p-highlight .p-inputswitch-slider {
+    background: #d1a41b !important;
 }
 .p-timepicker
 {

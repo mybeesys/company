@@ -969,11 +969,12 @@ class SalesReportController extends Controller
     private function salesComparisonPeriodTotals(Request $request, string $from, string $to): object
     {
         return $this->buildSalesComparisonLinesQuery($request, false)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->selectRaw('COALESCE(SUM(tsl.qyt), 0) as qty')
+            ->whereDate('t.transaction_date', '>=', $from)
+            ->whereDate('t.transaction_date', '<=', $to)
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('COALESCE(SUM(tsl.discount_amount), 0) as discount')
             ->selectRaw('COALESCE(SUM(tsl.tax_value), 0) as tax')
-            ->selectRaw('COALESCE(SUM(tsl.qyt * tsl.unit_price_inc_tax), 0) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->first();
     }
@@ -987,12 +988,13 @@ class SalesReportController extends Controller
 
         $fetchByProduct = function (string $from, string $to) use ($request) {
             return $this->buildSalesComparisonLinesQuery($request, false)
-                ->whereBetween('t.transaction_date', [$from, $to])
+                ->whereDate('t.transaction_date', '>=', $from)
+                ->whereDate('t.transaction_date', '<=', $to)
                 ->groupBy('tsl.product_id')
                 ->selectRaw('tsl.product_id as product_id')
                 ->selectRaw('MAX(p.name_ar) as name_ar')
                 ->selectRaw('MAX(p.name_en) as name_en')
-                ->selectRaw('COALESCE(SUM(tsl.qyt * tsl.unit_price_inc_tax), 0) as subtotal')
+                ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
                 ->get()
                 ->keyBy('product_id');
         };
@@ -1032,14 +1034,16 @@ class SalesReportController extends Controller
      * Aggregated sell lines per product, branch, and optionally customer for one date range.
      *
      * @param  list<int>|null  $mysqlWeekdayOneToSeven  Optional MySQL DAYOFWEEK() values (1=Sunday … 7=Saturday). When set, only lines on those weekdays are included.
-     * @param  bool  $groupByCustomer  When false, quantities and revenue are summed across all customers for each product–branch (weekday report).
+     * @param  bool  $groupByCustomer  Must stay false for sales comparison (never split rows by customer).
+     * @param  bool  $groupByEstablishment  When false, sums across all branches per product (used when no branch filter).
      */
     private function aggregateSalesComparisonPeriod(
         Request $request,
         string $from,
         string $to,
         ?array $mysqlWeekdayOneToSeven = null,
-        bool $groupByCustomer = true
+        bool $groupByCustomer = false,
+        bool $groupByEstablishment = true
     ): \Illuminate\Support\Collection {
         $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
 
@@ -1056,31 +1060,81 @@ class SalesReportController extends Controller
 
         $q = $q
             ->selectRaw('tsl.product_id as product_id')
-            ->selectRaw('t.establishment_id as establishment_id')
             ->selectRaw('MAX(p.name_ar) as product_name_ar')
             ->selectRaw('MAX(p.name_en) as product_name_en')
             ->selectRaw('MAX(p.SKU) as sku')
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN cat.name_ar ELSE cat.name_en END) as category")
-            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory")
-            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
-            ->selectRaw('SUM(tsl.qyt) as qty')
-            ->selectRaw('SUM(tsl.discount_amount) as discount')
-            ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
-            ->selectRaw('COUNT(*) as line_count');
+            ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory");
 
-        if ($groupByCustomer) {
-            $rows = $q->groupBy('tsl.product_id', 't.establishment_id', 't.contact_id')
-                ->selectRaw('t.contact_id as contact_id')
-                ->selectRaw('MAX(c.name) as customer')
-                ->get();
-
-            return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id.'|'.$r->contact_id);
+        if ($groupByEstablishment) {
+            $q->selectRaw('COALESCE(t.establishment_id, 0) as establishment_id')
+                ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name");
         }
 
-        $rows = $q->groupBy('tsl.product_id', 't.establishment_id')->get();
+        $q = $q
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
+            ->selectRaw('SUM(tsl.discount_amount) as discount')
+            ->selectRaw('SUM(tsl.tax_value) as tax')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
+            ->selectRaw('COUNT(*) as line_count');
 
-        return $rows->keyBy(fn ($r) => $r->product_id.'|'.$r->establishment_id);
+        $groupColumns = ['tsl.product_id'];
+        if ($groupByEstablishment) {
+            $groupColumns[] = DB::raw('COALESCE(t.establishment_id, 0)');
+        }
+
+        if ($groupByCustomer) {
+            $groupColumns[] = 't.contact_id';
+            $q->selectRaw('t.contact_id as contact_id')
+                ->selectRaw('MAX(c.name) as customer');
+        }
+
+        $rows = $q->groupBy($groupColumns)->get();
+
+        return $rows->keyBy(function ($r) use ($groupByEstablishment, $groupByCustomer) {
+            $parts = [(string) $r->product_id];
+            if ($groupByEstablishment) {
+                $parts[] = (string) ($r->establishment_id ?? 0);
+            }
+            if ($groupByCustomer) {
+                $parts[] = (string) ($r->contact_id ?? 0);
+            }
+
+            return implode('|', $parts);
+        });
+    }
+
+    /**
+     * @return array{group_by_customer: bool, group_by_establishment: bool}
+     */
+    private function salesComparisonAggregationOptions(Request $request): array
+    {
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+
+        return [
+            'group_by_customer' => false,
+            'group_by_establishment' => $branchIds->isNotEmpty(),
+        ];
+    }
+
+    private function salesComparisonEstablishmentColumnLabel(Request $request): string
+    {
+        $branchIds = collect($request->input('branch_id'))->filter()->values();
+
+        if ($branchIds->count() === 1) {
+            $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
+            $name = DB::table('est_establishments')
+                ->where('id', $branchIds->first())
+                ->value($locale === 'ar' ? 'name' : 'name_en');
+
+            return $name !== null && $name !== '' ? (string) $name : __('report::general.sales_comparison_all_branches');
+        }
+
+        if ($branchIds->count() > 1) {
+            return __('report::general.sales_comparison_branches_filtered');
+        }
+
+        return __('report::general.sales_comparison_all_branches');
     }
 
     private function applyProductPurchaseReportFilters($query, Request $request): void
@@ -1988,80 +2042,25 @@ class SalesReportController extends Controller
     public function getPurchaseSell(Request $request)
     {
         $transactionUtile = new TransactionUtile;
+        $dates = TransactionUtile::parseDateRangeFromRequest($request);
+        $establishmentIds = collect($request->input('branch_id'))->filter()->values()->all();
 
-        // Return the details in ajax call
+        $data = $transactionUtile->getPurchaseSellDetails(
+            $dates['start'],
+            $dates['end'],
+            $establishmentIds ?: null
+        );
+
+        $defaultDateRange = TransactionUtile::defaultDateRange();
+        $defaultDateRangeLabel = $dates['start'] && $dates['end']
+            ? $dates['start'].(app()->getLocale() === 'ar' ? ' إلى ' : ' to ').$dates['end']
+            : null;
+
         if ($request->ajax()) {
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            $location_id = $request->get('location_id');
-
-            // return $request->date_range;
-            $dueDateRange = trim($request->date_range);
-            $dates = explode(' إلى ', $dueDateRange);
-            if ($request->date_range) {
-                $start_date = $dates[0];
-                $end_date = $dates[1];
-            }
-
-            $purchase_details = $transactionUtile->getPurchaseTotals($start_date, $end_date, $location_id);
-            $sell_details = $transactionUtile->getSellTotals($start_date, $end_date, $location_id);
-
-            $transaction_types = [
-                'purchases-return',
-                'sell-return',
-            ];
-
-            $transaction_totals = $transactionUtile->getTransactionTotals(
-                $transaction_types,
-                $start_date,
-                $end_date,
-                $location_id
-            );
-
-            $total_purchase_return_inc_tax = $transaction_totals['total_purchase_return_inc_tax'];
-            $total_sell_return_inc_tax = $transaction_totals['total_sell_return_inc_tax'];
-
-            $purchase_data = '
-            <tr>
-                <td>'.__('report::general.total_purchase_inc_tax').'</td>
-                <td>'.($purchase_details['total_purchase_inc_tax'] ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.total_purchase_return').'</td>
-                <td>'.($total_purchase_return_inc_tax ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.purchase_due').'</td>
-                <td>'.($purchase_details['purchase_due'] ?? 0).'</td>
-            </tr>';
-
-            $sales_data = '
-            <tr>
-                <td>'.__('report::general.total_sell_inc_tax').'</td>
-                <td>'.($sell_details['total_sell_inc_tax'] ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.total_sell_return').'</td>
-                <td>'.($total_sell_return_inc_tax ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.invoice_due').'</td>
-                <td>'.($sell_details['invoice_due'] ?? 0).'</td>
-            </tr>';
-
-            $difference = [
-                'total' => $sell_details['total_sell_inc_tax'] - $total_sell_return_inc_tax - ($purchase_details['total_purchase_inc_tax'] - $total_purchase_return_inc_tax),
-                'due' => $sell_details['invoice_due'] - $purchase_details['purchase_due'],
-            ];
-
-            return response()->json([
-                'purchase_data' => $purchase_data,
-                'sales_data' => $sales_data,
-                'difference' => $difference,
-            ]);
+            return view('report::sales.purchase_sell_details', compact('data'))->render();
         }
 
-        return view('report::sales.purchase_sell');
+        return view('report::sales.purchase_sell', compact('data', 'defaultDateRange', 'defaultDateRangeLabel'));
     }
 
     public function getProfit(Request $request, $by = null)
@@ -2234,6 +2233,8 @@ class SalesReportController extends Controller
                 })
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->select(
+                    't.id as transaction_id',
+                    't.ref_no as ref_no',
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
                     app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
                     DB::raw("CASE
@@ -2309,218 +2310,7 @@ class SalesReportController extends Controller
         $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
-            $query = DB::table('transactions as t')
-                ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
-                ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
-                ->leftJoin('product_products as p', function ($join) {
-                    $join->on('pl.product_id', '=', 'p.id')
-                        ->orOn('sl.product_id', '=', 'p.id');
-                })
-                ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
-                ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
-                /*      ->leftJoin('product_inventories as pi', function ($join) {
-                    $join->on('p.id', '=', 'pi.product_id')
-                        ->on('t.establishment_id', '=', 'pi.establishment_id');
-                })*/
-                ->select(
-                    'p.sku as sku',
-                    'p.id as product_id',
-                    'e.id as establishment_id',
-                    app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
-                    DB::raw("CASE
-                    WHEN '".app()->getLocale()."' = 'ar' THEN e.name
-                    ELSE e.name_en
-                END as establishment_name"),
-                    DB::raw("
-                    (
-                        SELECT COALESCE(
-                            MAX(
-                                CASE
-                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
-                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'en' THEN pu_disp_sub.unit1
-                                    ELSE NULL
-                                END
-                            ),
-                            MAX(
-                                CASE
-                                    WHEN '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
-                                    ELSE pu_disp_sub.unit1
-                                END
-                            )
-                        )
-                        FROM product_unit_transfer as pu_disp_sub
-                        WHERE pu_disp_sub.product_id = p.id
-                    ) as base_unit_name
-                "),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'purchases' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as purchased_quantity
-                "),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'sell' AND t.status = 'approved'
-                            THEN sl.qyt * (
-                                CASE
-                                    WHEN su.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS su_max
-                                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as sales_quantity
-                "),
-                    DB::raw("
-SUM(
-        CASE
-            WHEN t.type = 'WASTE' AND t.status = 'approved'
-            THEN sl.qyt * (
-                CASE
-                    WHEN su.transfer > 0 THEN 1
-                    ELSE (
-                        SELECT COALESCE(MAX(transfer), 1)
-                        FROM product_unit_transfer AS su_max
-                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
-                    )
-                END
-            )
-            ELSE 0
-        END
-    ) as waste
-"),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'purchases-return' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            ) * -1
-                            ELSE 0
-                        END
-                    ) as purchase_returns
-                "),
-                    DB::raw("
-    SUM(
-        CASE
-            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived')
-            THEN (
-                SELECT COALESCE(SUM(
-                    pl_inner.qyt * (
-                        CASE
-                            WHEN pu_inner.transfer > 0 THEN 1
-                            ELSE (
-                                SELECT COALESCE(MAX(transfer), 1)
-                                FROM product_unit_transfer AS pu_max
-                                WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                            )
-                        END
-                    )
-                ), 0)
-                FROM transactions AS t_inner
-                LEFT JOIN transactione_purchases_lines AS pl_inner ON t_inner.id = pl_inner.transaction_id
-                LEFT JOIN product_unit_transfer AS pu_inner ON pl_inner.unit_id = pu_inner.id
-                WHERE t_inner.parent_id = t.id
-                    AND t_inner.status = 'approved'
-                    AND pl_inner.product_id = p.id
-            )
-            ELSE 0
-        END
-    ) as transferred_quantity
-"),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'PREP' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as production_quantity
-                "),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'PO0' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as opening_inventory
-                "),
-                    DB::raw('NULL as counted_quantity'),
-                    //     DB::raw("NULL as quantity_on_inventory"),
-                    DB::raw('
-    (
-        SELECT FORMAT(SUM(pi.qty *
-            CASE
-                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1
-                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
-                ELSE 1
-            END
-        ), 2)
-        FROM product_inventories as pi
-        WHERE pi.establishment_id = t.establishment_id
-        AND pi.product_id = p.id
-    ) as quantity_on_inventory
-')
-                )
-                ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
-                ->where(function ($query) {
-                    $query->where(function ($subQuery) {
-                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
-                            ->where('t.status', 'approved');
-                    })
-                        ->orWhere(function ($subQuery) {
-                            $subQuery->where('t.type', 'TRANSFER')
-                                ->where(function ($q) {
-                                    $q->where('t.transfer_status', 'partiallyReceived')
-                                        ->orWhere('t.transfer_status', 'fullyReceived');
-                                })
-                                ->where('t.status', 'approved');
-                        });
-                });
+            $query = $this->buildProductInventorySummaryQuery();
 
             if ($request->has('branch_id')) {
                 $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
@@ -2552,252 +2342,79 @@ SUM(
             ->with(compact('columns'));
     }
 
+    public function productMovementReport(Request $request)
+    {
+        // Temporarily hidden — redirect to Product-Stock-Report (same data, active UI).
+        if ($request->filled('branch_id') && ! $request->filled('establishment_id')) {
+            $request->merge(['establishment_id' => $request->input('branch_id')]);
+        }
+
+        return redirect()->route('Product-Stock-Report', array_filter([
+            'product_id' => $request->input('product_id'),
+            'establishment_id' => $request->input('establishment_id'),
+        ]));
+    }
+
+    private function renderProductInventoryDetailReport(
+        Request $request,
+        string $view,
+        int $productId,
+        int $establishmentId
+    ) {
+        $transactionUtile = new ReportTransactionsUtile;
+
+        if ($request->ajax()) {
+            if ($productId <= 0 || $establishmentId <= 0) {
+                return $transactionUtile->productInventoryReportTable(collect());
+            }
+
+            return $this->runProductInventoryRecordDataTable($request, $productId, $establishmentId);
+        }
+
+        $columns = $transactionUtile->productInventoryReportColumns();
+        $showReport = $productId > 0 && $establishmentId > 0;
+        $metrics = $showReport
+            ? $transactionUtile->formatProductInventorySummaryMetrics(
+                $this->buildProductInventorySummaryQuery()
+                    ->where('p.id', $productId)
+                    ->where('e.id', $establishmentId)
+                    ->first()
+            )
+            : $transactionUtile->emptyProductInventorySummaryMetrics();
+
+        return view($view, compact(
+            'columns',
+            'productId',
+            'establishmentId',
+            'showReport',
+            'metrics'
+        ));
+    }
+
     public function productInventoryRecord(Request $request, $product_id, $establishment_id)
     {
-        $transactionUtile = new ReportTransactionsUtile;
-        Log::info($request);
-        if ($request->ajax()) {
-            $query = DB::table('transactions as t')
-                ->leftJoin('cs_contacts as c', 't.contact_id', '=', 'c.id')
-                ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
-                ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
-                ->leftJoin('product_products as p', function ($join) {
-                    $join->on('pl.product_id', '=', 'p.id')
-                        ->orOn('sl.product_id', '=', 'p.id');
-                })
-                ->leftJoin('product_unit_transfer as u', function ($join) {
-                    $join->orOn('pl.unit_id', '=', 'u.id')
-                        ->orOn('sl.unit_id', '=', 'u.id');
-                })
-                ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->where('t.establishment_id', $establishment_id)
-                ->where(function ($query) use ($product_id) {
-                    $query->where('pl.product_id', $product_id)
-                        ->orWhere('sl.product_id', $product_id);
-                })
-                ->select(
-                    app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
-                    app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
-                    DB::raw("CASE
-                    WHEN sl.id IS NOT NULL THEN '-'
-                    ELSE '+'
-                END as transfer_in_out"),
-                    't.transfer_status as process',
-                    DB::raw('CASE
-                    WHEN sl.id IS NOT NULL THEN sl.qyt
-                    ELSE pl.qyt
-                END as quantity'),
-                    't.created_at as transfer_date',
-                    't.type as type',
-                    'u.unit1 as unit',
-                    'c.name as entity',
-                    't.transaction_date as transaction_date'
-                )
-                ->where(function ($query) {
-                    $query->whereIn('t.type', ['purchases', 'waste', 'PREP', 'sell', 'purchases-return', 'sell-return', 'transfer', 'PO0'])
-                        ->where('t.status', 'approved');
-                });
-
-            if ($request->has('branch_id')) {
-                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (! empty($branchIds)) {
-                    $query->whereIn('t.establishment_id', $branchIds);
-                }
-            }
-
-            if ($request->has('process_type')) {
-                $processType = collect($request->input('process_type'))->filter()->values()->toArray();
-                if (! empty($processType)) {
-                    $query->whereIn('t.type', $processType);
-                }
-            }
-
-            if (! empty($request->input('inventory_date_range'))) {
-                $dateRange = explode(' - ', $request->input('inventory_date_range'));
-                if (count($dateRange) === 2) {
-                    $from = date('Y-m-d', strtotime($dateRange[0]));
-                    $to = date('Y-m-d', strtotime($dateRange[1]));
-                    $query->whereBetween('t.transaction_date', [$from, $to]);
-                }
-            }
-
-            $results = $query->orderBy('t.created_at', 'desc')->get();
-
-            return $transactionUtile->productInventoryReportTable($results);
+        if (! $request->ajax()) {
+            return redirect()->route('Product-Stock-Report', [
+                'product_id' => $product_id,
+                'establishment_id' => $establishment_id,
+            ]);
         }
-        $openingInventory = $request->opening_inventory;
-        $purchasedQuantity = $request->purchased_quantity;
-        $salesQuantity = $request->sales_quantity;
-        $waste = $request->waste;
-        $purchaseReturns = $request->purchase_returns;
-        $transferredQuantity = $request->transferred_quantity;
-        $productionQuantity = $request->production_quantity;
-        $quantityOnInventory = $request->quantity_on_inventory;
-        $columns = $transactionUtile->productInventoryReportColumns();
 
-        return view('report::sales.product_inventory_record')
-            ->with(compact(
-                'columns',
-                'product_id',
-                'establishment_id',
-                'openingInventory',
-                'purchasedQuantity',
-                'salesQuantity',
-                'waste',
-                'purchaseReturns',
-                'transferredQuantity',
-                'productionQuantity',
-                'quantityOnInventory'
-            ));
+        return $this->runProductInventoryRecordDataTable($request, (int) $product_id, (int) $establishment_id);
     }
 
     public function productStockReport(Request $request)
     {
-        $productId = $request->product_id ?: Product::orderBy('id', 'asc')->first()?->id;
-        if (! $productId) {
-            return response()->json(['error' => 'No products found'], 404);
+        if ($request->filled('branch_id') && ! $request->filled('establishment_id')) {
+            $request->merge(['establishment_id' => $request->input('branch_id')]);
         }
 
-        $currentProduct = Product::find($productId);
-        $previousProduct = Product::where('id', '<', $productId)->orderBy('id', 'desc')->first();
-        $nextProduct = Product::where('id', '>', $productId)->orderBy('id', 'asc')->first();
-
-        $main_establishment = Establishment::notMain()->active()->first();
-        $establishmentId = $request->branch_id ?: $main_establishment->id;
-
-        $from = $request->from ? date('Y-m-d', strtotime($request->from)) : '1900-01-01';
-        $to = $request->to ? date('Y-m-d', strtotime($request->to)) : now();
-
-        $purchases = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
-            ->where('transactione_purchases_lines.product_id', $productId)
-            ->where('t.type', 'purchases')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transactione_purchases_lines.qyt');
-
-        $salesReturn = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
-            ->where('transactione_purchases_lines.product_id', $productId)
-            ->where('t.type', 'sell-return')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transactione_purchases_lines.qyt');
-
-        $transferIn = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
-            ->where('transactione_purchases_lines.product_id', $productId)
-            ->where('t.type', 'TRANSFER')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereNotNull('t.parent_id')
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transactione_purchases_lines.qyt');
-
-        $totalIn = $purchases + $salesReturn + $transferIn;
-
-        $sales = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'sell')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $damaged = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'damaged')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $purchaseReturn = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'purchases-return')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $transferOut = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'TRANSFER')
-            ->whereNull('t.parent_id')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $totalOut = $sales + $damaged + $purchaseReturn + $transferOut;
-
-        $currentStock = $totalIn - $totalOut;
-
-        $movements = [];
-
-        $allPurchases = TransactionePurchasesLine::with('transaction')->where('product_id', $productId)
-            ->whereHas('transaction', fn ($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
-            ->get();
-
-        $stockQty = 0;
-        foreach ($allPurchases as $p) {
-            $qty = in_array($p->transaction->type, ['sell-return', 'purchases-return']) ? -$p->qyt : $p->qyt;
-            $stockQty += $qty;
-            $movements[] = [
-                'type' => ucfirst($p->transaction->type),
-                'change_qty' => $qty,
-                'new_qty' => $stockQty,
-                'transaction_date' => $p->transaction->transaction_date,
-                'ref_no' => $p->transaction->ref_no,
-                'entity' => $p->transaction->client?->name ?? '--',
-            ];
-        }
-
-        $allSales = TransactionSellLine::with('transaction')->where('product_id', $productId)
-            ->whereHas('transaction', fn ($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
-            ->get();
-
-        foreach ($allSales as $s) {
-            $qty = in_array($s->transaction->type, ['sell', 'damaged', 'TRANSFER']) ? -$s->qyt : $s->qyt;
-            $stockQty += $qty;
-            $movements[] = [
-                'type' => ucfirst($s->transaction->type),
-                'change_qty' => $qty,
-                'new_qty' => $stockQty,
-                'transaction_date' => $s->transaction->transaction_date,
-                'ref_no' => $s->transaction->ref_no,
-                'entity' => $s->transaction->client?->name ?? '--',
-            ];
-        }
-
-        usort($movements, fn ($a, $b) => strtotime($b['transaction_date']) <=> strtotime($a['transaction_date']));
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'currentProduct' => $currentProduct,
-                'currentStock' => $currentStock,
-                'totalIn' => $totalIn,
-                'totalOut' => $totalOut,
-                'purchases' => $purchases,
-                'salesReturn' => $salesReturn,
-                'transferIn' => $transferIn,
-                'sales' => $sales,
-                'damaged' => $damaged,
-                'purchaseReturn' => $purchaseReturn,
-                'transferOut' => $transferOut,
-                'movements' => $movements,
-            ]);
-        }
-
-        return view('report::sales.productStockReport', compact(
-            'currentProduct',
-            'currentStock',
-            'totalIn',
-            'totalOut',
-            'purchases',
-            'salesReturn',
-            'transferIn',
-            'sales',
-            'damaged',
-            'purchaseReturn',
-            'transferOut',
-            'movements',
-            'previousProduct',
-            'nextProduct'
-        ));
+        return $this->renderProductInventoryDetailReport(
+            $request,
+            'report::sales.productStockReport',
+            (int) $request->input('product_id'),
+            (int) $request->input('establishment_id')
+        );
     }
 
     public function getRegisterReport(Request $request)
@@ -2808,33 +2425,64 @@ SUM(
 
         $registers = $this->registerReport($start_date, $end_date, $user_id);
 
-        if ($request->ajax()) {
-            return Datatables::of($registers)
+        if ($request->ajax() || $request->has('draw')) {
+            return DataTables::of($registers)
+                ->editColumn('created_at', function ($row) {
+                    $createdAt = data_get($row, 'created_at');
+
+                    return $createdAt
+                        ? Carbon::parse($createdAt)->format('d/m/Y h:i A')
+                        : '—';
+                })
+                ->editColumn('closed_at', function ($row) {
+                    $closedAt = data_get($row, 'closed_at');
+
+                    return $closedAt
+                        ? Carbon::parse($closedAt)->format('d/m/Y h:i A')
+                        : '—';
+                })
+                ->editColumn('status', function ($row) {
+                    $isOpen = data_get($row, 'status') === 'open';
+                    $label = $isOpen ? __('report::fields.open') : __('report::fields.close');
+                    $class = $isOpen ? 'badge-light-success' : 'badge-light-secondary';
+
+                    return '<span class="badge '.$class.'">'.$label.'</span>';
+                })
                 ->editColumn('total_card_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_card_payment'].'">'.$row['total_card_payment'].'</span>';
+                    $val = (float) data_get($row, 'total_card_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->editColumn('total_cheque_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_cheque_payment'].'">'.$row['total_cheque_payment'].'</span>';
+                    $val = (float) data_get($row, 'total_cheque_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->editColumn('total_cash_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_cash_payment'].'">'.$row['total_cash_payment'].'</span>';
+                    $val = (float) data_get($row, 'total_cash_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->editColumn('total_bank_transfer_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_bank_transfer_payment'].'">'.$row['total_bank_transfer_payment'].'</span>';
-                })
-                ->editColumn('created_at', function ($row) {
-                    return $row['created_at'] ?? '';
+                    $val = (float) data_get($row, 'total_bank_transfer_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->addColumn('total', function ($row) {
-                    $total = $row['total_cash_payment'] + $row['total_cheque_payment'] + $row['total_card_payment'] + $row['total_bank_transfer_payment'];
+                    $total = (float) data_get($row, 'total_cash_payment', 0)
+                        + (float) data_get($row, 'total_cheque_payment', 0)
+                        + (float) data_get($row, 'total_card_payment', 0)
+                        + (float) data_get($row, 'total_bank_transfer_payment', 0);
 
-                    return '<span data-orig-value="'.$total.'">'.$total.'</span>';
+                    return '<span class="rr-amount fw-bold" data-orig-value="'.$total.'">'.number_format($total, 2).'</span>';
                 })
                 ->addColumn('action', function ($row) {
-                    // return '';
-                    return '<a type="button" href="'.action([SalesReportController::class, 'show'], [$row['id']]).'" class="btn btn-info " >عرض</a>';
+                    return '<a href="'.url('Register-Report/'.data_get($row, 'id')).'" class="btn btn-sm btn-primary">'
+                        .e(__('employee::fields.show')).'</a>';
                 })
-                ->rawColumns(['total_card_payment', 'total_cheque_payment', 'total_cash_payment', 'total_bank_transfer_payment', 'total', 'action'])
+                ->orderColumn('location_name', 'location_name $1')
+                ->orderColumn('user_name', 'user_name $1')
+                ->rawColumns(['status', 'total_card_payment', 'total_cheque_payment', 'total_cash_payment', 'total_bank_transfer_payment', 'total', 'action', 'closed_at'])
                 ->make(true);
         }
 
@@ -2867,6 +2515,7 @@ SUM(
             'cash_registers.establishment_id',
             'cash_registers.status',
             'cash_registers.created_at',
+            'cash_registers.closed_at',
 
             DB::raw("MIN(CONCAT(
                 COALESCE(u.name, ''),
@@ -2888,7 +2537,9 @@ SUM(
                 'cash_registers.establishment_id',
                 'cash_registers.status',
                 'cash_registers.created_at',
-            ]);
+                'cash_registers.closed_at',
+            ])
+            ->orderByDesc('cash_registers.created_at');
 
         if (! empty(request()->input('register_user_id'))) {
             $registers->where('cash_registers.user_id', request()->input('register_user_id'));
@@ -2905,19 +2556,39 @@ SUM(
         return $registers;
     }
 
-    public function show($id)
+    protected function resolveRegisterDetailsViewData(int|string $id): array
     {
-
         $register_details = $this->getRegisterDetails($id);
         $user_id = $register_details->user_id;
         $open_time = $register_details['open_time'];
         $close_time = ! empty($register_details['closed_at']) ? $register_details['closed_at'] : Carbon::now()->toDateTimeString();
         $details = $this->getRegisterTransactionDetails($user_id, $open_time, $close_time);
-
         $payment_types = PaymentMethod::all();
+        $register_transactions = CashRegister::findOrFail($id)
+            ->cash_register_transactions()
+            ->orderByDesc('created_at')
+            ->get();
 
+        return compact('register_details', 'payment_types', 'details', 'close_time', 'register_transactions');
+    }
+
+    public function show($id)
+    {
         return view('report::report.register_details')
-            ->with(compact('register_details', 'payment_types', 'details', 'close_time'));
+            ->with($this->resolveRegisterDetailsViewData($id));
+    }
+
+    public function showPrint($id)
+    {
+        $data = $this->resolveRegisterDetailsViewData($id);
+        $cashRegister = CashRegister::findOrFail($id);
+        $denominations = $cashRegister->denominations ?? null;
+        if (is_string($denominations)) {
+            $denominations = json_decode($denominations, true) ?: null;
+        }
+        $data['denominations'] = $denominations;
+
+        return view('report::report.register_details_print')->with($data);
     }
 
     public function getRegisterDetails($register_id = null)
@@ -2953,6 +2624,7 @@ SUM(
             'cash_registers.user_id',
             'cash_registers.closing_note',
             'cash_registers.establishment_id',
+            'cash_registers.status',
 
             DB::raw("SUM(IF(transaction_type='initial', amount, 0)) as cash_in_hand"),
             DB::raw("SUM(IF(transaction_type='sell', amount, IF(transaction_type='refund', -1 * amount, 0))) as total_sale"),
@@ -2972,7 +2644,7 @@ SUM(
             'u.email',
             'bl.name as location_name'
         )
-            ->groupBy('cash_registers.id', 'cash_registers.created_at', 'cash_registers.closed_at', 'cash_registers.user_id', 'cash_registers.closing_note', 'cash_registers.establishment_id', 'u.name', 'u.name_en', 'u.email', 'bl.name')
+            ->groupBy('cash_registers.id', 'cash_registers.created_at', 'cash_registers.closed_at', 'cash_registers.user_id', 'cash_registers.closing_note', 'cash_registers.establishment_id', 'cash_registers.status', 'u.name', 'u.name_en', 'u.email', 'bl.name')
             ->first();
 
         return $register_details;
@@ -3071,13 +2743,6 @@ SUM(
 
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
-        $fmtPct = static function ($v) {
-            if ($v === null) {
-                return '—';
-            }
-
-            return number_format($v, 2).'%';
-        };
         $fmtAvg = static function ($v) {
             if ($v === null) {
                 return '—';
@@ -3106,13 +2771,38 @@ SUM(
             'subtotal_period_b' => $fmt($sumSubB),
             'lines_period_b' => (string) $sumLinesB,
             'qty_difference' => $fmtQty($sumQtyB - $sumQtyA),
-            'qty_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($sumQtyA, $sumQtyB)),
+            'qty_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($sumQtyA, $sumQtyB),
+                $sumQtyA,
+                $sumQtyB
+            ),
             'subtotal_difference' => $fmt($sumSubB - $sumSubA),
-            'subtotal_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($sumSubA, $sumSubB)),
+            'subtotal_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($sumSubA, $sumSubB),
+                $sumSubA,
+                $sumSubB
+            ),
             'discount_difference' => $fmt($sumDiscB - $sumDiscA),
             'tax_difference' => $fmt($sumTaxB - $sumTaxA),
             'lines_difference' => (string) ($sumLinesB - $sumLinesA),
         ];
+    }
+
+    private function salesComparisonCustomerColumnLabel(Request $request): string
+    {
+        $customerIds = collect($request->input('customer_id'))->filter()->values();
+
+        if ($customerIds->count() === 1) {
+            $name = DB::table('cs_contacts')->where('id', $customerIds->first())->value('name');
+
+            return $name !== null && $name !== '' ? (string) $name : __('report::general.weekday_report_customer_rollup');
+        }
+
+        if ($customerIds->count() > 1) {
+            return __('report::general.sales_comparison_customers_filtered');
+        }
+
+        return __('report::general.weekday_report_customer_rollup');
     }
 
     private function buildSalesComparisonMergedCollection(Request $request): ?Collection
@@ -3133,8 +2823,25 @@ SUM(
         [$aFrom, $aTo] = $periodA;
         [$bFrom, $bTo] = $periodB;
 
-        $aggA = $this->aggregateSalesComparisonPeriod($request, $aFrom, $aTo);
-        $aggB = $this->aggregateSalesComparisonPeriod($request, $bFrom, $bTo);
+        $aggOptions = $this->salesComparisonAggregationOptions($request);
+        $aggA = $this->aggregateSalesComparisonPeriod(
+            $request,
+            $aFrom,
+            $aTo,
+            null,
+            $aggOptions['group_by_customer'],
+            $aggOptions['group_by_establishment']
+        );
+        $aggB = $this->aggregateSalesComparisonPeriod(
+            $request,
+            $bFrom,
+            $bTo,
+            null,
+            $aggOptions['group_by_customer'],
+            $aggOptions['group_by_establishment']
+        );
+        $customerLabel = $this->salesComparisonCustomerColumnLabel($request);
+        $establishmentLabel = $this->salesComparisonEstablishmentColumnLabel($request);
 
         $allKeys = $aggA->keys()->merge($aggB->keys())->unique()->values();
         $merged = collect();
@@ -3144,16 +2851,16 @@ SUM(
             $rowB = $aggB->get($key);
             $base = $rowA ?? $rowB;
 
-            $qtyA = (float) ($rowA->qty ?? 0);
-            $qtyB = (float) ($rowB->qty ?? 0);
-            $discA = (float) ($rowA->discount ?? 0);
-            $discB = (float) ($rowB->discount ?? 0);
-            $taxA = (float) ($rowA->tax ?? 0);
-            $taxB = (float) ($rowB->tax ?? 0);
-            $subA = (float) ($rowA->subtotal ?? 0);
-            $subB = (float) ($rowB->subtotal ?? 0);
-            $linesA = (int) ($rowA->line_count ?? 0);
-            $linesB = (int) ($rowB->line_count ?? 0);
+            $qtyA = (float) ($rowA?->qty ?? 0);
+            $qtyB = (float) ($rowB?->qty ?? 0);
+            $discA = (float) ($rowA?->discount ?? 0);
+            $discB = (float) ($rowB?->discount ?? 0);
+            $taxA = (float) ($rowA?->tax ?? 0);
+            $taxB = (float) ($rowB?->tax ?? 0);
+            $subA = (float) ($rowA?->subtotal ?? 0);
+            $subB = (float) ($rowB?->subtotal ?? 0);
+            $linesA = (int) ($rowA?->line_count ?? 0);
+            $linesB = (int) ($rowB?->line_count ?? 0);
 
             $avgA = $qtyA > 0 ? $subA / $qtyA : null;
             $avgB = $qtyB > 0 ? $subB / $qtyB : null;
@@ -3162,9 +2869,11 @@ SUM(
                 'product_name' => app()->getLocale() === 'ar' ? $base->product_name_ar : $base->product_name_en,
                 'category' => $base->category ?? '--',
                 'subcategory' => $base->subcategory ?? '--',
-                'establishment_name' => $base->establishment_name ?? '--',
+                'establishment_name' => $aggOptions['group_by_establishment']
+                    ? ($base->establishment_name ?? '--')
+                    : $establishmentLabel,
                 'SKU' => $base->sku ?? '--',
-                'customer' => $base->customer ?? '--',
+                'customer' => $customerLabel,
                 'qty_period_a' => $qtyA,
                 'avg_unit_price_period_a' => $avgA,
                 'discount_period_a' => $discA,
@@ -3908,10 +3617,10 @@ SUM(
 
         $rows = $q
             ->selectRaw('DAYOFWEEK(DATE(t.transaction_date)) as mysql_dow')
-            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('SUM(tsl.discount_amount) as discount')
             ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->groupBy(DB::raw('DAYOFWEEK(DATE(t.transaction_date))'))
             ->orderBy('mysql_dow')
@@ -3944,10 +3653,10 @@ SUM(
 
         $rows = $q
             ->selectRaw('DATE(t.transaction_date) as tx_date')
-            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('SUM(tsl.discount_amount) as discount')
             ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->groupBy(DB::raw('DATE(t.transaction_date)'))
             ->orderBy('tx_date')
@@ -3987,16 +3696,16 @@ SUM(
             $rowA = $aggA->get($mysqlDow);
             $rowB = $aggB->get($mysqlDow);
 
-            $qtyA = (float) ($rowA->qty ?? 0);
-            $qtyB = (float) ($rowB->qty ?? 0);
-            $discA = (float) ($rowA->discount ?? 0);
-            $discB = (float) ($rowB->discount ?? 0);
-            $taxA = (float) ($rowA->tax ?? 0);
-            $taxB = (float) ($rowB->tax ?? 0);
-            $subA = (float) ($rowA->subtotal ?? 0);
-            $subB = (float) ($rowB->subtotal ?? 0);
-            $linesA = (int) ($rowA->line_count ?? 0);
-            $linesB = (int) ($rowB->line_count ?? 0);
+            $qtyA = (float) ($rowA?->qty ?? 0);
+            $qtyB = (float) ($rowB?->qty ?? 0);
+            $discA = (float) ($rowA?->discount ?? 0);
+            $discB = (float) ($rowB?->discount ?? 0);
+            $taxA = (float) ($rowA?->tax ?? 0);
+            $taxB = (float) ($rowB?->tax ?? 0);
+            $subA = (float) ($rowA?->subtotal ?? 0);
+            $subB = (float) ($rowB?->subtotal ?? 0);
+            $linesA = (int) ($rowA?->line_count ?? 0);
+            $linesB = (int) ($rowB?->line_count ?? 0);
 
             $avgA = $qtyA > 0 ? $subA / $qtyA : null;
             $avgB = $qtyB > 0 ? $subB / $qtyB : null;
@@ -4164,10 +3873,10 @@ SUM(
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN cat.name_ar ELSE cat.name_en END) as category")
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN sub.name_ar ELSE sub.name_en END) as subcategory")
             ->selectRaw("MAX(CASE WHEN '{$locale}' = 'ar' THEN e.name ELSE e.name_en END) as establishment_name")
-            ->selectRaw('SUM(tsl.qyt) as qty')
+            ->selectRaw(ReportTransactionsUtile::sellLineQtySumSql())
             ->selectRaw('SUM(tsl.discount_amount) as discount')
             ->selectRaw('SUM(tsl.tax_value) as tax')
-            ->selectRaw('SUM(tsl.qyt * tsl.unit_price_inc_tax) as subtotal')
+            ->selectRaw(ReportTransactionsUtile::sellLineSubtotalSumSql())
             ->selectRaw('COUNT(*) as line_count')
             ->groupBy(DB::raw('DATE(t.transaction_date)'), 'tsl.product_id', 't.establishment_id')
             ->orderBy('tx_date')
@@ -4254,16 +3963,16 @@ SUM(
             $rowB = $aggB->get($key);
             $base = $rowA ?? $rowB;
 
-            $qtyA = (float) ($rowA->qty ?? 0);
-            $qtyB = (float) ($rowB->qty ?? 0);
-            $discA = (float) ($rowA->discount ?? 0);
-            $discB = (float) ($rowB->discount ?? 0);
-            $taxA = (float) ($rowA->tax ?? 0);
-            $taxB = (float) ($rowB->tax ?? 0);
-            $subA = (float) ($rowA->subtotal ?? 0);
-            $subB = (float) ($rowB->subtotal ?? 0);
-            $linesA = (int) ($rowA->line_count ?? 0);
-            $linesB = (int) ($rowB->line_count ?? 0);
+            $qtyA = (float) ($rowA?->qty ?? 0);
+            $qtyB = (float) ($rowB?->qty ?? 0);
+            $discA = (float) ($rowA?->discount ?? 0);
+            $discB = (float) ($rowB?->discount ?? 0);
+            $taxA = (float) ($rowA?->tax ?? 0);
+            $taxB = (float) ($rowB?->tax ?? 0);
+            $subA = (float) ($rowA?->subtotal ?? 0);
+            $subB = (float) ($rowB?->subtotal ?? 0);
+            $linesA = (int) ($rowA?->line_count ?? 0);
+            $linesB = (int) ($rowB?->line_count ?? 0);
 
             $avgA = $qtyA > 0 ? $subA / $qtyA : null;
             $avgB = $qtyB > 0 ? $subB / $qtyB : null;
@@ -4307,13 +4016,6 @@ SUM(
     {
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
-        $fmtPct = static function ($v) {
-            if ($v === null) {
-                return '—';
-            }
-
-            return number_format($v, 2).'%';
-        };
         $fmtAvg = static function ($v) {
             if ($v === null) {
                 return '—';
@@ -4347,12 +4049,309 @@ SUM(
             'subtotal_period_b' => $fmt($subB),
             'lines_period_b' => (string) (int) $row->lines_period_b,
             'qty_difference' => $fmtQty($row->qty_difference),
-            'qty_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($qtyA, $qtyB)),
+            'qty_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($qtyA, $qtyB),
+                $qtyA,
+                $qtyB
+            ),
             'subtotal_difference' => $fmt($row->subtotal_difference),
-            'subtotal_change_percent' => $fmtPct(ReportTransactionsUtile::computePercentChange($subA, $subB)),
+            'subtotal_change_percent' => ReportTransactionsUtile::formatPercentChangeForDisplay(
+                ReportTransactionsUtile::computePercentChange($subA, $subB),
+                $subA,
+                $subB
+            ),
             'discount_difference' => $fmt($row->discount_difference),
             'tax_difference' => $fmt($row->tax_difference),
             'lines_difference' => (string) (int) $row->lines_difference,
         ];
+    }
+
+    private function runProductInventoryRecordDataTable(Request $request, int $productId, int $establishmentId)
+    {
+        $transactionUtile = new ReportTransactionsUtile;
+
+        $query = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 't.contact_id', '=', 'c.id')
+            ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
+            ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
+            ->leftJoin('product_products as p', function ($join) {
+                $join->on('pl.product_id', '=', 'p.id')
+                    ->orOn('sl.product_id', '=', 'p.id');
+            })
+            ->leftJoin('product_unit_transfer as u', function ($join) {
+                $join->orOn('pl.unit_id', '=', 'u.id')
+                    ->orOn('sl.unit_id', '=', 'u.id');
+            })
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->where('t.establishment_id', $establishmentId)
+            ->where(function ($query) use ($productId) {
+                $query->where('pl.product_id', $productId)
+                    ->orWhere('sl.product_id', $productId);
+            })
+            ->select(
+                't.id as transaction_id',
+                't.ref_no as ref_no',
+                app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
+                app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
+                DB::raw("CASE
+                    WHEN sl.id IS NOT NULL THEN '-'
+                    ELSE '+'
+                END as transfer_in_out"),
+                't.transfer_status as process',
+                DB::raw('CASE
+                    WHEN sl.id IS NOT NULL THEN sl.qyt
+                    ELSE pl.qyt
+                END as quantity'),
+                't.created_at as transfer_date',
+                't.type as type',
+                'u.unit1 as unit',
+                'c.name as entity',
+                't.transaction_date as transaction_date'
+            )
+            ->where(function ($query) {
+                $query->where(function ($subQuery) {
+                    $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
+                        ->where('t.status', 'approved');
+                })
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('t.type', 'TRANSFER')
+                            ->where(function ($q) {
+                                $q->where('t.transfer_status', 'partiallyReceived')
+                                    ->orWhere('t.transfer_status', 'fullyReceived');
+                            })
+                            ->where('t.status', 'approved');
+                    });
+            });
+
+        if ($request->has('process_type')) {
+            $processType = collect($request->input('process_type'))->filter()->values()->toArray();
+            if (! empty($processType)) {
+                $query->whereIn('t.type', $processType);
+            }
+        }
+
+        if (! empty($request->input('inventory_date_range'))) {
+            $dateRange = explode(' - ', $request->input('inventory_date_range'));
+            if (count($dateRange) === 2) {
+                $from = date('Y-m-d', strtotime($dateRange[0]));
+                $to = date('Y-m-d', strtotime($dateRange[1]));
+                $query->whereBetween('t.transaction_date', [$from, $to]);
+            }
+        }
+
+        $results = $query->orderBy('t.created_at', 'desc')->get();
+
+        return $transactionUtile->productInventoryReportTable($results);
+    }
+
+    private function buildProductInventorySummaryQuery()
+    {
+        return DB::table('transactions as t')
+            ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
+            ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
+            ->leftJoin('product_products as p', function ($join) {
+                $join->on('pl.product_id', '=', 'p.id')
+                    ->orOn('sl.product_id', '=', 'p.id');
+            })
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
+            ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
+            ->select(
+                'p.sku as sku',
+                'p.id as product_id',
+                'e.id as establishment_id',
+                app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
+                DB::raw("CASE
+                    WHEN '".app()->getLocale()."' = 'ar' THEN e.name
+                    ELSE e.name_en
+                END as establishment_name"),
+                DB::raw("
+                    (
+                        SELECT COALESCE(
+                            MAX(
+                                CASE
+                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
+                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'en' THEN pu_disp_sub.unit1
+                                    ELSE NULL
+                                END
+                            ),
+                            MAX(
+                                CASE
+                                    WHEN '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
+                                    ELSE pu_disp_sub.unit1
+                                END
+                            )
+                        )
+                        FROM product_unit_transfer as pu_disp_sub
+                        WHERE pu_disp_sub.product_id = p.id
+                    ) as base_unit_name
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'purchases' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as purchased_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'sell' AND t.status = 'approved'
+                            THEN sl.qyt * (
+                                CASE
+                                    WHEN su.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS su_max
+                                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as sales_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'WASTE' AND t.status = 'approved'
+                            THEN sl.qyt * (
+                                CASE
+                                    WHEN su.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS su_max
+                                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as waste
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'purchases-return' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            ) * -1
+                            ELSE 0
+                        END
+                    ) as purchase_returns
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived')
+                            THEN (
+                                SELECT COALESCE(SUM(
+                                    pl_inner.qyt * (
+                                        CASE
+                                            WHEN pu_inner.transfer > 0 THEN 1
+                                            ELSE (
+                                                SELECT COALESCE(MAX(transfer), 1)
+                                                FROM product_unit_transfer AS pu_max
+                                                WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                            )
+                                        END
+                                    )
+                                ), 0)
+                                FROM transactions AS t_inner
+                                LEFT JOIN transactione_purchases_lines AS pl_inner ON t_inner.id = pl_inner.transaction_id
+                                LEFT JOIN product_unit_transfer AS pu_inner ON pl_inner.unit_id = pu_inner.id
+                                WHERE t_inner.parent_id = t.id
+                                    AND t_inner.status = 'approved'
+                                    AND pl_inner.product_id = p.id
+                            )
+                            ELSE 0
+                        END
+                    ) as transferred_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'PREP' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as production_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'PO0' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as opening_inventory
+                "),
+                DB::raw('NULL as counted_quantity'),
+                DB::raw('
+                    (
+                        SELECT FORMAT(SUM(pi.qty *
+                            CASE
+                                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1
+                                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
+                                ELSE 1
+                            END
+                        ), 2)
+                        FROM product_inventories as pi
+                        WHERE pi.establishment_id = t.establishment_id
+                        AND pi.product_id = p.id
+                    ) as quantity_on_inventory
+                ')
+            )
+            ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
+            ->where(function ($query) {
+                $query->where(function ($subQuery) {
+                    $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
+                        ->where('t.status', 'approved');
+                })
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('t.type', 'TRANSFER')
+                            ->where(function ($q) {
+                                $q->where('t.transfer_status', 'partiallyReceived')
+                                    ->orWhere('t.transfer_status', 'fullyReceived');
+                            })
+                            ->where('t.status', 'approved');
+                    });
+            });
     }
 }

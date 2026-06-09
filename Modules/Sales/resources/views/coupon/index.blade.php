@@ -6,7 +6,7 @@
     @parent
     <style>
         .hover-primary:hover {
-            color: #0d6efd !important;
+            color: var(--bs-primary) !important;
         }
     </style>
 @endsection

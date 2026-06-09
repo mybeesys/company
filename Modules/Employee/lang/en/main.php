@@ -90,5 +90,8 @@ return [
     'Sales vs Expenses - Last 6 Months' => 'Sales vs Expenses - Last 6 Months',
 
     'dashboard_page_subtitle' => 'Quick financial overview: sales, purchases, and balances.',
+    'dashboard_hub_title' => 'Main dashboard',
+    'dashboard_hub_subtitle' => 'Pick a dashboard from the list to view sales, purchases, inventory, and accounting metrics.',
+    'dashboard_hub_iframe_title' => 'Dashboard panel',
 
 ];

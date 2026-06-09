@@ -68,6 +68,53 @@ class TransactionUtile
     }
 
     /**
+     * Purchase vs sales summary (amounts incl. tax), aligned with approved transactions.
+     *
+     * @param  array<int>|null  $establishment_ids
+     * @return array<string, float>
+     */
+    public function getPurchaseSellDetails(
+        ?string $start_date = null,
+        ?string $end_date = null,
+        ?array $establishment_ids = null
+    ): array {
+        $purchase_details = $this->getPurchaseTotals($start_date, $end_date, null, $establishment_ids);
+        $sell_details = $this->getSellTotals($start_date, $end_date, null, $establishment_ids);
+
+        $transaction_totals = $this->getTransactionTotals(
+            ['purchases-return', 'sell-return'],
+            $start_date,
+            $end_date,
+            null,
+            $establishment_ids
+        );
+
+        $total_purchase_inc_tax = (float) ($purchase_details['total_purchase_inc_tax'] ?? 0);
+        $total_purchase_return_inc_tax = (float) ($transaction_totals['total_purchase_return_inc_tax'] ?? 0);
+        $purchase_due = (float) ($purchase_details['purchase_due'] ?? 0);
+
+        $total_sell_inc_tax = (float) ($sell_details['total_sell_inc_tax'] ?? 0);
+        $total_sell_return_inc_tax = (float) ($transaction_totals['total_sell_return_inc_tax'] ?? 0);
+        $invoice_due = (float) ($sell_details['invoice_due'] ?? 0);
+
+        $net_purchases_inc_tax = $total_purchase_inc_tax - $total_purchase_return_inc_tax;
+        $net_sales_inc_tax = $total_sell_inc_tax - $total_sell_return_inc_tax;
+
+        return [
+            'total_purchase_inc_tax' => $total_purchase_inc_tax,
+            'total_purchase_return_inc_tax' => $total_purchase_return_inc_tax,
+            'purchase_due' => $purchase_due,
+            'net_purchases_inc_tax' => $net_purchases_inc_tax,
+            'total_sell_inc_tax' => $total_sell_inc_tax,
+            'total_sell_return_inc_tax' => $total_sell_return_inc_tax,
+            'invoice_due' => $invoice_due,
+            'net_sales_inc_tax' => $net_sales_inc_tax,
+            'difference_total' => $net_sales_inc_tax - $net_purchases_inc_tax,
+            'difference_due' => $invoice_due - $purchase_due,
+        ];
+    }
+
+    /**
      * Default profit/loss report period: current calendar year.
      *
      * @return array{start: string, end: string}

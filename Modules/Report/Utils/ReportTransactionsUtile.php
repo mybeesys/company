@@ -558,10 +558,55 @@ class ReportTransactionsUtile
             ['class' => 'text-start min-w-150px', 'name' => 'establishment_name'],
             ['class' => 'text-start min-w-150px', 'name' => 'transfer_in_out'],
             ['class' => 'text-start min-w-150px', 'name' => 'type'],
+            ['class' => 'text-start min-w-130px', 'name' => 'ref_no'],
             ['class' => 'text-start min-w-150px', 'name' => 'quantity'],
             ['class' => 'text-start min-w-150px', 'name' => 'entity'],
             ['class' => 'text-start min-w-150px', 'name' => 'transfer_date'],
+        ];
+    }
 
+    public static function formatInventorySummaryMetric($value, ?string $unit): string
+    {
+        if ($value === null || $value === '') {
+            return '---';
+        }
+
+        return trim($value.' '.($unit ?? ''));
+    }
+
+    public function formatProductInventorySummaryMetrics(?object $row): array
+    {
+        if (! $row) {
+            return $this->emptyProductInventorySummaryMetrics();
+        }
+
+        $unit = $row->base_unit_name ?? '';
+
+        return [
+            'opening_inventory' => self::formatInventorySummaryMetric($row->opening_inventory, $unit),
+            'purchased_quantity' => self::formatInventorySummaryMetric($row->purchased_quantity ?? 0, $unit),
+            'sales_quantity' => self::formatInventorySummaryMetric($row->sales_quantity ?? 0, $unit),
+            'waste' => self::formatInventorySummaryMetric($row->waste ?? 0, $unit),
+            'purchase_returns' => self::formatInventorySummaryMetric($row->purchase_returns ?? 0, $unit),
+            'transferred_quantity' => self::formatInventorySummaryMetric($row->transferred_quantity ?? 0, $unit),
+            'production_quantity' => self::formatInventorySummaryMetric($row->production_quantity ?? 0, $unit),
+            'counted_quantity' => $row->counted_quantity ?? '0',
+            'quantity_on_inventory' => self::formatInventorySummaryMetric($row->quantity_on_inventory, $unit),
+        ];
+    }
+
+    public function emptyProductInventorySummaryMetrics(): array
+    {
+        return [
+            'opening_inventory' => '---',
+            'purchased_quantity' => '---',
+            'sales_quantity' => '---',
+            'waste' => '---',
+            'purchase_returns' => '---',
+            'transferred_quantity' => '---',
+            'production_quantity' => '---',
+            'counted_quantity' => '---',
+            'quantity_on_inventory' => '---',
         ];
     }
 
@@ -1140,6 +1185,150 @@ class ReportTransactionsUtile
             ->make(true);
     }
 
+    public static function formatInventoryFlowBadge(?string $direction): string
+    {
+        $isOut = $direction === '-';
+        $isAr = app()->getLocale() === 'ar';
+
+        if ($isOut) {
+            $label = $isAr ? 'من المخزون' : 'From stock';
+            $title = $isAr ? 'حركة صادرة من المخزون' : 'Outgoing stock movement';
+            $icon = 'bi-box-arrow-up-right';
+            $color = '#e11d48';
+            $iconBg = '#ffe4e6';
+        } else {
+            $label = $isAr ? 'إلى المخزون' : 'To stock';
+            $title = $isAr ? 'حركة واردة إلى المخزون' : 'Incoming stock movement';
+            $icon = 'bi-box-arrow-in-down-left';
+            $color = '#946f11';
+            $iconBg = '#fdf6e3';
+        }
+
+        return self::inventoryTableIconBadge($label, $icon, $color, $iconBg, $title);
+    }
+
+    public static function formatInventoryMovementTypeBadge(?string $type): string
+    {
+        $locale = app()->getLocale();
+        $typeKey = strtolower((string) $type);
+
+        $typeMap = [
+            'waste' => [
+                'ar' => 'إتلاف',
+                'en' => 'Waste',
+                'icon' => 'bi-trash3',
+                'bg' => '#fff5f8',
+                'color' => '#e11d48',
+                'border' => '#fecdd3',
+                'iconBg' => '#ffe4e6',
+            ],
+            'transfer' => [
+                'ar' => 'تحويل',
+                'en' => 'Transfer',
+                'icon' => 'bi-arrow-left-right',
+                'bg' => '#fdf6e3',
+                'color' => '#c99a19',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
+            ],
+            'purchases' => [
+                'ar' => 'شراء',
+                'en' => 'Purchase',
+                'icon' => 'bi-bag-plus',
+                'bg' => '#fff7ed',
+                'color' => '#b88816',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
+            ],
+            'prep' => [
+                'ar' => 'تحضير',
+                'en' => 'Prepare',
+                'icon' => 'bi-gear-wide-connected',
+                'bg' => '#fdf6e3',
+                'color' => '#946f11',
+                'border' => '#eed592',
+                'iconBg' => '#f5e6b8',
+            ],
+            'sell' => [
+                'ar' => 'بيع',
+                'en' => 'Sale',
+                'icon' => 'bi-cart-check',
+                'bg' => '#fdf6e3',
+                'color' => '#e9b71f',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
+            ],
+            'purchases-return' => [
+                'ar' => 'إرجاع مشتريات',
+                'en' => 'Purchase Return',
+                'icon' => 'bi-arrow-return-left',
+                'bg' => '#fdf6e3',
+                'color' => '#b88816',
+                'border' => '#eed592',
+                'iconBg' => '#f5e6b8',
+            ],
+            'sell-return' => [
+                'ar' => 'إرجاع مبيعات',
+                'en' => 'Sale Return',
+                'icon' => 'bi-arrow-return-right',
+                'bg' => '#fffbeb',
+                'color' => '#b45309',
+                'border' => '#fde68a',
+                'iconBg' => '#fef3c7',
+            ],
+            'po0' => [
+                'ar' => 'المخزون الافتتاحي',
+                'en' => 'Opening Balance',
+                'icon' => 'bi-bookmark-star',
+                'bg' => '#fdf6e3',
+                'color' => '#946f11',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
+            ],
+        ];
+
+        if (! array_key_exists($typeKey, $typeMap)) {
+            return e((string) $type);
+        }
+
+        $typeData = $typeMap[$typeKey];
+        $label = $locale === 'ar' ? $typeData['ar'] : $typeData['en'];
+
+        return self::inventoryTableIconBadge(
+            $label,
+            $typeData['icon'],
+            $typeData['color'],
+            $typeData['iconBg'],
+            $label
+        );
+    }
+
+    private static function inventoryTableIconBadge(
+        string $label,
+        string $icon,
+        string $color,
+        string $iconBg,
+        string $title = ''
+    ): string {
+        $safeLabel = e($label);
+        $safeTitle = e($title !== '' ? $title : $label);
+        $iconClass = e($icon);
+
+        return sprintf(
+            '<span class="inv-table-icon" title="%s" style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap;">'
+            .'<span class="inv-table-icon-circle" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:%s;color:%s;flex-shrink:0;box-shadow:0 4px 10px rgba(15,23,42,.08);">'
+            .'<i class="bi %s" style="font-size:14px;line-height:1;"></i>'
+            .'</span>'
+            .'<span style="font-size:13px;font-weight:600;color:#3f4254;">%s</span>'
+            .'</span>',
+            $safeTitle,
+            $iconBg,
+            $color,
+            $iconClass,
+            $safeLabel
+        );
+    }
+
     public function productInventoryReportTable($query)
     {
         return Datatables::of($query)
@@ -1150,90 +1339,29 @@ class ReportTransactionsUtile
                 return $row->establishment_name;
             })
             ->editColumn('transfer_in_out', function ($row) {
-                $icon = $row->transfer_in_out === '-' ? '🔽' : '➕';
-                $title = app()->getLocale() === 'ar' ?
-                    ($row->transfer_in_out === '-' ? 'خارج من المخزون' : 'داخل إلى المخزون') : ($row->transfer_in_out === '-' ? 'Out of stock' : 'In stock');
-
-                return "<span  title='{$title}'>{$icon} {$title}</span>";
-
-                return "<span >{$icon} {$title}</span>";
+                return self::formatInventoryFlowBadge($row->transfer_in_out ?? null);
             })
             ->editColumn('transfer_date', function ($row) {
-                return \Carbon\Carbon::parse($row->transfer_date)->format('Y-m-d');
-            })
-            ->editColumn('type', function ($row) {
-                $locale = app()->getLocale();
-                $typeMap = [
-                    'WASTE' => [
-                        'ar' => 'إتلاف',
-                        'en' => 'Waste',
-                        'icon' => 'fas fa-trash',
-                        'color' => 'red',
-                    ],
-                    'TRANSFER' => [
-                        'ar' => 'تحويل',
-                        'en' => 'Transfer',
-                        'icon' => 'fas fa-exchange-alt',
-                        'color' => 'green',
-                    ],
-                    'purchases' => [
-                        'ar' => 'شراء',
-                        'en' => 'Purchase',
-                        'icon' => 'fas fa-shopping-cart',
-                        'color' => 'orange',
-                    ],
-                    'PREP' => [
-                        'ar' => 'تحضير',
-                        'en' => 'Prepare',
-                        'icon' => 'fas fa-utensils',
-                        'color' => '#FFD700',
-                    ],
-                    'sell' => [
-                        'ar' => 'بيع',
-                        'en' => 'Sale',
-                        'icon' => 'fas fa-cash-register',
-                        'color' => 'blue',
-                    ],
-                    'purchases-return' => [
-                        'ar' => 'إرجاع مشتريات',
-                        'en' => 'Purchase Return',
-                        'icon' => 'fas fa-undo',
-                        'color' => 'purple',
-                    ],
-                    'sell-return' => [
-                        'ar' => 'إرجاع مبيعات',
-                        'en' => 'Sale Return',
-                        'icon' => 'fas fa-undo',
-                        'color' => '#8B4513',
-                    ],
-                    'PO0' => [
-                        'ar' => 'المخزون الافتتاحي',
-                        'en' => 'Opening Balance',
-                        'icon' => 'fas fa-book-open',
-                        'color' => '#28A745',
-                    ],
-                ];
-
-                if (array_key_exists($row->type, $typeMap)) {
-                    $typeData = $typeMap[$row->type];
-                    $text = $locale === 'ar' ? $typeData['ar'] : $typeData['en'];
-
-                    return "<span title='{$text}'><i class='{$typeData['icon']}' style='color: {$typeData['color']};'></i> {$text}</span>";
+                $date = $row->transaction_date ?? $row->transfer_date ?? null;
+                if (empty($date)) {
+                    return '—';
                 }
 
-                return $row->type;
+                return \Carbon\Carbon::parse($date)->format('Y-m-d');
             })
-
+            ->editColumn('type', function ($row) {
+                return self::formatInventoryMovementTypeBadge($row->type ?? null);
+            })
+            ->editColumn('ref_no', function ($row) {
+                return self::formatProductSalesRefNoLink($row);
+            })
             ->editColumn('quantity', function ($row) {
                 return $row->quantity.'  '.$row->unit;
             })
             ->editColumn('entity', function ($row) {
                 return $row->entity;
             })
-            ->editColumn('actions', function ($row) {
-                return '--';
-            })
-            ->rawColumns(['transfer_in_out', 'product_name', 'establishment_name', 'entity', 'type', 'quantity', 'transfer_date', 'actions'])
+            ->rawColumns(['transfer_in_out', 'product_name', 'establishment_name', 'entity', 'type', 'ref_no', 'quantity', 'transfer_date'])
             ->make(true);
     }
 
@@ -1280,19 +1408,10 @@ class ReportTransactionsUtile
                     return '---'; //
                 }
 
-                return '<a href="'.route('inventory.record', [
+                return '<a href="'.route('Product-Stock-Report', [
                     'product_id' => $row->product_id,
                     'establishment_id' => $row->establishment_id,
-                    'opening_inventory' => ($row->opening_inventory !== null) ? $row->opening_inventory.' '.($row->base_unit_name ?? '') : '---',
-                    'purchased_quantity' => ($row->purchased_quantity ?? '---').' '.($row->base_unit_name ?? ''),
-                    'sales_quantity' => ($row->sales_quantity ?? '---').' '.($row->base_unit_name ?? ''),
-                    'waste' => ($row->waste ?? '---').' '.($row->base_unit_name ?? ''),
-                    'purchase_returns' => ($row->purchase_returns ?? '---').' '.($row->base_unit_name ?? ''),
-                    'transferred_quantity' => ($row->transferred_quantity ?? '---').' '.($row->base_unit_name ?? ''),
-                    'production_quantity' => ($row->production_quantity ?? '---').' '.($row->base_unit_name ?? ''),
-                    'counted_quantity' => $row->counted_quantity,
-                    'quantity_on_inventory' => ($row->quantity_on_inventory !== null) ? $row->quantity_on_inventory.' '.($row->base_unit_name ?? '') : '---',
-                ]).'" class="btn btn-primary">'.__('menuItemLang.product-inventory-record').'</a>';
+                ]).'" class="btn btn-primary">'.__('menuItemLang.product-inventory').'</a>';
             })
 
             ->rawColumns(['sku', 'product_name', 'establishment_name', 'opening_inventory', 'purchased_quantity', 'sales_quantity', 'waste', 'purchase_returns', 'transferred_quantity', 'production_quantity', 'counted_quantity', 'quantity_on_inventory', 'actions'])
@@ -1302,10 +1421,49 @@ class ReportTransactionsUtile
     public static function computePercentChange(float $baseline, float $current): ?float
     {
         if (abs($baseline) < 0.0000001) {
-            return null;
+            return abs($current) < 0.0000001 ? 0.0 : null;
         }
 
         return (($current - $baseline) / $baseline) * 100;
+    }
+
+    /**
+     * Numeric cast for sell-line quantity stored as string (qyt).
+     */
+    public static function sellLineQtyNumericSql(string $qtyColumn = 'tsl.qyt'): string
+    {
+        return 'CAST(REPLACE(TRIM('.$qtyColumn.'), ",", ".") AS DECIMAL(24,6))';
+    }
+
+    public static function sellLineQtySumSql(string $qtyColumn = 'tsl.qyt', ?string $alias = 'qty'): string
+    {
+        $expr = 'COALESCE(SUM('.self::sellLineQtyNumericSql($qtyColumn).'), 0)';
+
+        return $alias !== null && $alias !== '' ? $expr.' as '.$alias : $expr;
+    }
+
+    public static function sellLineSubtotalSumSql(
+        string $qtyColumn = 'tsl.qyt',
+        string $priceColumn = 'tsl.unit_price_inc_tax',
+        ?string $alias = 'subtotal'
+    ): string {
+        $qty = self::sellLineQtyNumericSql($qtyColumn);
+        $expr = 'COALESCE(SUM('.$qty.' * '.$priceColumn.'), 0)';
+
+        return $alias !== null && $alias !== '' ? $expr.' as '.$alias : $expr;
+    }
+
+    public static function formatPercentChangeForDisplay(?float $percent, float $baseline, float $current): string
+    {
+        if ($percent !== null) {
+            return number_format($percent, 2).'%';
+        }
+
+        if (abs($baseline) < 0.0000001 && abs($current) > 0.0000001) {
+            return __('report::general.sales_comparison_pct_new');
+        }
+
+        return '—';
     }
 
     /**
@@ -1317,13 +1475,6 @@ class ReportTransactionsUtile
     {
         $fmt = static fn ($v) => number_format((float) $v, 2);
         $fmtQty = static fn ($v) => number_format((float) $v, 3);
-        $fmtPct = static function ($v) {
-            if ($v === null) {
-                return '—';
-            }
-
-            return number_format($v, 2).'%';
-        };
         $fmtAvg = static function ($v) {
             if ($v === null) {
                 return '—';
@@ -1352,9 +1503,27 @@ class ReportTransactionsUtile
             ->editColumn('subtotal_period_b', fn ($row) => $fmt($row->subtotal_period_b))
             ->editColumn('lines_period_b', fn ($row) => (string) (int) $row->lines_period_b)
             ->editColumn('qty_difference', fn ($row) => $fmtQty($row->qty_difference))
-            ->editColumn('qty_change_percent', fn ($row) => $fmtPct($row->qty_change_percent))
+            ->editColumn('qty_change_percent', function ($row) {
+                $qtyA = (float) ($row->qty_period_a ?? 0);
+                $qtyB = (float) ($row->qty_period_b ?? 0);
+
+                return self::formatPercentChangeForDisplay(
+                    self::computePercentChange($qtyA, $qtyB),
+                    $qtyA,
+                    $qtyB
+                );
+            })
             ->editColumn('subtotal_difference', fn ($row) => $fmt($row->subtotal_difference))
-            ->editColumn('subtotal_change_percent', fn ($row) => $fmtPct($row->subtotal_change_percent))
+            ->editColumn('subtotal_change_percent', function ($row) {
+                $subA = (float) ($row->subtotal_period_a ?? 0);
+                $subB = (float) ($row->subtotal_period_b ?? 0);
+
+                return self::formatPercentChangeForDisplay(
+                    self::computePercentChange($subA, $subB),
+                    $subA,
+                    $subB
+                );
+            })
             ->editColumn('discount_difference', fn ($row) => $fmt($row->discount_difference))
             ->editColumn('tax_difference', fn ($row) => $fmt($row->tax_difference))
             ->editColumn('lines_difference', fn ($row) => (string) (int) $row->lines_difference)

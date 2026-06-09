@@ -17,6 +17,8 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Exceptions\FiscalPeriodException;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\JournalEntryValidator;
 use Mpdf\Mpdf;
@@ -31,12 +33,13 @@ class JournalEntryController extends Controller
 
         if ($request->ajax()) {
 
-            // Journal Entry Index should show MANUAL journal entries by default.
             $acc_trans_mapping = AccountingAccTransMapping::select('id', 'ref_no', 'type', 'is_manual', 'operation_date', 'created_by', 'note')
                 ->where('type', 'journal_entry')
-                ->when(! $request->filled('is_manual'), function ($q) {
-                    $q->where('is_manual', 1);
-                })
+                ->when(
+                    $request->filled('is_manual'),
+                    fn ($q) => $q->where('is_manual', (int) $request->is_manual),
+                    fn ($q) => $q->where('is_manual', 1)
+                )
                 ->with(['added_by', 'transactions']);
 
             if ($request->filled('from_date')) {
@@ -53,10 +56,6 @@ class JournalEntryController extends Controller
 
             if ($request->filled('created_by')) {
                 $acc_trans_mapping->where('created_by', $request->created_by);
-            }
-
-            if ($request->filled('is_manual')) {
-                $acc_trans_mapping->where('is_manual', $request->is_manual);
             }
 
             $acc_trans_mapping->orderBy('operation_date', 'desc')->orderBy('id', 'desc');
@@ -107,6 +106,8 @@ class JournalEntryController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         }
         try {
+            FiscalPeriodGatekeeper::assertPostable($request->journalEntry_date);
+
             DB::beginTransaction();
 
             $user_id = Auth::user()->id;
@@ -165,6 +166,10 @@ class JournalEntryController extends Controller
             if ($request->submit_type == 'print') {
                 return redirect()->route('journal-entry-print', ['id' => $acc_trans_mapping->id]);
             }
+        } catch (FiscalPeriodException $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -363,6 +368,8 @@ class JournalEntryController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         }
         try {
+            FiscalPeriodGatekeeper::assertPostable($request->journalEntry_date);
+
             DB::beginTransaction();
 
             $user_id = Auth::user()->id;
@@ -428,6 +435,10 @@ class JournalEntryController extends Controller
             if ($request->submit_type == 'print') {
                 return redirect()->route('journal-entry-print', ['id' => $acc_trans_mapping->id]);
             }
+        } catch (FiscalPeriodException $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
 

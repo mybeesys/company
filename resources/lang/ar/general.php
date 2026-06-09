@@ -36,4 +36,7 @@ return [
     'mark_as_read' => 'تعيين كمقروء',
     'subscriptions' => 'الاشتراكات',
     'header_help_settings' => 'الإعدادات العامة والمساعدة',
+    'post_login_splash_welcome' => 'مرحباً بعودتك',
+    'post_login_splash_app_name' => 'خلية النظم المتكامل',
+    'post_login_splash_message' => 'منصة موحّدة لإدارة المبيعات والمشتريات والمخزون والمحاسبة — كل عملياتك في مكان واحد.',
 ];

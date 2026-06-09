@@ -99,9 +99,7 @@
         }
         .lines .c-date { width: 9%; text-align: center; white-space: nowrap; }
         .lines .c-ref { width: 10%; text-align: {{ $alignStart }}; }
-        .lines .c-desc { width: 26%; text-align: {{ $alignStart }}; }
-        .lines .c-due { width: 9%; text-align: center; white-space: nowrap; }
-        .lines .c-cur { width: 7%; text-align: center; }
+        .lines .c-desc { width: 38%; text-align: {{ $alignStart }}; }
         .lines .c-amt { text-align: {{ $alignEnd }}; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .lines .row-open td,
         .lines .row-close td {
@@ -157,10 +155,6 @@
                             <td class="val">{{ $accountLabel }}</td>
                         </tr>
                         <tr>
-                            <td class="lbl">@lang('accounting::lang.ledger_stmt_currency')</td>
-                            <td class="val">{{ $currency }}</td>
-                        </tr>
-                        <tr>
                             <td class="lbl">@lang('accounting::lang.from_date')</td>
                             <td class="val">{{ $fmtDate($start_date) }}</td>
                         </tr>
@@ -199,8 +193,6 @@
                 <th class="c-date">@lang('accounting::lang.ledger_stmt_col_date')</th>
                 <th class="c-ref">@lang('accounting::lang.ledger_stmt_col_transaction')</th>
                 <th class="c-desc">@lang('accounting::lang.ledger_stmt_col_description')</th>
-                <th class="c-due">@lang('accounting::lang.ledger_stmt_col_due')</th>
-                <th class="c-cur">@lang('accounting::lang.ledger_stmt_currency')</th>
                 <th class="c-amt">@lang('accounting::lang.debit')</th>
                 <th class="c-amt">@lang('accounting::lang.credit')</th>
                 <th class="c-amt">@lang('accounting::lang.balance')</th>
@@ -211,8 +203,6 @@
                 <td class="c-date"></td>
                 <td class="c-ref"></td>
                 <td class="c-desc">@lang('accounting::lang.opening_balance')</td>
-                <td class="c-due"></td>
-                <td class="c-cur">{{ $currency }}</td>
                 <td class="c-amt"></td>
                 <td class="c-amt"></td>
                 <td class="c-amt">{{ $fmt($opening) }}</td>
@@ -222,15 +212,13 @@
                     <td class="c-date">{{ $line['date'] }}</td>
                     <td class="c-ref">{{ $line['ref'] }}</td>
                     <td class="c-desc">{{ $line['description'] }}</td>
-                    <td class="c-due">{{ $line['due'] }}</td>
-                    <td class="c-cur">{{ $line['currency'] }}</td>
                     <td class="c-amt">{{ $line['debit'] }}</td>
                     <td class="c-amt">{{ $line['credit'] }}</td>
                     <td class="c-amt">{{ $line['balance'] }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" style="text-align:center;color:#666;padding:14px;">@lang('accounting::lang.no_data')</td>
+                    <td colspan="6" style="text-align:center;color:#666;padding:14px;">@lang('accounting::lang.no_data')</td>
                 </tr>
             @endforelse
         </tbody>
@@ -239,8 +227,6 @@
                 <td class="c-date"></td>
                 <td class="c-ref"></td>
                 <td class="c-desc">@lang('accounting::lang.closing_balance')</td>
-                <td class="c-due"></td>
-                <td class="c-cur">{{ $currency }}</td>
                 <td class="c-amt"></td>
                 <td class="c-amt"></td>
                 <td class="c-amt">{{ $fmt($closing) }}</td>

@@ -2,6 +2,8 @@
 @section('title', __('franchise::lang.branches_mgmt'))
 
 @section('content')
+@include('franchise::partials.hub-tabs')
+
 <div class="card card-flush shadow-sm">
     <div class="card-header border-0 pt-6">
         <div class="card-title">

@@ -134,6 +134,7 @@ return [
     'type-service' => 'Type of services',
     'purchase-sell' => 'Purchase and sell',
     'accounting_reports' => 'Accounting Reports',
+    'accounting_reports_hub' => 'All reports',
     'income-statement' => 'Income statement',
     'trial-balance' => 'Trial balance',
     'ledger' => 'Ledger',
@@ -151,6 +152,7 @@ return [
     'inventory_dashboard' => 'Stock Dashboard',
     'product-inventory-summary' => 'Product inventory summary',
     'product-inventory-record' => 'Product inventory record',
+    'product-movement-report' => 'Product movement report',
     'product-inventory' => 'Item Inventory Report',
 
 ];

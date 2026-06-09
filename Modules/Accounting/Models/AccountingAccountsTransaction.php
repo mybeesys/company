@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Modules\Employee\Models\Employee;
 use Modules\General\Models\Transaction;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\General\Models\TransactionPayments;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,6 +20,11 @@ class AccountingAccountsTransaction extends Model
     protected $guarded = ['id'];
 
     protected $table = 'accounting_accounts_transactions';
+
+    public function setNoteAttribute(mixed $value): void
+    {
+        $this->attributes['note'] = AccountingNote::normalizeForStorage($value);
+    }
 
     public function account()
     {
@@ -48,6 +54,18 @@ class AccountingAccountsTransaction extends Model
     public function costCenter()
     {
         return $this->belongsTo(AccountingCostCenter::class, 'cost_center_id');
+    }
+
+    /**
+     * Human-readable reference for ledger / cost-center reports (journal ref, invoice ref, or payment ref).
+     */
+    public function displayRefNo(): string
+    {
+        $ref = $this->accTransMapping?->ref_no
+            ?? $this->transaction?->ref_no
+            ?? $this->transactionPayments?->payment_ref_no;
+
+        return $ref ? (string) $ref : '—';
     }
 
     /**

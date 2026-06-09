@@ -3,7 +3,9 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Modules\Accounting\Exceptions\FiscalPeriodException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +18,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Models\PeriodicInventory;
+use Modules\Accounting\Services\FiscalPeriod\PeriodicInventoryFiscalGuard;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Setting;
@@ -232,6 +235,12 @@ class PeriodicInventoryController extends Controller
 
         $countDate = (string) $request->input('count_date', $request->input('end_date'));
 
+        try {
+            PeriodicInventoryFiscalGuard::assertPostable($countDate);
+        } catch (FiscalPeriodException $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
         $establishment_id = $request->establishment;
         $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
         $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate);
@@ -278,6 +287,13 @@ class PeriodicInventoryController extends Controller
         ]);
 
         $countDate = (string) $request->input('count_date', $request->input('end_date'));
+
+        try {
+            PeriodicInventoryFiscalGuard::assertPostable($countDate);
+        } catch (FiscalPeriodException $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
         $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
         $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate, $inventory);
 
@@ -320,13 +336,21 @@ class PeriodicInventoryController extends Controller
                 : 'This count is not in-review.');
         }
 
+        try {
+            PeriodicInventoryFiscalGuard::assertInventoryPeriodPostable($inventory);
+        } catch (FiscalPeriodException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        $countAt = Carbon::parse($inventory->end_date)->endOfDay();
+
         DB::beginTransaction();
         try {
             $ref_no = SalesUtile::generateReferenceNumber('period');
             $transaction = Transaction::create([
                 'type' => 'period',
-                'due_date' => now(),
-                'transaction_date' => now(),
+                'due_date' => $countAt,
+                'transaction_date' => $countAt,
                 'created_by' => Auth::user()->id,
                 'ref_no' => $ref_no,
                 'status' => 'approved',
@@ -373,6 +397,10 @@ class PeriodicInventoryController extends Controller
             $inventory->save();
 
             DB::commit();
+        } catch (FiscalPeriodException $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
             DB::rollBack();
             throw $e;
@@ -488,12 +516,16 @@ class PeriodicInventoryController extends Controller
 
                 $ref_number = AccountingUtil::generateReferenceNumber('journal_entry');
 
+                PeriodicInventoryFiscalGuard::assertInventoryPeriodPostable($inventory);
+
+                $operationDate = Carbon::parse($inventory->end_date)->endOfDay()->format('Y-m-d H:i:s');
+
                 $journalEntry = [
                     'ref_no' => $ref_number,
                     'note' => 'تسوية جرد مخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
                     'type' => 'journal_entry',
                     'created_by' => Auth::user()->id,
-                    'operation_date' => now(),
+                    'operation_date' => $operationDate,
                 ];
 
                 $acc_trans_mapping = AccountingAccTransMapping::create($journalEntry);
@@ -553,7 +585,7 @@ class PeriodicInventoryController extends Controller
                         'type' => $entry['type'],
                         'note' => $entry['notes'],
                         'created_by' => Auth::user()->id,
-                        'operation_date' => now(),
+                        'operation_date' => $operationDate,
                         'sub_type' => 'inventory_adjustment',
                         'acc_trans_mapping_id' => $acc_trans_mapping->id,
                     ]);

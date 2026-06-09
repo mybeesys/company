@@ -51,6 +51,11 @@ class Setting extends Model
         return self::getInventoryTrackingPolicy() === 'periodic';
     }
 
+    public static function isFinancialPeriodLockingEnabled(): bool
+    {
+        return (string) (self::where('key', 'enable_financial_period_locking')->value('value') ?? '0') === '1';
+    }
+
     /**
      * في الجرد المستمر: هل يجب رفض البيع عند عدم كفاية الكمية؟
      * يُستثنى من التحقق المستخدم الحالي إن وُجدت له صلاحية {@see PERMISSION_ALLOW_SALE_WITHOUT_STOCK}.

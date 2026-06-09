@@ -93,5 +93,8 @@ return [
     'Sales vs Expenses - Last 6 Months' => 'المبيعات vs المصروفات - آخر 6 أشهر ',
 
     'dashboard_page_subtitle' => 'ملخص مالي سريع للمبيعات والمشتريات والذمم.',
+    'dashboard_hub_title' => 'لوحة التحكم الرئيسية',
+    'dashboard_hub_subtitle' => 'اختر لوحة من القائمة لعرض مؤشرات المبيعات والمشتريات والمخزون والمحاسبة.',
+    'dashboard_hub_iframe_title' => 'لوحة تحكم',
 
 ];

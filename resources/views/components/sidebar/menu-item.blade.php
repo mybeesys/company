@@ -6,13 +6,21 @@
     if ($menuLabel === $menuLabelKey && \Illuminate\Support\Facades\Lang::has($menuLabelFallbackKey)) {
         $menuLabel = __($menuLabelFallbackKey);
     }
+
+    $menuPath = strtok(ltrim($url, '/'), '?') ?: '';
+    $menuQueryString = str_contains($url, '?') ? parse_url($url, PHP_URL_QUERY) : '';
+    parse_str($menuQueryString ?: '', $menuQuery);
+    $menuTab = $menuQuery['tab'] ?? null;
+
+    $menuIsActive = request()->is($menuPath) || request()->is($menuPath.'/*');
+    if ($menuIsActive && $menuTab !== null) {
+        $menuIsActive = request()->query('tab') === $menuTab;
+    }
 @endphp
 <div class="menu-item">
     <a @class([
         'menu-link',
-        'active' =>
-            request()->is($url) ||
-            request()->is($url . '/*'),
+        'active' => $menuIsActive,
     ]) href='/{{ $url }}'>
         <span class="menu-bullet">
             <span class="bullet bullet-dot"></span>

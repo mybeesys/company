@@ -10,6 +10,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
@@ -230,6 +231,8 @@ class AccountingUtil
         $accountsRoute = AccountsRoting::where('section', $route_section)->get();
 
         if (count($accountsRoute) > 0) {
+            FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
+
             $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $this->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;

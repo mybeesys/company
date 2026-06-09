@@ -3,6 +3,7 @@
 namespace Modules\Accounting\classes;
 
 use Illuminate\Support\Facades\App;
+use Modules\Accounting\Support\AccountingNote;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -106,12 +107,10 @@ class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapp
 
     protected function narrationText($transaction): string
     {
-        $t = trim((string) ($transaction->note ?? ''));
-        if ($t === '' && $transaction->accTransMapping && $transaction->accTransMapping->note) {
-            $t = trim((string) $transaction->accTransMapping->note);
-        }
-
-        return $t !== '' ? $t : '—';
+        return AccountingNote::resolveForDisplay(
+            $transaction->note ?? null,
+            $transaction->accTransMapping?->note
+        );
     }
 
     public function headings(): array

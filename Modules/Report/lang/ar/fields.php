@@ -30,11 +30,11 @@ return [
     'payment_method' => 'طريقة الدفع',
     'sales' => 'المبيعات',
     'establishment_name' => 'اسم الفرع',
-    'transfer_in_out' => 'تحويل (من/إلى)',
+    'transfer_in_out' => 'حركة من / إلى',
     'process' => 'العملية',
     'quantity' => 'الكمية',
     'type' => 'نوع العملية',
-    'transfer_date' => 'تاريخ التحويل',
+    'transfer_date' => 'تاريخ العملية',
     'payment_status' => 'حالة الدفع',
     'final_total' => 'المبلغ الكلي',
     'remaining_amount' => 'المبلغ المتبقي',
@@ -158,7 +158,12 @@ return [
 
     // Reports
     'total_expense' => 'إجمالي المصروفات',
-    'register_report_details' => 'عرض تفاصيل تقرير الخزنة',
+    'register_report_details' => 'عرض جلسات الصندوق النقدي مع ملخص المدفوعات حسب طريقة الدفع',
+    'register_transactions' => 'حركات الصندوق',
+    'transaction_date' => 'التاريخ والوقت',
+    'transaction_type' => 'نوع الحركة',
+    'amount' => 'المبلغ',
+    'no_register_transactions' => 'لا توجد حركات مسجّلة على هذا الصندوق',
 
     // Sales comparison (two periods)
     'qty_period_a' => 'الكمية',

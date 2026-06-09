@@ -43,4 +43,9 @@ return [
     'others_reports' => 'Others Reports',
     'Device' => 'Device',
     'product-inventory-summary_details' => 'View a detailed report on product inventory balance',
+    'product_movement_report_details' => 'View movements for a selected product and branch with inventory summary',
+    'product_stock_report_details' => 'Single-product stock report: quantity summary and detailed movements by branch',
+    'select_product_and_branch' => 'Select a product and branch to view the movement report',
+    'stock_deficit' => 'Stock deficit',
+    'current_balance' => 'Current balance',
 ];

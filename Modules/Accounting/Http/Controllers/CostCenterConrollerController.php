@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounting\classes\CostCenterExport;
 use Modules\Accounting\classes\TransactionsCostCenterExport;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Utils\CostCenterUtil;
 use Mpdf\Mpdf;
@@ -101,33 +102,165 @@ class CostCenterConrollerController extends Controller
         return Excel::download(new CostCenterExport($CostCenters), 'cost-centers.xlsx');
     }
 
+    /** @return array{0: string, 1: string} */
+    protected function costCenterDateRange(Request $request): array
+    {
+        $start = $request->get('start_date', now()->startOfYear()->format('Y-m-d'));
+        $end = $request->get('end_date', now()->addDay()->format('Y-m-d'));
+
+        return [$start, $end];
+    }
+
+    protected function buildCostCenterTransactionsQuery(int $costCenterId, Request $request): \Illuminate\Database\Eloquent\Builder
+    {
+        [$start, $end] = $this->costCenterDateRange($request);
+
+        return AccountingAccountsTransaction::with([
+            'accTransMapping',
+            'createdBy',
+            'transaction',
+            'account',
+            'transactionPayments',
+            'costCenter',
+        ])
+            ->where('cost_center_id', $costCenterId)
+            ->whereBetween('operation_date', [$start, $end])
+            ->when($request->filled('ref_no'), function ($query) use ($request) {
+                $refNo = trim((string) $request->ref_no);
+
+                return $query->where(function ($subQuery) use ($refNo) {
+                    $subQuery->whereHas('accTransMapping', function ($q) use ($refNo) {
+                        $q->where('ref_no', 'like', '%'.$refNo.'%');
+                    })->orWhereHas('transaction', function ($q) use ($refNo) {
+                        $q->where('ref_no', 'like', '%'.$refNo.'%');
+                    })->orWhereHas('transactionPayments', function ($q) use ($refNo) {
+                        $q->where('payment_ref_no', 'like', '%'.$refNo.'%');
+                    });
+                });
+            })
+            ->orderBy('operation_date')
+            ->orderBy('id');
+    }
+
+    /** @return array{0: ?AccountingCostCenter, 1: ?AccountingCostCenter} */
+    protected function leafCostCenterNeighbors(int $id): array
+    {
+        $leafIds = AccountingCostCenter::leafLevel()
+            ->orderBy('account_center_number')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+
+        $index = array_search($id, $leafIds, true);
+        if ($index === false) {
+            return [null, null];
+        }
+
+        $previous = isset($leafIds[$index - 1])
+            ? AccountingCostCenter::find($leafIds[$index - 1])
+            : null;
+        $next = isset($leafIds[$index + 1])
+            ? AccountingCostCenter::find($leafIds[$index + 1])
+            : null;
+
+        return [$previous, $next];
+    }
+
+    /**
+     * @return array{transactions: \Illuminate\Support\Collection, totalDebit: float, totalCredit: float, start_date: string, end_date: string, isLeaf: bool}
+     */
+    protected function costCenterTransactionsDataset(Request $request, AccountingCostCenter $costCenter): array
+    {
+        [$startDate, $endDate] = $this->costCenterDateRange($request);
+        $isLeaf = $costCenter->isLeaf();
+
+        if (! $isLeaf) {
+            return [
+                'transactions' => collect(),
+                'totalDebit' => 0.0,
+                'totalCredit' => 0.0,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'isLeaf' => false,
+            ];
+        }
+
+        $transactions = $this->buildCostCenterTransactionsQuery((int) $costCenter->id, $request)->get();
+
+        return [
+            'transactions' => $transactions,
+            'totalDebit' => (float) $transactions->where('type', 'debit')->sum('amount'),
+            'totalCredit' => (float) $transactions->where('type', 'credit')->sum('amount'),
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'isLeaf' => true,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    protected function costCenterExportQueryParams(Request $request, string $startDate, string $endDate): array
+    {
+        $params = [
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ];
+        if ($request->filled('ref_no')) {
+            $params['ref_no'] = $request->ref_no;
+        }
+
+        return $params;
+    }
+
     /**
      * Show the form for editing the specified resource.
      */
-    public function transactions($id)
+    public function transactions(Request $request, $id)
     {
-        $costCenter = AccountingCostCenter::with('transactions')->find($id);
-        $costCenters = AccountingCostCenter::all();
+        $costCenter = AccountingCostCenter::findOrFail($id);
+        $costCenters = AccountingCostCenter::leafLevel()
+            ->orderBy('account_center_number')
+            ->orderBy('id')
+            ->get();
 
-        $previous = AccountingCostCenter::where('id', '<', $id)->orderBy('id', 'desc')->first();
+        [$previous, $next] = $this->leafCostCenterNeighbors((int) $id);
 
-        $next = AccountingCostCenter::where('id', '>', $id)->orderBy('id', 'asc')->first();
+        $dataset = $this->costCenterTransactionsDataset($request, $costCenter);
+        $exportQuery = $this->costCenterExportQueryParams($request, $dataset['start_date'], $dataset['end_date']);
 
-        return view('accounting::costCenter.transactions', compact('costCenters', 'costCenter', 'previous', 'next'));
+        return view('accounting::costCenter.transactions', array_merge(
+            compact('costCenters', 'costCenter', 'previous', 'next', 'exportQuery'),
+            $dataset
+        ));
     }
 
-    public function transactionsPrint($id)
+    public function transactionsPrint(Request $request, $id)
     {
-        $costCenter = AccountingCostCenter::with('transactions')->find($id);
+        $costCenter = AccountingCostCenter::findOrFail($id);
+        if (! $costCenter->isLeaf()) {
+            return redirect()
+                ->route('cost-center-transactions', $costCenter->id)
+                ->with('error', __('accounting::lang.cost_center_transactions_leaf_only'));
+        }
 
-        return view('accounting::costCenter.transactions_print', compact('costCenter'));
+        $dataset = $this->costCenterTransactionsDataset($request, $costCenter);
+        $exportQuery = $this->costCenterExportQueryParams($request, $dataset['start_date'], $dataset['end_date']);
+
+        return view('accounting::costCenter.transactions_print', array_merge(compact('costCenter', 'exportQuery'), $dataset));
     }
 
-    public function exportTransactionsPDF($id)
+    public function exportTransactionsPDF(Request $request, $id)
     {
-        $costCenter = AccountingCostCenter::with('transactions')->find($id);
+        $costCenter = AccountingCostCenter::findOrFail($id);
+        if (! $costCenter->isLeaf()) {
+            return redirect()
+                ->route('cost-center-transactions', $costCenter->id)
+                ->with('error', __('accounting::lang.cost_center_transactions_leaf_only'));
+        }
 
-        $html = view('accounting::costCenter.transactions_print', compact('costCenter'))->render();
+        $dataset = $this->costCenterTransactionsDataset($request, $costCenter);
+        $exportQuery = $this->costCenterExportQueryParams($request, $dataset['start_date'], $dataset['end_date']);
+
+        $html = view('accounting::costCenter.transactions_print', array_merge(compact('costCenter', 'exportQuery'), $dataset))->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -144,13 +277,23 @@ class CostCenterConrollerController extends Controller
         return $mpdf->Output($filename, 'D');
     }
 
-    public function exportTransactionsExcel($id)
+    public function exportTransactionsExcel(Request $request, $id)
     {
-        $costCenter = AccountingCostCenter::with('transactions')->find($id);
+        $costCenter = AccountingCostCenter::findOrFail($id);
+        if (! $costCenter->isLeaf()) {
+            return redirect()
+                ->route('cost-center-transactions', $costCenter->id)
+                ->with('error', __('accounting::lang.cost_center_transactions_leaf_only'));
+        }
+
+        $dataset = $this->costCenterTransactionsDataset($request, $costCenter);
 
         $filename = 'cost-centers-'.str_replace(['/', '\\'], ' - ', $costCenter->account_center_number).'.xlsx';
 
-        return Excel::download(new TransactionsCostCenterExport($costCenter), $filename);
+        return Excel::download(
+            new TransactionsCostCenterExport($costCenter, $dataset['transactions'], $dataset['totalDebit'], $dataset['totalCredit']),
+            $filename
+        );
     }
 
     /**
