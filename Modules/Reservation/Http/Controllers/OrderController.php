@@ -450,7 +450,18 @@ class OrderController extends Controller
                     $q->whereIn('id', $product_ids);
                 })
                 ->with(['products' => function ($q) use ($product_ids) {
-                    $q->whereIn('id', $product_ids)->orderBy('id');
+                    $q->whereIn('id', $product_ids)
+                        ->with([
+                            'subcategory:id,name_ar,name_en',
+                            'tax:id,name,amount',
+                            'modifiers.modifierItem:id,name_ar,name_en,type',
+                            'combos:id,product_id,name_ar,name_en',
+                            'unitTransfers' => function ($unitQuery) {
+                                $unitQuery->select('id', 'product_id', 'unit1', 'unit2', 'primary')
+                                    ->orderByDesc('primary');
+                            },
+                        ])
+                        ->orderBy('id');
                 }])
                 ->orderBy('id')
                 ->get();

@@ -27,6 +27,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="/assets/css/brand-theme.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/css/menu-simple-pro.css" rel="stylesheet" type="text/css" />
 
     <style>
         :root {
@@ -2148,7 +2149,7 @@
 
 </head>
 
-<body class="menu-simple-body" dir="{{ $dir }}">
+<body class="menu-simple-body menu-pro" dir="{{ $dir }}">
 
     @php
         $coverPath = $socialLinks['menu_cover_image'] ?? null;
@@ -2366,41 +2367,17 @@
 
                 @foreach ($categories as $category)
                     @if ($category->products->count() > 0)
-                        <div id="category-{{ $category->id }}" class="my-5 px-2 category-section">
+                        <div id="category-{{ $category->id }}" class="my-5 px-2 category-section ms-reveal">
                             <h5 class="fw-bold mb-3"><i class="fa-solid fa-utensils"></i>
                                 {{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}
                             </h5>
 
                             <div class="products-wrapper grid-4" style="display: grid; gap: 20px;">
                                 @foreach ($category->products as $product)
-                                        <div class="product-card card border-0 p-2" @include('reservation::order.partials.product-allergen-data-attr', ['product' => $product])>
-                                            <div class="product-card-image-wrap rounded-top overflow-hidden">
-                                                <img src="{{ asset($product->image) }}" class="w-100"
-                                            alt="{{ $product->name_ar }}" style="height: 200px; object-fit: cover;">
-                                            </div>
-                                        <div class="card-body p-2">
-
-                                            <h6 class="card-title mb-1 fw-bold">
-                                                {{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}
-                                            </h6>
-                                                @include('reservation::order.partials.product-allergen-icons-row', ['product' => $product, 'allergenTplSuffix' => 'main'])
-                                                <p class="text-muted mb-2 product-card-desc">
-                                                {{ app()->currentLocale() == 'ar' ? $product->description_ar : $product->description_en }}
-                                                </p>
-
-                                                <div class="d-flex justify-content-between align-items-baseline gap-2 mt-1 flex-wrap">
-                                                    @if (!empty($product->calories) && is_numeric($product->calories))
-                                                        <span class="product-card-cal text-muted">CAL {{ (int) $product->calories }}</span>
-                                                    @else
-                                                        <span aria-hidden="true"></span>
-                                                    @endif
-                                                    <span class="fw-bold text-success ms-auto" style="font-size: 16px;">
-                                                        {{ number_format($product->price_with_tax, 2) }}
-                                                        <span class="sar-currency">@lang('general::lang.currency')</span>
-                                                    </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    @include('reservation::order.partials.product-menu-card', [
+                                        'product' => $product,
+                                        'tplSuffix' => 'main',
+                                    ])
                                 @endforeach
                             </div>
                         </div>
@@ -2427,6 +2404,15 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalProductDetail" tabindex="-1" aria-labelledby="modalProductDetailTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable pm-detail-modal">
+            <div class="modal-content border-0 pm-detail-modal__shell">
+                <button type="button" class="btn-close pm-detail-modal__close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-body p-0" id="modalProductDetailBody" role="document"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="modalTodaysMenu" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
@@ -2446,26 +2432,12 @@
                             <div class="row g-3">
                                 @foreach ($category->products as $product)
                                     <div class="col-6 col-md-4 col-lg-3 todays-product-card" @include('reservation::order.partials.product-allergen-data-attr', ['product' => $product])>
-                                        <div class="card h-100 border-0 shadow-sm" style="border-radius: 14px; overflow: hidden;">
-                                            <div class="product-card-image-wrap">
-                                                <img src="{{ asset($product->image) }}" class="w-100" style="height: 120px; object-fit: cover;" alt="">
-                                            </div>
-                                            <div class="p-2">
-                                                <div class="fw-semibold small">{{ app()->currentLocale() == 'ar' ? $product->name_ar : $product->name_en }}</div>
-                                                @include('reservation::order.partials.product-allergen-icons-row', ['product' => $product, 'allergenTplSuffix' => 'todays', 'iconsSize' => 'sm'])
-                                                <div class="d-flex justify-content-between align-items-baseline gap-2 mt-1">
-                                                    @if (!empty($product->calories) && is_numeric($product->calories))
-                                                        <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;">CAL {{ (int) $product->calories }}</span>
-                                                    @else
-                                                        <span aria-hidden="true"></span>
-                                                    @endif
-                                                    <span class="text-success fw-bold small ms-auto">
-                                                        {{ number_format($product->price_with_tax, 2) }}
-                                                        <span class="sar-currency">@lang('general::lang.currency')</span>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        @include('reservation::order.partials.product-menu-card', [
+                                            'product' => $product,
+                                            'tplSuffix' => 'todays',
+                                            'iconsSize' => 'sm',
+                                            'compact' => true,
+                                        ])
                                     </div>
                                 @endforeach
                             </div>
@@ -2849,6 +2821,50 @@
                 if (body) body.replaceChildren();
             });
         })();
+
+        (function() {
+            const detailModalEl = document.getElementById('modalProductDetail');
+            if (!detailModalEl || typeof bootstrap === 'undefined') return;
+
+            const detailBody = document.getElementById('modalProductDetailBody');
+            let detailModal = null;
+
+            function getDetailModal() {
+                if (!detailModal) {
+                    detailModal = bootstrap.Modal.getOrCreateInstance(detailModalEl);
+                }
+                return detailModal;
+            }
+
+            function openProductDetail(card) {
+                const tplId = card.getAttribute('data-product-detail-tpl');
+                const tpl = tplId ? document.getElementById(tplId) : null;
+                if (!detailBody || !tpl || !tpl.content) return;
+                detailBody.replaceChildren();
+                detailBody.appendChild(document.importNode(tpl.content, true));
+                getDetailModal().show();
+            }
+
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.product-allergen-icon-btn')) return;
+                const card = e.target.closest('.pm-card.product-card');
+                if (!card || card.classList.contains('hidden')) return;
+                if (!card.hasAttribute('data-product-detail-tpl')) return;
+                openProductDetail(card);
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const card = e.target.closest('.pm-card.product-card');
+                if (!card || document.activeElement !== card) return;
+                e.preventDefault();
+                openProductDetail(card);
+            });
+
+            detailModalEl.addEventListener('hidden.bs.modal', function() {
+                if (detailBody) detailBody.replaceChildren();
+            });
+        })();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
         integrity="sha512-fKcyo0o+5m6fypWn+0n0n0x5f+7l7z+J0Uitc5Y+JyzE5pytXGlA5nyp5jQ17p9pQ1vKaA8kqk0/1LD4GfpJYQ=="
@@ -2863,8 +2879,38 @@
             welcomeScreen.classList.add('hide');
             setTimeout(() => {
                 menuContent.classList.add('show');
-            }, 800);
+                document.dispatchEvent(new CustomEvent('menuSimple:opened'));
+            }, 650);
         });
+    </script>
+    <script>
+        (function () {
+            'use strict';
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelectorAll('.ms-reveal').forEach((el) => el.classList.add('ms-visible'));
+                return;
+            }
+
+            const revealObserver = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        entry.target.classList.add('ms-visible');
+                        revealObserver.unobserve(entry.target);
+                    });
+                },
+                { root: null, rootMargin: '0px 0px -6% 0px', threshold: 0.12 }
+            );
+
+            function bindReveal() {
+                document.querySelectorAll('.ms-reveal:not(.ms-visible)').forEach((el) => revealObserver.observe(el));
+            }
+
+            bindReveal();
+            document.addEventListener('menuSimple:opened', () => {
+                setTimeout(bindReveal, 120);
+            });
+        })();
     </script>
     <script>
         const themeToggle = document.getElementById("themeToggle");
