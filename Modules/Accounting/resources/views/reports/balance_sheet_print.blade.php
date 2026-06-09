@@ -5,7 +5,7 @@
     <title>{{ __('accounting::lang.balance_sheet') }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #111827; }
-        .header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #1B84FF; padding-bottom: 8px; }
+        .header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #e9b71f; padding-bottom: 8px; }
         .header h1 { font-size: 16px; margin: 0 0 4px; }
         .muted { color: #64748b; font-size: 10px; }
         .summary { margin: 8px 0; padding: 8px; border: 1px solid #DBDFE9; font-size: 10px; }
@@ -14,8 +14,8 @@
         thead th { background: #E9F3FF; color: #4B5675; font-size: 10px; text-transform: uppercase; }
         td.amount { text-align: {{ app()->getLocale() == 'ar' ? 'left' : 'right' }}; font-family: DejaVu Sans Mono, monospace; white-space: nowrap; }
         td.amount.neg { color: #F8285A; }
-        tr.main-section td { background: #1B84FF; color: #fff; font-weight: 700; }
-        tr.subsection td { background: #F9F9F9; color: #1B84FF; font-weight: 700; border-top: 2px solid #DBDFE9; }
+        tr.main-section td { background: #e9b71f; color: #fff; font-weight: 700; }
+        tr.subsection td { background: #F9F9F9; color: #e9b71f; font-weight: 700; border-top: 2px solid #DBDFE9; }
         tr.group-header td { background: #F1F1F4; font-weight: 600; }
         tr.subtotal td { background: #F1F1F4; font-weight: 600; }
         tr.grand td { background: #E9F3FF; font-weight: 700; }

@@ -33,7 +33,7 @@
 
         .text-active-gray-800.active {
 
-            color: #1b84ff !important;
+            color: var(--bs-primary) !important;
         }
     </style>
 

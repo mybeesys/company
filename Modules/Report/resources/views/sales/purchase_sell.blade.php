@@ -1,184 +1,188 @@
 @extends('layouts.app')
+
 @section('title', __('menuItemLang.purchase-sell'))
+
+@section('css')
+<style>
+    .report-page-shell .card { border-radius: 14px; }
+    .report-filter-card {
+        border: 1px solid #eef1f5;
+        border-radius: 14px;
+        background: #fafcff;
+    }
+    .ps-summary-table th,
+    .ps-summary-table td { padding: 0.65rem 0; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    #purchase-sell-summary-container .card { border-radius: 12px; }
+    @media print {
+        .no-print { display: none !important; }
+        .report-page-shell .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
+    }
+</style>
+@endsection
+
 @section('content')
-
-<section class="content">
-
-
-    <!-- Printable Content -->
-    <div class="print-section">
-        <h1>@lang('menuItemLang.purchase-sell')
-            <small class="fs-6">@lang('report::general.purchase_sell_msg')</small>
-        </h1>
-        <hr class="py-1" style="width:100%;text-align:left;">
-        <div class="row no-print d-flex justify-content-between align-items-center">
-            <div class="col-md-3 mb-3">
-                <label for="date_range" class="form-label">@lang('report::general.filter')</label>
-                <input type="text" class="form-control" id="date_range" name="date_range">
+<div class="report-page-shell">
+    <div class="card card-flush">
+        <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5 border-0">
+            <div class="card-title">
+                <div>
+                    <h1 class="mb-1 fs-2 fw-bold">@lang('menuItemLang.purchase-sell')</h1>
+                    <p class="text-muted fs-7 mb-0">@lang('report::general.purchase_sell_subtitle')</p>
+                </div>
             </div>
-            <div class="col-md-3 text-end">
-                <button type="button" class="btn btn-primary" aria-label="Print" onclick="printReport();">
-                    <i class="fa fa-print"></i> @lang('messages.print')
+            <div class="card-toolbar no-print">
+                <button type="button" class="btn btn-sm btn-light-primary" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> @lang('report::general.Print')
                 </button>
             </div>
-        </div>
-        <br>
+        </x-cards.card-header>
 
-        <div id="report-content">
-            <div class="row">
-                <div class="col-md-6">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>@lang('menuItemLang.purchases') <i class="fas fa-shopping-cart text-primary me-2"></i></th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="purchase-data"></tbody>
-                    </table>
+        <div class="card-body border-top p-5 report-filter-card no-print">
+            <form id="purchaseSellFilterForm">
+                <div class="row g-5 align-items-end">
+                    <div class="col-md-4">
+                        <label for="psBranchFilter" class="form-label">@lang('report::purchase.Branch')</label>
+                        <select class="form-select form-select-solid" id="psBranchFilter" name="branch_id[]"
+                            data-control="select2" data-placeholder="@lang('report::general.All Branches')" multiple>
+                            <option></option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="psDateRange" class="form-label">@lang('report::general.transaction_date_range')</label>
+                        <input type="text" class="form-control form-control-solid" id="psDateRange" name="date_range"
+                            value="{{ $defaultDateRangeLabel ?? '' }}"
+                            placeholder="@lang('report::general.custom_range')" autocomplete="off" />
+                    </div>
+                    <div class="col-md-3 d-flex gap-2 justify-content-md-end">
+                        <button type="button" class="btn btn-primary" id="psApplyFilter">
+                            <i class="bi bi-funnel"></i> @lang('report::general.Apply Filter')
+                        </button>
+                        <button type="button" class="btn btn-light" id="psClearFilter">@lang('report::general.Remove filter')</button>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>@lang('menuItemLang.sales') <i class="fas fa-chart-line text-warning me-2"></i></th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="sales-data"></tbody>
-                    </table>
-                </div>
-            </div>
+            </form>
         </div>
-        <hr style="width:100%;text-align:left;margin-left:0">
-        <div class="row">
-            <div class="col-md-12">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th class="fs-4">@lang('report::general.difference_total')</th>
-                            <th class="fs-4">@lang('report::general.difference_due')</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td id="difference-total" class="fs-3"></td>
-                            <td id="difference-due" class="fs-3"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+
+        <div class="card-body border-top px-5 py-6" id="purchase-sell-summary-container">
+            @include('report::sales.purchase_sell_details', ['data' => $data])
         </div>
     </div>
-
-
-</section>
-
+</div>
 @endsection
+
 @section('script')
 @parent
 <script src="{{ url('/modules/Sales/js/localeSettings.js') }}"></script>
-
-{{-- <script src="{{ url('/modules/Sales/js/daterangepicker.js') }}"></script> --}}
-
+<script src="{{ url('/modules/Sales/js/daterangepicker.js') }}"></script>
+<script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
 <script>
-    let currentLang = "{{ app()->getLocale() }}";
+(function () {
+    'use strict';
 
+    const currentLang = @json(app()->getLocale());
+    const purchaseSellUrl = @json(route('purchase-sell'));
+    const defaultDateRange = @json($defaultDateRange ?? ['start' => now()->startOfYear()->format('Y-m-d'), 'end' => now()->endOfYear()->format('Y-m-d')]);
+    let dueDateRangeValue = @json($defaultDateRangeLabel ?? '');
 
-    function printReport() {
-        const noPrintElements = document.querySelectorAll('.no-print');
-        noPrintElements.forEach(element => element.style.display = 'none');
-        var printContent = document.querySelector('.print-section').innerHTML;
-        var originalContent = document.body.innerHTML;
-        document.body.innerHTML = printContent;
-        window.print();
-        document.body.innerHTML = originalContent;
-        noPrintElements.forEach(element => element.style.display = '');
-        window.location.reload();
+    function dateRangeSeparator() {
+        return currentLang === 'ar' ? ' إلى ' : ' to ';
     }
 
-    $(document).ready(function() {
+    function setThisYearRange() {
+        const yearStart = moment().startOf('year');
+        const yearEnd = moment().endOf('year');
+        dueDateRangeValue =
+            yearStart.format('YYYY-MM-DD') + dateRangeSeparator() + yearEnd.format('YYYY-MM-DD');
+        const $input = $('#psDateRange');
+        $input.val(dueDateRangeValue);
+        const picker = $input.data('daterangepicker');
+        if (picker) {
+            picker.setStartDate(yearStart);
+            picker.setEndDate(yearEnd);
+        }
+    }
 
+    function filterParams() {
+        const picker = $('#psDateRange').data('daterangepicker');
+        let start = defaultDateRange.start;
+        let end = defaultDateRange.end;
+        if (picker) {
+            start = picker.startDate.format('YYYY-MM-DD');
+            end = picker.endDate.format('YYYY-MM-DD');
+        }
+        return {
+            start_date: start,
+            end_date: end,
+            date_range: dueDateRangeValue || $('#psDateRange').val(),
+            branch_id: $('#psBranchFilter').val() || [],
+        };
+    }
 
-        let ranges = currentLang === "ar" ? arabicRanges : customRanges;
-        let dueDateRangeValue = '';
+    function reloadSummary() {
+        const $container = $('#purchase-sell-summary-container');
+        $container.addClass('opacity-50');
+        $.ajax({
+            url: purchaseSellUrl,
+            type: 'GET',
+            data: filterParams(),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function (html) {
+                $container.html(html);
+            },
+            complete: function () {
+                $container.removeClass('opacity-50');
+            },
+        });
+    }
 
+    function populateBranches() {
+        $.get(@json(route('branches')), function (response) {
+            if (!response.success) return;
+            const $sel = $('#psBranchFilter');
+            $sel.empty();
+            response.data.forEach(function (branch) {
+                $sel.append(new Option(branch.name, branch.id, false, false));
+            });
+            $sel.trigger('change');
+        });
+    }
 
-        $("#date_range").daterangepicker({
+    $(document).ready(function () {
+        const ranges = currentLang === 'ar' ? arabicRanges : customRanges;
+        const yearStart = moment(defaultDateRange.start);
+        const yearEnd = moment(defaultDateRange.end);
+
+        $('#psDateRange').daterangepicker({
             locale: localeSettings[currentLang],
-            opens: currentLang === "ar" ? "right" : "left",
+            opens: currentLang === 'ar' ? 'right' : 'left',
             autoUpdateInput: false,
+            startDate: yearStart,
+            endDate: yearEnd,
             ranges: ranges,
         });
 
-        $("#date_range").on("apply.daterangepicker", function(ev, picker) {
-            $(this).val(
-                picker.startDate.format("YYYY-MM-DD") +
-                (currentLang === "ar" ? " إلى " : " to ") +
-                picker.endDate.format("YYYY-MM-DD")
-            );
-        });
-
-
-        $("#date_range").on("apply.daterangepicker", function(ev, picker) {
-            dueDateRangeValue =
-                picker.startDate.format("YYYY-MM-DD") +
-                (currentLang === "ar" ? " إلى " : " to ") +
-                picker.endDate.format("YYYY-MM-DD");
-
-            $(this).val(dueDateRangeValue);
-
-            loadReport();
-        });
-
-
-
-        console.log('JavaScript Loaded'); // للتأكد من أن الملف يعمل
-
-
-        $.ajax({
-            url: "{{ route('purchase-sell') }}",
-            type: 'GET',
-
-            success: function(response) {
-                $('#purchase-data').html(response.purchase_data);
-                $('#sales-data').html(response.sales_data);
-                $('#difference-total').text(response.difference.total);
-                $('#difference-due').text(response.difference.due);
-            },
-            error: function(xhr, status, error) {
-                console.error('Error: ', error);
-            }
-        });
-
-        function loadReport() {
-            console.log('loadReport Called'); // للتحقق من استدعاء الدالة
-
-            const dateRange = $('#purchase_sell_date_filter').text().trim();
-            const locationId = $('#purchase_sell_location_filter').val();
-
-
-            $.ajax({
-                url: "{{ route('purchase-sell') }}",
-                type: 'GET',
-                data: {
-                    date_range: dueDateRangeValue,
-                },
-                success: function(response) {
-                    console.log('Response: ', response);
-                    $('#purchase-data').html(response.purchase_data);
-                    $('#sales-data').html(response.sales_data);
-                    $('#difference-total').text(response.difference.total);
-                    $('#difference-due').text(response.difference.due);
-
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error: ', error);
-                    console.error('Response: ', xhr.responseText);
-                }
-            });
+        if (!dueDateRangeValue) {
+            setThisYearRange();
         }
 
+        $('#psDateRange').on('apply.daterangepicker', function (ev, picker) {
+            dueDateRangeValue =
+                picker.startDate.format('YYYY-MM-DD') +
+                dateRangeSeparator() +
+                picker.endDate.format('YYYY-MM-DD');
+            $(this).val(dueDateRangeValue);
+        });
+
+        populateBranches();
+
+        $('#psApplyFilter').on('click', reloadSummary);
+        $('#psClearFilter').on('click', function () {
+            $('#psBranchFilter').val(null).trigger('change');
+            setThisYearRange();
+            reloadSummary();
+        });
     });
+})();
 </script>
 @endsection

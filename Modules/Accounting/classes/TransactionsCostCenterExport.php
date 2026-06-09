@@ -2,66 +2,112 @@
 
 namespace Modules\Accounting\classes;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Lang;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
+use Modules\Accounting\Support\AccountingNote;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class TransactionsCostCenterExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class TransactionsCostCenterExport implements FromCollection, WithEvents, WithHeadings, WithMapping, WithStyles
 {
-    protected $costCenters;
+    protected $costCenter;
 
-    public function __construct($costCenters)
+    protected Collection $transactions;
+
+    protected float $totalDebit;
+
+    protected float $totalCredit;
+
+    public function __construct($costCenter, Collection $transactions, float $totalDebit, float $totalCredit)
     {
-        $this->costCenters = $costCenters;
+        $this->costCenter = $costCenter;
+        $this->transactions = $transactions;
+        $this->totalDebit = $totalDebit;
+        $this->totalCredit = $totalCredit;
     }
 
-    /**
-     * @return \Illuminate\Support\Collection
-     */
     public function collection()
     {
-        return collect($this->costCenters['transactions']);
+        return $this->transactions;
     }
 
     public function headings(): array
     {
-        return [
-            [__('accounting::lang.cost_center_transactions').' - '.__('accounting::lang.cost_center').' '.(app()->getLocale() == 'ar' ? $this->costCenters->name_ar : $this->costCenters->name_en).' ('.$this->costCenters->account_center_number.')'],
-            [__('accounting::lang.transaction_number'), __('accounting::lang.operation_date'), __('accounting::lang.transaction'), __('accounting::lang.added_by'), __('accounting::lang.amount')],
+        $name = app()->getLocale() == 'ar' ? $this->costCenter->name_ar : $this->costCenter->name_en;
 
+        return [
+            [__('accounting::lang.cost_center_transactions').' - '.__('accounting::lang.cost_center').' '.$name.' ('.$this->costCenter->account_center_number.')'],
+            [
+                __('accounting::lang.transaction_number'),
+                __('accounting::lang.operation_date'),
+                __('accounting::lang.account_name'),
+                __('accounting::lang.ledger_narration'),
+                __('accounting::lang.added_by'),
+                __('accounting::lang.debit'),
+                __('accounting::lang.credit'),
+            ],
         ];
     }
 
-    public function map($transactions): array
+    /** @param  AccountingAccountsTransaction  $transaction */
+    public function map($transaction): array
     {
+        $subType = $transaction->sub_type ?? null;
+        $typeLabel = $subType
+            ? (Lang::has('accounting::lang.'.$subType) ? __('accounting::lang.'.$subType) : $subType)
+            : '—';
+
+        $accountLabel = $transaction->account
+            ? $transaction->account->gl_code.' - '.(app()->getLocale() == 'ar' ? $transaction->account->name_ar : $transaction->account->name_en)
+            : '—';
 
         return [
-            $transactions->accTransMapping->ref_no,
-            \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $transactions->operation_date)->format('d/m/Y h:i A'),
-            __('accounting::lang.'.$transactions->sub_type),
-            $transactions->createdBy->name,
-            $transactions->amount,
+            $transaction->displayRefNo().' ('.$typeLabel.')',
+            \Carbon\Carbon::parse($transaction->operation_date)->format('d/m/Y'),
+            $accountLabel,
+            AccountingNote::resolveForDisplay($transaction->note, $transaction->accTransMapping?->note, true),
+            $transaction->createdBy?->name ?? '—',
+            $transaction->type == 'debit' ? $transaction->amount : '',
+            $transaction->type == 'credit' ? $transaction->amount : '',
+        ];
+    }
 
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $footer = [
+                    '',
+                    '',
+                    '',
+                    '',
+                    __('accounting::lang.total'),
+                    $this->totalDebit,
+                    $this->totalCredit,
+                ];
+                $event->sheet->getDelegate()->fromArray([$footer], null, 'A'.($event->sheet->getHighestRow() + 1));
+            },
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getColumnDimension('A')->setWidth(40);
-        $sheet->getColumnDimension('B')->setWidth(40);
-        $sheet->getColumnDimension('C')->setWidth(40);
-        $sheet->getColumnDimension('D')->setWidth(20);
-        $sheet->getColumnDimension('E')->setWidth(20);
+        foreach (range('A', 'G') as $letter) {
+            $sheet->getColumnDimension($letter)->setWidth(22);
+        }
 
         return [
             1 => [
                 'font' => [
                     'bold' => true,
-                    // 'size' => 14,
                     'color' => ['argb' => Color::COLOR_BLACK],
                 ],
                 'fill' => [

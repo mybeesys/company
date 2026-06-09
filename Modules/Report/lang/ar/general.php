@@ -47,6 +47,10 @@ return [
     'no_discount' => 'لا يوجد خصم',
     'ProductSales_search' => 'بحث',
     'purchase_sell_msg' => 'تفاصيل المشتريات والمبيعات للفترة المحددة',
+    'purchase_sell_subtitle' => 'مقارنة المشتريات والمبيعات المعتمدة (شامل الضريبة) للفترة والفروع المحددة',
+    'amount_inc_tax' => 'شامل الضريبة',
+    'purchase_sell_comparison_section' => 'المقارنة',
+    'purchase_sell_period_hint' => 'معاملات معتمدة فقط · المردودات مخصومة من الإجماليات',
 
     'total_purchase_inc_tax' => 'إجمالي المشتريات (شامل VAT)',
     'total_purchase_return' => 'إجمالي مردود المشتريات',

@@ -1,0 +1,4 @@
+/**
+ * Loaded after style.scss / style.rtl.scss so brand yellow wins over bundle :root.
+ */
+@import "@/assets/css/brand-theme.css";

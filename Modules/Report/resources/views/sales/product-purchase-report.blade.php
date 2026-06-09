@@ -71,76 +71,6 @@
                 </div>
             </x-cards.card-header>
 
-            {{-- Inline Filters --}}
-            <div class="card-body border-top p-5">
-                <form id="reportFilterForm">
-                    <div class="row g-5">
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="productPurchaseReportMode" class="form-label">@lang('report::general.product_purchase_report_mode')</label>
-                            <select class="form-select form-select-solid" id="productPurchaseReportMode" name="report_mode">
-                                <option value="detail">@lang('report::general.product_purchase_report_mode_detail')</option>
-                                <option value="summary">@lang('report::general.product_purchase_report_mode_summary')</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="branchFilter" class="form-label">@lang('report::purchase.Branch')</label>
-                            <select class="form-select form-select-solid" id="branchFilter" name="branch_id[]" data-control="select2" data-placeholder="@lang('report::general.All Branches')" multiple>
-                                <option></option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="supplierFilter" class="form-label">@lang('report::purchase.Supplier')</label>
-                            <select class="form-select form-select-solid" id="supplierFilter" name="supplier_id[]" data-control="select2" data-placeholder="@lang('report::general.All Suppliers')" multiple>
-                                <option></option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="productFilter" class="form-label">@lang('report::purchase.Product')</label>
-                            <select class="form-select form-select-solid" id="productFilter" name="product_id[]" data-control="select2" data-placeholder="@lang('report::purchase.All Products')" multiple>
-                                <option></option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="categoryFilter" class="form-label">@lang('report::fields.category')</label>
-                            <select class="form-select form-select-solid" id="categoryFilter" name="category_id[]" data-control="select2" data-placeholder="@lang('report::general.All_categories')" multiple>
-                                <option></option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="subcategoryFilter" class="form-label">@lang('report::fields.subcategory')</label>
-                            <select class="form-select form-select-solid" id="subcategoryFilter" name="subcategory_id[]" data-control="select2" data-placeholder="@lang('report::general.All_subcategories')" multiple>
-                                <option></option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="unitFilter" class="form-label">@lang('report::fields.line_unit')</label>
-                            <select class="form-select form-select-solid" id="unitFilter" name="unit_id[]" data-control="select2" data-placeholder="@lang('report::general.All_units')" multiple>
-                                <option></option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="paymentMethodFilter" class="form-label">@lang('report::fields.payment_method')</label>
-                            <select class="form-select form-select-solid" id="paymentMethodFilter" name="payment_method[]" data-control="select2" data-placeholder="@lang('report::general.All Methods')" multiple>
-                                <option></option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6 col-lg-3">
-                            <label for="saleDateRange" class="form-label">@lang('report::purchase.Sale Date Range')</label>
-                            <input type="text" class="form-control form-control-solid" id="saleDateRange" name="sale_date_range" />
-                        </div>
-                    </div>
-                    {{-- Filter Buttons --}}
-                    <div class="row mt-5">
-                        <div class="col-12 d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-primary" id="applyFilter">
-                                <i class="bi bi-funnel fs-2"></i> @lang('report::general.Apply Filter')
-                            </button>
-                            <button type="button" class="btn btn-warning" id="clearFilter">@lang('report::general.Remove filter')</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
             <x-cards.card-body class="table-responsive border-top">
                 <div class="ppr-table-toolbar d-flex flex-wrap align-items-center gap-3 py-5 px-1 px-lg-0">
                     <div class="d-flex align-items-center position-relative flex-grow-1 min-w-200px">
@@ -149,6 +79,14 @@
                             placeholder="@lang('report::general.ProductSales_search')" />
                     </div>
                     <div class="d-flex align-items-center gap-2 flex-wrap ms-sm-auto">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#reportFilterModal" title="@lang('report::general.Apply Filter')">
+                            <i class="bi bi-funnel"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border" id="clearFilter"
+                            title="@lang('report::general.Remove filter')">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                         <button type="button" class="btn btn-sm btn-export-excel" id="productPurchasesExportExcelBtn"
                             title="@lang('report::general.product_purchase_export_full_hint')">
                             <i class="bi bi-file-earmark-excel fs-5"></i>
@@ -192,6 +130,84 @@
             </x-cards.card-body>
         </div>
 
+    </div>
+</div>
+
+<div class="modal fade" id="reportFilterModal" tabindex="-1" aria-labelledby="reportFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportFilterModalLabel">
+                    <i class="bi bi-funnel me-2"></i>@lang('report::general.Apply Filter')
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@lang('messages.cancel')"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reportFilterForm">
+                    <div class="row g-5">
+                        <div class="col-12 col-sm-6">
+                            <label for="productPurchaseReportMode" class="form-label">@lang('report::general.product_purchase_report_mode')</label>
+                            <select class="form-select form-select-solid" id="productPurchaseReportMode" name="report_mode">
+                                <option value="detail">@lang('report::general.product_purchase_report_mode_detail')</option>
+                                <option value="summary">@lang('report::general.product_purchase_report_mode_summary')</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="branchFilter" class="form-label">@lang('report::purchase.Branch')</label>
+                            <select class="form-select form-select-solid" id="branchFilter" name="branch_id[]" data-control="select2" data-placeholder="@lang('report::general.All Branches')" multiple>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="supplierFilter" class="form-label">@lang('report::purchase.Supplier')</label>
+                            <select class="form-select form-select-solid" id="supplierFilter" name="supplier_id[]" data-control="select2" data-placeholder="@lang('report::general.All Suppliers')" multiple>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="productFilter" class="form-label">@lang('report::purchase.Product')</label>
+                            <select class="form-select form-select-solid" id="productFilter" name="product_id[]" data-control="select2" data-placeholder="@lang('report::purchase.All Products')" multiple>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="categoryFilter" class="form-label">@lang('report::fields.category')</label>
+                            <select class="form-select form-select-solid" id="categoryFilter" name="category_id[]" data-control="select2" data-placeholder="@lang('report::general.All_categories')" multiple>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="subcategoryFilter" class="form-label">@lang('report::fields.subcategory')</label>
+                            <select class="form-select form-select-solid" id="subcategoryFilter" name="subcategory_id[]" data-control="select2" data-placeholder="@lang('report::general.All_subcategories')" multiple>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="unitFilter" class="form-label">@lang('report::fields.line_unit')</label>
+                            <select class="form-select form-select-solid" id="unitFilter" name="unit_id[]" data-control="select2" data-placeholder="@lang('report::general.All_units')" multiple>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="paymentMethodFilter" class="form-label">@lang('report::fields.payment_method')</label>
+                            <select class="form-select form-select-solid" id="paymentMethodFilter" name="payment_method[]" data-control="select2" data-placeholder="@lang('report::general.All Methods')" multiple>
+                                <option></option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="saleDateRange" class="form-label">@lang('report::purchase.Sale Date Range')</label>
+                            <input type="text" class="form-control form-control-solid" id="saleDateRange" name="sale_date_range" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('messages.cancel')</button>
+                <button type="button" class="btn btn-primary" id="applyFilter">
+                    <i class="bi bi-funnel me-1"></i> @lang('report::general.Apply Filter')
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -470,7 +486,9 @@
             dataTable.columns.adjust().draw(false);
         });
 
-        $('.form-select').select2();
+        $('#reportFilterModal .form-select').select2({
+            dropdownParent: $('#reportFilterModal')
+        });
 
         $('#saleDateRange').daterangepicker({
             autoUpdateInput: false,
@@ -488,17 +506,17 @@
             $(this).val('');
         });
 
-        $('#productPurchaseReportMode').on('change', function() {
-            dataTable.ajax.reload();
-        });
-
         $('#applyFilter').on('click', function() {
             dataTable.ajax.reload();
+            const modalEl = document.getElementById('reportFilterModal');
+            if (modalEl) {
+                bootstrap.Modal.getInstance(modalEl)?.hide();
+            }
         });
 
         $('#clearFilter').on('click', function() {
             $('#reportFilterForm')[0].reset();
-            $('.form-select').val(null).trigger('change');
+            $('#reportFilterModal .form-select').val(null).trigger('change');
             $('#saleDateRange').val('');
             $('#productPurchaseReportMode').val('detail');
             dataTable.ajax.url(apiUrl).load();

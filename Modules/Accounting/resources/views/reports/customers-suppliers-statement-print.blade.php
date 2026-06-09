@@ -5,7 +5,7 @@
     <title>{{ __('accounting::lang.customers_and_suppliers_statement_of_account_report') }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #111827; margin: 0; padding: 0; }
-        .header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #1B84FF; padding-bottom: 8px; }
+        .header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #e9b71f; padding-bottom: 8px; }
         .header h1 { font-size: 16px; margin: 0 0 4px; }
         .header h2 { font-size: 13px; margin: 0; font-weight: normal; color: #4b5563; }
         .meta { margin: 8px 0; font-size: 10px; }

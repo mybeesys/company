@@ -157,7 +157,12 @@ return [
 
     // Reports
     'total_expense' => 'Total Expense',
-    'register_report_details' => 'View details of register report',
+    'register_report_details' => 'View cash register sessions with payment totals by method',
+    'register_transactions' => 'Register transactions',
+    'transaction_date' => 'Date & time',
+    'transaction_type' => 'Transaction type',
+    'amount' => 'Amount',
+    'no_register_transactions' => 'No transactions recorded for this register',
 
     // Sales comparison (two periods)
     'qty_period_a' => 'Qty',

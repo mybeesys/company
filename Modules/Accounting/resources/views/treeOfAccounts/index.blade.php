@@ -17,7 +17,7 @@
 
         .jstree-default .jstree-search {
             font-style: oblique !important;
-            color: #1b84ff !important;
+            color: var(--bs-primary) !important;
             font-weight: 700 !important;
         }
 
@@ -26,13 +26,13 @@
         }
 
         .jstree-default .jstree-clicked {
-            background: #beebff2e !important;
+            background: rgba(233, 183, 31, 0.18) !important;
             border-radius: 8px !important;
             box-shadow: none !important;
         }
 
         .jstree-default .jstree-anchor .jstree-hovered {
-            background: #beebff2e !important;
+            background: rgba(233, 183, 31, 0.18) !important;
             border-radius: 8px !important;
             box-shadow: none !important;
         }

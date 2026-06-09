@@ -1200,8 +1200,8 @@ class ReportTransactionsUtile
             $label = $isAr ? 'إلى المخزون' : 'To stock';
             $title = $isAr ? 'حركة واردة إلى المخزون' : 'Incoming stock movement';
             $icon = 'bi-box-arrow-in-down-left';
-            $color = '#059669';
-            $iconBg = '#d1fae5';
+            $color = '#946f11';
+            $iconBg = '#fdf6e3';
         }
 
         return self::inventoryTableIconBadge($label, $icon, $color, $iconBg, $title);
@@ -1226,46 +1226,46 @@ class ReportTransactionsUtile
                 'ar' => 'تحويل',
                 'en' => 'Transfer',
                 'icon' => 'bi-arrow-left-right',
-                'bg' => '#eef6ff',
-                'color' => '#0284c7',
-                'border' => '#bae6fd',
-                'iconBg' => '#dbeafe',
+                'bg' => '#fdf6e3',
+                'color' => '#c99a19',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
             ],
             'purchases' => [
                 'ar' => 'شراء',
                 'en' => 'Purchase',
                 'icon' => 'bi-bag-plus',
                 'bg' => '#fff7ed',
-                'color' => '#ea580c',
-                'border' => '#fed7aa',
-                'iconBg' => '#ffedd5',
+                'color' => '#b88816',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
             ],
             'prep' => [
                 'ar' => 'تحضير',
                 'en' => 'Prepare',
                 'icon' => 'bi-gear-wide-connected',
-                'bg' => '#faf5ff',
-                'color' => '#7c3aed',
-                'border' => '#e9d5ff',
-                'iconBg' => '#f3e8ff',
+                'bg' => '#fdf6e3',
+                'color' => '#946f11',
+                'border' => '#eed592',
+                'iconBg' => '#f5e6b8',
             ],
             'sell' => [
                 'ar' => 'بيع',
                 'en' => 'Sale',
                 'icon' => 'bi-cart-check',
-                'bg' => '#eff6ff',
-                'color' => '#2563eb',
-                'border' => '#bfdbfe',
-                'iconBg' => '#dbeafe',
+                'bg' => '#fdf6e3',
+                'color' => '#e9b71f',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
             ],
             'purchases-return' => [
                 'ar' => 'إرجاع مشتريات',
                 'en' => 'Purchase Return',
                 'icon' => 'bi-arrow-return-left',
-                'bg' => '#f5f3ff',
-                'color' => '#7c3aed',
-                'border' => '#ddd6fe',
-                'iconBg' => '#ede9fe',
+                'bg' => '#fdf6e3',
+                'color' => '#b88816',
+                'border' => '#eed592',
+                'iconBg' => '#f5e6b8',
             ],
             'sell-return' => [
                 'ar' => 'إرجاع مبيعات',
@@ -1280,10 +1280,10 @@ class ReportTransactionsUtile
                 'ar' => 'المخزون الافتتاحي',
                 'en' => 'Opening Balance',
                 'icon' => 'bi-bookmark-star',
-                'bg' => '#ecfdf5',
-                'color' => '#059669',
-                'border' => '#bbf7d0',
-                'iconBg' => '#d1fae5',
+                'bg' => '#fdf6e3',
+                'color' => '#946f11',
+                'border' => '#eed592',
+                'iconBg' => '#f8efcf',
             ],
         ];
 
@@ -1408,10 +1408,10 @@ class ReportTransactionsUtile
                     return '---'; //
                 }
 
-                return '<a href="'.route('product-movement-report', [
+                return '<a href="'.route('Product-Stock-Report', [
                     'product_id' => $row->product_id,
                     'establishment_id' => $row->establishment_id,
-                ]).'" class="btn btn-primary">'.__('menuItemLang.product-movement-report').'</a>';
+                ]).'" class="btn btn-primary">'.__('menuItemLang.product-inventory').'</a>';
             })
 
             ->rawColumns(['sku', 'product_name', 'establishment_name', 'opening_inventory', 'purchased_quantity', 'sales_quantity', 'waste', 'purchase_returns', 'transferred_quantity', 'production_quantity', 'counted_quantity', 'quantity_on_inventory', 'actions'])

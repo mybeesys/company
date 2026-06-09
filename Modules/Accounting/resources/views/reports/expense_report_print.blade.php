@@ -6,7 +6,7 @@
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #111827; }
         h2 { margin: 0 0 6px; font-size: 15px; }
-        h3 { margin: 12px 0 6px; font-size: 12px; color: #1B84FF; }
+        h3 { margin: 12px 0 6px; font-size: 12px; color: #e9b71f; }
         .summary { margin: 8px 0; padding: 8px; border: 1px solid #DBDFE9; }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th, td { border: 1px solid #DBDFE9; padding: 4px 5px; }

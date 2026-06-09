@@ -44,6 +44,7 @@ return [
     'Device' => 'الجهاز',
     'product-inventory-summary_details' => 'عرض تقرير مفصل عن رصيد مخزون المنتجات',
     'product_movement_report_details' => 'عرض حركات صنف محدد في فرع معيّن مع ملخص المخزون',
+    'product_stock_report_details' => 'تقرير مخزون صنف واحد: ملخص الكميات والحركات التفصيلية حسب الفرع',
     'select_product_and_branch' => 'اختر الصنف والفرع لعرض تقرير الحركة',
     'stock_deficit' => 'عجز مخزني',
     'current_balance' => 'رصيد حالي',

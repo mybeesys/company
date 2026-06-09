@@ -57,6 +57,18 @@ class AccountingAccountsTransaction extends Model
     }
 
     /**
+     * Human-readable reference for ledger / cost-center reports (journal ref, invoice ref, or payment ref).
+     */
+    public function displayRefNo(): string
+    {
+        $ref = $this->accTransMapping?->ref_no
+            ?? $this->transaction?->ref_no
+            ?? $this->transactionPayments?->payment_ref_no;
+
+        return $ref ? (string) $ref : '—';
+    }
+
+    /**
      * URL to open the originating document for this ledger line (invoice, payment receipt, standalone voucher, manual journal).
      */
     public function ledgerDetailUrl(): ?string

@@ -1,0 +1,263 @@
+/**
+ * Brand primary theme — logo gold (#e9b71f) system-wide override.
+ * Loaded after style.bundle.css
+ */
+:root,
+[data-bs-theme="light"] {
+    --bs-primary: #e9b71f;
+    --bs-primary-rgb: 233, 183, 31;
+    --bs-primary-text-emphasis: #5e490f;
+    --bs-primary-bg-subtle: #f8efcf;
+    --bs-primary-border-subtle: #eed592;
+
+    --bs-link-color: #b88816;
+    --bs-link-color-rgb: 184, 136, 22;
+    --bs-link-hover-color: #946f11;
+    --bs-link-hover-color-rgb: 148, 111, 17;
+
+    --bs-primary-active: #d1a41b;
+    --bs-primary-light: #fdf6e3;
+    --bs-primary-inverse: #1E2129;
+    --bs-primary-clarity: rgba(233, 183, 31, 0.2);
+
+    --bs-text-primary: #c99a19;
+
+    --bs-component-active-bg: #e9b71f;
+    --bs-component-active-color: #1E2129;
+    --bs-component-hover-color: #c99a19;
+    --bs-component-checked-bg: #e9b71f;
+    --bs-component-checked-color: #1E2129;
+
+    --bs-nav-pills-link-active-bg: #e9b71f;
+    --bs-nav-pills-link-active-color: #1E2129;
+    --bs-progress-bar-bg: #e9b71f;
+
+    --bs-menu-link-color-hover: #e9b71f;
+    --bs-menu-link-color-show: #e9b71f;
+    --bs-menu-link-color-here: #e9b71f;
+    --bs-menu-link-color-active: #e9b71f;
+    --bs-ribbon-label-bg: #e9b71f;
+}
+
+[data-bs-theme="dark"] {
+    --bs-primary: #e9b71f;
+    --bs-primary-rgb: 233, 183, 31;
+    --bs-primary-text-emphasis: #f5d98a;
+    --bs-primary-bg-subtle: #2d2819;
+    --bs-primary-border-subtle: #5c4d14;
+
+    --bs-link-color: #e9b71f;
+    --bs-link-color-rgb: 233, 183, 31;
+    --bs-link-hover-color: #f0c432;
+    --bs-link-hover-color-rgb: 240, 196, 50;
+
+    --bs-primary-active: #f0c432;
+    --bs-primary-light: #2d2819;
+    --bs-primary-inverse: #1E2129;
+    --bs-primary-clarity: rgba(233, 183, 31, 0.2);
+
+    --bs-text-primary: #e9b71f;
+
+    --bs-component-active-bg: #e9b71f;
+    --bs-component-active-color: #1E2129;
+    --bs-component-hover-color: #e9b71f;
+    --bs-component-checked-bg: #e9b71f;
+    --bs-component-checked-color: #1E2129;
+
+    --bs-menu-link-color-hover: #e9b71f;
+    --bs-menu-link-color-show: #e9b71f;
+    --bs-menu-link-color-here: #e9b71f;
+    --bs-menu-link-color-active: #e9b71f;
+    --bs-nav-pills-link-active-bg: #e9b71f;
+    --bs-nav-pills-link-active-color: #1E2129;
+}
+
+.btn-primary {
+    --bs-btn-color: #1E2129;
+    --bs-btn-bg: #e9b71f;
+    --bs-btn-border-color: #e9b71f;
+    --bs-btn-hover-color: #1E2129;
+    --bs-btn-hover-bg: #d1a41b;
+    --bs-btn-hover-border-color: #c79a19;
+    --bs-btn-focus-shadow-rgb: 233, 183, 31;
+    --bs-btn-active-color: #1E2129;
+    --bs-btn-active-bg: #c79a19;
+    --bs-btn-active-border-color: #b88f17;
+    --bs-btn-disabled-color: #1E2129;
+    --bs-btn-disabled-bg: #e9b71f;
+    --bs-btn-disabled-border-color: #e9b71f;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #c99a19;
+    --bs-btn-border-color: #e9b71f;
+    --bs-btn-hover-color: #1E2129;
+    --bs-btn-hover-bg: #e9b71f;
+    --bs-btn-hover-border-color: #e9b71f;
+    --bs-btn-active-color: #1E2129;
+    --bs-btn-active-bg: #d1a41b;
+    --bs-btn-active-border-color: #d1a41b;
+    --bs-btn-disabled-color: #c99a19;
+    --bs-btn-disabled-border-color: #e9b71f;
+}
+
+.btn-light-primary {
+    color: #c99a19;
+    border-color: #eed592;
+    background-color: #fdf6e3;
+}
+
+.btn-light-primary:hover,
+.btn-light-primary:focus,
+.btn-light-primary:active {
+    color: #1E2129 !important;
+    border-color: #e9b71f !important;
+    background-color: #f8efcf !important;
+}
+
+.menu-state-bg-light-primary .menu-item .menu-link.active {
+    background-color: #fdf6e3;
+    color: #c99a19;
+}
+
+.menu-state-bg-light-primary .menu-item .menu-link:hover:not(.disabled):not(.active) {
+    background-color: #f8efcf;
+    color: #b88816;
+}
+
+.text-hover-primary:hover {
+    color: #c99a19 !important;
+}
+
+.btn-active-color-primary.active,
+.btn-active-color-primary:hover,
+.btn-active-color-primary:focus {
+    color: #c99a19 !important;
+}
+
+.form-check-input:checked,
+.form-switch .form-check-input:checked,
+.form-check.form-check-solid .form-check-input:checked {
+    background-color: #e9b71f !important;
+    border-color: #e9b71f !important;
+}
+
+.form-check-input[type=checkbox]:indeterminate,
+.form-check.form-check-solid .form-check-input[type=checkbox]:indeterminate {
+    background-color: #e9b71f !important;
+    border-color: #e9b71f !important;
+}
+
+.form-check-input:focus {
+    border-color: #e9b71f;
+    box-shadow: 0 0 0 0.25rem rgba(233, 183, 31, 0.25);
+}
+
+.page-item.active .page-link {
+    background-color: #e9b71f;
+    border-color: #e9b71f;
+    color: #1E2129;
+}
+
+.page-link {
+    color: #c99a19;
+}
+
+.page-link:hover {
+    color: #946f11;
+}
+
+.select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--highlighted {
+    background-color: #fdf6e3;
+    color: #1E2129;
+}
+
+.select2-container--bootstrap5 .select2-dropdown .select2-results__option.select2-results__option--selected {
+    background-color: #e9b71f;
+    color: #1E2129;
+}
+
+.progress-bar.bg-primary {
+    background-color: #e9b71f !important;
+}
+
+.badge-light-primary {
+    color: #c99a19;
+    background-color: #fdf6e3;
+}
+
+.symbol-label.bg-light-primary {
+    background-color: #fdf6e3 !important;
+}
+
+.alert-primary {
+    --bs-alert-color: #5e490f;
+    --bs-alert-bg: #f8efcf;
+    --bs-alert-border-color: #eed592;
+}
+
+.app-sidebar .menu-link.active {
+    color: var(--bs-primary);
+}
+
+.app-sidebar .menu-link.active .menu-title,
+.app-sidebar .menu-link.active .menu-icon,
+.app-sidebar .menu-link.active .menu-icon i {
+    color: var(--bs-primary);
+}
+
+.app-sidebar .menu-link.active {
+    background-color: var(--bs-primary-light);
+}
+
+/* Product module & detail pages — nav-line-tabs (React re-imports style.bundle) */
+.nav-line-tabs .nav-item .nav-link.active,
+.nav-line-tabs .nav-item.show .nav-link,
+.nav-line-tabs .nav-item .nav-link:hover:not(.disabled) {
+    border-bottom-color: var(--bs-primary) !important;
+}
+
+.app-sidebar .menu-sub .menu-link.active {
+    color: var(--bs-primary);
+    background-color: var(--bs-primary-light);
+}
+
+.app-sidebar .menu-sub .menu-link.active .menu-title,
+.app-sidebar .menu-sub .menu-link.active .menu-icon,
+.app-sidebar .menu-sub .menu-link.active .menu-icon i {
+    color: var(--bs-primary);
+}
+
+/* nav-pills — bundle sets --bs-nav-pills-link-active-bg on .nav-pills class */
+.nav-pills {
+    --bs-nav-pills-link-active-bg: #e9b71f !important;
+    --bs-nav-pills-link-active-color: #1E2129 !important;
+}
+
+.nav-tabs.nav-pills .nav-link.active,
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    background-color: #e9b71f !important;
+    border-color: #e9b71f !important;
+    color: #1E2129 !important;
+}
+
+/* PrimeReact InputSwitch */
+.p-inputswitch.p-highlight .p-inputswitch-slider {
+    background: #e9b71f !important;
+}
+
+.p-inputswitch:not(.p-disabled):has(.p-inputswitch-input:hover).p-highlight .p-inputswitch-slider {
+    background: #d1a41b !important;
+}
+
+/* jsTree (chart of accounts, settings trees) */
+.jstree-default .jstree-search {
+    color: var(--bs-primary) !important;
+}
+
+.jstree-default .jstree-clicked,
+.jstree-default .jstree-hovered,
+.jstree-default .jstree-anchor.jstree-hovered {
+    background: rgba(233, 183, 31, 0.18) !important;
+}

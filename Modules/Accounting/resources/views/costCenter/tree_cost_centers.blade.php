@@ -47,12 +47,14 @@
                                     <ul class="dropdown-menu dropdown-menu-left"
                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
                                         style="padding: 8px 15px;">
-                                        <li><a class="ledger-link"
-                                                href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
-                                                style="margin: 2px;">
-                                                <i class="fas fa-file-alt"></i><span
-                                                    style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
-                                        </li>
+                                        @if ($costCenter->isLeaf())
+                                            <li><a class="ledger-link"
+                                                    href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
+                                                    style="margin: 2px;">
+                                                    <i class="fas fa-file-alt"></i><span
+                                                        style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
+                                            </li>
+                                        @endif
                                         <li>
                                             <a class="btn-xs btn-default text-primary" style="margin: 2px;"
                                                 onclick="setCostCenter({{ $costCenter }})" data-bs-toggle="modal"
@@ -126,12 +128,14 @@
                                     <ul class="dropdown-menu dropdown-menu-left"
                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
                                         style="padding: 8px 15px;">
-                                        <li><a class="ledger-link"
-                                                href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
-                                                style="margin: 2px;">
-                                                <i class="fas fa-file-alt"></i><span
-                                                    style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
-                                        </li>
+                                        @if ($costCenter->isLeaf())
+                                            <li><a class="ledger-link"
+                                                    href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
+                                                    style="margin: 2px;">
+                                                    <i class="fas fa-file-alt"></i><span
+                                                        style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
+                                            </li>
+                                        @endif
                                         <li>
                                             <a class="btn-xs btn-default text-primary" style="margin: 2px;"
                                                 onclick="setCostCenter({{ $costCenter }})" data-bs-toggle="modal"

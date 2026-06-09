@@ -1,57 +1,40 @@
-<div class="row">
-    <div class="col-sm-12">
-        <table class="table table-condensed">
+@php
+    $paymentRows = [];
+    foreach ($payment_types as $method) {
+        $saleField = 'total_'.$method->name_en;
+        $refundField = 'total_'.$method->name_en.'_refund';
+        $paymentRows[] = [
+            'label' => app()->getLocale() === 'ar' ? $method->name_ar : $method->name_en,
+            'sale' => (float) ($register_details->$saleField ?? 0),
+            'refund' => (float) ($register_details->$refundField ?? 0),
+        ];
+    }
+@endphp
+
+<div class="table-responsive">
+    <table class="table table-row-bordered table-hover align-middle rr-detail-table">
+        <thead>
             <tr>
                 <th>@lang('report::fields.payment_method')</th>
-                <th>@lang('report::fields.sale')</th>
-                {{-- <th>@lang('report::fields.expense')</th> --}}
-                <th>@lang('report::fields.refund')</th>
+                <th class="text-end">@lang('report::fields.sale')</th>
+                <th class="text-end">@lang('report::fields.refund')</th>
             </tr>
-
-            @foreach($payment_types as $method)
-                @php
-                    $sale_field = 'total_' . $method->name_en;
-                    $expense_field = 'total_' . $method->name_en . '_expense';
-                    $refund_field = 'total_' . $method->name_en . '_refund';
-                @endphp
+        </thead>
+        <tbody>
+            @foreach ($paymentRows as $row)
                 <tr>
-                    <td>{{ $method->name_ar }}</td>
-                    <td>
-                        <span class="display_currency" data-currency_symbol="true">
-                            {{ $register_details->$sale_field ?? 0 }}
-                        </span>
-                    </td>
-                    {{-- <td>
-                        <span class="display_currency" data-currency_symbol="true">
-                            {{ $register_details->$expense_field ?? 0 }}
-                        </span>
-                    </td> --}}
-                    <td>
-                        <span class="display_currency" data-currency_symbol="true">
-                            {{ $register_details->$refund_field ?? 0 }}
-                        </span>
-                    </td>
+                    <td class="fw-semibold text-gray-800">{{ $row['label'] }}</td>
+                    <td class="text-end">@format_currency($row['sale'])</td>
+                    <td class="text-end">@format_currency($row['refund'])</td>
                 </tr>
             @endforeach
-
-            <tr class="success">
+        </tbody>
+        <tfoot>
+            <tr>
                 <th>@lang('report::fields.total')</th>
-                <td>
-                    <span class="display_currency" data-currency_symbol="true">
-                        {{ $register_details->total_sale ?? 0 }}
-                    </span>
-                </td>
-                <td>
-                    <span class="display_currency" data-currency_symbol="true">
-                        {{ $register_details->total_expense ?? 0 }}
-                    </span>
-                </td>
-                <td>
-                    <span class="display_currency" data-currency_symbol="true">
-                        {{ $register_details->total_refund ?? 0 }}
-                    </span>
-                </td>
+                <th class="text-end">@format_currency($register_details->total_sale ?? 0)</th>
+                <th class="text-end">@format_currency($register_details->total_refund ?? 0)</th>
             </tr>
-        </table>
-    </div>
+        </tfoot>
+    </table>
 </div>

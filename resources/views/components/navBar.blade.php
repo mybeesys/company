@@ -450,9 +450,9 @@
 
     .user-shortcut-item:hover {
         transform: translateY(-1px);
-        border-color: #d6e4ff;
-        background: #eef4ff;
-        color: #0d6efd;
+        border-color: #eed592;
+        background: #fdf6e3;
+        color: #c99a19;
     }
 
     .user-shortcut-item::after {

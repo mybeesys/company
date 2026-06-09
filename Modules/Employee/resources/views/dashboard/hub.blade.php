@@ -45,8 +45,8 @@
             margin: 0;
         }
         .dashboard-hub-tabs .nav-link.active {
-            background: #eef6ff;
-            color: #1b84ff;
+            background: var(--bs-primary-light);
+            color: var(--bs-primary);
         }
         .dashboard-hub-tabs .nav-link:not(.active):hover {
             background: #f8f9fc;

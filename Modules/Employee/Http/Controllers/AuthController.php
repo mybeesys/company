@@ -45,7 +45,9 @@ class AuthController extends Controller
 
         session()->regenerate();
 
-        return to_route('dashboard')->with('success', __('employee::responses.logged_in_successfully'));
+        return to_route('dashboard')
+            ->with('show_post_login_splash', true)
+            ->with('success', __('employee::responses.logged_in_successfully'));
     }
 
     public function logout(Request $request)

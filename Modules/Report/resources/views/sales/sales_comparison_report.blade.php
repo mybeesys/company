@@ -218,7 +218,7 @@
     }
 
     .sc-table-search-pill:focus-within {
-        border-color: #009ef7;
+        border-color: var(--bs-primary);
         box-shadow: 0 0 0 3px rgba(0, 158, 247, 0.12);
         background: #fff;
     }

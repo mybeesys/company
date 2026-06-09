@@ -448,7 +448,7 @@
                         series: [{ name: @json(__('accounting::lang.css_running_balance')), data: cssBalanceTrend.balances }],
                         xaxis: { categories: cssBalanceTrend.labels },
                         stroke: { curve: 'smooth', width: 3 },
-                        colors: ['#1B84FF'],
+                        colors: ['#e9b71f'],
                         yaxis: { labels: { formatter: (v) => formatChartAmount(v) } },
                         tooltip: { y: { formatter: (v) => formatChartAmount(v) + ' ' + currencyLabel } },
                     }).render();
@@ -462,7 +462,7 @@
                             { name: @json(__('accounting::lang.css_cat_payments')), data: cssBarChart.payments },
                         ],
                         xaxis: { categories: cssBarChart.labels },
-                        colors: ['#1B84FF', '#17C653'],
+                        colors: ['#e9b71f', '#17C653'],
                         plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
                         tooltip: { y: { formatter: (v) => formatChartAmount(v) + ' ' + currencyLabel } },
                     }).render();

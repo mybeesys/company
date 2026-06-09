@@ -2042,80 +2042,25 @@ class SalesReportController extends Controller
     public function getPurchaseSell(Request $request)
     {
         $transactionUtile = new TransactionUtile;
+        $dates = TransactionUtile::parseDateRangeFromRequest($request);
+        $establishmentIds = collect($request->input('branch_id'))->filter()->values()->all();
 
-        // Return the details in ajax call
+        $data = $transactionUtile->getPurchaseSellDetails(
+            $dates['start'],
+            $dates['end'],
+            $establishmentIds ?: null
+        );
+
+        $defaultDateRange = TransactionUtile::defaultDateRange();
+        $defaultDateRangeLabel = $dates['start'] && $dates['end']
+            ? $dates['start'].(app()->getLocale() === 'ar' ? ' إلى ' : ' to ').$dates['end']
+            : null;
+
         if ($request->ajax()) {
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            $location_id = $request->get('location_id');
-
-            // return $request->date_range;
-            $dueDateRange = trim($request->date_range);
-            $dates = explode(' إلى ', $dueDateRange);
-            if ($request->date_range) {
-                $start_date = $dates[0];
-                $end_date = $dates[1];
-            }
-
-            $purchase_details = $transactionUtile->getPurchaseTotals($start_date, $end_date, $location_id);
-            $sell_details = $transactionUtile->getSellTotals($start_date, $end_date, $location_id);
-
-            $transaction_types = [
-                'purchases-return',
-                'sell-return',
-            ];
-
-            $transaction_totals = $transactionUtile->getTransactionTotals(
-                $transaction_types,
-                $start_date,
-                $end_date,
-                $location_id
-            );
-
-            $total_purchase_return_inc_tax = $transaction_totals['total_purchase_return_inc_tax'];
-            $total_sell_return_inc_tax = $transaction_totals['total_sell_return_inc_tax'];
-
-            $purchase_data = '
-            <tr>
-                <td>'.__('report::general.total_purchase_inc_tax').'</td>
-                <td>'.($purchase_details['total_purchase_inc_tax'] ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.total_purchase_return').'</td>
-                <td>'.($total_purchase_return_inc_tax ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.purchase_due').'</td>
-                <td>'.($purchase_details['purchase_due'] ?? 0).'</td>
-            </tr>';
-
-            $sales_data = '
-            <tr>
-                <td>'.__('report::general.total_sell_inc_tax').'</td>
-                <td>'.($sell_details['total_sell_inc_tax'] ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.total_sell_return').'</td>
-                <td>'.($total_sell_return_inc_tax ?? 0).'</td>
-            </tr>
-            <tr>
-                <td>'.__('report::general.invoice_due').'</td>
-                <td>'.($sell_details['invoice_due'] ?? 0).'</td>
-            </tr>';
-
-            $difference = [
-                'total' => $sell_details['total_sell_inc_tax'] - $total_sell_return_inc_tax - ($purchase_details['total_purchase_inc_tax'] - $total_purchase_return_inc_tax),
-                'due' => $sell_details['invoice_due'] - $purchase_details['purchase_due'],
-            ];
-
-            return response()->json([
-                'purchase_data' => $purchase_data,
-                'sales_data' => $sales_data,
-                'difference' => $difference,
-            ]);
+            return view('report::sales.purchase_sell_details', compact('data'))->render();
         }
 
-        return view('report::sales.purchase_sell');
+        return view('report::sales.purchase_sell', compact('data', 'defaultDateRange', 'defaultDateRangeLabel'));
     }
 
     public function getProfit(Request $request, $by = null)
@@ -2399,9 +2344,24 @@ class SalesReportController extends Controller
 
     public function productMovementReport(Request $request)
     {
+        // Temporarily hidden — redirect to Product-Stock-Report (same data, active UI).
+        if ($request->filled('branch_id') && ! $request->filled('establishment_id')) {
+            $request->merge(['establishment_id' => $request->input('branch_id')]);
+        }
+
+        return redirect()->route('Product-Stock-Report', array_filter([
+            'product_id' => $request->input('product_id'),
+            'establishment_id' => $request->input('establishment_id'),
+        ]));
+    }
+
+    private function renderProductInventoryDetailReport(
+        Request $request,
+        string $view,
+        int $productId,
+        int $establishmentId
+    ) {
         $transactionUtile = new ReportTransactionsUtile;
-        $productId = (int) $request->input('product_id');
-        $establishmentId = (int) $request->input('establishment_id');
 
         if ($request->ajax()) {
             if ($productId <= 0 || $establishmentId <= 0) {
@@ -2422,7 +2382,7 @@ class SalesReportController extends Controller
             )
             : $transactionUtile->emptyProductInventorySummaryMetrics();
 
-        return view('report::sales.product_movement_report', compact(
+        return view($view, compact(
             'columns',
             'productId',
             'establishmentId',
@@ -2434,7 +2394,7 @@ class SalesReportController extends Controller
     public function productInventoryRecord(Request $request, $product_id, $establishment_id)
     {
         if (! $request->ajax()) {
-            return redirect()->route('product-movement-report', [
+            return redirect()->route('Product-Stock-Report', [
                 'product_id' => $product_id,
                 'establishment_id' => $establishment_id,
             ]);
@@ -2445,151 +2405,16 @@ class SalesReportController extends Controller
 
     public function productStockReport(Request $request)
     {
-        $productId = $request->product_id ?: Product::orderBy('id', 'asc')->first()?->id;
-        if (! $productId) {
-            return response()->json(['error' => 'No products found'], 404);
+        if ($request->filled('branch_id') && ! $request->filled('establishment_id')) {
+            $request->merge(['establishment_id' => $request->input('branch_id')]);
         }
 
-        $currentProduct = Product::find($productId);
-        $previousProduct = Product::where('id', '<', $productId)->orderBy('id', 'desc')->first();
-        $nextProduct = Product::where('id', '>', $productId)->orderBy('id', 'asc')->first();
-
-        $main_establishment = Establishment::notMain()->active()->first();
-        $establishmentId = $request->branch_id ?: $main_establishment->id;
-
-        $from = $request->from ? date('Y-m-d', strtotime($request->from)) : '1900-01-01';
-        $to = $request->to ? date('Y-m-d', strtotime($request->to)) : now();
-
-        $purchases = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
-            ->where('transactione_purchases_lines.product_id', $productId)
-            ->where('t.type', 'purchases')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transactione_purchases_lines.qyt');
-
-        $salesReturn = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
-            ->where('transactione_purchases_lines.product_id', $productId)
-            ->where('t.type', 'sell-return')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transactione_purchases_lines.qyt');
-
-        $transferIn = TransactionePurchasesLine::join('transactions as t', 'transactione_purchases_lines.transaction_id', '=', 't.id')
-            ->where('transactione_purchases_lines.product_id', $productId)
-            ->where('t.type', 'TRANSFER')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereNotNull('t.parent_id')
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transactione_purchases_lines.qyt');
-
-        $totalIn = $purchases + $salesReturn + $transferIn;
-
-        $sales = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'sell')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $damaged = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'damaged')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $purchaseReturn = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'purchases-return')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $transferOut = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
-            ->where('transaction_sell_lines.product_id', $productId)
-            ->where('t.type', 'TRANSFER')
-            ->whereNull('t.parent_id')
-            ->where('t.establishment_id', $establishmentId)
-            ->whereBetween('t.transaction_date', [$from, $to])
-            ->sum('transaction_sell_lines.qyt');
-
-        $totalOut = $sales + $damaged + $purchaseReturn + $transferOut;
-
-        $currentStock = $totalIn - $totalOut;
-
-        $movements = [];
-
-        $allPurchases = TransactionePurchasesLine::with('transaction')->where('product_id', $productId)
-            ->whereHas('transaction', fn ($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
-            ->get();
-
-        $stockQty = 0;
-        foreach ($allPurchases as $p) {
-            $qty = in_array($p->transaction->type, ['sell-return', 'purchases-return']) ? -$p->qyt : $p->qyt;
-            $stockQty += $qty;
-            $movements[] = [
-                'type' => ucfirst($p->transaction->type),
-                'change_qty' => $qty,
-                'new_qty' => $stockQty,
-                'transaction_date' => $p->transaction->transaction_date,
-                'ref_no' => $p->transaction->ref_no,
-                'entity' => $p->transaction->client?->name ?? '--',
-            ];
-        }
-
-        $allSales = TransactionSellLine::with('transaction')->where('product_id', $productId)
-            ->whereHas('transaction', fn ($q) => $q->where('establishment_id', $establishmentId)->whereBetween('transaction_date', [$from, $to]))
-            ->get();
-
-        foreach ($allSales as $s) {
-            $qty = in_array($s->transaction->type, ['sell', 'damaged', 'TRANSFER']) ? -$s->qyt : $s->qyt;
-            $stockQty += $qty;
-            $movements[] = [
-                'type' => ucfirst($s->transaction->type),
-                'change_qty' => $qty,
-                'new_qty' => $stockQty,
-                'transaction_date' => $s->transaction->transaction_date,
-                'ref_no' => $s->transaction->ref_no,
-                'entity' => $s->transaction->client?->name ?? '--',
-            ];
-        }
-
-        usort($movements, fn ($a, $b) => strtotime($b['transaction_date']) <=> strtotime($a['transaction_date']));
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'currentProduct' => $currentProduct,
-                'currentStock' => $currentStock,
-                'totalIn' => $totalIn,
-                'totalOut' => $totalOut,
-                'purchases' => $purchases,
-                'salesReturn' => $salesReturn,
-                'transferIn' => $transferIn,
-                'sales' => $sales,
-                'damaged' => $damaged,
-                'purchaseReturn' => $purchaseReturn,
-                'transferOut' => $transferOut,
-                'movements' => $movements,
-            ]);
-        }
-
-        return view('report::sales.productStockReport', compact(
-            'currentProduct',
-            'currentStock',
-            'totalIn',
-            'totalOut',
-            'purchases',
-            'salesReturn',
-            'transferIn',
-            'sales',
-            'damaged',
-            'purchaseReturn',
-            'transferOut',
-            'movements',
-            'previousProduct',
-            'nextProduct'
-        ));
+        return $this->renderProductInventoryDetailReport(
+            $request,
+            'report::sales.productStockReport',
+            (int) $request->input('product_id'),
+            (int) $request->input('establishment_id')
+        );
     }
 
     public function getRegisterReport(Request $request)
@@ -2600,33 +2425,64 @@ class SalesReportController extends Controller
 
         $registers = $this->registerReport($start_date, $end_date, $user_id);
 
-        if ($request->ajax()) {
-            return Datatables::of($registers)
+        if ($request->ajax() || $request->has('draw')) {
+            return DataTables::of($registers)
+                ->editColumn('created_at', function ($row) {
+                    $createdAt = data_get($row, 'created_at');
+
+                    return $createdAt
+                        ? Carbon::parse($createdAt)->format('d/m/Y h:i A')
+                        : '—';
+                })
+                ->editColumn('closed_at', function ($row) {
+                    $closedAt = data_get($row, 'closed_at');
+
+                    return $closedAt
+                        ? Carbon::parse($closedAt)->format('d/m/Y h:i A')
+                        : '—';
+                })
+                ->editColumn('status', function ($row) {
+                    $isOpen = data_get($row, 'status') === 'open';
+                    $label = $isOpen ? __('report::fields.open') : __('report::fields.close');
+                    $class = $isOpen ? 'badge-light-success' : 'badge-light-secondary';
+
+                    return '<span class="badge '.$class.'">'.$label.'</span>';
+                })
                 ->editColumn('total_card_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_card_payment'].'">'.$row['total_card_payment'].'</span>';
+                    $val = (float) data_get($row, 'total_card_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->editColumn('total_cheque_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_cheque_payment'].'">'.$row['total_cheque_payment'].'</span>';
+                    $val = (float) data_get($row, 'total_cheque_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->editColumn('total_cash_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_cash_payment'].'">'.$row['total_cash_payment'].'</span>';
+                    $val = (float) data_get($row, 'total_cash_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->editColumn('total_bank_transfer_payment', function ($row) {
-                    return '<span data-orig-value="'.$row['total_bank_transfer_payment'].'">'.$row['total_bank_transfer_payment'].'</span>';
-                })
-                ->editColumn('created_at', function ($row) {
-                    return $row['created_at'] ?? '';
+                    $val = (float) data_get($row, 'total_bank_transfer_payment', 0);
+
+                    return '<span class="rr-amount" data-orig-value="'.$val.'">'.number_format($val, 2).'</span>';
                 })
                 ->addColumn('total', function ($row) {
-                    $total = $row['total_cash_payment'] + $row['total_cheque_payment'] + $row['total_card_payment'] + $row['total_bank_transfer_payment'];
+                    $total = (float) data_get($row, 'total_cash_payment', 0)
+                        + (float) data_get($row, 'total_cheque_payment', 0)
+                        + (float) data_get($row, 'total_card_payment', 0)
+                        + (float) data_get($row, 'total_bank_transfer_payment', 0);
 
-                    return '<span data-orig-value="'.$total.'">'.$total.'</span>';
+                    return '<span class="rr-amount fw-bold" data-orig-value="'.$total.'">'.number_format($total, 2).'</span>';
                 })
                 ->addColumn('action', function ($row) {
-                    // return '';
-                    return '<a type="button" href="'.action([SalesReportController::class, 'show'], [$row['id']]).'" class="btn btn-info " >عرض</a>';
+                    return '<a href="'.url('Register-Report/'.data_get($row, 'id')).'" class="btn btn-sm btn-primary">'
+                        .e(__('employee::fields.show')).'</a>';
                 })
-                ->rawColumns(['total_card_payment', 'total_cheque_payment', 'total_cash_payment', 'total_bank_transfer_payment', 'total', 'action'])
+                ->orderColumn('location_name', 'location_name $1')
+                ->orderColumn('user_name', 'user_name $1')
+                ->rawColumns(['status', 'total_card_payment', 'total_cheque_payment', 'total_cash_payment', 'total_bank_transfer_payment', 'total', 'action', 'closed_at'])
                 ->make(true);
         }
 
@@ -2659,6 +2515,7 @@ class SalesReportController extends Controller
             'cash_registers.establishment_id',
             'cash_registers.status',
             'cash_registers.created_at',
+            'cash_registers.closed_at',
 
             DB::raw("MIN(CONCAT(
                 COALESCE(u.name, ''),
@@ -2680,7 +2537,9 @@ class SalesReportController extends Controller
                 'cash_registers.establishment_id',
                 'cash_registers.status',
                 'cash_registers.created_at',
-            ]);
+                'cash_registers.closed_at',
+            ])
+            ->orderByDesc('cash_registers.created_at');
 
         if (! empty(request()->input('register_user_id'))) {
             $registers->where('cash_registers.user_id', request()->input('register_user_id'));
@@ -2697,19 +2556,39 @@ class SalesReportController extends Controller
         return $registers;
     }
 
-    public function show($id)
+    protected function resolveRegisterDetailsViewData(int|string $id): array
     {
-
         $register_details = $this->getRegisterDetails($id);
         $user_id = $register_details->user_id;
         $open_time = $register_details['open_time'];
         $close_time = ! empty($register_details['closed_at']) ? $register_details['closed_at'] : Carbon::now()->toDateTimeString();
         $details = $this->getRegisterTransactionDetails($user_id, $open_time, $close_time);
-
         $payment_types = PaymentMethod::all();
+        $register_transactions = CashRegister::findOrFail($id)
+            ->cash_register_transactions()
+            ->orderByDesc('created_at')
+            ->get();
 
+        return compact('register_details', 'payment_types', 'details', 'close_time', 'register_transactions');
+    }
+
+    public function show($id)
+    {
         return view('report::report.register_details')
-            ->with(compact('register_details', 'payment_types', 'details', 'close_time'));
+            ->with($this->resolveRegisterDetailsViewData($id));
+    }
+
+    public function showPrint($id)
+    {
+        $data = $this->resolveRegisterDetailsViewData($id);
+        $cashRegister = CashRegister::findOrFail($id);
+        $denominations = $cashRegister->denominations ?? null;
+        if (is_string($denominations)) {
+            $denominations = json_decode($denominations, true) ?: null;
+        }
+        $data['denominations'] = $denominations;
+
+        return view('report::report.register_details_print')->with($data);
     }
 
     public function getRegisterDetails($register_id = null)
@@ -2745,6 +2624,7 @@ class SalesReportController extends Controller
             'cash_registers.user_id',
             'cash_registers.closing_note',
             'cash_registers.establishment_id',
+            'cash_registers.status',
 
             DB::raw("SUM(IF(transaction_type='initial', amount, 0)) as cash_in_hand"),
             DB::raw("SUM(IF(transaction_type='sell', amount, IF(transaction_type='refund', -1 * amount, 0))) as total_sale"),
@@ -2764,7 +2644,7 @@ class SalesReportController extends Controller
             'u.email',
             'bl.name as location_name'
         )
-            ->groupBy('cash_registers.id', 'cash_registers.created_at', 'cash_registers.closed_at', 'cash_registers.user_id', 'cash_registers.closing_note', 'cash_registers.establishment_id', 'u.name', 'u.name_en', 'u.email', 'bl.name')
+            ->groupBy('cash_registers.id', 'cash_registers.created_at', 'cash_registers.closed_at', 'cash_registers.user_id', 'cash_registers.closing_note', 'cash_registers.establishment_id', 'cash_registers.status', 'u.name', 'u.name_en', 'u.email', 'bl.name')
             ->first();
 
         return $register_details;
@@ -4229,8 +4109,18 @@ class SalesReportController extends Controller
                 't.transaction_date as transaction_date'
             )
             ->where(function ($query) {
-                $query->whereIn('t.type', ['purchases', 'waste', 'PREP', 'sell', 'purchases-return', 'sell-return', 'transfer', 'PO0'])
-                    ->where('t.status', 'approved');
+                $query->where(function ($subQuery) {
+                    $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
+                        ->where('t.status', 'approved');
+                })
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('t.type', 'TRANSFER')
+                            ->where(function ($q) {
+                                $q->where('t.transfer_status', 'partiallyReceived')
+                                    ->orWhere('t.transfer_status', 'fullyReceived');
+                            })
+                            ->where('t.status', 'approved');
+                    });
             });
 
         if ($request->has('process_type')) {

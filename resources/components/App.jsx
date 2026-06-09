@@ -137,9 +137,11 @@ const App = ({ nodeType, dir }) => {
             let transaltion = {};
             if (dir == "ltr") {
                 await import("./style.scss");
+                await import("./brand-override.scss");
                 transaltion = await import("./lang/en.json");
             } else {
                 await import("./style.rtl.scss");
+                await import("./brand-override.scss");
                 transaltion = await import("./lang/ar.json");
             }
             setTranslations(transaltion);

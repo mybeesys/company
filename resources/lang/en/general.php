@@ -36,4 +36,7 @@ return [
     'mark_as_read' => 'Mark as read',
     'subscriptions' => 'Subscription',
     'header_help_settings' => 'General settings & help',
+    'post_login_splash_welcome' => 'Welcome back',
+    'post_login_splash_app_name' => 'Khaliyat Integrated Systems',
+    'post_login_splash_message' => 'A unified platform for sales, purchases, inventory, and accounting — all your operations in one place.',
 ];

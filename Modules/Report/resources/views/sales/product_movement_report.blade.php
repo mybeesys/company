@@ -8,11 +8,17 @@
         --pmr-radius: 16px;
         --pmr-shadow: 0 10px 30px rgba(15, 23, 42, .06);
         --pmr-border: #eef1f6;
+        --pmr-brand: var(--bs-primary);
+        --pmr-brand-light: var(--bs-primary-light);
+        --pmr-brand-subtle: var(--bs-primary-bg-subtle, #f8efcf);
+        --pmr-brand-border: var(--bs-primary-border-subtle, #eed592);
+        --pmr-brand-dark: var(--bs-text-primary, #c99a19);
+        --pmr-brand-deep: #946f11;
     }
 
     .pmr-hero {
-        background: linear-gradient(135deg, #f8fafc 0%, #eef6ff 55%, #f0fdf4 100%);
-        border: 1px solid var(--pmr-border);
+        background: linear-gradient(135deg, #ffffff 0%, var(--pmr-brand-light) 52%, var(--pmr-brand-subtle) 100%);
+        border: 1px solid var(--pmr-brand-border);
         border-radius: var(--pmr-radius);
         padding: 1.5rem 1.75rem;
         box-shadow: var(--pmr-shadow);
@@ -24,12 +30,12 @@
         height: 52px;
         border-radius: 14px;
         background: #fff;
-        color: #009ef7;
+        color: var(--pmr-brand);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 1.45rem;
-        box-shadow: 0 8px 18px rgba(0, 158, 247, .15);
+        box-shadow: 0 8px 18px rgba(var(--bs-primary-rgb), .18);
         flex-shrink: 0;
     }
 
@@ -56,9 +62,9 @@
     }
 
     .pmr-empty {
-        border: 1px dashed #d8dee9;
+        border: 1px dashed var(--pmr-brand-border);
         border-radius: var(--pmr-radius);
-        background: #fbfcfe;
+        background: var(--pmr-brand-light);
         padding: 3rem 1.5rem;
         text-align: center;
     }
@@ -68,8 +74,8 @@
         height: 72px;
         margin: 0 auto 1rem;
         border-radius: 50%;
-        background: #eef6ff;
-        color: #009ef7;
+        background: var(--pmr-brand-subtle);
+        color: var(--pmr-brand);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -145,22 +151,22 @@
     }
 
     .pmr-metric--neutral .pmr-metric-icon { background: #f5f8fa; color: #7e8299; }
-    .pmr-metric--primary .pmr-metric-icon { background: #eef6ff; color: #009ef7; }
-    .pmr-metric--primary .pmr-metric-value { color: #009ef7; }
+    .pmr-metric--primary .pmr-metric-icon { background: var(--pmr-brand-light); color: var(--pmr-brand); }
+    .pmr-metric--primary .pmr-metric-value { color: var(--pmr-brand-dark); }
     .pmr-metric--danger .pmr-metric-icon { background: #fff5f8; color: #f1416c; }
     .pmr-metric--danger .pmr-metric-value { color: #f1416c; }
-    .pmr-metric--warning .pmr-metric-icon { background: #fff8dd; color: #f6b100; }
-    .pmr-metric--warning .pmr-metric-value { color: #f6b100; }
-    .pmr-metric--info .pmr-metric-icon { background: #f1faff; color: #7239ea; }
-    .pmr-metric--info .pmr-metric-value { color: #7239ea; }
-    .pmr-metric--success .pmr-metric-icon { background: #e8fff3; color: #50cd89; }
-    .pmr-metric--success .pmr-metric-value { color: #50cd89; }
+    .pmr-metric--warning .pmr-metric-icon { background: var(--pmr-brand-subtle); color: var(--pmr-brand-deep); }
+    .pmr-metric--warning .pmr-metric-value { color: var(--pmr-brand-deep); }
+    .pmr-metric--info .pmr-metric-icon { background: var(--pmr-brand-light); color: var(--pmr-brand-dark); }
+    .pmr-metric--info .pmr-metric-value { color: var(--pmr-brand-dark); }
+    .pmr-metric--success .pmr-metric-icon { background: var(--pmr-brand-subtle); color: var(--pmr-brand); }
+    .pmr-metric--success .pmr-metric-value { color: var(--pmr-brand); }
     .pmr-metric--dark .pmr-metric-icon { background: #f1f1f4; color: #3f4254; }
 
     .pmr-stock-hero {
         grid-column: 1 / -1;
-        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
-        border: 1px solid #bbf7d0;
+        background: linear-gradient(135deg, var(--pmr-brand-light) 0%, var(--pmr-brand-subtle) 100%);
+        border: 1px solid var(--pmr-brand-border);
         border-radius: 16px;
         padding: 1.25rem 1.5rem;
         display: flex;
@@ -168,7 +174,7 @@
         justify-content: space-between;
         gap: 1rem;
         flex-wrap: wrap;
-        box-shadow: 0 10px 28px rgba(80, 205, 137, .12);
+        box-shadow: 0 10px 28px rgba(var(--bs-primary-rgb), .14);
     }
 
     .pmr-stock-hero.is-negative {
@@ -187,7 +193,7 @@
     .pmr-stock-hero-value {
         font-size: 1.75rem;
         font-weight: 800;
-        color: #16a34a;
+        color: var(--pmr-brand-deep);
         line-height: 1.2;
     }
 
@@ -203,8 +209,8 @@
         border-radius: 999px;
         font-size: .75rem;
         font-weight: 700;
-        background: rgba(255, 255, 255, .75);
-        color: #16a34a;
+        background: rgba(255, 255, 255, .8);
+        color: var(--pmr-brand-deep);
     }
 
     .pmr-stock-hero.is-negative .pmr-stock-hero-badge {
@@ -219,8 +225,8 @@
     }
 
     .pmr-table-filters {
-        background: #f9fafb;
-        border-bottom: 1px solid var(--pmr-border);
+        background: var(--pmr-brand-light);
+        border-bottom: 1px solid var(--pmr-brand-border);
         padding: 1rem 1.25rem;
     }
 

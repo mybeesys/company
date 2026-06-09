@@ -33,8 +33,39 @@
     window.csrfToken = '{{ csrf_token() }}';
     var hostUrl = "/assets/";
     const loader = document.getElementById("initial-loader");
+    const postLoginSplash = document.getElementById("post-login-splash");
+    const postLoginSplashStartedAt = postLoginSplash ? Date.now() : 0;
+    const POST_LOGIN_SPLASH_MIN_MS = 4000;
+
+    function dismissPostLoginSplash() {
+        if (!postLoginSplash || postLoginSplash.classList.contains("post-login-splash--out")) {
+            return;
+        }
+
+        postLoginSplash.classList.add("post-login-splash--out");
+        document.body.classList.remove("post-login-splash-active");
+
+        const removeSplash = function () {
+            postLoginSplash.remove();
+        };
+
+        postLoginSplash.addEventListener("transitionend", removeSplash, { once: true });
+        setTimeout(removeSplash, 900);
+    }
+
+    function schedulePostLoginSplashDismiss() {
+        const elapsed = Date.now() - postLoginSplashStartedAt;
+        const remaining = Math.max(0, POST_LOGIN_SPLASH_MIN_MS - elapsed);
+        setTimeout(dismissPostLoginSplash, remaining);
+    }
+
     $(window).on("load", function() {
-        loader.remove();
+        if (postLoginSplash) {
+            schedulePostLoginSplashDismiss();
+        }
+        if (loader) {
+            loader.remove();
+        }
     });
     toastr.options = {
         "closeButton": false,

@@ -158,7 +158,12 @@ return [
 
     // Reports
     'total_expense' => 'إجمالي المصروفات',
-    'register_report_details' => 'عرض تفاصيل تقرير الخزنة',
+    'register_report_details' => 'عرض جلسات الصندوق النقدي مع ملخص المدفوعات حسب طريقة الدفع',
+    'register_transactions' => 'حركات الصندوق',
+    'transaction_date' => 'التاريخ والوقت',
+    'transaction_type' => 'نوع الحركة',
+    'amount' => 'المبلغ',
+    'no_register_transactions' => 'لا توجد حركات مسجّلة على هذا الصندوق',
 
     // Sales comparison (two periods)
     'qty_period_a' => 'الكمية',
