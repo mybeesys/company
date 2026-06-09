@@ -26,9 +26,17 @@
     <link rel="shortcut icon" href="/assets/media/logos/1-14.png" />
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="/assets/css/brand-theme.css" rel="stylesheet" type="text/css" />
 
     <style>
         :root {
+            --brand-primary: #e9b71f;
+            --brand-primary-rgb: 233, 183, 31;
+            --brand-accent: #c99a19;
+            --brand-accent-deep: #946f11;
+            --brand-accent-light: #f0c94a;
+            --brand-surface: #fdf8e8;
+            --brand-surface-2: #fff4cc;
             --primary-color: #ffffff;
             --secondary-color: #ffffff;
             --text-color: #333333;
@@ -41,13 +49,13 @@
             --navbar-height: 35px;
             --border-color: #e0e0e0;
             --muted-text: #666666;
-            --icon-bg: #f7fbff;
-            --icon-color: #00a7d3;
-            --category-bg: #f5f7fa;
-            --category-text: #4a6fa5;
-            --category-border: #d3dce6;
+            --icon-bg: var(--brand-surface);
+            --icon-color: var(--brand-accent-deep);
+            --category-bg: var(--brand-surface);
+            --category-text: var(--brand-accent-deep);
+            --category-border: #eed592;
             --search-bg: #ffffff;
-            --search-border: #d3dce6;
+            --search-border: #e8d9a8;
             --category-card-bg: #ffffff;
             --category-card-text: #ffffff;
             --category-overlay: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
@@ -69,7 +77,7 @@
             --border-color: #4a5568;
             --muted-text: #a0aec0;
             --icon-bg: #2d3748;
-            --icon-color: #63b3ed;
+            --icon-color: var(--brand-accent-light);
             --category-bg: #2d3748;
             --category-text: #e0e0e0;
             --category-border: #4a5568;
@@ -119,7 +127,7 @@
         }
 
         .navbar {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(246, 250, 255, 0.9));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 249, 232, 0.92));
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             color: var(--text-color);
@@ -523,7 +531,7 @@
         }
 
         .primary-btn {
-            background: #4a6fa5;
+            background: var(--brand-accent);
             color: white;
         }
 
@@ -699,9 +707,9 @@
 
         .category-link:hover,
         .category-link.active {
-            background-color: #4a6fa5;
+            background-color: var(--brand-accent);
             color: #fff;
-            box-shadow: 0 3px 8px rgba(74, 111, 165, 0.3);
+            box-shadow: 0 3px 8px rgba(var(--brand-primary-rgb), 0.3);
             transform: translateY(-2px);
         }
 
@@ -710,12 +718,12 @@
         }
 
         .custom-scroll::-webkit-scrollbar-thumb {
-            background-color: #4a6fa5;
+            background-color: var(--brand-accent);
             border-radius: 10px;
         }
 
         .custom-scroll::-webkit-scrollbar-track {
-            background: #e9eef5;
+            background: var(--brand-surface);
         }
 
         body.dark-mode .custom-scroll::-webkit-scrollbar-track {
@@ -733,7 +741,7 @@
 
         .view-btn:hover,
         .view-btn.active {
-            background-color: #4a6fa5;
+            background-color: var(--brand-accent);
             color: #fff;
         }
 
@@ -744,8 +752,8 @@
         }
 
         .search-input:focus {
-            border-color: #4a6fa5;
-            /* box-shadow: 0 0 8px rgba(74, 111, 165, 0.3); */
+            border-color: var(--brand-accent);
+            /* box-shadow: 0 0 8px rgba(var(--brand-primary-rgb), 0.3); */
             outline: none;
             background-color: var(--search-bg);
             color: var(--text-color);
@@ -766,7 +774,7 @@
 
         .category-card:hover {
             transform: scale(1.05);
-            box-shadow: 0 3px 8px rgba(74, 111, 165, 0.3);
+            box-shadow: 0 3px 8px rgba(var(--brand-primary-rgb), 0.3);
         }
 
         .category-card .image-wrapper {
@@ -892,7 +900,7 @@
 
         .form-control:focus {
             background-color: var(--search-bg);
-            border-color: #4a6fa5;
+            border-color: var(--brand-accent);
             color: var(--text-color);
         }
 
@@ -1157,18 +1165,18 @@
 
         .menu-action-btn {
             border: none;
-            background: linear-gradient(145deg, #f7fbff, #eef4ff);
+            background: linear-gradient(145deg, var(--brand-surface), var(--brand-surface-2));
             border-radius: 16px;
             padding: 12px 14px 8px;
             min-width: 82px;
-            box-shadow: 0 6px 18px rgba(74, 111, 165, 0.16);
+            box-shadow: 0 6px 18px rgba(var(--brand-primary-rgb), 0.16);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             color: var(--text-color);
         }
 
         .menu-action-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 26px rgba(74, 111, 165, 0.26);
+            box-shadow: 0 10px 26px rgba(var(--brand-primary-rgb), 0.26);
         }
 
         .menu-action-btn .icon-circle {
@@ -1210,12 +1218,12 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 18px;
-            color: #4a6fa5;
+            color: var(--brand-accent);
             pointer-events: none;
         }
 
         body.dark-mode .search-input-wrap .search-input-icon {
-            color: #63b3ed;
+            color: var(--brand-accent-light);
         }
 
         .search-input-wrap .form-control {
@@ -1223,11 +1231,187 @@
             padding-inline-end: 44px;
         }
 
+        /* Feature modals — location, feedback, info */
+        .menu-feature-modal {
+            border: none !important;
+            border-radius: 22px !important;
+            overflow: hidden;
+            box-shadow: 0 28px 70px rgba(15, 23, 42, 0.18) !important;
+        }
+
+        body.dark-mode .menu-feature-modal {
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        .menu-feature-modal__hero {
+            position: relative;
+            text-align: center;
+            padding: 1.35rem 1.25rem 1.1rem;
+            background: linear-gradient(135deg, var(--brand-accent-deep) 0%, var(--brand-accent) 42%, var(--brand-primary) 100%);
+            color: #1e2129;
+        }
+
+        .menu-feature-modal__hero .btn-close {
+            position: absolute;
+            top: 0.85rem;
+            inset-inline-end: 0.85rem;
+            opacity: 0.75;
+        }
+
+        .menu-feature-modal__icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 0.75rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.45rem;
+            background: rgba(255, 255, 255, 0.88);
+            color: var(--brand-accent-deep);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+        }
+
+        .menu-feature-modal__title {
+            margin: 0 0 0.35rem;
+            font-size: 1.15rem;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .menu-feature-modal__intro {
+            margin: 0 auto;
+            max-width: 28rem;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            opacity: 0.92;
+        }
+
+        .menu-feature-modal__body {
+            padding: 1.15rem 1.25rem 1.35rem;
+        }
+
+        .menu-location-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--brand-accent-deep);
+            background: rgba(var(--brand-primary-rgb), 0.12);
+            border: 1px solid rgba(var(--brand-primary-rgb), 0.22);
+            border-radius: 999px;
+            padding: 0.4rem 0.85rem;
+            margin-top: 0.65rem;
+        }
+
+        body.dark-mode .menu-location-hint {
+            color: var(--brand-accent-light);
+        }
+
+        .menu-location-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 0.9rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+        }
+
+        .menu-location-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: var(--muted-text);
+            margin-bottom: 0.35rem;
+        }
+
+        .menu-location-address {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.55rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .menu-location-address i {
+            color: var(--brand-accent);
+            margin-top: 0.15rem;
+        }
+
+        .menu-location-map-frame {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid rgba(var(--brand-primary-rgb), 0.22);
+            box-shadow: 0 10px 28px rgba(var(--brand-primary-rgb), 0.12);
+        }
+
+        .menu-location-open-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 0.7rem 1rem;
+        }
+
+        .menu-feedback-stars-panel {
+            background: linear-gradient(145deg, var(--brand-surface), #fffdf8);
+            border: 1px solid rgba(var(--brand-primary-rgb), 0.2);
+            border-radius: 16px;
+            padding: 1rem 0.75rem 0.85rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 22px rgba(var(--brand-primary-rgb), 0.08);
+        }
+
+        body.dark-mode .menu-feedback-stars-panel {
+            background: linear-gradient(145deg, #2d2819, #2d3748);
+            border-color: rgba(var(--brand-primary-rgb), 0.28);
+        }
+
+        .menu-feedback-stars-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--muted-text);
+            margin-bottom: 0.35rem;
+            text-align: center;
+        }
+
+        .menu-feedback-textarea {
+            border-radius: 14px !important;
+            border-color: var(--search-border) !important;
+            background: var(--search-bg) !important;
+            color: var(--text-color) !important;
+            min-height: 108px;
+            resize: vertical;
+        }
+
+        .menu-feedback-textarea:focus {
+            border-color: var(--brand-accent) !important;
+            box-shadow: 0 0 0 0.2rem rgba(var(--brand-primary-rgb), 0.18) !important;
+        }
+
+        .menu-feedback-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 0.72rem 1rem;
+        }
+
         /* Feedback stars + hints */
         .feedback-star {
             transition: transform 0.15s ease, filter 0.15s ease;
             line-height: 1;
-                text-decoration-line: none
+            text-decoration-line: none;
         }
 
         .feedback-star:hover {
@@ -1252,12 +1436,12 @@
         .menu-thanks-modal {
             border-radius: 24px !important;
             overflow: hidden;
-            background: linear-gradient(160deg, #fff9f0 0%, #ffffff 45%, #f0f7ff 100%);
-            box-shadow: 0 24px 60px rgba(0, 87, 128, 0.18);
+            background: linear-gradient(160deg, #fff9f0 0%, #ffffff 45%, var(--brand-surface) 100%);
+            box-shadow: 0 24px 60px rgba(var(--brand-primary-rgb), 0.18);
         }
 
         body.dark-mode .menu-thanks-modal {
-            background: linear-gradient(160deg, #2d3748 0%, #1a202c 50%, #234e52 100%);
+            background: linear-gradient(160deg, #2d3748 0%, #1a202c 50%, #2d2819 100%);
         }
 
         .menu-thanks-icon {
@@ -1275,8 +1459,8 @@
         }
 
         body.dark-mode .menu-thanks-icon {
-            background: linear-gradient(135deg, #4fd1c5 0%, #319795 100%);
-            color: #fff;
+            background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-accent-deep) 100%);
+            color: #1e2129;
         }
 
         @keyframes thanksPop {
@@ -1311,18 +1495,18 @@
         }
 
         .menu-thanks-btn {
-            background: linear-gradient(135deg, #00a7d3, #0077b6);
+            background: linear-gradient(135deg, var(--brand-primary), var(--brand-accent));
             border: none;
-            color: #fff;
+            color: #1e2129;
             font-weight: 600;
-            box-shadow: 0 8px 22px rgba(0, 119, 182, 0.35);
+            box-shadow: 0 8px 22px rgba(var(--brand-primary-rgb), 0.35);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .menu-thanks-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 28px rgba(0, 119, 182, 0.4);
-            color: #fff;
+            box-shadow: 0 12px 28px rgba(var(--brand-primary-rgb), 0.4);
+            color: #1e2129;
         }
 
         .menu-empty-state {
@@ -1330,7 +1514,7 @@
             margin: 2rem auto;
             padding: 2rem 1.5rem;
             border-radius: 20px;
-            background: linear-gradient(145deg, #f8fafc, #eef2ff);
+            background: linear-gradient(145deg, #fffdf8, var(--brand-surface));
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
         }
@@ -1360,10 +1544,18 @@
 
         .company-info-hero {
             position: relative;
-            padding: 2rem 1.5rem 1.25rem;
+            padding: 2rem 1.5rem 1.35rem;
             text-align: center;
-            background: linear-gradient(135deg, #0f766e 0%, #0e7490 38%, #0369a1 100%);
-            color: #fff;
+            background: linear-gradient(135deg, var(--brand-accent-deep) 0%, var(--brand-accent) 45%, var(--brand-primary) 100%);
+            color: #1e2129;
+        }
+
+        .company-info-hero .company-info-intro {
+            margin: 0.5rem auto 0;
+            max-width: 24rem;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            opacity: 0.9;
         }
 
         .company-info-hero::after {
@@ -1426,13 +1618,15 @@
             border-radius: 16px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
+            border-inline-start: 3px solid rgba(var(--brand-primary-rgb), 0.55);
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
         .company-info-item:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(14, 116, 144, 0.12);
+            box-shadow: 0 10px 24px rgba(var(--brand-primary-rgb), 0.12);
+            border-inline-start-color: var(--brand-primary);
         }
 
         .company-info-item .ci-icon {
@@ -1443,14 +1637,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(145deg, #e0f2fe, #cffafe);
-            color: #0e7490;
+            background: linear-gradient(145deg, var(--brand-surface), var(--brand-surface-2));
+            color: var(--brand-accent-deep);
             font-size: 1.1rem;
         }
 
         body.dark-mode .company-info-item .ci-icon {
-            background: linear-gradient(145deg, #1e3a5f, #134e4a);
-            color: #5eead4;
+            background: linear-gradient(145deg, #3d3218, #2d2819);
+            color: var(--brand-accent-light);
         }
 
         .company-info-item .ci-label {
@@ -1469,7 +1663,7 @@
         }
 
         .company-info-item .ci-value a {
-            color: #0e7490;
+            color: var(--brand-accent-deep);
             text-decoration: none;
         }
 
@@ -1478,7 +1672,7 @@
         }
 
         body.dark-mode .company-info-item .ci-value a {
-            color: #5eead4;
+            color: var(--brand-accent-light);
         }
 
         .company-info-wide {
@@ -1736,17 +1930,17 @@
         }
 
         .menu-allergen-filter-toggle:hover {
-            border-color: #4a6fa5;
+            border-color: var(--brand-accent);
             color: var(--text-color);
         }
 
         .menu-allergen-filter-toggle:not(.collapsed) {
-            border-color: #4a6fa5;
-            box-shadow: 0 2px 10px rgba(74, 111, 165, 0.12);
+            border-color: var(--brand-accent);
+            box-shadow: 0 2px 10px rgba(var(--brand-primary-rgb), 0.12);
         }
 
         .menu-allergen-filter-toggle .fa-filter {
-            color: #4a6fa5;
+            color: var(--brand-accent);
             opacity: 0.9;
         }
 
@@ -1776,11 +1970,11 @@
         }
 
         body.dark-mode .menu-allergen-filter-toggle:not(.collapsed) {
-            border-color: #63b3ed;
+            border-color: var(--brand-accent-light);
         }
 
         body.dark-mode .menu-allergen-filter-toggle .fa-filter {
-            color: #63b3ed;
+            color: var(--brand-accent-light);
         }
 
         .menu-allergen-filter-chips {
@@ -1803,15 +1997,15 @@
         }
 
         .allergen-filter-chip:hover {
-            border-color: #4a6fa5;
-            box-shadow: 0 2px 8px rgba(74, 111, 165, 0.15);
+            border-color: var(--brand-accent);
+            box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.15);
         }
 
         .allergen-filter-chip.active {
-            background: #4a6fa5;
+            background: var(--brand-accent);
             color: #fff;
-            border-color: #4a6fa5;
-            box-shadow: 0 2px 10px rgba(74, 111, 165, 0.35);
+            border-color: var(--brand-accent);
+            box-shadow: 0 2px 10px rgba(var(--brand-primary-rgb), 0.35);
         }
 
         .allergen-filter-chip.active i {
@@ -1844,9 +2038,9 @@
         }
 
         body.dark-mode .allergen-filter-chip.active {
-            background: #63b3ed;
+            background: var(--brand-accent-light);
             color: #1a202c;
-            border-color: #63b3ed;
+            border-color: var(--brand-accent-light);
         }
 
         body.dark-mode .allergen-filter-chip.active i {
@@ -1868,6 +2062,87 @@
 
         #modalProductAllergens .modal-body {
             padding-top: 0.5rem;
+        }
+
+        .menu-modal-placeholder {
+            text-align: center;
+            padding: 0.35rem 0.5rem 0.25rem;
+        }
+
+        .menu-modal-placeholder__icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: var(--brand-accent-deep);
+            background: linear-gradient(145deg, var(--brand-surface), var(--brand-surface-2));
+            box-shadow: 0 10px 28px rgba(var(--brand-primary-rgb), 0.18);
+        }
+
+        body.dark-mode .menu-modal-placeholder__icon {
+            color: var(--brand-accent-light);
+            background: linear-gradient(145deg, #3d3218, #2d2819);
+        }
+
+        .menu-modal-placeholder__title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin: 0 0 0.65rem;
+            line-height: 1.45;
+        }
+
+        .menu-modal-placeholder__text {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--muted-text);
+            margin: 0 auto 0.85rem;
+            max-width: 26rem;
+        }
+
+        .menu-modal-placeholder__hint {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--brand-accent-deep);
+            background: rgba(var(--brand-primary-rgb), 0.12);
+            border: 1px solid rgba(var(--brand-primary-rgb), 0.22);
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        body.dark-mode .menu-modal-placeholder__hint {
+            color: var(--brand-accent-light);
+            background: rgba(var(--brand-primary-rgb), 0.14);
+            border-color: rgba(var(--brand-primary-rgb), 0.28);
+        }
+
+        .menu-modal-placeholder__social {
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .menu-modal-placeholder__social-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--muted-text);
+            margin-bottom: 0.65rem;
+        }
+
+        .menu-modal-placeholder__social .icon-list {
+            gap: 10px 12px;
         }
     </style>
 
@@ -2205,39 +2480,62 @@
 
     <div class="modal fade" id="modalLocation" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_location_title')</h5>
+            <div class="modal-content menu-feature-modal menu-location-modal">
+                <div class="menu-feature-modal__hero">
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="menu-feature-modal__icon" aria-hidden="true">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <h5 class="menu-feature-modal__title">@lang('reservation::lang.modal_location_title')</h5>
+                    <p class="menu-feature-modal__intro">@lang('reservation::lang.modal_location_heading')</p>
+                    <span class="menu-location-hint">
+                        <i class="fa-regular fa-compass" aria-hidden="true"></i>
+                        @lang('reservation::lang.map_pick_hint')
+                    </span>
                 </div>
-                <div class="modal-body">
-                    <p class="text-muted small">@lang('reservation::lang.map_pick_hint')</p>
-                    @if (isset($menuEstablishments) && is_iterable($menuEstablishments) && count($menuEstablishments) > 1)
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold small mb-1">{{ $local == 'ar' ? 'الفرع' : 'Branch' }}</label>
-                            <select class="form-select form-select-sm" id="menuLocationEstSelect">
-                                @foreach ($menuEstablishments as $estRow)
-                                    @php
-                                        $label = $local == 'ar' ? ($estRow->name ?? '') : ($estRow->name_en ?? $estRow->name ?? '');
-                                    @endphp
-                                    <option value="{{ (int) ($estRow->id ?? 0) }}"
-                                        {{ (int) ($estRow->id ?? 0) === (int) ($establishment_id ?? 0) ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-                    @if ($mapEmbedUrl)
-                        <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm mb-3">
-                            <iframe id="menuLocationMapFrame" src="{{ $mapEmbedUrl }}" style="border:0;" loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"></iframe>
-                        </div>
-                        <a id="menuLocationOpenMapsBtn" class="btn btn-primary w-100" target="_blank" rel="noopener"
-                            href="https://www.google.com/maps?q={{ $mapLat }},{{ $mapLng }}">@lang('reservation::lang.modal_open_maps')</a>
-                    @else
-                        <p class="text-muted">@lang('general::lang.no_results')</p>
-                    @endif
+                <div class="menu-feature-modal__body">
+                    <div class="menu-location-panel">
+                        @if (isset($menuEstablishments) && is_iterable($menuEstablishments) && count($menuEstablishments) > 1)
+                            <div class="mb-3">
+                                <div class="menu-location-label">@lang('reservation::lang.modal_location_branch')</div>
+                                <select class="form-select" id="menuLocationEstSelect">
+                                    @foreach ($menuEstablishments as $estRow)
+                                        @php
+                                            $label = $local == 'ar' ? ($estRow->name ?? '') : ($estRow->name_en ?? $estRow->name ?? '');
+                                        @endphp
+                                        <option value="{{ (int) ($estRow->id ?? 0) }}"
+                                            {{ (int) ($estRow->id ?? 0) === (int) ($establishment_id ?? 0) ? 'selected' : '' }}>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                        @if (!empty($mapLabel))
+                            <div class="menu-location-address" id="menuLocationAddress">
+                                <i class="fa-solid fa-map-pin" aria-hidden="true"></i>
+                                <span id="menuLocationAddressText">{{ $mapLabel }}</span>
+                            </div>
+                        @else
+                            <div class="menu-location-address d-none" id="menuLocationAddress">
+                                <i class="fa-solid fa-map-pin" aria-hidden="true"></i>
+                                <span id="menuLocationAddressText"></span>
+                            </div>
+                        @endif
+                        @if ($mapEmbedUrl)
+                            <div class="ratio ratio-16x9 menu-location-map-frame mb-3">
+                                <iframe id="menuLocationMapFrame" src="{{ $mapEmbedUrl }}" style="border:0;" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                            <a id="menuLocationOpenMapsBtn" class="btn btn-primary menu-location-open-btn w-100" target="_blank" rel="noopener"
+                                href="https://www.google.com/maps?q={{ $mapLat }},{{ $mapLng }}">
+                                <i class="fa-brands fa-google" aria-hidden="true"></i>
+                                @lang('reservation::lang.modal_open_maps')
+                            </a>
+                        @else
+                            <p class="text-muted mb-0 text-center py-3">@lang('general::lang.no_results')</p>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -2272,6 +2570,9 @@
                 return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${Number(lat)},${Number(lng)}`;
             };
 
+            const addressWrap = document.getElementById('menuLocationAddress');
+            const addressText = document.getElementById('menuLocationAddressText');
+
             const applyLocation = (estId) => {
                 const row = estLocations[String(estId)] || estLocations[Number(estId)] || null;
                 const lat = row && row.map_lat != null ? row.map_lat : null;
@@ -2281,6 +2582,10 @@
                 }
                 frame.src = buildEmbedUrl(lat, lng);
                 btn.href = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+                if (addressWrap && addressText && row && row.map_label) {
+                    addressText.textContent = row.map_label;
+                    addressWrap.classList.remove('d-none');
+                }
             };
 
             applyLocation(select.value);
@@ -2295,8 +2600,18 @@
                     <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_smart_title')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="mb-0">@lang('reservation::lang.modal_smart_body')</p>
+                <div class="modal-body pt-2 pb-4">
+                    <div class="menu-modal-placeholder">
+                        <div class="menu-modal-placeholder__icon" aria-hidden="true">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <h6 class="menu-modal-placeholder__title">@lang('reservation::lang.modal_smart_heading')</h6>
+                        <p class="menu-modal-placeholder__text">@lang('reservation::lang.modal_smart_body')</p>
+                        <p class="menu-modal-placeholder__hint">
+                            <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                            @lang('reservation::lang.modal_smart_hint')
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2338,8 +2653,47 @@
                     <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_photos_title')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p>@lang('reservation::lang.modal_photos_body')</p>
+                <div class="modal-body pt-2 pb-4">
+                    <div class="menu-modal-placeholder">
+                        <div class="menu-modal-placeholder__icon" aria-hidden="true">
+                            <i class="fa-solid fa-camera-retro"></i>
+                        </div>
+                        <h6 class="menu-modal-placeholder__title">@lang('reservation::lang.modal_photos_heading')</h6>
+                        <p class="menu-modal-placeholder__text">@lang('reservation::lang.modal_photos_body')</p>
+                        <p class="menu-modal-placeholder__hint">
+                            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                            @lang('reservation::lang.modal_photos_hint')
+                        </p>
+                        @php
+                            $hasSocialForPhotos = ! empty($socialLinks['social_whatsapp'])
+                                || ! empty($socialLinks['social_instagram'])
+                                || ! empty($socialLinks['social_snapchat'])
+                                || ! empty($socialLinks['social_x'])
+                                || ! empty($socialLinks['social_facebook']);
+                        @endphp
+                        @if ($hasSocialForPhotos)
+                            <div class="menu-modal-placeholder__social">
+                                <div class="menu-modal-placeholder__social-label">@lang('reservation::lang.modal_photos_follow')</div>
+                                <div class="icon-list justify-content-center">
+                                    @if (!empty($socialLinks['social_whatsapp']))
+                                        <a href="{{ $socialLinks['social_whatsapp'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 44px;" aria-label="WhatsApp"><i class="fab fa-whatsapp" style="color: #25D366;"></i></a>
+                                    @endif
+                                    @if (!empty($socialLinks['social_instagram']))
+                                        <a href="{{ $socialLinks['social_instagram'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 44px;" aria-label="Instagram"><i class="fab fa-instagram" style="color: #E1306C;"></i></a>
+                                    @endif
+                                    @if (!empty($socialLinks['social_snapchat']))
+                                        <a href="{{ $socialLinks['social_snapchat'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 44px;" aria-label="Snapchat"><i class="fab fa-snapchat-ghost" style="color: #FFFC00;"></i></a>
+                                    @endif
+                                    @if (!empty($socialLinks['social_x']))
+                                        <a href="{{ $socialLinks['social_x'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 44px;" aria-label="X"><i class="fab fa-twitter" style="color: #1DA1F2;"></i></a>
+                                    @endif
+                                    @if (!empty($socialLinks['social_facebook']))
+                                        <a href="{{ $socialLinks['social_facebook'] }}" target="_blank" rel="noopener noreferrer" class="icon-item" style="width: 44px;" aria-label="Facebook"><i class="fab fa-facebook-f" style="color: #3b5998;"></i></a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -2347,21 +2701,31 @@
 
     <div class="modal fade" id="modalFeedback" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">@lang('reservation::lang.modal_feedback_title')</h5>
+            <div class="modal-content menu-feature-modal menu-feedback-modal">
+                <div class="menu-feature-modal__hero">
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-2 text-center" id="feedbackStars">
-                        @for ($s = 1; $s <= 5; $s++)
-                            <button type="button" class="btn btn-link p-1 feedback-star fs-2 text-warning" data-star="{{ $s }}" aria-label="star {{ $s }}">☆</button>
-                        @endfor
+                    <div class="menu-feature-modal__icon" aria-hidden="true">
+                        <i class="fa-solid fa-heart"></i>
                     </div>
-                    <input type="hidden" id="feedbackStarsValue" value="0">
-                    <div id="feedbackHint" class="feedback-hint text-center mb-2" role="alert"></div>
-                    <textarea id="feedbackComment" class="form-control" rows="3" placeholder="@lang('reservation::lang.modal_feedback_comment')"></textarea>
-                    <button type="button" class="btn btn-primary w-100 mt-3" id="feedbackSubmitBtn">@lang('reservation::lang.modal_feedback_send')</button>
+                    <h5 class="menu-feature-modal__title">@lang('reservation::lang.modal_feedback_title')</h5>
+                    <p class="menu-feature-modal__intro">@lang('reservation::lang.modal_feedback_intro')</p>
+                </div>
+                <div class="menu-feature-modal__body">
+                    <div class="menu-feedback-stars-panel">
+                        <div class="menu-feedback-stars-label">@lang('reservation::lang.modal_feedback_stars_label')</div>
+                        <div class="text-center" id="feedbackStars">
+                            @for ($s = 1; $s <= 5; $s++)
+                                <button type="button" class="btn btn-link p-1 feedback-star fs-1 text-warning" data-star="{{ $s }}" aria-label="star {{ $s }}">☆</button>
+                            @endfor
+                        </div>
+                        <input type="hidden" id="feedbackStarsValue" value="0">
+                        <div id="feedbackHint" class="feedback-hint text-center mt-2 mb-0" role="alert"></div>
+                    </div>
+                    <textarea id="feedbackComment" class="form-control menu-feedback-textarea" rows="3" placeholder="@lang('reservation::lang.modal_feedback_comment')"></textarea>
+                    <button type="button" class="btn btn-primary menu-feedback-submit w-100 mt-3" id="feedbackSubmitBtn">
+                        <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
+                        @lang('reservation::lang.modal_feedback_send')
+                    </button>
                 </div>
             </div>
         </div>
@@ -2396,14 +2760,15 @@
 
     <div class="modal fade" id="modalCompanyInfo" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-            <div class="modal-content company-info-modal">
-                <div class="company-info-hero">
+            <div class="modal-content company-info-modal menu-feature-modal">
+                <div class="company-info-hero menu-feature-modal__hero">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
                     <img src="{{ $companyLogoUrl }}" alt="" class="company-info-logo">
-                    <h4>{{ $company->name ?? '—' }}</h4>
-                    <p>@lang('reservation::lang.modal_info_subtitle')</p>
-                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h4 class="menu-feature-modal__title mb-1">{{ $company->name ?? '—' }}</h4>
+                    <p class="mb-0">@lang('reservation::lang.modal_info_subtitle')</p>
+                    <p class="company-info-intro">@lang('reservation::lang.modal_info_intro')</p>
                 </div>
-                <div class="modal-body company-info-body pt-0">
+                <div class="modal-body company-info-body pt-0 menu-feature-modal__body">
                     <div class="company-info-grid">
                         <div class="company-info-item">
                             <div class="ci-icon"><i class="fa-solid fa-phone"></i></div>
