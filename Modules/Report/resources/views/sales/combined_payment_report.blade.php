@@ -73,6 +73,12 @@
                         'icon' => 'bi bi-bar-chart-line',
                     ],
                     [
+                        'title' => __('menuItemLang.product-movement-report'),
+                        'route' => route('product-movement-report'),
+                        'hint' => __('report::purchase.product_movement_report_details'),
+                        'icon' => 'bi bi-arrow-left-right',
+                    ],
+                    [
                         'title' => __('menuItemLang.product-inventory'),
                         'route' => route('Product-Stock-Report'),
                         'hint' => __('report::purchase.product-inventory-summary_details'),

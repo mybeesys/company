@@ -152,6 +152,7 @@ return [
     'inventory_dashboard' => 'Stock Dashboard',
     'product-inventory-summary' => 'Product inventory summary',
     'product-inventory-record' => 'Product inventory record',
+    'product-movement-report' => 'Product movement report',
     'product-inventory' => 'Item Inventory Report',
 
 ];

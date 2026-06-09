@@ -99,7 +99,7 @@
             </div>
 
             <x-cards.card-body class="table-responsive">
-                <x-tables.table :columns=$columns model="ProductSales" module="report" :idColumn="false" />
+                <x-tables.table :columns=$columns model="ProductSales" module="report" :idColumn="false" :actionColumn="false" />
             </x-cards.card-body>
         </div>
 
@@ -246,6 +246,10 @@
                     name: 'type'
                 },
                 {
+                    data: 'ref_no',
+                    name: 'ref_no'
+                },
+                {
                     data: 'quantity',
                     name: 'quantity'
                 },
@@ -253,15 +257,9 @@
                     data: 'entity',
                     name: 'entity'
                 },
-
                 {
                     data: 'transfer_date',
                     name: 'transfer_date'
-                }, {
-                    data: 'actions',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false
                 }
             ],
             order: [],

@@ -43,4 +43,8 @@ return [
     'others_reports' => 'تقارير آخرى',
     'Device' => 'الجهاز',
     'product-inventory-summary_details' => 'عرض تقرير مفصل عن رصيد مخزون المنتجات',
+    'product_movement_report_details' => 'عرض حركات صنف محدد في فرع معيّن مع ملخص المخزون',
+    'select_product_and_branch' => 'اختر الصنف والفرع لعرض تقرير الحركة',
+    'stock_deficit' => 'عجز مخزني',
+    'current_balance' => 'رصيد حالي',
 ];

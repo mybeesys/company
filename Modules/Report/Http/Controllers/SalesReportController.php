@@ -2288,6 +2288,8 @@ class SalesReportController extends Controller
                 })
                 ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
                 ->select(
+                    't.id as transaction_id',
+                    't.ref_no as ref_no',
                     app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
                     app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
                     DB::raw("CASE
@@ -2363,218 +2365,7 @@ class SalesReportController extends Controller
         $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
-            $query = DB::table('transactions as t')
-                ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
-                ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
-                ->leftJoin('product_products as p', function ($join) {
-                    $join->on('pl.product_id', '=', 'p.id')
-                        ->orOn('sl.product_id', '=', 'p.id');
-                })
-                ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
-                ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
-                /*      ->leftJoin('product_inventories as pi', function ($join) {
-                    $join->on('p.id', '=', 'pi.product_id')
-                        ->on('t.establishment_id', '=', 'pi.establishment_id');
-                })*/
-                ->select(
-                    'p.sku as sku',
-                    'p.id as product_id',
-                    'e.id as establishment_id',
-                    app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
-                    DB::raw("CASE
-                    WHEN '".app()->getLocale()."' = 'ar' THEN e.name
-                    ELSE e.name_en
-                END as establishment_name"),
-                    DB::raw("
-                    (
-                        SELECT COALESCE(
-                            MAX(
-                                CASE
-                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
-                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'en' THEN pu_disp_sub.unit1
-                                    ELSE NULL
-                                END
-                            ),
-                            MAX(
-                                CASE
-                                    WHEN '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
-                                    ELSE pu_disp_sub.unit1
-                                END
-                            )
-                        )
-                        FROM product_unit_transfer as pu_disp_sub
-                        WHERE pu_disp_sub.product_id = p.id
-                    ) as base_unit_name
-                "),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'purchases' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as purchased_quantity
-                "),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'sell' AND t.status = 'approved'
-                            THEN sl.qyt * (
-                                CASE
-                                    WHEN su.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS su_max
-                                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as sales_quantity
-                "),
-                    DB::raw("
-SUM(
-        CASE
-            WHEN t.type = 'WASTE' AND t.status = 'approved'
-            THEN sl.qyt * (
-                CASE
-                    WHEN su.transfer > 0 THEN 1
-                    ELSE (
-                        SELECT COALESCE(MAX(transfer), 1)
-                        FROM product_unit_transfer AS su_max
-                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
-                    )
-                END
-            )
-            ELSE 0
-        END
-    ) as waste
-"),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'purchases-return' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            ) * -1
-                            ELSE 0
-                        END
-                    ) as purchase_returns
-                "),
-                    DB::raw("
-    SUM(
-        CASE
-            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived')
-            THEN (
-                SELECT COALESCE(SUM(
-                    pl_inner.qyt * (
-                        CASE
-                            WHEN pu_inner.transfer > 0 THEN 1
-                            ELSE (
-                                SELECT COALESCE(MAX(transfer), 1)
-                                FROM product_unit_transfer AS pu_max
-                                WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                            )
-                        END
-                    )
-                ), 0)
-                FROM transactions AS t_inner
-                LEFT JOIN transactione_purchases_lines AS pl_inner ON t_inner.id = pl_inner.transaction_id
-                LEFT JOIN product_unit_transfer AS pu_inner ON pl_inner.unit_id = pu_inner.id
-                WHERE t_inner.parent_id = t.id
-                    AND t_inner.status = 'approved'
-                    AND pl_inner.product_id = p.id
-            )
-            ELSE 0
-        END
-    ) as transferred_quantity
-"),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'PREP' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as production_quantity
-                "),
-                    DB::raw("
-                    SUM(
-                        CASE
-                            WHEN t.type = 'PO0' AND t.status = 'approved'
-                            THEN pl.qyt * (
-                                CASE
-                                    WHEN pu.transfer > 0 THEN 1
-                                    ELSE (
-                                        SELECT COALESCE(MAX(transfer), 1)
-                                        FROM product_unit_transfer AS pu_max
-                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
-                                    )
-                                END
-                            )
-                            ELSE 0
-                        END
-                    ) as opening_inventory
-                "),
-                    DB::raw('NULL as counted_quantity'),
-                    //     DB::raw("NULL as quantity_on_inventory"),
-                    DB::raw('
-    (
-        SELECT FORMAT(SUM(pi.qty *
-            CASE
-                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1
-                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
-                ELSE 1
-            END
-        ), 2)
-        FROM product_inventories as pi
-        WHERE pi.establishment_id = t.establishment_id
-        AND pi.product_id = p.id
-    ) as quantity_on_inventory
-')
-                )
-                ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
-                ->where(function ($query) {
-                    $query->where(function ($subQuery) {
-                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
-                            ->where('t.status', 'approved');
-                    })
-                        ->orWhere(function ($subQuery) {
-                            $subQuery->where('t.type', 'TRANSFER')
-                                ->where(function ($q) {
-                                    $q->where('t.transfer_status', 'partiallyReceived')
-                                        ->orWhere('t.transfer_status', 'fullyReceived');
-                                })
-                                ->where('t.status', 'approved');
-                        });
-                });
+            $query = $this->buildProductInventorySummaryQuery();
 
             if ($request->has('branch_id')) {
                 $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
@@ -2606,103 +2397,50 @@ SUM(
             ->with(compact('columns'));
     }
 
-    public function productInventoryRecord(Request $request, $product_id, $establishment_id)
+    public function productMovementReport(Request $request)
     {
         $transactionUtile = new ReportTransactionsUtile;
-        Log::info($request);
+        $productId = (int) $request->input('product_id');
+        $establishmentId = (int) $request->input('establishment_id');
+
         if ($request->ajax()) {
-            $query = DB::table('transactions as t')
-                ->leftJoin('cs_contacts as c', 't.contact_id', '=', 'c.id')
-                ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
-                ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
-                ->leftJoin('product_products as p', function ($join) {
-                    $join->on('pl.product_id', '=', 'p.id')
-                        ->orOn('sl.product_id', '=', 'p.id');
-                })
-                ->leftJoin('product_unit_transfer as u', function ($join) {
-                    $join->orOn('pl.unit_id', '=', 'u.id')
-                        ->orOn('sl.unit_id', '=', 'u.id');
-                })
-                ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->where('t.establishment_id', $establishment_id)
-                ->where(function ($query) use ($product_id) {
-                    $query->where('pl.product_id', $product_id)
-                        ->orWhere('sl.product_id', $product_id);
-                })
-                ->select(
-                    app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
-                    app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
-                    DB::raw("CASE
-                    WHEN sl.id IS NOT NULL THEN '-'
-                    ELSE '+'
-                END as transfer_in_out"),
-                    't.transfer_status as process',
-                    DB::raw('CASE
-                    WHEN sl.id IS NOT NULL THEN sl.qyt
-                    ELSE pl.qyt
-                END as quantity'),
-                    't.created_at as transfer_date',
-                    't.type as type',
-                    'u.unit1 as unit',
-                    'c.name as entity',
-                    't.transaction_date as transaction_date'
-                )
-                ->where(function ($query) {
-                    $query->whereIn('t.type', ['purchases', 'waste', 'PREP', 'sell', 'purchases-return', 'sell-return', 'transfer', 'PO0'])
-                        ->where('t.status', 'approved');
-                });
-
-            if ($request->has('branch_id')) {
-                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (! empty($branchIds)) {
-                    $query->whereIn('t.establishment_id', $branchIds);
-                }
+            if ($productId <= 0 || $establishmentId <= 0) {
+                return $transactionUtile->productInventoryReportTable(collect());
             }
 
-            if ($request->has('process_type')) {
-                $processType = collect($request->input('process_type'))->filter()->values()->toArray();
-                if (! empty($processType)) {
-                    $query->whereIn('t.type', $processType);
-                }
-            }
-
-            if (! empty($request->input('inventory_date_range'))) {
-                $dateRange = explode(' - ', $request->input('inventory_date_range'));
-                if (count($dateRange) === 2) {
-                    $from = date('Y-m-d', strtotime($dateRange[0]));
-                    $to = date('Y-m-d', strtotime($dateRange[1]));
-                    $query->whereBetween('t.transaction_date', [$from, $to]);
-                }
-            }
-
-            $results = $query->orderBy('t.created_at', 'desc')->get();
-
-            return $transactionUtile->productInventoryReportTable($results);
+            return $this->runProductInventoryRecordDataTable($request, $productId, $establishmentId);
         }
-        $openingInventory = $request->opening_inventory;
-        $purchasedQuantity = $request->purchased_quantity;
-        $salesQuantity = $request->sales_quantity;
-        $waste = $request->waste;
-        $purchaseReturns = $request->purchase_returns;
-        $transferredQuantity = $request->transferred_quantity;
-        $productionQuantity = $request->production_quantity;
-        $quantityOnInventory = $request->quantity_on_inventory;
-        $columns = $transactionUtile->productInventoryReportColumns();
 
-        return view('report::sales.product_inventory_record')
-            ->with(compact(
-                'columns',
-                'product_id',
-                'establishment_id',
-                'openingInventory',
-                'purchasedQuantity',
-                'salesQuantity',
-                'waste',
-                'purchaseReturns',
-                'transferredQuantity',
-                'productionQuantity',
-                'quantityOnInventory'
-            ));
+        $columns = $transactionUtile->productInventoryReportColumns();
+        $showReport = $productId > 0 && $establishmentId > 0;
+        $metrics = $showReport
+            ? $transactionUtile->formatProductInventorySummaryMetrics(
+                $this->buildProductInventorySummaryQuery()
+                    ->where('p.id', $productId)
+                    ->where('e.id', $establishmentId)
+                    ->first()
+            )
+            : $transactionUtile->emptyProductInventorySummaryMetrics();
+
+        return view('report::sales.product_movement_report', compact(
+            'columns',
+            'productId',
+            'establishmentId',
+            'showReport',
+            'metrics'
+        ));
+    }
+
+    public function productInventoryRecord(Request $request, $product_id, $establishment_id)
+    {
+        if (! $request->ajax()) {
+            return redirect()->route('product-movement-report', [
+                'product_id' => $product_id,
+                'establishment_id' => $establishment_id,
+            ]);
+        }
+
+        return $this->runProductInventoryRecordDataTable($request, (int) $product_id, (int) $establishment_id);
     }
 
     public function productStockReport(Request $request)
@@ -4446,5 +4184,284 @@ SUM(
             'tax_difference' => $fmt($row->tax_difference),
             'lines_difference' => (string) (int) $row->lines_difference,
         ];
+    }
+
+    private function runProductInventoryRecordDataTable(Request $request, int $productId, int $establishmentId)
+    {
+        $transactionUtile = new ReportTransactionsUtile;
+
+        $query = DB::table('transactions as t')
+            ->leftJoin('cs_contacts as c', 't.contact_id', '=', 'c.id')
+            ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
+            ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
+            ->leftJoin('product_products as p', function ($join) {
+                $join->on('pl.product_id', '=', 'p.id')
+                    ->orOn('sl.product_id', '=', 'p.id');
+            })
+            ->leftJoin('product_unit_transfer as u', function ($join) {
+                $join->orOn('pl.unit_id', '=', 'u.id')
+                    ->orOn('sl.unit_id', '=', 'u.id');
+            })
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->where('t.establishment_id', $establishmentId)
+            ->where(function ($query) use ($productId) {
+                $query->where('pl.product_id', $productId)
+                    ->orWhere('sl.product_id', $productId);
+            })
+            ->select(
+                't.id as transaction_id',
+                't.ref_no as ref_no',
+                app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
+                app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
+                DB::raw("CASE
+                    WHEN sl.id IS NOT NULL THEN '-'
+                    ELSE '+'
+                END as transfer_in_out"),
+                't.transfer_status as process',
+                DB::raw('CASE
+                    WHEN sl.id IS NOT NULL THEN sl.qyt
+                    ELSE pl.qyt
+                END as quantity'),
+                't.created_at as transfer_date',
+                't.type as type',
+                'u.unit1 as unit',
+                'c.name as entity',
+                't.transaction_date as transaction_date'
+            )
+            ->where(function ($query) {
+                $query->whereIn('t.type', ['purchases', 'waste', 'PREP', 'sell', 'purchases-return', 'sell-return', 'transfer', 'PO0'])
+                    ->where('t.status', 'approved');
+            });
+
+        if ($request->has('process_type')) {
+            $processType = collect($request->input('process_type'))->filter()->values()->toArray();
+            if (! empty($processType)) {
+                $query->whereIn('t.type', $processType);
+            }
+        }
+
+        if (! empty($request->input('inventory_date_range'))) {
+            $dateRange = explode(' - ', $request->input('inventory_date_range'));
+            if (count($dateRange) === 2) {
+                $from = date('Y-m-d', strtotime($dateRange[0]));
+                $to = date('Y-m-d', strtotime($dateRange[1]));
+                $query->whereBetween('t.transaction_date', [$from, $to]);
+            }
+        }
+
+        $results = $query->orderBy('t.created_at', 'desc')->get();
+
+        return $transactionUtile->productInventoryReportTable($results);
+    }
+
+    private function buildProductInventorySummaryQuery()
+    {
+        return DB::table('transactions as t')
+            ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
+            ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
+            ->leftJoin('product_products as p', function ($join) {
+                $join->on('pl.product_id', '=', 'p.id')
+                    ->orOn('sl.product_id', '=', 'p.id');
+            })
+            ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
+            ->leftJoin('product_unit_transfer as pu', 'pl.unit_id', '=', 'pu.id')
+            ->leftJoin('product_unit_transfer as su', 'sl.unit_id', '=', 'su.id')
+            ->select(
+                'p.sku as sku',
+                'p.id as product_id',
+                'e.id as establishment_id',
+                app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
+                DB::raw("CASE
+                    WHEN '".app()->getLocale()."' = 'ar' THEN e.name
+                    ELSE e.name_en
+                END as establishment_name"),
+                DB::raw("
+                    (
+                        SELECT COALESCE(
+                            MAX(
+                                CASE
+                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
+                                    WHEN pu_disp_sub.unit2 IS NOT NULL AND '".app()->getLocale()."' = 'en' THEN pu_disp_sub.unit1
+                                    ELSE NULL
+                                END
+                            ),
+                            MAX(
+                                CASE
+                                    WHEN '".app()->getLocale()."' = 'ar' THEN pu_disp_sub.unit1
+                                    ELSE pu_disp_sub.unit1
+                                END
+                            )
+                        )
+                        FROM product_unit_transfer as pu_disp_sub
+                        WHERE pu_disp_sub.product_id = p.id
+                    ) as base_unit_name
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'purchases' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as purchased_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'sell' AND t.status = 'approved'
+                            THEN sl.qyt * (
+                                CASE
+                                    WHEN su.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS su_max
+                                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as sales_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'WASTE' AND t.status = 'approved'
+                            THEN sl.qyt * (
+                                CASE
+                                    WHEN su.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS su_max
+                                        WHERE su_max.product_id = p.id AND su_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as waste
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'purchases-return' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            ) * -1
+                            ELSE 0
+                        END
+                    ) as purchase_returns
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'TRANSFER' AND t.status = 'approved' AND t.transfer_status IN ('partiallyReceived', 'fullyReceived')
+                            THEN (
+                                SELECT COALESCE(SUM(
+                                    pl_inner.qyt * (
+                                        CASE
+                                            WHEN pu_inner.transfer > 0 THEN 1
+                                            ELSE (
+                                                SELECT COALESCE(MAX(transfer), 1)
+                                                FROM product_unit_transfer AS pu_max
+                                                WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                            )
+                                        END
+                                    )
+                                ), 0)
+                                FROM transactions AS t_inner
+                                LEFT JOIN transactione_purchases_lines AS pl_inner ON t_inner.id = pl_inner.transaction_id
+                                LEFT JOIN product_unit_transfer AS pu_inner ON pl_inner.unit_id = pu_inner.id
+                                WHERE t_inner.parent_id = t.id
+                                    AND t_inner.status = 'approved'
+                                    AND pl_inner.product_id = p.id
+                            )
+                            ELSE 0
+                        END
+                    ) as transferred_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'PREP' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as production_quantity
+                "),
+                DB::raw("
+                    SUM(
+                        CASE
+                            WHEN t.type = 'PO0' AND t.status = 'approved'
+                            THEN pl.qyt * (
+                                CASE
+                                    WHEN pu.transfer > 0 THEN 1
+                                    ELSE (
+                                        SELECT COALESCE(MAX(transfer), 1)
+                                        FROM product_unit_transfer AS pu_max
+                                        WHERE pu_max.product_id = p.id AND pu_max.transfer > 0
+                                    )
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) as opening_inventory
+                "),
+                DB::raw('NULL as counted_quantity'),
+                DB::raw('
+                    (
+                        SELECT FORMAT(SUM(pi.qty *
+                            CASE
+                                WHEN (SELECT COUNT(*) FROM product_unit_transfer WHERE product_id = p.id) > 1
+                                THEN (SELECT MAX(transfer) FROM product_unit_transfer WHERE product_id = p.id)
+                                ELSE 1
+                            END
+                        ), 2)
+                        FROM product_inventories as pi
+                        WHERE pi.establishment_id = t.establishment_id
+                        AND pi.product_id = p.id
+                    ) as quantity_on_inventory
+                ')
+            )
+            ->groupBy('p.id', 'p.sku', app()->getLocale() == 'ar' ? 'p.name_ar' : 'p.name_en', 't.establishment_id', 'e.name', 'e.name_en', 'e.id')
+            ->where(function ($query) {
+                $query->where(function ($subQuery) {
+                    $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
+                        ->where('t.status', 'approved');
+                })
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('t.type', 'TRANSFER')
+                            ->where(function ($q) {
+                                $q->where('t.transfer_status', 'partiallyReceived')
+                                    ->orWhere('t.transfer_status', 'fullyReceived');
+                            })
+                            ->where('t.status', 'approved');
+                    });
+            });
     }
 }
