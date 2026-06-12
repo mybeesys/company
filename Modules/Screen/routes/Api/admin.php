@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Screen\Http\Controllers\Api\Admin\ScreenAdminAuthApiController;
 use Modules\Screen\Http\Controllers\Api\ScreenDeviceApiController;
 use Modules\Screen\Http\Controllers\Api\ScreenMainApiController;
 use Modules\Screen\Http\Controllers\Api\ScreenPlaylistApiController;
@@ -8,17 +9,18 @@ use Modules\Screen\Http\Controllers\Api\ScreenPromoApiController;
 
 /*
 |--------------------------------------------------------------------------
-| Screen Admin API (POS / central token)
+| Screen Admin API (تطبيق الأدمن / POS — auth-central)
 |--------------------------------------------------------------------------
 |
-| نسخة منفصلة عن /api/v1/screen — نفس منطق الإدارة (promos, playlists, devices)
-| لكن المصادقة عبر auth-central (نفس Bearer token المستخدم في APIs المنتجات والمبيعات).
-|
-| Base: /api/admin/...
+| Base: /api/admin/v1/screen/...
 |
 */
 
-Route::prefix('admin')->name('admin.')->middleware(['auth-central'])->group(function () {
+Route::prefix('admin/v1/screen')->name('admin.v1.screen.')->middleware(['auth-central'])->group(function () {
+    Route::post('auth/token', [ScreenAdminAuthApiController::class, 'pair'])
+        ->middleware('throttle:15,1')
+        ->name('auth.token');
+
     Route::get('dashboard', [ScreenMainApiController::class, 'dashboard'])->name('dashboard');
 
     Route::apiResource('promos', ScreenPromoApiController::class);

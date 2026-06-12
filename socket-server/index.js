@@ -13,6 +13,7 @@ import { randomUUID } from "crypto";
 import cors from "cors";
 import express from "express";
 import { Server } from "socket.io";
+import { WebSocketServer } from "ws";
 
 const PORT = Number(process.env.SOCKET_PORT || 3001);
 const SOCKET_INTERNAL_SECRET = process.env.SOCKET_INTERNAL_SECRET || "";
@@ -22,6 +23,50 @@ const TENANT_URL_TEMPLATE =
   process.env.TENANT_URL_TEMPLATE || "http://{tenant}.localhost";
 const SCHEMA_VERSION = 1;
 const RATE_LIMIT_PER_MINUTE = Number(process.env.SOCKET_RATE_LIMIT_PER_MINUTE || 30);
+const SCREEN_PAIRING_CHANNEL_PREFIX = "screen.pairing.";
+
+/** @type {Map<string, Set<import('ws').WebSocket>>} */
+const screenPairingRooms = new Map();
+
+function isValidScreenPairingId(id) {
+  return typeof id === "string" && /^[a-f0-9]{64}$/.test(id);
+}
+
+function joinScreenPairingRoom(ws, room) {
+  if (!screenPairingRooms.has(room)) {
+    screenPairingRooms.set(room, new Set());
+  }
+  screenPairingRooms.get(room).add(ws);
+}
+
+function leaveScreenPairingRoom(ws, room) {
+  const set = screenPairingRooms.get(room);
+  if (!set) return;
+  set.delete(ws);
+  if (set.size === 0) screenPairingRooms.delete(room);
+}
+
+function broadcastScreenLinked(pairingId, payload) {
+  const room = `${SCREEN_PAIRING_CHANNEL_PREFIX}${pairingId}`;
+  const clients = screenPairingRooms.get(room);
+  const outbound = {
+    event: "screen.linked",
+    channel: room,
+    ...payload,
+    id: pairingId,
+  };
+  const raw = JSON.stringify(outbound);
+  let sent = 0;
+  if (clients) {
+    for (const ws of clients) {
+      if (ws.readyState === 1) {
+        ws.send(raw);
+        sent += 1;
+      }
+    }
+  }
+  return { room, sent };
+}
 
 const app = express();
 app.use(cors({ origin: true }));
@@ -262,6 +307,15 @@ app.post("/broadcast", (req, res) => {
     return res.status(422).json({ message: "tenant_id and event are required" });
   }
 
+  if (body.screen_pairing === true || eventName === "screen.linked") {
+    const pairingId = String(body.pairing_id || payload.id || "").toLowerCase();
+    if (!isValidScreenPairingId(pairingId)) {
+      return res.status(422).json({ message: "pairing_id required (64 hex)" });
+    }
+    const result = broadcastScreenLinked(pairingId, payload);
+    return res.json({ ok: true, screen_pairing: true, ...result });
+  }
+
   const isKitchen = body.kitchen === true || String(eventName).startsWith("kitchen:");
   const isPosOrders =
     body.pos_orders === true || String(eventName).startsWith("establishment_order.");
@@ -327,6 +381,57 @@ app.post("/broadcast", (req, res) => {
   emitToRooms(eventName, envelope, rooms);
 
   return res.json({ ok: true, rooms });
+});
+
+// --- Screen Player — raw WebSocket /ws (QR pairing, no auth) ---
+
+const screenWss = new WebSocketServer({ noServer: true });
+
+httpServer.on("upgrade", (request, socket, head) => {
+  const pathname = new URL(request.url || "/", `http://${request.headers.host}`).pathname;
+  if (pathname === "/ws" || pathname === "/ws/") {
+    screenWss.handleUpgrade(request, socket, head, (ws) => {
+      screenWss.emit("connection", ws, request);
+    });
+    return;
+  }
+  socket.destroy();
+});
+
+screenWss.on("connection", (ws) => {
+  let joinedRoom = null;
+
+  ws.on("message", (raw) => {
+    try {
+      const msg = JSON.parse(String(raw));
+      if (msg.event !== "subscribe") return;
+
+      const channel = String(msg.channel || "");
+      if (!channel.startsWith(SCREEN_PAIRING_CHANNEL_PREFIX)) return;
+
+      const pairingId = String(msg.id || channel.slice(SCREEN_PAIRING_CHANNEL_PREFIX.length)).toLowerCase();
+      if (!isValidScreenPairingId(pairingId)) return;
+
+      const room = `${SCREEN_PAIRING_CHANNEL_PREFIX}${pairingId}`;
+      if (joinedRoom) leaveScreenPairingRoom(ws, joinedRoom);
+      joinScreenPairingRoom(ws, room);
+      joinedRoom = room;
+
+      ws.send(
+        JSON.stringify({
+          event: "subscribed",
+          channel: room,
+          id: pairingId,
+        })
+      );
+    } catch {
+      // ignore malformed frames
+    }
+  });
+
+  ws.on("close", () => {
+    if (joinedRoom) leaveScreenPairingRoom(ws, joinedRoom);
+  });
 });
 
 // --- Socket.IO auth ---
@@ -509,5 +614,7 @@ io.on("connection", (socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`MyBee Socket.IO listening on :${PORT} (schema v${SCHEMA_VERSION}, waiter + kitchen + POS orders)`);
+  console.log(
+    `MyBee Socket.IO listening on :${PORT} (schema v${SCHEMA_VERSION}, waiter + kitchen + POS orders + screen /ws pairing)`
+  );
 });
