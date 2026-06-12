@@ -209,7 +209,6 @@
             @include('general::general-setting.invoice-tab')
             {{-- @include('general::establishments.establishments-tab') --}}
             @include('general::inventory_costing.inventory_costing')
-            @include('general::inventory_costing.inventory_costing')
             @include('general::invoice-setting.general-invoice-setting.invoice-tab')
 
         </div>

@@ -20,7 +20,7 @@
                 @lang('general::general.this_email_was_sent_to'): <a href="#" class="text-blue-600 hover:underline dark:text-blue-400"
                     target="_blank">{{ $notifiable->email }}</a>.
             </p>
-            <p class="mt-3 text-gray-500 dark:text-gray-400">©Khaliyat Alnuzum Almutakamila {{ date('Y') }}. @lang('general::general.all_rights_reserved')</p>
+            <p class="mt-3 text-gray-500 dark:text-gray-400">© {{ brand_legal_name() }} {{ date('Y') }}. @lang('general::general.all_rights_reserved')</p>
         </footer>
     </section>
 </body>

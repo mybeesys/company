@@ -317,10 +317,12 @@
         box-shadow: 0 6px 14px rgba(15, 23, 42, .12);
     }
 
-    #kt_ProductSales_table td:nth-child(3),
     #kt_ProductSales_table td:nth-child(4),
-    #kt_ProductSales_table th:nth-child(3),
-    #kt_ProductSales_table th:nth-child(4) {
+    #kt_ProductSales_table td:nth-child(5),
+    #kt_ProductSales_table td:nth-child(8),
+    #kt_ProductSales_table th:nth-child(4),
+    #kt_ProductSales_table th:nth-child(5),
+    #kt_ProductSales_table th:nth-child(8) {
         text-align: center;
         vertical-align: middle;
     }
@@ -548,16 +550,17 @@
             },
             info: false,
             columns: [
+                { data: 'transfer_date', name: 'transfer_date' },
                 { data: 'product_name', name: 'product_name' },
                 { data: 'establishment_name', name: 'establishment_name' },
                 { data: 'transfer_in_out', name: 'transfer_in_out' },
                 { data: 'type', name: 'type' },
                 { data: 'ref_no', name: 'ref_no' },
                 { data: 'quantity', name: 'quantity' },
-                { data: 'entity', name: 'entity' },
-                { data: 'transfer_date', name: 'transfer_date' }
+                { data: 'balance_after', name: 'balance_after' },
+                { data: 'entity', name: 'entity' }
             ],
-            order: [],
+            order: [[0, 'desc']],
             scrollX: true,
             pageLength: 10,
             drawCallback: function() {
@@ -588,7 +591,7 @@
         if (!showReport || !table.length) return;
 
         initDatatable();
-        exportButtons([0, 1, 2, 3, 4, 5, 6, 7], '#kt_ProductSales_table');
+        exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8], '#kt_ProductSales_table');
         handleSearchDatatable();
 
         $('#inventoryDateRange').daterangepicker({

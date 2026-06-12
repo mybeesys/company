@@ -163,6 +163,8 @@ class TransactionUtils
             'account_id' => $account_id,
         ]);
 
+        app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
+
         if (! $shift_id) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }

@@ -2219,84 +2219,9 @@ class SalesReportController extends Controller
         $transactionUtile = new ReportTransactionsUtile;
 
         if ($request->ajax()) {
-            $query = DB::table('transactions as t')
-                ->leftJoin('cs_contacts as c', 't.contact_id', '=', 'c.id')
-                ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
-                ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
-                ->leftJoin('product_products as p', function ($join) {
-                    $join->on('pl.product_id', '=', 'p.id')
-                        ->orOn('sl.product_id', '=', 'p.id');
-                })
-                ->leftJoin('product_unit_transfer as u', function ($join) {
-                    $join->orOn('pl.unit_id', '=', 'u.id')
-                        ->orOn('sl.unit_id', '=', 'u.id');
-                })
-                ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-                ->select(
-                    't.id as transaction_id',
-                    't.ref_no as ref_no',
-                    app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
-                    app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
-                    DB::raw("CASE
-                        WHEN sl.id IS NOT NULL THEN '-'
-                        ELSE '+'
-                    END as transfer_in_out"),
-                    't.transfer_status as process',
-                    DB::raw('CASE
-                        WHEN sl.id IS NOT NULL THEN sl.qyt
-                        ELSE pl.qyt
-                    END as quantity'),
-                    't.created_at as transfer_date',
-                    't.type as type',
-                    'u.unit1 as unit',
-                    'c.name as entity',
-                    't.transaction_date as transaction_date'
-                )
-                ->where(function ($query) {
-                    $query->where(function ($subQuery) {
-                        $subQuery->whereIn('t.type', ['purchases', 'WASTE', 'PREP', 'sell', 'purchases-return', 'sell-return', 'PO0'])
-                            ->where('t.status', 'approved');
-                    })
-                        ->orWhere(function ($subQuery) {
-                            $subQuery->where('t.type', 'TRANSFER')
-                                ->where(function ($q) {
-                                    $q->where('t.transfer_status', 'partiallyReceived')
-                                        ->orWhere('t.transfer_status', 'fullyReceived');
-                                })
-                                ->where('t.status', 'approved');
-                        });
-                });
-            if ($request->has('branch_id')) {
-                $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
-                if (! empty($branchIds)) {
-                    $query->whereIn('t.establishment_id', $branchIds);
-                }
-            }
-            if ($request->has('product_id')) {
-                $products = collect($request->input('product_id'))->filter()->values()->toArray();
-                if (! empty($products)) {
-                    $query->whereIn('p.id', $products);
-                }
-            }
-            if ($request->has('process_type')) {
-                $processType = collect($request->input('process_type'))->filter()->values()->toArray();
-                if (! empty($processType)) {
-                    $query->whereIn('t.type', $processType);
-                }
-            }
-
-            if (! empty($request->input('inventory_date_range'))) {
-                $dateRange = explode(' - ', $request->input('inventory_date_range'));
-                if (count($dateRange) === 2) {
-                    $from = date('Y-m-d', strtotime($dateRange[0]));
-                    $to = date('Y-m-d', strtotime($dateRange[1]));
-                    $query->whereBetween('t.transaction_date', [$from, $to]);
-                }
-            }
-
-            $results = $query->orderBy('t.created_at', 'desc')->get();
-
-            return $transactionUtile->productInventoryReportTable($results);
+            return $transactionUtile->productInventoryReportTable(
+                $this->fetchProductInventoryMovementsForReport($request)
+            );
         }
 
         $columns = $transactionUtile->productInventoryReportColumns();
@@ -4070,7 +3995,17 @@ class SalesReportController extends Controller
     {
         $transactionUtile = new ReportTransactionsUtile;
 
-        $query = DB::table('transactions as t')
+        return $transactionUtile->productInventoryReportTable(
+            $this->fetchProductInventoryMovementsForReport($request, $productId, $establishmentId)
+        );
+    }
+
+    private function buildProductInventoryMovementsQuery()
+    {
+        $sellQtySql = ReportTransactionsUtile::sellLineQtyNumericSql('sl.qyt');
+        $purchaseQtySql = ReportTransactionsUtile::sellLineQtyNumericSql('pl.qyt');
+
+        return DB::table('transactions as t')
             ->leftJoin('cs_contacts as c', 't.contact_id', '=', 'c.id')
             ->leftJoin('transactione_purchases_lines as pl', 't.id', '=', 'pl.transaction_id')
             ->leftJoin('transaction_sell_lines as sl', 't.id', '=', 'sl.transaction_id')
@@ -4083,14 +4018,12 @@ class SalesReportController extends Controller
                     ->orOn('sl.unit_id', '=', 'u.id');
             })
             ->leftJoin('est_establishments as e', 't.establishment_id', '=', 'e.id')
-            ->where('t.establishment_id', $establishmentId)
-            ->where(function ($query) use ($productId) {
-                $query->where('pl.product_id', $productId)
-                    ->orWhere('sl.product_id', $productId);
-            })
             ->select(
                 't.id as transaction_id',
                 't.ref_no as ref_no',
+                'p.id as product_id',
+                'e.id as establishment_id',
+                DB::raw('COALESCE(sl.id, pl.id) as line_id'),
                 app()->getLocale() == 'ar' ? 'p.name_ar as product_name' : 'p.name_en as product_name',
                 app()->getLocale() == 'ar' ? 'e.name as establishment_name' : 'e.name_en as establishment_name',
                 DB::raw("CASE
@@ -4106,7 +4039,20 @@ class SalesReportController extends Controller
                 't.type as type',
                 'u.unit1 as unit',
                 'c.name as entity',
-                't.transaction_date as transaction_date'
+                't.transaction_date as transaction_date',
+                DB::raw("(
+                    SELECT ut.unit1
+                    FROM product_unit_transfer ut
+                    WHERE ut.product_id = p.id
+                      AND ut.unit2 IS NULL
+                      AND ut.deleted_at IS NULL
+                    LIMIT 1
+                ) as base_unit"),
+                DB::raw("CASE
+                    WHEN sl.id IS NOT NULL THEN -1 * convert_quantity('P', p.id, sl.unit_id, NULL, {$sellQtySql})
+                    WHEN pl.id IS NOT NULL THEN convert_quantity('P', p.id, pl.unit_id, NULL, {$purchaseQtySql})
+                    ELSE 0
+                END as signed_qty_base")
             )
             ->where(function ($query) {
                 $query->where(function ($subQuery) {
@@ -4121,12 +4067,54 @@ class SalesReportController extends Controller
                             })
                             ->where('t.status', 'approved');
                     });
+            })
+            ->where(function ($query) {
+                $query->whereNotNull('sl.id')
+                    ->orWhereNotNull('pl.id');
             });
+    }
+
+    private function fetchProductInventoryMovementsForReport(
+        Request $request,
+        ?int $fixedProductId = null,
+        ?int $fixedEstablishmentId = null
+    ) {
+        $query = $this->buildProductInventoryMovementsQuery();
+
+        if ($fixedProductId > 0) {
+            $query->where(function ($subQuery) use ($fixedProductId) {
+                $subQuery->where('pl.product_id', $fixedProductId)
+                    ->orWhere('sl.product_id', $fixedProductId);
+            });
+        } elseif ($request->has('product_id')) {
+            $products = collect($request->input('product_id'))->filter()->values()->toArray();
+            if (! empty($products)) {
+                $query->whereIn('p.id', $products);
+            }
+        }
+
+        if ($fixedEstablishmentId > 0) {
+            $query->where('t.establishment_id', $fixedEstablishmentId);
+        } elseif ($request->has('branch_id')) {
+            $branchIds = collect($request->input('branch_id'))->filter()->values()->toArray();
+            if (! empty($branchIds)) {
+                $query->whereIn('t.establishment_id', $branchIds);
+            }
+        }
+
+        $rows = $query
+            ->orderBy('t.transaction_date')
+            ->orderBy('t.created_at')
+            ->orderBy('t.id')
+            ->orderByRaw('COALESCE(sl.id, pl.id)')
+            ->get();
+
+        ReportTransactionsUtile::attachInventoryRunningBalances($rows);
 
         if ($request->has('process_type')) {
             $processType = collect($request->input('process_type'))->filter()->values()->toArray();
             if (! empty($processType)) {
-                $query->whereIn('t.type', $processType);
+                $rows = $rows->filter(fn ($row) => in_array($row->type, $processType, true))->values();
             }
         }
 
@@ -4135,13 +4123,19 @@ class SalesReportController extends Controller
             if (count($dateRange) === 2) {
                 $from = date('Y-m-d', strtotime($dateRange[0]));
                 $to = date('Y-m-d', strtotime($dateRange[1]));
-                $query->whereBetween('t.transaction_date', [$from, $to]);
+                $rows = $rows->filter(function ($row) use ($from, $to) {
+                    $dateValue = $row->transaction_date ?? $row->transfer_date ?? null;
+                    if (empty($dateValue)) {
+                        return false;
+                    }
+                    $date = date('Y-m-d', strtotime((string) $dateValue));
+
+                    return $date >= $from && $date <= $to;
+                })->values();
             }
         }
 
-        $results = $query->orderBy('t.created_at', 'desc')->get();
-
-        return $transactionUtile->productInventoryReportTable($results);
+        return ReportTransactionsUtile::sortInventoryMovementsForDisplay($rows);
     }
 
     private function buildProductInventorySummaryQuery()

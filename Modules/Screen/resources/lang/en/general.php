@@ -69,6 +69,10 @@ return [
     'screen_auth_invalid_pairing' => 'Invalid pairing token.',
     'screen_auth_invalid_pin' => 'Invalid device code or PIN.',
     'screen_auth_revoked' => 'Token revoked.',
+    'screen_player_auth_invalid' => 'Invalid device code.',
+    'screen_player_token_required' => 'A screen player token is required. Use player/auth/token.',
+    'screen_player_playlist_not_found' => 'Playlist not found or not linked to this device.',
+    'screen_player_promo_not_found' => 'Promo not found or not linked to this device playlists.',
     'pairing_dialog_close' => 'Close',
     'playlist_step1_incomplete' => 'Please complete all required fields in step 1 (name, schedule, branch, devices, and any fields required for your schedule type), then press Next.',
 ];

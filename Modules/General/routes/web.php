@@ -67,6 +67,8 @@ Route::middleware([
         Route::post('/update-unit', [GeneralController::class, 'updateUnit'])
             ->name('update-unit');
         Route::post('update-inventory-costing-method', [GeneralController::class, 'updateInventoryCostingMethod'])->name('update-inventory-costing-method');
+        Route::get('preview-inventory-costing-rebuild', [GeneralController::class, 'previewInventoryCostingRebuild'])->name('preview-inventory-costing-rebuild');
+        Route::post('rebuild-inventory-costing', [GeneralController::class, 'rebuildInventoryCosting'])->name('rebuild-inventory-costing');
 
         Route::post('notification-mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notification-mark-all-as-read');
         Route::post('notification-delete', [NotificationController::class, 'destroy'])->name('notification-delete');

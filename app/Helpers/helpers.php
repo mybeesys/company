@@ -2,11 +2,11 @@
 
 if (! function_exists('brand_legal_name')) {
     /**
-     * الاسم الكامل حسب الترخيص / الوثائق الرسمية (APP_NAME أو APP_LEGAL_NAME).
+     * اسم المنتج في PDF والبريد وحقوق النشر — موحّد مع brand_short_name().
      */
     function brand_legal_name(): string
     {
-        return (string) (config('branding.legal_name') ?: config('app.name'));
+        return brand_short_name();
     }
 }
 

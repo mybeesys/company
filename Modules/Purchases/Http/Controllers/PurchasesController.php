@@ -607,6 +607,8 @@ class PurchasesController extends Controller
 
         // dd($result);
 
+        app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
+
         if ($request->paid_amount) {
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         } else {

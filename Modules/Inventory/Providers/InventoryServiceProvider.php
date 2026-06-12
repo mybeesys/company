@@ -34,6 +34,8 @@ class InventoryServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(\Modules\Inventory\Services\InventoryCostingService::class);
+
         $this->app->register(EventServiceProvider::class);
         $this->app->register(RouteServiceProvider::class);
         $this->commands([

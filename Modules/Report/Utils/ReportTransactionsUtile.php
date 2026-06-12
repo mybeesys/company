@@ -554,15 +554,78 @@ class ReportTransactionsUtile
     public function productInventoryReportColumns()
     {
         return [
+            ['class' => 'text-start min-w-120px', 'name' => 'transfer_date'],
             ['class' => 'text-start min-w-150px', 'name' => 'product_name'],
             ['class' => 'text-start min-w-150px', 'name' => 'establishment_name'],
-            ['class' => 'text-start min-w-150px', 'name' => 'transfer_in_out'],
-            ['class' => 'text-start min-w-150px', 'name' => 'type'],
+            ['class' => 'text-start min-w-100px', 'name' => 'transfer_in_out'],
+            ['class' => 'text-start min-w-130px', 'name' => 'type'],
             ['class' => 'text-start min-w-130px', 'name' => 'ref_no'],
-            ['class' => 'text-start min-w-150px', 'name' => 'quantity'],
+            ['class' => 'text-start min-w-120px', 'name' => 'quantity'],
+            ['class' => 'text-start min-w-130px', 'name' => 'balance_after'],
             ['class' => 'text-start min-w-150px', 'name' => 'entity'],
-            ['class' => 'text-start min-w-150px', 'name' => 'transfer_date'],
         ];
+    }
+
+    /**
+     * Running stock balance per product/branch (base unit via convert_quantity).
+     *
+     * @param  \Illuminate\Support\Collection<int, object>  $rows
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    public static function attachInventoryRunningBalances($rows)
+    {
+        if ($rows->isEmpty()) {
+            return $rows;
+        }
+
+        $sorted = $rows->sortBy(function ($row) {
+            return sprintf(
+                '%010d_%010d_%s_%s_%010d_%010d',
+                (int) ($row->product_id ?? 0),
+                (int) ($row->establishment_id ?? 0),
+                $row->transaction_date ?? '',
+                $row->transfer_date ?? '',
+                (int) ($row->transaction_id ?? 0),
+                (int) ($row->line_id ?? 0),
+            );
+        });
+
+        $running = [];
+        foreach ($sorted as $row) {
+            $trackKey = (int) ($row->product_id ?? 0).':'.(int) ($row->establishment_id ?? 0);
+            $running[$trackKey] = ($running[$trackKey] ?? 0.0) + (float) ($row->signed_qty_base ?? 0);
+            $row->balance_after = $running[$trackKey];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, object>  $rows
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    public static function sortInventoryMovementsForDisplay($rows)
+    {
+        return $rows->sortByDesc(function ($row) {
+            return sprintf(
+                '%s_%s_%010d_%010d',
+                $row->transaction_date ?? '',
+                $row->transfer_date ?? '',
+                (int) ($row->transaction_id ?? 0),
+                (int) ($row->line_id ?? 0),
+            );
+        })->values();
+    }
+
+    public static function formatInventoryBalanceAfter(?float $value, ?string $unit): string
+    {
+        if ($value === null) {
+            return '—';
+        }
+
+        $formatted = rtrim(rtrim(number_format($value, 4, '.', ''), '0'), '.');
+
+        return trim($formatted.' '.($unit ?? ''));
     }
 
     public static function formatInventorySummaryMetric($value, ?string $unit): string
@@ -1358,10 +1421,16 @@ class ReportTransactionsUtile
             ->editColumn('quantity', function ($row) {
                 return $row->quantity.'  '.$row->unit;
             })
+            ->editColumn('balance_after', function ($row) {
+                return self::formatInventoryBalanceAfter(
+                    isset($row->balance_after) ? (float) $row->balance_after : null,
+                    $row->base_unit ?? null
+                );
+            })
             ->editColumn('entity', function ($row) {
                 return $row->entity;
             })
-            ->rawColumns(['transfer_in_out', 'product_name', 'establishment_name', 'entity', 'type', 'ref_no', 'quantity', 'transfer_date'])
+            ->rawColumns(['transfer_in_out', 'product_name', 'establishment_name', 'entity', 'type', 'ref_no', 'quantity', 'transfer_date', 'balance_after'])
             ->make(true);
     }
 

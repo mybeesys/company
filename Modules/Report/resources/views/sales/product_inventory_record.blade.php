@@ -261,7 +261,7 @@
         populateBranches();
         populateProducts();
         initDatatable();
-        exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_ProductSales_table');
+        exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8], '#kt_ProductSales_table');
         handleSearchDatatable();
         $('.form-select').select2();
 
@@ -305,6 +305,10 @@
             },
             info: false,
             columns: [{
+                    data: 'transfer_date',
+                    name: 'transfer_date'
+                },
+                {
                     data: 'product_name',
                     name: 'product_name'
                 },
@@ -329,15 +333,15 @@
                     name: 'quantity'
                 },
                 {
-                    data: 'entity',
-                    name: 'entity'
+                    data: 'balance_after',
+                    name: 'balance_after'
                 },
                 {
-                    data: 'transfer_date',
-                    name: 'transfer_date'
+                    data: 'entity',
+                    name: 'entity'
                 }
             ],
-            order: [],
+            order: [[0, 'desc']],
             scrollX: true,
             pageLength: 10,
             drawCallback: function() {

@@ -35,6 +35,7 @@ return [
     'quantity' => 'Quantity',
     'type' => 'Transfer type ',
     'transfer_date' => 'Transaction date',
+    'balance_after' => 'Stock balance after movement',
     'payment_status' => 'Payment Status',
     'final_total' => 'Final Total',
     'remaining_amount' => 'Remaining Amount',

@@ -34,6 +34,14 @@ class Setting extends Model
 
     }
 
+    /**
+     * Whether the inventory costing engine is enabled (average, FIFO, or LIFO).
+     */
+    public static function usesInventoryCostingEngine(): bool
+    {
+        return in_array(self::getInventoryCostingMethod(), ['average', 'fifo', 'lifo'], true);
+    }
+
     public static function getInventoryTrackingPolicy(): string
     {
         $policy = (string) (Setting::where('key', 'inventory_tracking_policy')->value('value') ?? 'perpetual');
