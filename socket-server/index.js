@@ -102,14 +102,46 @@ async function verifyBearerToken(token, tenantId) {
   if (!token) return false;
   const cleanToken = token.replace(/^Bearer\s+/i, "");
 
-  // 1) تحقق داخلي على نفس السيرفر (موصى به في الإنتاج)
+  const authHeaders = {
+    Authorization: `Bearer ${cleanToken}`,
+    Accept: "application/json",
+  };
+
+  // 1) Central — company-login token (Sanctum على DB المركزي)
+  if (LARAVEL_VERIFY_URL) {
+    const centralUrl = `${LARAVEL_VERIFY_URL.replace(/\/$/, "")}/api/verify-token`;
+    try {
+      const res = await fetch(centralUrl, {
+        headers: authHeaders,
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) return true;
+    } catch (err) {
+      console.error("[socket] central verify error:", err.message);
+    }
+  }
+
+  // 2) Tenant domain — verify-socket-token
+  if (tenantId) {
+    const tenantUrl = `${tenantBaseUrl(tenantId).replace(/\/$/, "")}/api/verify-socket-token`;
+    try {
+      const res = await fetch(tenantUrl, {
+        headers: authHeaders,
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) return true;
+    } catch (err) {
+      console.error("[socket] tenant verify error:", err.message);
+    }
+  }
+
+  // 3) Internal — عبر دومين tenant (Apache → Laravel، X-Socket-Secret)
   if (tenantId && SOCKET_INTERNAL_SECRET) {
-    const base = LARAVEL_INTERNAL_URL.replace(/\/$/, "");
+    const base = tenantBaseUrl(tenantId).replace(/\/$/, "");
     try {
       const res = await fetch(`${base}/api/internal/realtime/verify-token`, {
         headers: {
-          Authorization: `Bearer ${cleanToken}`,
-          Accept: "application/json",
+          ...authHeaders,
           "X-Socket-Secret": SOCKET_INTERNAL_SECRET,
           "X-Tenant-Id": tenantId,
         },
@@ -121,38 +153,7 @@ async function verifyBearerToken(token, tenantId) {
     }
   }
 
-  // 2) دومين الـ tenant (عبر Apache)
-  if (tenantId) {
-    const tenantUrl = `${tenantBaseUrl(tenantId).replace(/\/$/, "")}/api/verify-socket-token`;
-    try {
-      const res = await fetch(tenantUrl, {
-        headers: {
-          Authorization: `Bearer ${cleanToken}`,
-          Accept: "application/json",
-        },
-        signal: AbortSignal.timeout(8000),
-      });
-      if (res.ok) return true;
-    } catch (err) {
-      console.error("[socket] tenant verify error:", err.message);
-    }
-  }
-
-  // 3) احتياطي: التطبيق المركزي
-  const centralUrl = `${LARAVEL_VERIFY_URL.replace(/\/$/, "")}/api/verify-token`;
-  try {
-    const res = await fetch(centralUrl, {
-      headers: {
-        Authorization: `Bearer ${cleanToken}`,
-        Accept: "application/json",
-      },
-      signal: AbortSignal.timeout(5000),
-    });
-    return res.ok;
-  } catch (err) {
-    console.error("[socket] central verify error:", err.message);
-    return false;
-  }
+  return false;
 }
 
 function checkRateLimit(key) {

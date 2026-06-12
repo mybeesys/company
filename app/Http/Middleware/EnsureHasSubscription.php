@@ -17,6 +17,14 @@ class EnsureHasSubscription
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->is(
+            'api/verify-token',
+            'api/verify-socket-token',
+            'api/internal/realtime/*',
+        )) {
+            return $next($request);
+        }
+
         $excludedRoutes = [
             'login',
             'logout',
