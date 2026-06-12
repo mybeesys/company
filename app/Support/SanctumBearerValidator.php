@@ -26,7 +26,7 @@ class SanctumBearerValidator
 
     private static function findValidToken(string $bearerToken, bool $onCentral = false): ?PersonalAccessToken
     {
-        $lookup = function (): ?PersonalAccessToken {
+        $lookup = function () use ($bearerToken): ?PersonalAccessToken {
             $accessToken = PersonalAccessToken::findToken($bearerToken);
             if ($accessToken === null) {
                 return null;
