@@ -7,14 +7,7 @@ use Modules\Screen\Http\Controllers\Api\ScreenMainApiController;
 use Modules\Screen\Http\Controllers\Api\ScreenPlaylistApiController;
 use Modules\Screen\Http\Controllers\Api\ScreenPromoApiController;
 
-/*
-|--------------------------------------------------------------------------
-| Screen Admin API (تطبيق الأدمن / POS — auth-central)
-|--------------------------------------------------------------------------
-|
-| Base: /api/admin/v1/screen/...
-|
-*/
+
 
 Route::prefix('admin/v1/screen')->name('admin.v1.screen.')->middleware(['auth-central'])->group(function () {
     Route::post('auth/token', [ScreenAdminAuthApiController::class, 'pair'])

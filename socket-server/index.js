@@ -288,7 +288,13 @@ async function fetchTableOrderDetails(tenantId, tableId) {
 // --- HTTP: health & Laravel broadcast ---
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, schema_version: SCHEMA_VERSION });
+  res.json({
+    ok: true,
+    schema_version: SCHEMA_VERSION,
+    socket_io_path: "/socket.io/",
+    screen_pairing_ws_path: "/ws",
+    port: PORT,
+  });
 });
 
 app.post("/broadcast", (req, res) => {
@@ -384,18 +390,19 @@ app.post("/broadcast", (req, res) => {
 });
 
 // --- Screen Player — raw WebSocket /ws (QR pairing, no auth) ---
+// Same HTTP server + port as Socket.IO (kitchen / waiter / POS). Only handle /ws here;
+// do NOT destroy other upgrade requests — Socket.IO owns /socket.io/.
 
 const screenWss = new WebSocketServer({ noServer: true });
 
 httpServer.on("upgrade", (request, socket, head) => {
   const pathname = new URL(request.url || "/", `http://${request.headers.host}`).pathname;
-  if (pathname === "/ws" || pathname === "/ws/") {
-    screenWss.handleUpgrade(request, socket, head, (ws) => {
-      screenWss.emit("connection", ws, request);
-    });
+  if (pathname !== "/ws" && pathname !== "/ws/") {
     return;
   }
-  socket.destroy();
+  screenWss.handleUpgrade(request, socket, head, (ws) => {
+    screenWss.emit("connection", ws, request);
+  });
 });
 
 screenWss.on("connection", (ws) => {
