@@ -42,6 +42,11 @@ class Device extends Model
         return hash('sha256', $plainToken);
     }
 
+    public static function isValidExternalPairingId(string $pairingId): bool
+    {
+        return (bool) preg_match('/^[a-f0-9]{64}$/', strtolower($pairingId));
+    }
+
     /**
      * @return array{plain: string, hash: string}
      */
