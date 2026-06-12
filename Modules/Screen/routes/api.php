@@ -18,6 +18,8 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
+    require __DIR__.'/Api/admin.php';
+
     Route::prefix('v1/screen')->group(function () {
         Route::post('auth/token', [ScreenAuthApiController::class, 'issueToken'])
             ->middleware('throttle:20,1')
