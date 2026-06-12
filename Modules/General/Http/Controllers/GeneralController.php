@@ -241,6 +241,8 @@ class GeneralController extends Controller
 
     public function previewInventoryCostingRebuild()
     {
+        $this->abortUnlessInventoryCostingDebugTool();
+
         try {
             $preview = app(\Modules\Inventory\Services\InventoryCostingService::class)->previewRebuild();
 
@@ -258,6 +260,8 @@ class GeneralController extends Controller
 
     public function rebuildInventoryCosting(Request $request)
     {
+        $this->abortUnlessInventoryCostingDebugTool();
+
         $request->validate([
             'confirm_rebuild' => 'required|accepted',
             'confirm_rebuild_final' => 'required|accepted',
@@ -362,5 +366,12 @@ class GeneralController extends Controller
         $unit->save();
 
         return redirect()->back()->with('success', __('messages.add_successfully'));
+    }
+
+    private function abortUnlessInventoryCostingDebugTool(): void
+    {
+        if (! config('app.debug')) {
+            abort(404);
+        }
     }
 }

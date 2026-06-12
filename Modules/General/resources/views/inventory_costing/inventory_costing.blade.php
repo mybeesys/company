@@ -31,6 +31,7 @@
             </button>
         </form>
 
+        @if (config('app.debug'))
         <div class="separator my-8"></div>
 
         <div class="card border border-warning border-dashed bg-light-warning">
@@ -115,8 +116,6 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
         <script>
             (function() {
@@ -230,3 +229,6 @@
                 });
             })();
         </script>
+        @endif
+    </div>
+</div>
