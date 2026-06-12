@@ -9,8 +9,5 @@ Route::middleware(['socket.internal'])->prefix('internal/realtime')->group(funct
     Route::get('kitchen-orders', [RealtimeInternalController::class, 'kitchenOrders']);
     Route::get('establishment-orders/{establishmentId}', [RealtimeInternalController::class, 'establishmentOrders']);
 
-    // تحقق التوكن من Node على نفس السيرفر (127.0.0.1) — يتجنب SSL/timeout
-    Route::middleware(['auth-central'])->get('verify-token', function () {
-        return response()->json(['ok' => true]);
-    });
+    // verify-token مسجّل في routes/api.php (socket.internal + Sanctum محلي)
 });

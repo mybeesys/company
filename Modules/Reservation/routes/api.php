@@ -23,8 +23,12 @@ Route::middleware([
 
     require __DIR__.'/Api/order.php';
 
-    // تحقق توكن Socket — نفس auth-central المستخدم في REST
-    Route::middleware(['auth-central'])->get('/verify-socket-token', function () {
+    // تحقق توكن Socket.IO من Node (tenant domain)
+    Route::get('/verify-socket-token', function (\Illuminate\Http\Request $request) {
+        if (! \App\Support\SanctumBearerValidator::isValid($request->bearerToken())) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         return response()->json(['ok' => true]);
     });
 });

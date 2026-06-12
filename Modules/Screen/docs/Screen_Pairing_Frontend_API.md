@@ -198,12 +198,43 @@ Base: `{api_base_url}/api/v1/screen/player`
 
 ## 6. البنية التحتية
 
+**نفس `socket-server` (منفذ 3001)** يخدم:
+
+| الاستخدام | البروتوكول | المسار |
+|-----------|------------|--------|
+| مطبخ / ويتر / كاشيير (POS) | **Socket.IO** | `/socket.io/` |
+| ربط الشاشات (QR) | **WebSocket خام** | `/ws` |
+
+> لا تشغّل سيرفراً منفصلاً — أضف `location /ws` في Nginx **بجانب** `/socket.io/` الموجود.
+
 | متغير | الوصف |
 |--------|--------|
 | `SOCKET_BROADCAST_URL` | Laravel → `POST .../broadcast` |
 | `SOCKET_INTERNAL_SECRET` | سر داخلي لـ `/broadcast` |
 | `SOCKET_PORT` | منفذ socket-server (افتراضي `3001`) |
 | `SCREEN_API_TOKEN_TTL_DAYS` | مدة توكن Player |
+
+### Nginx — مساران على نفس المنفذ
+
+```nginx
+location /socket.io/ {
+    proxy_pass http://127.0.0.1:3001;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 86400s;
+}
+
+location /ws {
+    proxy_pass http://127.0.0.1:3001;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 86400s;
+}
+```
 
 **تشغيل socket-server:**
 

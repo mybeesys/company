@@ -2,12 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SanctumBearerValidator;
 use Closure;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CentralAppAuthenticate
@@ -19,37 +17,18 @@ class CentralAppAuthenticate
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // try {
         $bearerToken = $request->bearerToken();
         if (empty($bearerToken)) {
-            $response_success = false;
-        } elseif (Cache::has($bearerToken)) {
-            $response_success = true;
-        } else {
-            $response = Http::withToken($bearerToken)->withHeaders(['Content-Type' => 'application/json', 'Accept' => 'application/json'])->get(env('APP_URL').'/api/verify-token');
-            $response_success = $response->successful();
+            return $this->unauthenticatedResponse($request);
         }
-        if ($response_success) {
+
+        if (Cache::has($bearerToken) || SanctumBearerValidator::isValid($bearerToken)) {
             Cache::put($bearerToken, true, 86400 /* One day */);
 
             return $next($request);
-        } else {
-            return $this->unauthenticatedResponse($request);
         }
-        // } catch (RequestException $e) {
-        //     Log::error('HTTP request failed: ' . $e->getMessage());
 
-        //     return response()->json([
-        //         "message" => "Unable to verify token. Please try again later."
-        //     ], 500);
-        // } catch (\Exception $e) {
-        //     Log::error('An unexpected error occurred: ' . $e->getMessage());
-
-        //     return response()->json([
-        //         "message" => "An unexpected error occurred. Please try again later."
-        //     ], 500);
-        // }
-
+        return $this->unauthenticatedResponse($request);
     }
 
     protected function unauthenticatedResponse(Request $request)
@@ -58,8 +37,8 @@ class CentralAppAuthenticate
             return response()->json([
                 'message' => 'Unauthenticated.',
             ], 401);
-        } else {
-            return to_route('login');
         }
+
+        return to_route('login');
     }
 }
