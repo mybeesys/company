@@ -37,6 +37,6 @@ return [
     'subscriptions' => 'الاشتراكات',
     'header_help_settings' => 'الإعدادات العامة والمساعدة',
     'post_login_splash_welcome' => 'مرحباً بعودتك',
-    'post_login_splash_app_name' => 'خلية النظم المتكامل',
+    'post_login_splash_app_name' => 'My Bee',
     'post_login_splash_message' => 'منصة موحّدة لإدارة المبيعات والمشتريات والمخزون والمحاسبة — كل عملياتك في مكان واحد.',
 ];

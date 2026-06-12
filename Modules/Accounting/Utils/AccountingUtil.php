@@ -218,6 +218,8 @@ class AccountingUtil
 
     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
+        app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
+
         $netTotalBeforeTax = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax ?? 0);
 
         $route_section = match ($transaction->type) {
@@ -590,10 +592,8 @@ class AccountingUtil
             return;
         }
 
-        $cogsAmount = (float) TransactionSellLine::query()
-            ->join('product_products as p', 'p.id', '=', 'transaction_sell_lines.product_id')
-            ->where('transaction_sell_lines.transaction_id', $transaction->id)
-            ->sum(DB::raw('COALESCE(transaction_sell_lines.qyt,0) * COALESCE(p.cost,0)'));
+        $cogsAmount = app(\Modules\Inventory\Services\InventoryCostingService::class)
+            ->resolveCogsAmountForSell((int) $transaction->id);
 
         if ($cogsAmount <= 0) {
             return;

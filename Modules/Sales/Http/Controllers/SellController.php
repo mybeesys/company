@@ -989,6 +989,7 @@ class SellController extends Controller
                 $request
             );
 
+            app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
             $this->appendPerpetualInventoryImpactEntries($transaction, (int) $acc_trans_mapping_id, $request);
 
             AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
@@ -1114,6 +1115,7 @@ class SellController extends Controller
             $request
         );
 
+        app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
         $this->appendPerpetualInventoryImpactEntries($transaction, (int) $acc_trans_mapping_id, $request);
 
         $transactionPayment->account_id = $client->account_id;
@@ -1167,10 +1169,8 @@ class SellController extends Controller
             ]);
         }
 
-        $cogsAmount = (float) (DB::table('transaction_sell_lines as tsl')
-            ->join('product_products as p', 'p.id', '=', 'tsl.product_id')
-            ->where('tsl.transaction_id', $transaction->id)
-            ->sum(DB::raw('COALESCE(tsl.qyt,0) * COALESCE(p.cost,0)')));
+        $cogsAmount = app(\Modules\Inventory\Services\InventoryCostingService::class)
+            ->resolveCogsAmountForSell((int) $transaction->id);
 
         if ($cogsAmount <= 0) {
             return;

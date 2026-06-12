@@ -239,6 +239,46 @@ class GeneralController extends Controller
         }
     }
 
+    public function previewInventoryCostingRebuild()
+    {
+        try {
+            $preview = app(\Modules\Inventory\Services\InventoryCostingService::class)->previewRebuild();
+
+            return response()->json([
+                'success' => true,
+                'data' => $preview,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function rebuildInventoryCosting(Request $request)
+    {
+        $request->validate([
+            'confirm_rebuild' => 'required|accepted',
+            'confirm_rebuild_final' => 'required|accepted',
+            'preview_token' => 'required|string',
+        ]);
+
+        try {
+            $stats = app(\Modules\Inventory\Services\InventoryCostingService::class)
+                ->rebuildFromHistory($request->input('preview_token'));
+
+            return redirect()->back()->with('success', __('general::general.inventory_costing_rebuild_success', [
+                'movements' => $stats['movements'],
+                'products' => $stats['products'],
+                'transactions' => $stats['transactions'],
+                'method' => $stats['method'] ?? '',
+            ]));
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
     public function updateCurrency(Request $request)
     {
         try {

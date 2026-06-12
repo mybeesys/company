@@ -69,6 +69,10 @@ return [
     'screen_auth_invalid_pairing' => 'رمز الاقتران غير صالح.',
     'screen_auth_invalid_pin' => 'كود الجهاز أو PIN غير صحيح.',
     'screen_auth_revoked' => 'تم إلغاء التوكن.',
+    'screen_player_auth_invalid' => 'كود الجهاز غير صحيح.',
+    'screen_player_token_required' => 'يتطلب توكن تشغيل جهاز (Player). استخدم مسار player/auth/token.',
+    'screen_player_playlist_not_found' => 'قائمة التشغيل غير موجودة أو غير مرتبطة بهذا الجهاز.',
+    'screen_player_promo_not_found' => 'المادة الإعلانية غير موجودة أو غير مرتبطة بقوائم هذا الجهاز.',
     'pairing_dialog_close' => 'إغلاق',
     'playlist_step1_incomplete' => 'يرجى إكمال الحقول المطلوبة في الخطوة الأولى (الاسم، الجدولة، الفرع، الجهاز، وما يلزم حسب نوع الجدولة) ثم اضغط التالي.',
 ];

@@ -226,7 +226,6 @@
                             <div class="text-gray-900 order-2 order-md-1">
                                 <span class="text-muted fw-semibold me-1">{{ date('Y') }}&copy;</span>
                                 <a href="{{ url('/') }}" class="text-gray-800 text-hover-primary">{{ brand_short_name() }}</a>
-                                <span class="text-muted fs-8 ms-2 d-none d-md-inline">{{ brand_legal_name() }}</span>
                             </div>
                             <!--end::Copyright-->
                             <!--begin::Menu-->
