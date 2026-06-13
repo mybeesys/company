@@ -11,6 +11,7 @@ use Modules\Product\Models\ModifierPriceTier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\UnitTransfer;
+use Modules\Product\Models\UnitTransferConvertor;
 
 class ModifierController extends Controller
 {
@@ -287,11 +288,14 @@ class ModifierController extends Controller
         foreach ($recipes as $rec) {
             $rec->newid = $rec->item_id.'-'.$rec->item_type;
             $itemCost = (float) ($itemCosts[$rec->item_id] ?? 0);
-            $transfer = (float) ($rec->unitTransfer?->transfer ?? 0);
             $quantity = (float) ($rec->quantity ?? 0);
-            $rec->cost = $transfer > 0
-                ? round(($quantity / $transfer) * $itemCost, 4)
-                : round($quantity * $itemCost, 4);
+            $rec->cost = UnitTransferConvertor::recipeLineCost(
+                $quantity,
+                $itemCost,
+                $rec->unit_transfer_id,
+                $rec->item_type ?? 'i',
+                (int) $rec->item_id
+            );
         }
 
         $modifier->setRelation('recipe', $recipes);

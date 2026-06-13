@@ -49,3 +49,77 @@ export const formatDecimal = (value, maxDecimals = 6) => {
     .replace(/(\.\d*?[1-9])0+$/, "$1")
     .replace(/\.0+$/, "");
 };
+
+/** Recipe row id e.g. "12-i" → list type for getUnitsTransferList */
+export const parseRecipeNewId = (newid) => {
+  if (newid == null || newid === "") {
+    return { itemId: null, listType: null };
+  }
+  const raw = String(newid);
+  if (raw.includes("-")) {
+    const [id, type] = raw.split("-");
+    const listType =
+      type === "p" ? "product" : type === "m" ? "modifier" : "ingredint";
+    return { itemId: id, listType };
+  }
+  return { itemId: raw, listType: "ingredint" };
+};
+
+export const getUnitTransferId = (unitTransfer) => {
+  if (unitTransfer == null) return null;
+  if (typeof unitTransfer === "object") {
+    return (
+      unitTransfer.id ??
+      unitTransfer.value ??
+      unitTransfer.data?.id ??
+      null
+    );
+  }
+  return unitTransfer;
+};
+
+/** Product of transfer factors from selected unit up to the main unit (unit2 = null). */
+export const getUnitFactorToMain = (unitTransferId, units) => {
+  if (!units?.length || unitTransferId == null) return 1;
+
+  const unitsMap = Object.fromEntries(units.map((u) => [u.id, u]));
+  const main = units.find((u) => u.unit2 == null);
+  if (!main) return 1;
+  if (Number(unitTransferId) === Number(main.id)) return 1;
+
+  let factor = 1;
+  let currentId = unitTransferId;
+  const visited = new Set();
+
+  while (currentId != null && Number(currentId) !== Number(main.id)) {
+    if (visited.has(String(currentId))) return null;
+    visited.add(String(currentId));
+    const unit = unitsMap[currentId];
+    if (!unit) return null;
+    const transfer = parseFloat(unit.transfer);
+    if (!Number.isFinite(transfer) || transfer <= 0) break;
+    factor *= transfer;
+    currentId = unit.unit2;
+  }
+
+  return factor;
+};
+
+/** itemCost is per main/base unit; quantity is in the selected unit_transfer. */
+export const calculateRecipeLineCost = (
+  quantity,
+  itemCost,
+  unitTransferId,
+  units
+) => {
+  const qty = parseFloat(quantity);
+  const cost = parseFloat(itemCost);
+  if (!Number.isFinite(qty) || !Number.isFinite(cost)) return 0;
+
+  const factor = getUnitFactorToMain(unitTransferId, units);
+  if (!factor || factor <= 0) {
+    return roundDecimal(qty * cost, 4);
+  }
+
+  return roundDecimal((qty / factor) * cost, 4);
+};

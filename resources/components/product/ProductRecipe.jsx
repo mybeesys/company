@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TreeTableEditorRecipe from "../comp/TreeTableEditorRecipe";
-import { formatDecimal, roundDecimal } from "../lang/Utils";
+import { formatDecimal } from "../lang/Utils";
+import { computeRecipeRowCost } from "../lang/recipeCost";
 
 const ProductRecipe = ({
     translations,
@@ -11,6 +12,7 @@ const ProductRecipe = ({
     dir,
 }) => {
     const [isRecipeYieldRequired, setIsRecipeYieldRequired] = useState(false);
+    const recalcVersionRef = useRef(0);
 
     const handleCheckboxChange = (e) => {
         const checked = e.target.checked;
@@ -27,26 +29,25 @@ const ProductRecipe = ({
         );
     }, [product, ingredientTree]);
 
-    const calculateCost = (ingredientId, quantity, unitTransfer) => {
-        if (!ingredientId || !quantity) return 0;
-
-        const ingredient = ingredientTree.find((e) => e.value === ingredientId);
-        if (!ingredient) return 0;
-
-        let transfer = 0;
-        if (unitTransfer && typeof unitTransfer === "object") {
-            transfer = parseFloat(unitTransfer?.data?.transfer || 0);
+    const applyRowCost = (rowData, postExecute, nodes, rowKey) => {
+        if (!rowData.newid || rowData.quantity == null || rowData.quantity === "") {
+            return;
         }
 
+        const ingredient = ingredientTree.find((e) => e.value === rowData.newid);
+        if (!ingredient) return;
 
-        if (transfer > 0) {
-            return roundDecimal(
-                (parseFloat(quantity) / transfer) * ingredient.cost,
-                4
-            );
-        }
-
-        return roundDecimal(parseFloat(quantity) * ingredient.cost, 4);
+        const version = ++recalcVersionRef.current;
+        computeRecipeRowCost(
+            rowData.newid,
+            rowData.quantity,
+            rowData.unit_transfer,
+            ingredient.cost
+        ).then((cost) => {
+            if (version !== recalcVersionRef.current) return;
+            rowData.cost = cost;
+            postExecute([...nodes]);
+        });
     };
 
     const handleDelete = (row) => {
@@ -60,109 +61,82 @@ const ProductRecipe = ({
         <div className="recipe-panel pt-2">
             <div className="table-responsive recipe-table">
                 <TreeTableEditorRecipe
-                translations={translations}
-                dir={dir}
-                header={false}
-                addNewRow={true}
-                type={"recipe"}
-                title={translations.recipe}
-                currentNodes={[...productRecipe]}
-                defaultValue={{}}
-                cols={[
-                    {
-                        key: "newid",
-                        title: "Ingredient",
-                        autoFocus: true,
-                        options: ingredientTree,
-                        type: "DropDown",
-                        width: "35%",
-                        editable: true,
-                        required: true,
-                        onChangeValue: (nodes, key, val, rowKey, postExecute) => {
-                            const updatedNodes = [...nodes];
-                            const rowData = updatedNodes[rowKey].data;
-                            rowData[key] = val;
-
-                            if (rowData.newid && rowData.quantity) {
-                                rowData.cost = calculateCost(
-                                    rowData.newid,
-                                    rowData.quantity,
-                                    rowData.unit_transfer
-                                );
-                            }
-
-                            postExecute(updatedNodes);
+                    translations={translations}
+                    dir={dir}
+                    header={false}
+                    addNewRow={true}
+                    type={"recipe"}
+                    title={translations.recipe}
+                    currentNodes={[...productRecipe]}
+                    defaultValue={{}}
+                    cols={[
+                        {
+                            key: "newid",
+                            title: "Ingredient",
+                            autoFocus: true,
+                            options: ingredientTree,
+                            type: "DropDown",
+                            width: "35%",
+                            editable: true,
+                            required: true,
+                            onChangeValue: (nodes, key, val, rowKey, postExecute) => {
+                                const updatedNodes = [...nodes];
+                                const rowData = updatedNodes[rowKey].data;
+                                rowData[key] = val;
+                                applyRowCost(rowData, postExecute, updatedNodes, rowKey);
+                            },
                         },
-                    },
-                    {
-                        key: "unit_transfer",
-                        title: "unit",
-                        autoFocus: true,
-                        type: "AsyncDropDown",
-                        width: "22%",
-                        editable: true,
-                        required: true,
-                        searchUrl: "searchUnitTransfers",
-                        relatedTo: {
-                            key: "id",
-                            relatedKey: "newid",
+                        {
+                            key: "unit_transfer",
+                            title: "unit",
+                            autoFocus: true,
+                            type: "AsyncDropDown",
+                            width: "22%",
+                            editable: true,
+                            required: true,
+                            searchUrl: "searchUnitTransfers",
+                            relatedTo: {
+                                key: "id",
+                                relatedKey: "newid",
+                            },
+                            onChangeValue: (nodes, key, val, rowKey, postExecute) => {
+                                const updatedNodes = [...nodes];
+                                const rowData = updatedNodes[rowKey].data;
+                                rowData[key] = val;
+                                applyRowCost(rowData, postExecute, updatedNodes, rowKey);
+                            },
                         },
-                        onChangeValue: (nodes, key, val, rowKey, postExecute) => {
-                            const updatedNodes = [...nodes];
-                            const rowData = updatedNodes[rowKey].data;
-                            rowData[key] = val;
-
-                            if (rowData.newid && rowData.quantity) {
-                                rowData.cost = calculateCost(
-                                    rowData.newid,
-                                    rowData.quantity,
-                                    rowData.unit_transfer
-                                );
-                            }
-
-                            postExecute(updatedNodes);
+                        {
+                            key: "quantity",
+                            title: "quantity",
+                            autoFocus: false,
+                            type: "Decimal",
+                            width: "18%",
+                            decimals: 6,
+                            editable: true,
+                            required: true,
+                            onChangeValue: (nodes, key, val, rowKey, postExecute) => {
+                                const updatedNodes = [...nodes];
+                                const rowData = updatedNodes[rowKey].data;
+                                rowData[key] = val;
+                                applyRowCost(rowData, postExecute, updatedNodes, rowKey);
+                            },
                         },
-                    },
-                    {
-                        key: "quantity",
-                        title: "quantity",
-                        autoFocus: false,
-                        type: "Decimal",
-                        width: "18%",
-                        decimals: 6,
-                        editable: true,
-                        required: true,
-                        onChangeValue: (nodes, key, val, rowKey, postExecute) => {
-                            const updatedNodes = [...nodes];
-                            const rowData = updatedNodes[rowKey].data;
-                            rowData[key] = val;
-
-                            if (rowData.newid && rowData.quantity) {
-                                rowData.cost = calculateCost(
-                                    rowData.newid,
-                                    rowData.quantity,
-                                    rowData.unit_transfer
-                                );
-                            }
-
-                            postExecute(updatedNodes);
+                        {
+                            key: "cost",
+                            title: "cost",
+                            autoFocus: false,
+                            type: "Decimal",
+                            width: "15%",
+                            decimals: 4,
+                            editable: false,
+                            required: false,
                         },
-                    },
-                    {
-                        key: "cost",
-                        title: "cost",
-                        autoFocus: false,
-                        type: "Decimal",
-                        width: "15%",
-                        decimals: 4,
-                        editable: false,
-                        required: false,
-                    },
-                ]}
-                actions={[]}
-                onUpdate={(nodes) => onBasicChange("recipe", nodes)}
-                onDelete={handleDelete}
-            />
+                    ]}
+                    actions={[]}
+                    onUpdate={(nodes) => onBasicChange("recipe", nodes)}
+                    onDelete={handleDelete}
+                />
             </div>
             <div className="row g-3 recipe-meta-row">
                 <div className="col-12 col-md-6 col-lg-5">
