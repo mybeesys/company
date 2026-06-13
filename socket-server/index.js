@@ -24,26 +24,34 @@ const TENANT_URL_TEMPLATE =
 const SCHEMA_VERSION = 1;
 const RATE_LIMIT_PER_MINUTE = Number(process.env.SOCKET_RATE_LIMIT_PER_MINUTE || 30);
 const SCREEN_PAIRING_CHANNEL_PREFIX = "screen.pairing.";
+const SCREEN_DEVICE_CHANNEL_PREFIX = "screen.device.";
 
 /** @type {Map<string, Set<import('ws').WebSocket>>} */
 const screenPairingRooms = new Map();
+
+/** @type {Map<string, Set<import('ws').WebSocket>>} */
+const screenDeviceRooms = new Map();
 
 function isValidScreenPairingId(id) {
   return typeof id === "string" && /^[a-f0-9]{64}$/.test(id);
 }
 
-function joinScreenPairingRoom(ws, room) {
-  if (!screenPairingRooms.has(room)) {
-    screenPairingRooms.set(room, new Set());
-  }
-  screenPairingRooms.get(room).add(ws);
+function isValidScreenDeviceId(id) {
+  return typeof id === "string" && /^[1-9]\d*$/.test(id);
 }
 
-function leaveScreenPairingRoom(ws, room) {
-  const set = screenPairingRooms.get(room);
+function joinScreenRoom(map, ws, room) {
+  if (!map.has(room)) {
+    map.set(room, new Set());
+  }
+  map.get(room).add(ws);
+}
+
+function leaveScreenRoom(map, ws, room) {
+  const set = map.get(room);
   if (!set) return;
   set.delete(ws);
-  if (set.size === 0) screenPairingRooms.delete(room);
+  if (set.size === 0) map.delete(room);
 }
 
 function broadcastScreenLinked(pairingId, payload) {
@@ -54,6 +62,27 @@ function broadcastScreenLinked(pairingId, payload) {
     channel: room,
     ...payload,
     id: pairingId,
+  };
+  const raw = JSON.stringify(outbound);
+  let sent = 0;
+  if (clients) {
+    for (const ws of clients) {
+      if (ws.readyState === 1) {
+        ws.send(raw);
+        sent += 1;
+      }
+    }
+  }
+  return { room, sent };
+}
+
+function broadcastScreenDeviceEvent(deviceId, payload) {
+  const room = `${SCREEN_DEVICE_CHANNEL_PREFIX}${deviceId}`;
+  const clients = screenDeviceRooms.get(room);
+  const outbound = {
+    channel: room,
+    device_id: Number(deviceId),
+    ...payload,
   };
   const raw = JSON.stringify(outbound);
   let sent = 0;
@@ -294,6 +323,7 @@ app.get("/health", (_req, res) => {
     schema_version: SCHEMA_VERSION,
     socket_io_path: "/socket.io/",
     screen_pairing_ws_path: "/ws",
+    screen_device_channel_prefix: SCREEN_DEVICE_CHANNEL_PREFIX,
     port: PORT,
   });
 });
@@ -321,6 +351,19 @@ app.post("/broadcast", (req, res) => {
     }
     const result = broadcastScreenLinked(pairingId, payload);
     return res.json({ ok: true, screen_pairing: true, ...result });
+  }
+
+  if (body.screen_device === true) {
+    const deviceId = String(body.device_id ?? payload.device_id ?? "").trim();
+    if (!isValidScreenDeviceId(deviceId)) {
+      return res.status(422).json({ message: "device_id required (positive integer)" });
+    }
+    const result = broadcastScreenDeviceEvent(deviceId, {
+      event: eventName,
+      tenant_id: tenantId,
+      ...payload,
+    });
+    return res.json({ ok: true, screen_device: true, ...result });
   }
 
   const isKitchen = body.kitchen === true || String(eventName).startsWith("kitchen:");
@@ -408,6 +451,7 @@ httpServer.on("upgrade", (request, socket, head) => {
 
 screenWss.on("connection", (ws) => {
   let joinedRoom = null;
+  let joinedRoomMap = null;
 
   ws.on("message", (raw) => {
     try {
@@ -415,30 +459,52 @@ screenWss.on("connection", (ws) => {
       if (msg.event !== "subscribe") return;
 
       const channel = String(msg.channel || "");
-      if (!channel.startsWith(SCREEN_PAIRING_CHANNEL_PREFIX)) return;
 
-      const pairingId = String(msg.id || channel.slice(SCREEN_PAIRING_CHANNEL_PREFIX.length)).toLowerCase();
-      if (!isValidScreenPairingId(pairingId)) return;
+      if (channel.startsWith(SCREEN_PAIRING_CHANNEL_PREFIX)) {
+        const pairingId = String(msg.id || channel.slice(SCREEN_PAIRING_CHANNEL_PREFIX.length)).toLowerCase();
+        if (!isValidScreenPairingId(pairingId)) return;
 
-      const room = `${SCREEN_PAIRING_CHANNEL_PREFIX}${pairingId}`;
-      if (joinedRoom) leaveScreenPairingRoom(ws, joinedRoom);
-      joinScreenPairingRoom(ws, room);
-      joinedRoom = room;
+        const room = `${SCREEN_PAIRING_CHANNEL_PREFIX}${pairingId}`;
+        if (joinedRoom && joinedRoomMap) leaveScreenRoom(joinedRoomMap, ws, joinedRoom);
+        joinScreenRoom(screenPairingRooms, ws, room);
+        joinedRoom = room;
+        joinedRoomMap = screenPairingRooms;
 
-      ws.send(
-        JSON.stringify({
-          event: "subscribed",
-          channel: room,
-          id: pairingId,
-        })
-      );
+        ws.send(
+          JSON.stringify({
+            event: "subscribed",
+            channel: room,
+            id: pairingId,
+          })
+        );
+        return;
+      }
+
+      if (channel.startsWith(SCREEN_DEVICE_CHANNEL_PREFIX)) {
+        const deviceId = String(msg.id || channel.slice(SCREEN_DEVICE_CHANNEL_PREFIX.length)).trim();
+        if (!isValidScreenDeviceId(deviceId)) return;
+
+        const room = `${SCREEN_DEVICE_CHANNEL_PREFIX}${deviceId}`;
+        if (joinedRoom && joinedRoomMap) leaveScreenRoom(joinedRoomMap, ws, joinedRoom);
+        joinScreenRoom(screenDeviceRooms, ws, room);
+        joinedRoom = room;
+        joinedRoomMap = screenDeviceRooms;
+
+        ws.send(
+          JSON.stringify({
+            event: "subscribed",
+            channel: room,
+            id: deviceId,
+          })
+        );
+      }
     } catch {
       // ignore malformed frames
     }
   });
 
   ws.on("close", () => {
-    if (joinedRoom) leaveScreenPairingRoom(ws, joinedRoom);
+    if (joinedRoom && joinedRoomMap) leaveScreenRoom(joinedRoomMap, ws, joinedRoom);
   });
 });
 

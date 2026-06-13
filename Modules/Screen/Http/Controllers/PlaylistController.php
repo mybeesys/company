@@ -9,9 +9,13 @@ use Modules\Screen\Classes\PlaylistTable;
 use Modules\Screen\Http\Requests\StorePlaylistRequest;
 use Modules\Screen\Models\Device;
 use Modules\Screen\Models\Playlist;
+use Modules\Screen\Services\ScreenPlaylistSyncNotifier;
 
 class PlaylistController extends Controller
 {
+    public function __construct(
+        protected ScreenPlaylistSyncNotifier $playlistSyncNotifier
+    ) {}
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -52,6 +56,8 @@ class PlaylistController extends Controller
                 }
                 $playlist->establishments()->sync($data->establishments_ids);
                 $playlist->devices()->sync($data->devices);
+
+                $this->playlistSyncNotifier->created($playlist);
 
                 return response()->json(['message' => __('employee::responses.operation_success')]);
             });
@@ -111,6 +117,8 @@ class PlaylistController extends Controller
                 $playlist->establishments()->sync($data->establishments_ids);
                 $playlist->devices()->sync($data->devices);
 
+                $this->playlistSyncNotifier->updated($playlist);
+
                 return response()->json(['message' => __('employee::responses.updated_successfully', ['name' => __('screen::general.playlist')])]);
             });
         } catch (\Throwable $e) {
@@ -132,8 +140,12 @@ class PlaylistController extends Controller
 
     public function destroy(Playlist $playlist)
     {
+        $deviceIds = $playlist->devices()->pluck('screen_devices.id')->all();
+        $playlistId = $playlist->id;
         $delete = $playlist->delete();
         if ($delete) {
+            $this->playlistSyncNotifier->deleted($playlistId, $deviceIds);
+
             return response()->json(['message' => __('employee::responses.deleted_successfully', ['name' => __('screen::fields.promo')])]);
         } else {
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
