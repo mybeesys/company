@@ -172,6 +172,10 @@ const TreeTableEditorUnit = ({
         }
         let firstCell = index == "0" ? true : false;
 
+        if (node.data.empty && !firstCell) {
+            return <span className="tree-table-empty-cell" />;
+        }
+
         if (col.type == "Text") return renderTextCell(node, col, firstCell);
         else if (col.type == "Number")
             return renderNumberCell(node, col, firstCell);
@@ -343,10 +347,9 @@ const TreeTableEditorUnit = ({
         } else {
             return !!col.editable ? (
                 <input
-                    type="number"
-                    min="0"
-                    step=".01"
-                    class={`form-control form-control-solid custom-height number-indent-${indent}`}
+                    type="text"
+                    inputMode="decimal"
+                    className={`form-control form-control-solid custom-height number-indent-${indent}`}
                     value={node.data[col.key] ?? ""}
                     onChange={(e) => {
                         handleEditorChange(
@@ -356,13 +359,24 @@ const TreeTableEditorUnit = ({
                             col.onChangeValue
                         );
                     }}
+                    onBlur={(e) => {
+                        const formatted = formatDecimal(e.target.value);
+                        if (formatted !== "" && formatted !== String(node.data[col.key] ?? "")) {
+                            handleEditorChange(
+                                formatted,
+                                col.key,
+                                node.key,
+                                col.onChangeValue
+                            );
+                        }
+                    }}
                     autoFocus={!!col.autoFocus}
                     onKeyDown={(e) => e.stopPropagation()}
                     style={{ width: "100%" }}
                     required={!!col.required}
                 />
             ) : (
-                <span>{node.data[col.key]}</span>
+                <span>{formatDecimal(node.data[col.key])}</span>
             );
         }
     };

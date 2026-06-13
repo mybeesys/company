@@ -6,15 +6,93 @@ use Exception;
 
 class UnitTransferConvertor
 {
+    public static function loadUnitsForItem(string $itemType, int $itemId): array
+    {
+        if ($itemType === 'p') {
+            return UnitTransfer::where('product_id', $itemId)->get()->toArray();
+        }
+
+        return UnitTransfer::where(function ($query) use ($itemId) {
+            $query->where('product_id', $itemId)
+                ->orWhere('modifier_id', $itemId);
+        })->get()->toArray();
+    }
+
+    public static function getFactorToMainUnit(int $fromUnitId, ?array $units): ?float
+    {
+        if (! $units || ! $fromUnitId) {
+            return 1.0;
+        }
+
+        $mapUnits = array_column($units, null, 'id');
+        $mainUnit = null;
+        foreach ($units as $unit) {
+            if ($unit['unit2'] == null) {
+                $mainUnit = $unit;
+                break;
+            }
+        }
+
+        if (! $mainUnit) {
+            return 1.0;
+        }
+
+        if ((int) $fromUnitId === (int) $mainUnit['id']) {
+            return 1.0;
+        }
+
+        $factor = 1.0;
+        $currentId = $fromUnitId;
+        $visited = [];
+
+        while ($currentId != null && (int) $currentId !== (int) $mainUnit['id']) {
+            if (in_array($currentId, $visited, true)) {
+                return null;
+            }
+            $visited[] = $currentId;
+
+            if (! isset($mapUnits[$currentId])) {
+                return null;
+            }
+
+            $unit = $mapUnits[$currentId];
+            $transfer = (float) ($unit['transfer'] ?? 0);
+            if ($transfer <= 0) {
+                break;
+            }
+
+            $factor *= $transfer;
+            $currentId = $unit['unit2'];
+        }
+
+        return $factor;
+    }
+
+    public static function recipeLineCost(
+        float $quantity,
+        float $itemCost,
+        ?int $unitTransferId,
+        string $itemType,
+        int $itemId
+    ): float {
+        if (! $unitTransferId) {
+            return round($quantity * $itemCost, 4);
+        }
+
+        $units = self::loadUnitsForItem($itemType, $itemId);
+        $factor = self::getFactorToMainUnit($unitTransferId, $units);
+
+        if (! $factor || $factor <= 0) {
+            return round($quantity * $itemCost, 4);
+        }
+
+        return round(($quantity / $factor) * $itemCost, 4);
+    }
+
     public static function getMainUnit($type, $id, $units)
     {
         if ($units == null) {
-            if ($type == 'P') {
-                $units = UnitTransfer::where('product_id', '=', $id)->get();
-            } else {
-                $units = UnitTransfer::where('modifier_id', '=', $id)->get();
-            }
-            $units = $units->toArray();
+            $units = self::loadUnitsForLegacyType($type, $id);
         }
         $mainUnit = array_filter($units, function ($unit) {
             return $unit['unit2'] == null; // Keep only even numbers
@@ -27,12 +105,7 @@ class UnitTransferConvertor
     public static function convertUnit($type, $id, $fromId, $toId, $quantity, $units)
     {
         if ($units == null) {
-            if ($type == 'P') {
-                $units = UnitTransfer::where('product_id', '=', $id)->get();
-            } else {
-                $units = UnitTransfer::where('modifier_id', '=', $id)->get();
-            }
-            $units = $units->toArray();
+            $units = self::loadUnitsForLegacyType($type, $id);
         }
         if ($toId == null) {
             $mainUnit = self::getMainUnit($type, $id, $units);
@@ -99,5 +172,17 @@ class UnitTransferConvertor
         }
 
         return 1;
+    }
+
+    private static function loadUnitsForLegacyType(string $type, int $id): array
+    {
+        if ($type === 'P' || $type === 'I') {
+            return UnitTransfer::where('product_id', $id)->get()->toArray();
+        }
+
+        return UnitTransfer::where(function ($query) use ($id) {
+            $query->where('product_id', $id)
+                ->orWhere('modifier_id', $id);
+        })->get()->toArray();
     }
 }

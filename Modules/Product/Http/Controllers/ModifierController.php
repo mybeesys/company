@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\ModifierPriceTier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeModifier;
+use Modules\Product\Models\UnitTransfer;
+use Modules\Product\Models\UnitTransferConvertor;
 
 class ModifierController extends Controller
 {
@@ -86,12 +88,18 @@ class ModifierController extends Controller
             ]);
         }
         $cost = 0;
-        if ($validated['adjust_product_cost_recipe_cost']) {
+        $adjustCostFromRecipe = filter_var(
+            $validated['adjust_product_cost_recipe_cost']
+                ?? $request->input('adjust_product_cost_recipe_cost', false),
+            FILTER_VALIDATE_BOOLEAN
+        );
+
+        if ($adjustCostFromRecipe && is_array($request->input('recipe'))) {
             foreach ($request['recipe'] as $recipe) {
-                $cost += $recipe['cost'];
+                $cost += (float) ($recipe['cost'] ?? 0);
             }
         } else {
-            $cost = $validated['cost'];
+            $cost = $validated['cost'] ?? $modifier->cost ?? 0;
         }
         $modifier->cost = $cost;
         $modifier->type = 'modifier';
@@ -135,13 +143,13 @@ class ModifierController extends Controller
                 }
             }
 
-            // Logic for unit transfers ... (OMITTED FOR BREVITY, same logic as IngredientController)
+            $this->saveModifierUnitTransfers($modifier->id, $request['transfer'] ?? null);
         });
     }
 
     protected function createModifier($validated, $request)
     {
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
             $price_with_tax = $validated['price_with_tax'];
             $price = $price_with_tax / 1.15;
 
@@ -160,28 +168,137 @@ class ModifierController extends Controller
                     'updated_at' => now(),
                 ]);
             }
-            // Similar logic for Recipe, PriceTiers, and Units as saveModifier
+
+            RecipeModifier::where('modifier_id', $modifier->id)->delete();
+            if (isset($request['recipe'])) {
+                $order = 0;
+                foreach ($request['recipe'] as $recipe) {
+                    $newid = $recipe['newid'];
+                    $rec = [
+                        'modifier_id' => $modifier->id,
+                        'quantity' => $recipe['quantity'],
+                        'order' => $order++,
+                        'unit_transfer_id' => $recipe['unit_transfer']['id'] ?? null,
+                    ];
+
+                    if (str_contains($newid, '-')) {
+                        $parts = explode('-', $newid);
+                        $rec['item_id'] = $parts[0];
+                        $rec['item_type'] = $parts[1];
+                    } else {
+                        preg_match('/^(\d+)([a-zA-Z_]+)?$/', $newid, $matches);
+                        $rec['item_id'] = $matches[1] ?? null;
+                        $rec['item_type'] = $matches[2] ?? null;
+                    }
+                    RecipeModifier::create($rec);
+                }
+            }
+
+            if (isset($request['price_tiers'])) {
+                foreach ($request['price_tiers'] as $pt) {
+                    ModifierPriceTier::create([
+                        'modifier_id' => $modifier->id,
+                        'price_tier_id' => $pt['price_tier']['id'],
+                        'price' => $pt['price'],
+                    ]);
+                }
+            }
+
+            $this->saveModifierUnitTransfers($modifier->id, $request['transfer'] ?? null);
         });
+    }
+
+    protected function saveModifierUnitTransfers(int $modifierId, ?array $transfers): void
+    {
+        if ($transfers === null) {
+            return;
+        }
+
+        $modifierUnitScope = function ($query) use ($modifierId) {
+            $query->where('product_id', $modifierId)
+                ->orWhere('modifier_id', $modifierId);
+        };
+
+        $oldUnites = UnitTransfer::where($modifierUnitScope)->get();
+        $ids = [];
+        $insertedIds = [];
+        $requestIds = array_map(fn ($item) => $item['id'], $transfers);
+
+        UnitTransfer::where($modifierUnitScope)->whereNotIn('id', $requestIds)->delete();
+
+        foreach ($oldUnites as $old) {
+            $ids[] = ['oldId' => $old['id'], 'newId' => $old['id']];
+        }
+
+        foreach ($transfers as $transfer) {
+            $transferValue = ($transfer['transfer'] ?? null) != -100 ? ($transfer['transfer'] ?? null) : null;
+
+            if ($transfer['id'] <= 0) {
+                $id = UnitTransfer::create([
+                    'product_id' => $modifierId,
+                    'modifier_id' => $modifierId,
+                    'transfer' => $transferValue,
+                    'primary' => ($transfer['primary'] ?? false) ? 1 : 0,
+                    'unit1' => $transfer['unit1'],
+                    'unit2' => null,
+                ])->id;
+                $insertedIds[] = ['id' => $id, 'unit2' => $transfer['unit2']];
+                $ids[] = ['oldId' => $transfer['id'], 'newId' => $id];
+            } else {
+                UnitTransfer::where('id', $transfer['id'])->update([
+                    'product_id' => $modifierId,
+                    'modifier_id' => $modifierId,
+                    'unit1' => $transfer['unit1'],
+                    'unit2' => $transfer['unit2'] ?? null,
+                    'primary' => $transfer['primary'] ?? 0,
+                    'transfer' => $transferValue,
+                ]);
+            }
+        }
+
+        foreach ($insertedIds as $transfer) {
+            foreach ($ids as $updateId) {
+                if ($transfer['unit2'] == $updateId['oldId']) {
+                    UnitTransfer::where('id', $transfer['id'])->update(['unit2' => $updateId['newId']]);
+                }
+            }
+        }
     }
 
     public function edit($id)
     {
         $modifier = Product::restrictByFranchise('modifier')
             ->where('type', 'modifier')
-            ->with(['tax', 'priceTiers.priceTier', 'recipe.unitTransfer', 'recipe.products', 'recipe.ingredients'])
+            ->with(['tax', 'priceTiers.priceTier'])
             ->findOrFail($id);
+
+        $recipes = RecipeModifier::where('modifier_id', $modifier->id)
+            ->with(['unitTransfer'])
+            ->orderBy('order')
+            ->get();
+
+        $itemCosts = Product::query()
+            ->whereIn('id', $recipes->pluck('item_id')->unique()->filter())
+            ->pluck('cost', 'id');
 
         foreach ($modifier->priceTiers as $rec) {
             $rec->price_with_tax = $rec->price + TaxHelper::getTax($rec->price, $modifier->tax->amount ?? 0);
         }
-        foreach ($modifier->recipe as $rec) {
+
+        foreach ($recipes as $rec) {
             $rec->newid = $rec->item_id.'-'.$rec->item_type;
-            $rec->cost = match ($rec->item_type) {
-                'p' => (float) ($rec->products?->cost ?? 0),
-                'i' => (float) ($rec->ingredients?->cost ?? 0),
-                default => (float) ($rec->detail?->cost ?? 0),
-            };
+            $itemCost = (float) ($itemCosts[$rec->item_id] ?? 0);
+            $quantity = (float) ($rec->quantity ?? 0);
+            $rec->cost = UnitTransferConvertor::recipeLineCost(
+                $quantity,
+                $itemCost,
+                $rec->unit_transfer_id,
+                $rec->item_type ?? 'i',
+                (int) $rec->item_id
+            );
         }
+
+        $modifier->setRelation('recipe', $recipes);
 
         return view('product::modifier.edit', compact('modifier'));
     }

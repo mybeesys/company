@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState } from "react";
 import TreeTableEditorUnit from "../comp/TreeTableEditorUnit";
 
 const UnitTransferProduct = ({
@@ -67,26 +67,23 @@ const UnitTransferProduct = ({
     };
 
     return (
-        <>
-            <div class="card-body" dir={dir}>
-                <div class="form-group" style={{ marginBottom: "14px" }}>
-                    <div class="row">
-                        <div class="col-6">
-                            <label for="name_ar" class="col-form-label">
-                                {translations.Unit}
-                            </label>
-                            <input
-                                type="text"
-                                class="form-control form-control-solid custom-height"
-                                id="name_ar"
-                                value={!!mainUnit ? mainUnit.unit1 : ""}
-                                onChange={(e) => handleChange(e.target.value)}
-                            ></input>
-                        </div>
-                    </div>
+        <div className="unit-transfer-panel" dir={dir}>
+            <div className="row g-3 mb-4">
+                <div className="col-12 col-md-6 col-lg-5">
+                    <label htmlFor="main_unit" className="form-label fw-semibold">
+                        {translations.Unit}
+                    </label>
+                    <input
+                        type="text"
+                        className="form-control form-control-solid custom-height"
+                        id="main_unit"
+                        value={!!mainUnit ? mainUnit.unit1 : ""}
+                        onChange={(e) => handleChange(e.target.value)}
+                    />
                 </div>
-                <div>
-                    <TreeTableEditorUnit
+            </div>
+            <div className="table-responsive unit-transfer-table">
+                <TreeTableEditorUnit
                         translations={translations}
                         dir={dir}
                         header={false}
@@ -171,9 +168,8 @@ const UnitTransferProduct = ({
                         onUpdate={(nodes) => handleEditorChange(nodes)}
                         onDelete={(row) => handleDelete(row)}
                     />
-                </div>
             </div>
-        </>
+        </div>
     );
 };
 

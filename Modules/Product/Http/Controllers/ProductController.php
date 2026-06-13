@@ -27,6 +27,7 @@ use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\UnitTransfer;
+use Modules\Product\Models\UnitTransferConvertor;
 
 class ProductController extends Controller
 {
@@ -1017,11 +1018,18 @@ class ProductController extends Controller
         }
         foreach ($product->recipe as $rec) {
             $rec->newid = $rec->item_id.'-'.$rec->item_type;
-            $rec->cost = match ($rec->item_type) {
+            $itemCost = match ($rec->item_type) {
                 'p' => (float) ($rec->products?->cost ?? 0),
                 'i' => (float) ($rec->ingredients?->cost ?? 0),
                 default => (float) ($rec->detail?->cost ?? 0),
             };
+            $rec->cost = UnitTransferConvertor::recipeLineCost(
+                (float) ($rec->quantity ?? 0),
+                $itemCost,
+                $rec->unit_transfer_id,
+                $rec->item_type ?? 'i',
+                (int) $rec->item_id
+            );
         }
         foreach ($product->attributes as $attr) {
             if ($attr->attribute1) {

@@ -4,7 +4,7 @@ import SweetAlert2 from "react-sweetalert2";
 import ModifierBasicInfo from "./ModifierBasicInfo";
 import ModifierRecipe from "./ModifierRecipe";
 import ModifierPriceTier from "./ModifierPriceTier";
-import { getRowName } from "../lang/Utils";
+import { getRowName, formatDecimal } from "../lang/Utils";
 import UnitTransferModifier from "./UnitTransferModifier";
 
 const ModifierComponent = ({ translations, dir }) => {
@@ -201,7 +201,10 @@ const ModifierComponent = ({ translations, dir }) => {
                       .map((e) => {
                           return {
                               id: e.id,
-                              transfer: e.transfer,
+                              transfer:
+                                  e.transfer != null && e.transfer !== -100
+                                      ? formatDecimal(e.transfer)
+                                      : e.transfer,
                               unit1: e.unit1,
                               unit2: e.unit2,
                               primary: e.primary,

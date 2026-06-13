@@ -11,6 +11,7 @@ import ProductLinkedCombo from "./ProductLinkedCombo";
 import UnitTransferProduct from "./UnitTransferProduct";
 import ProductEstablishment from "./ProductEstablishment";
 import ProductPriceTier from "./ProductPriceTier";
+import { formatDecimal } from "../lang/Utils";
 
 const ProductComponent1 = ({ translations, dir }) => {
     const rootElement = document.getElementById("root");
@@ -285,7 +286,10 @@ const ProductComponent1 = ({ translations, dir }) => {
                       .filter((e) => e.unit2 != null)
                       .map((e) => ({
                           id: e.id,
-                          transfer: e.transfer,
+                          transfer:
+                              e.transfer != null && e.transfer !== -100
+                                  ? formatDecimal(e.transfer)
+                                  : e.transfer,
                           unit1: e.unit1,
                           unit2: e.unit2,
                           primary: e.primary,
@@ -420,26 +424,47 @@ const ProductComponent1 = ({ translations, dir }) => {
         setProductUnit(value);
     };
 
+    const isEditMode = Boolean(currentObject?.id);
+    const pageTitle = isEditMode
+        ? `${translations.Edit} ${translations.product}`
+        : `${translations.Add} ${translations.product}`;
+
+    const visibleMenuItems = menu
+        .map((m, index) => ({ ...m, index }))
+        .filter((m) => m.index !== 0 && m.visible);
+
+    const activateTab = (index, key) => {
+        setCurrentTab(index);
+        menu.forEach((m, i) => {
+            if (i === 0) return;
+            const pane = document.getElementById(m.key);
+            if (pane) {
+                pane.classList.remove("active", "show");
+            }
+        });
+        const target = document.getElementById(key);
+        if (target) {
+            target.classList.add("active", "show");
+        }
+    };
+
     return (
         <div>
             <SweetAlert2 />
             <div class="container">
                 <div class="row">
-                    <div class="col-6">
-                        <div class="d-flex align-items-center gap-2 gap-lg-3">
-                            <h1>{`${translations.Add} ${translations.product}`}</h1>
+                    <div className="col-12 col-lg-6">
+                        <div className="d-flex align-items-center gap-2 gap-lg-3">
+                            <h1>{pageTitle}</h1>
                         </div>
                     </div>
-                    <div
-                        class="col-6"
-                        style={{ "justify-content": "end", display: "flex" }}
-                    >
-                        <div class="flex-center" style={{ display: "flex" }}>
+                    <div className="col-12 col-lg-6 d-flex justify-content-lg-end mt-3 mt-lg-0">
+                        <div className="flex-center d-flex w-100 w-lg-auto justify-content-end">
                             <button
                                 onClick={clickSubmit}
                                 disabled={disableSubmitButton}
-                                class="btn btn-primary mx-2"
-                                style={{ width: "12rem" }}
+                                className="btn btn-primary mx-2 w-100 w-sm-auto"
+                                style={{ minWidth: "12rem" }}
                             >
                                 {translations.savechanges}
                             </button>
@@ -460,9 +485,9 @@ const ProductComponent1 = ({ translations, dir }) => {
                 >
                     <div class="container">
                         <div class="row">
-                            <div class="col-6">
+                            <div className="col-12 col-lg-6">
                                 <div
-                                    class="card"
+                                    className="card"
                                     data-section="contact"
                                     style={{
                                         border: "0",
@@ -483,40 +508,62 @@ const ProductComponent1 = ({ translations, dir }) => {
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <div class="card-toolbar ">
+                            <div className="col-12 col-lg-6 mt-4 mt-lg-0">
+                                <div className="card-toolbar product-side-tabs-wrap">
+                                    <select
+                                        className="form-select form-select-solid d-lg-none mb-3 product-side-tabs-select"
+                                        value={currentTab}
+                                        onChange={(e) => {
+                                            const index = Number(e.target.value);
+                                            const item = visibleMenuItems.find(
+                                                (m) => m.index === index
+                                            );
+                                            if (item) {
+                                                activateTab(index, item.key);
+                                            }
+                                        }}
+                                        aria-label={pageTitle}
+                                    >
+                                        {visibleMenuItems.map((m) => (
+                                            <option key={m.key} value={m.index}>
+                                                {translations[m.key]}
+                                            </option>
+                                        ))}
+                                    </select>
                                     <ul
-                                        class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 fw-bold"
+                                        className="nav nav-tabs nav-line-tabs fs-6 border-0 fw-bold flex-wrap product-side-tabs d-none d-lg-flex"
                                         role="tablist"
                                     >
-                                        {menu.map((m, index) => {
-                                            return index == 0 || !m.visible ? (
-                                                <></>
-                                            ) : (
-                                                <li
-                                                    class="nav-item"
-                                                    role="presentation"
+                                        {visibleMenuItems.map((m) => (
+                                            <li
+                                                className="nav-item"
+                                                role="presentation"
+                                                key={m.key}
+                                            >
+                                                <a
+                                                    id={`${m.key}_tab`}
+                                                    href={`#${m.key}`}
+                                                    role="tab"
+                                                    aria-selected={
+                                                        currentTab === m.index
+                                                    }
+                                                    className={`nav-link text-active-gray-800 ${
+                                                        currentTab === m.index
+                                                            ? "active"
+                                                            : ""
+                                                    }`}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        activateTab(
+                                                            m.index,
+                                                            m.key
+                                                        );
+                                                    }}
                                                 >
-                                                    <a
-                                                        id={`${m.key}_tab`}
-                                                        onClick={(e) =>
-                                                            setCurrentTab(index)
-                                                        }
-                                                        class={`nav-link justify-content-center text-active-gray-800 ${
-                                                            currentTab == index
-                                                                ? "active"
-                                                                : ""
-                                                        }`}
-                                                        data-bs-toggle="tab"
-                                                        role="tab"
-                                                        href={`#${m.key}`}
-                                                        aria-selected="true"
-                                                    >
-                                                        {translations[m.key]}
-                                                    </a>
-                                                </li>
-                                            );
-                                        })}
+                                                    {translations[m.key]}
+                                                </a>
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
                                 <div class="tab-content">

@@ -237,6 +237,120 @@ color: white !important;
   width: 10%;
 }
 
+.unit-transfer-panel {
+  padding: 0.5rem 0;
+
+  .form-label {
+    margin-bottom: 0.35rem;
+  }
+
+  .unit-transfer-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .card {
+      margin-bottom: 0 !important;
+      box-shadow: none;
+      border: 0;
+    }
+
+    .custom-tree-table {
+      min-width: 36rem;
+    }
+  }
+
+  .form-control,
+  .css-b62m3t-container {
+    min-height: 42px;
+  }
+}
+
+.product-side-tabs-wrap {
+  width: 100%;
+}
+
+.product-side-tabs-select {
+  min-height: 42px;
+  font-weight: 600;
+}
+
+.product-side-tabs {
+  gap: 0.35rem 0.5rem;
+  width: 100%;
+  border-bottom: 1px solid var(--bs-gray-200);
+  padding-bottom: 0.35rem;
+
+  .nav-item {
+    flex: 0 0 auto;
+  }
+
+  .nav-link {
+    white-space: nowrap;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 0.475rem 0.475rem 0 0;
+    margin-bottom: -1px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .product-side-tabs-wrap {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.recipe-panel {
+  .recipe-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .card {
+      margin-bottom: 0 !important;
+      box-shadow: none;
+      border: 0;
+    }
+
+    .custom-tree-table {
+      min-width: 34rem;
+    }
+
+    .form-control,
+    .css-b62m3t-container {
+      min-height: 42px;
+      width: 100%;
+    }
+
+    td {
+      vertical-align: middle !important;
+    }
+  }
+
+  .recipe-readonly-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--bs-gray-100);
+    border-radius: 0.475rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .recipe-meta-row {
+    margin-top: 1rem;
+  }
+}
+
+.tree-table-empty-cell {
+  display: block;
+  min-height: 42px;
+}
+
 
 .child {
   display: inline-block;
