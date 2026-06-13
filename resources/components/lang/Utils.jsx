@@ -31,6 +31,21 @@ export const toDate = (dateTimeString, type) =>{
       return new Date(`01/01/2024 ${dateTimeString}`)
 }
 
-export const formatDecimal = (value) => {
-  return parseFloat(value).toFixed(2);
+export const roundDecimal = (value, maxDecimals = 6) => {
+  if (value === null || value === undefined || value === "") return 0;
+  const num = Number(value);
+  if (!Number.isFinite(num)) return 0;
+  const factor = 10 ** maxDecimals;
+  return Math.round(num * factor) / factor;
+};
+
+export const formatDecimal = (value, maxDecimals = 6) => {
+  if (value === null || value === undefined || value === "") return "";
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "";
+  const rounded = roundDecimal(num, maxDecimals);
+  return rounded
+    .toFixed(maxDecimals)
+    .replace(/(\.\d*?[1-9])0+$/, "$1")
+    .replace(/\.0+$/, "");
 };

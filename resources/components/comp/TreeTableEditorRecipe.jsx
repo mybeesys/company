@@ -173,6 +173,10 @@ const TreeTableEditorRecipe = ({
         }
         let firstCell = index == "0" ? true : false;
 
+        if (node.data.empty && !firstCell) {
+            return <span className="tree-table-empty-cell" />;
+        }
+
         if (col.type == "Text") return renderTextCell(node, col, firstCell);
         //key, autoFocus, editable, required, firstCell);
         else if (col.type == "Number")
@@ -334,8 +338,10 @@ const TreeTableEditorRecipe = ({
     };
 
     const renderDecimalCell = (node, col, firstCell) => {
-        //key, autoFocus, editable, required) => {
         const indent = node.key.toString().split("-").length;
+        const decimals = col.decimals ?? 6;
+        const formatValue = (value) => formatDecimal(value, decimals);
+
         if (!!node.data.empty) {
             if (!!firstCell)
                 return (
@@ -350,31 +356,50 @@ const TreeTableEditorRecipe = ({
                         }
                     >{`${translations.Add} ${translations[node.data.type]}`}</a>
                 );
-        } else {
-            return !!col.editable ? (
-                <input
-                    type="number"
-                    min="0"
-                    step=".01"
-                    class={`form-control form-control-solid custom-height number-indent-${indent}`}
-                    value={node.data[col.key] ?? ""}
-                    onChange={(e) => {
+        }
+
+        if (!col.editable) {
+            return (
+                <span className="recipe-readonly-value">
+                    {formatValue(node.data[col.key])}
+                </span>
+            );
+        }
+
+        return (
+            <input
+                type="text"
+                inputMode="decimal"
+                className={`form-control form-control-solid custom-height number-indent-${indent}`}
+                value={node.data[col.key] ?? ""}
+                onChange={(e) => {
+                    handleEditorChange(
+                        e.target.value,
+                        col.key,
+                        node.key,
+                        col.onChangeValue
+                    );
+                }}
+                onBlur={(e) => {
+                    const formatted = formatValue(e.target.value);
+                    if (
+                        formatted !== "" &&
+                        formatted !== String(node.data[col.key] ?? "")
+                    ) {
                         handleEditorChange(
-                            e.target.value,
+                            formatted,
                             col.key,
                             node.key,
                             col.onChangeValue
                         );
-                    }}
-                    autoFocus={!!col.autoFocus}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    style={{ width: "100%" }}
-                    required={!!col.required}
-                />
-            ) : (
-                <span>{node.data[col.key]}</span>
-            );
-        }
+                    }
+                }}
+                autoFocus={!!col.autoFocus}
+                onKeyDown={(e) => e.stopPropagation()}
+                style={{ width: "100%" }}
+                required={!!col.required}
+            />
+        );
     };
 
     const renderCheckCell = (node, col, firstCell) => {
@@ -428,17 +453,26 @@ const TreeTableEditorRecipe = ({
         }
     };
 
-    const renderDropDownCell = (node, col, firstCell) => {
-        //key, autoFocus, options, editable, required, firstCell) => {
-        let val;
-        const selectedItem = node.data[col.key];
-        if (selectedItem) {
-            val = col.options.find(
-                (x) => x.value == selectedItem.replace(/-/g, "")
-            );
-        } else {
-            val = col.options.find((x) => x.value == node.data[col.key]);
+    const findDropdownOption = (options, rawValue) => {
+        if (rawValue == null || rawValue === "" || !options?.length) {
+            return null;
         }
+
+        if (typeof rawValue === "object") {
+            const candidate = rawValue.id ?? rawValue.value;
+            return (
+                options.find((x) => String(x.value) === String(candidate)) ??
+                null
+            );
+        }
+
+        return (
+            options.find((x) => String(x.value) === String(rawValue)) ?? null
+        );
+    };
+
+    const renderDropDownCell = (node, col, firstCell) => {
+        const val = findDropdownOption(col.options, node.data[col.key]);
 
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {

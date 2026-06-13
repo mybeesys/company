@@ -19,11 +19,15 @@ class UnitTransferController extends Controller
             $ingTransfer = UnitTransfer::where('product_id', '=', $id)->get();
 
             return response()->json($ingTransfer);
-        } else {
-            $modTransfer = UnitTransfer::where('product_id', '=', $id)->get();
+        } elseif ($type == 'modifier') {
+            $modTransfer = UnitTransfer::where(function ($q) use ($id) {
+                $q->where('product_id', $id)->orWhere('modifier_id', $id);
+            })->get();
 
             return response()->json($modTransfer);
         }
+
+        return response()->json([]);
     }
 
     public function getUnitTransfer($id)
@@ -77,7 +81,10 @@ class UnitTransferController extends Controller
 
         if ($request->has('modifier_id')) {
             $units = UnitTransfer::where('unit1', 'like', '%'.$key.'%')
-                ->where('modifier_id', '=', $modifier_id)
+                ->where(function ($q) use ($modifier_id) {
+                    $q->where('modifier_id', $modifier_id)
+                        ->orWhere('product_id', $modifier_id);
+                })
                 ->take(10)
                 ->get();
         }

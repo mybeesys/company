@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import TreeTableEditorLocal from "../comp/TreeTableEditorLocal";
+import { roundDecimal } from "../lang/Utils";
 
 const ModifierRecipe = ({
     translations,
@@ -39,9 +40,12 @@ const ModifierRecipe = ({
             }
 
             if (transfer > 0) {
-                nodes[rowKey].data["cost"] = (quantity / transfer) * cost;
+                nodes[rowKey].data["cost"] = roundDecimal(
+                    (quantity / transfer) * cost,
+                    4
+                );
             } else {
-                nodes[rowKey].data["cost"] = quantity * cost;
+                nodes[rowKey].data["cost"] = roundDecimal(quantity * cost, 4);
             }
 
             postExecute(nodes);
@@ -116,9 +120,11 @@ const ModifierRecipe = ({
                     },
                     {
                         key: "quantity",
+                        title: "quantity",
                         autoFocus: false,
                         type: "Decimal",
                         width: "20%",
+                        decimals: 6,
                         editable: true,
                         required: true,
                         onChangeValue: (
@@ -139,9 +145,11 @@ const ModifierRecipe = ({
                     },
                     {
                         key: "cost",
+                        title: "cost",
                         autoFocus: false,
                         type: "Decimal",
                         width: "20%",
+                        decimals: 4,
                         editable: false,
                         required: false,
                     },

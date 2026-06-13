@@ -9,6 +9,8 @@ import Swal from "sweetalert2";
 
 const defaultObjectValue = { active: 1, for_sell: 1 };
 
+const normalizeKey = (key) => (key == null ? "" : String(key));
+
 const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const productCrudList = JSON.parse(
         rootElement.getAttribute("product-crud-url"),
@@ -28,6 +30,9 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const canAdd =
         productPermission === "absolute" || productPermission === "request";
+
+    const isEditingNode = (nodeKey) =>
+        normalizeKey(nodeKey) === normalizeKey(currentKey);
 
     const expandAll = () => {
         const allKeys = getExpandedKeys(nodes);
@@ -91,7 +96,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         if (data.type === "product" && !!data.id) {
             window.location.href = `${productCrudList}/${data.id}/edit`;
         } else {
-            setCurrentKey(key);
+            setCurrentKey(normalizeKey(key));
             setEditingRow({ ...data });
         }
     };
@@ -102,7 +107,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
             let currentNodes = !!parentNode ? parentNode.children : nodes;
             for (let index = 0; index < currentNodes.length; index++) {
                 const node = currentNodes[index];
-                if (node.key === key) {
+                if (normalizeKey(node.key) === normalizeKey(key)) {
                     if (!!parentNode) {
                         parentNode.children.splice(index, 1);
                     } else {
@@ -196,35 +201,56 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     };
 
     const addInline = (key, type, parentKeyName, type1, parentKeyName1, isNew = false, extraData = {}) => {
-        let parentNode = findNodeByKey(nodes, key);
-        let node = findNodeByKey(nodes, key);
-        key = key.toString();
-        let seg = key.split("-");
-        let parentKey = seg.length === 1 ? null : seg.slice(0, seg.length - 1).join("-");
+        const node = findNodeByKey(nodes, key);
+        if (!node) return;
+
+        const nodeKey = normalizeKey(key);
+        const seg = nodeKey.split("-");
+        const parentKey =
+            seg.length === 1 ? null : seg.slice(0, seg.length - 1).join("-");
+        const actualParent = getParentNode(nodeKey);
 
         node.data.empty = null;
         node.data.type = type;
-        node.data.parentKey = !!parentNode && parentNode.data.type === "category" ? "category_id" : parentKeyName;
+        node.data.parentKey =
+            actualParent && actualParent.data.type === "category"
+                ? "category_id"
+                : parentKeyName;
+        node.data.name_ar = node.data.name_ar ?? "";
+        node.data.name_en = node.data.name_en ?? "";
 
         for (const k in defaultObjectValue) {
             node.data[k] = defaultObjectValue[k];
         }
-        let newNodeKey = !!!parentKey ? Number(seg[0]) + 1 : parentKey + "-" + (Number(seg[seg.length - 1]) + 1);
-        let newNode = {
-            key: newNodeKey.toString(),
-            data: { ...extraData, type, parentKey: parentKeyName, type1, parentKey1: parentKeyName1, empty: "Y", isNew },
+
+        const newNodeKey = normalizeKey(
+            !parentKey
+                ? Number(seg[0]) + 1
+                : `${parentKey}-${Number(seg[seg.length - 1]) + 1}`,
+        );
+        const newNode = {
+            key: newNodeKey,
+            data: {
+                ...extraData,
+                type,
+                parentKey: parentKeyName,
+                type1,
+                parentKey1: parentKeyName1,
+                empty: "Y",
+                isNew,
+            },
         };
 
-        if (!!!parentKey) {
+        if (!parentKey) {
             nodes.push(newNode);
         } else {
-            let pNode = findNodeByKey(nodes, parentKey);
+            const pNode = findNodeByKey(nodes, parentKey);
             if (!pNode.children) pNode.children = [];
             pNode.children.push(newNode);
         }
 
-        setExpandedKeys({ ...expandedKeys, [key]: true });
-        setCurrentKey(key);
+        setExpandedKeys({ ...expandedKeys, [nodeKey]: true });
+        setCurrentKey(nodeKey);
         setNodes([...nodes]);
         setEditingRow({ ...node.data, ...extraData });
     };
@@ -239,67 +265,128 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     };
 
     const renderTextCell = (node, key, autoFocus) => {
-        let indent = node.key.toString().split("-").length;
+        const indent = normalizeKey(node.key).split("-").length;
 
-        if (node.data.empty === "Y" && key === "name_ar") {
+        if (!!node.data.empty && key === "name_ar") {
             let addText = "";
             let newType = node.data.type;
             let newParentKey = node.data.parentKey;
-            let parentNode = getParentNode(node.key);
+            const parentNode = getParentNode(node.key);
 
             if (parentNode && parentNode.data.type === "variable") {
                 newType = "product";
                 newParentKey = "parent_id";
-                const parentName = translations.language === "ar" ? parentNode.data.name_ar : parentNode.data.name_en;
+                const parentName =
+                    translations.language === "ar"
+                        ? parentNode.data.name_ar
+                        : parentNode.data.name_en;
                 addText = `${translations.Add} ${translations.product} ${translations.under} ${parentName}`;
                 return (
-                    <a href="javascript:void(0);" onClick={(e) => { e.stopPropagation(); addInline(node.key, newType, newParentKey, node.data.type1, node.data.parentKey1, true, { subcategory_id: parentNode.data.subcategory_id, tax_id: parentNode.data.tax_id }); }}>
-                        {addText}
-                    </a>
-                );
-            } else if (parentNode && parentNode.data.type === "subcategory") {
-                addText = `${translations.Add} ${translations.product}`;
-                return canAdd && (
-                    <a href="javascript:void(0);" onClick={(e) => { e.stopPropagation(); addInline(node.key, newType, newParentKey, node.data.type1, node.data.parentKey1, true, { product_type: "fastProduct", subcategory_id: parentNode.data.id }); }}>
-                        {addText}
-                    </a>
-                );
-            } else {
-                addText = `${translations.Add} ${translations[node.data.type]}`;
-                return canAdd && (
-                    <a href="javascript:void(0);" onClick={(e) => { e.stopPropagation(); addInline(node.key, newType, newParentKey, node.data.type1, node.data.parentKey1, true); }}>
+                    <a
+                        href="javascript:void(0);"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            addInline(
+                                node.key,
+                                newType,
+                                newParentKey,
+                                node.data.type1,
+                                node.data.parentKey1,
+                                true,
+                                {
+                                    subcategory_id: parentNode.data.subcategory_id,
+                                    tax_id: parentNode.data.tax_id,
+                                },
+                            );
+                        }}
+                    >
                         {addText}
                     </a>
                 );
             }
-        } else {
-            return node.key === currentKey ? (
-                <input
-                    type="text"
-                    className={`form-control text-editor text-indent-${indent}`}
-                    style={{ width: `${100 - 10 * indent}%` }}
-                    defaultValue={node.data[key]}
-                    onChange={(e) => handleEditorChange(e.target.value, key)}
-                    autoFocus={!!autoFocus}
-                    onKeyDown={(e) => e.stopPropagation()}
-                    required
-                />
-            ) : (
-                <span className="d-flex align-items-center">
-                    {node.data[key]}
-                    {key === "name_ar" && node.data.status === "pending" && (
-                        <i className="ki-outline ki-timer text-warning ms-2 fs-4" title={translations.Pending}></i>
-                    )}
-                    {key === "name_ar" && node.data.status === "rejected" && (
-                        <i
-                            className="ki-outline ki-information-5 text-danger ms-2 fs-4 cursor-pointer"
-                            title={translations.Rejected}
-                            onClick={() => showRejectReason(node.data.rejection_reason)}
-                        ></i>
-                    )}
-                </span>
+
+            if (parentNode && parentNode.data.type === "subcategory") {
+                addText = `${translations.Add} ${translations.product}`;
+                return (
+                    canAdd && (
+                        <a
+                            href="javascript:void(0);"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                addInline(
+                                    node.key,
+                                    newType,
+                                    newParentKey,
+                                    node.data.type1,
+                                    node.data.parentKey1,
+                                    true,
+                                    {
+                                        product_type: "fastProduct",
+                                        subcategory_id: parentNode.data.id,
+                                    },
+                                );
+                            }}
+                        >
+                            {addText}
+                        </a>
+                    )
+                );
+            }
+
+            addText = `${translations.Add} ${translations[node.data.type]}`;
+            return (
+                canAdd && (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            addInline(
+                                node.key,
+                                newType,
+                                newParentKey,
+                                node.data.type1,
+                                node.data.parentKey1,
+                                true,
+                            );
+                        }}
+                    >
+                        {addText}
+                    </a>
+                )
             );
         }
+
+        return isEditingNode(node.key) ? (
+            <input
+                type="text"
+                className={`form-control text-editor text-indent-${indent}`}
+                style={{ width: `${100 - 10 * indent}%` }}
+                value={editingRow[key] ?? ""}
+                onChange={(e) => handleEditorChange(e.target.value, key)}
+                autoFocus={!!autoFocus}
+                onKeyDown={(e) => e.stopPropagation()}
+                required
+            />
+        ) : (
+            <span className="d-flex align-items-center">
+                {node.data[key]}
+                {key === "name_ar" && node.data.status === "pending" && (
+                    <i
+                        className="ki-outline ki-timer text-warning ms-2 fs-4"
+                        title={translations.Pending}
+                    ></i>
+                )}
+                {key === "name_ar" && node.data.status === "rejected" && (
+                    <i
+                        className="ki-outline ki-information-5 text-danger ms-2 fs-4 cursor-pointer"
+                        title={translations.Rejected}
+                        onClick={() =>
+                            showRejectReason(node.data.rejection_reason)
+                        }
+                    ></i>
+                )}
+            </span>
+        );
     };
 
     const rowClassName = (node) => {
@@ -310,35 +397,79 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     };
 
     const renderCheckCell = (node, key) => {
-        return node.key === currentKey ? (
-            <input type="checkbox" checked={editingRow[key] === 1} className="form-check-input" onChange={(e) => handleEditorChange(e.target.checked ? 1 : 0, key)} />
+        return isEditingNode(node.key) ? (
+            <input
+                type="checkbox"
+                checked={editingRow[key] === 1}
+                className="form-check-input"
+                onChange={(e) =>
+                    handleEditorChange(e.target.checked ? 1 : 0, key)
+                }
+            />
         ) : (
-            <input type="checkbox" checked={node.data[key] === 1} className="form-check-input" disabled />
+            <input
+                type="checkbox"
+                checked={node.data[key] === 1}
+                className="form-check-input"
+                disabled
+            />
         );
     };
 
     const renderNumberCell = (node, key, autoFocus, required) => {
-        const indent = node.key.toString().split("-").length;
-        return node.key === currentKey ? (
-            <input type="number" min="0" className={`form-control text-editor number-indent-${indent}`} defaultValue={node.data[key]} onChange={(e) => handleEditorChange(e.target.value, key)} autoFocus={!!autoFocus} onKeyDown={(e) => e.stopPropagation()} style={{ width: "100%", visibility: "hidden" }} required={!!required} readOnly />
+        const indent = normalizeKey(node.key).split("-").length;
+        return isEditingNode(node.key) ? (
+            <input
+                type="number"
+                min="0"
+                className={`form-control text-editor number-indent-${indent}`}
+                value={editingRow[key] ?? node.data[key] ?? ""}
+                onChange={(e) => handleEditorChange(e.target.value, key)}
+                autoFocus={!!autoFocus}
+                onKeyDown={(e) => e.stopPropagation()}
+                style={{ width: "100%" }}
+                required={!!required}
+            />
         ) : (
             <span>{node.data[key]}</span>
         );
     };
 
     const renderDecimalCell = (node, key, autoFocus) => {
-        const indent = node.key.toString().split("-").length;
-        return node.key === currentKey ? (
-            <input type="number" min="0" step=".01" className={`form-control text-editor number-indent-${indent}`} defaultValue={node.data[key]} onChange={(e) => handleEditorChange(e.target.value, key)} autoFocus={!!autoFocus} onKeyDown={(e) => e.stopPropagation()} style={{ width: "100%" }} required />
+        const indent = normalizeKey(node.key).split("-").length;
+        return isEditingNode(node.key) ? (
+            <input
+                type="number"
+                min="0"
+                step=".01"
+                className={`form-control text-editor number-indent-${indent}`}
+                value={editingRow[key] ?? node.data[key] ?? ""}
+                onChange={(e) => handleEditorChange(e.target.value, key)}
+                autoFocus={!!autoFocus}
+                onKeyDown={(e) => e.stopPropagation()}
+                style={{ width: "100%" }}
+                required
+            />
         ) : (
             <span>{node.data[key]}</span>
         );
     };
 
     const renderDecimalCellPrice = (node, key, autoFocus) => {
-        const indent = node.key.toString().split("-").length;
-        return node.key === currentKey ? (
-            <input type="number" min="0" step=".01" className={`form-control text-editor number-indent-${indent}`} defaultValue={node.data[key]} onChange={(e) => handleEditorChange(e.target.value, key)} autoFocus={!!autoFocus} onKeyDown={(e) => e.stopPropagation()} style={{ width: "100%" }} required />
+        const indent = normalizeKey(node.key).split("-").length;
+        return isEditingNode(node.key) ? (
+            <input
+                type="number"
+                min="0"
+                step=".01"
+                className={`form-control text-editor number-indent-${indent}`}
+                value={editingRow[key] ?? node.data[key] ?? ""}
+                onChange={(e) => handleEditorChange(e.target.value, key)}
+                autoFocus={!!autoFocus}
+                onKeyDown={(e) => e.stopPropagation()}
+                style={{ width: "100%" }}
+                required
+            />
         ) : (
             <span>{node.data["price_with_tax"]}</span>
         );
@@ -352,21 +483,39 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
     const actionTemplate = (node) => {
         const data = node.data;
-        if (data.empty === "Y") return <></>;
+        if (!!data.empty) return <></>;
 
         return (
             <div className="flex flex-wrap gap-2">
-                {(currentKey === "-1" || (currentKey !== "-1" && node.key === currentKey)) && data.type !== "variable" && (
+                {(currentKey === "-1" ||
+                    (currentKey !== "-1" && isEditingNode(node.key))) &&
+                    data.type !== "variable" && (
                     <a
                         href="javascript:void(0);"
-                        onClick={() => currentKey === "-1" ? editRow(data, node.key) : document.getElementById("btnSubmit").click()}
+                        onClick={() =>
+                            currentKey === "-1"
+                                ? editRow(data, node.key)
+                                : document.getElementById("btnSubmit").click()
+                        }
                         className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
                     >
-                        <i className={currentKey !== "-1" && node.key === currentKey ? "ki-outline ki-check fs-2" : "ki-outline ki-pencil fs-2"}></i>
+                        <i
+                            className={
+                                currentKey !== "-1" && isEditingNode(node.key)
+                                    ? "ki-outline ki-check fs-2"
+                                    : "ki-outline ki-pencil fs-2"
+                            }
+                        ></i>
                     </a>
                 )}
-                {currentKey !== "-1" && node.key === currentKey && data.type !== "variable" && (
-                    <a href="javascript:void(0);" onClick={() => cancelEdit(currentKey)} className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+                {currentKey !== "-1" &&
+                    isEditingNode(node.key) &&
+                    data.type !== "variable" && (
+                    <a
+                        href="javascript:void(0);"
+                        onClick={() => cancelEdit(currentKey)}
+                        className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm"
+                    >
                         <i className="ki-outline ki-cross fs-2"></i>
                     </a>
                 )}

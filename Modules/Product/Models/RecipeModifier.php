@@ -29,8 +29,8 @@ class RecipeModifier extends Model
     ];
 
     protected $relatedModels = [
-        'p' => \Modules\Product\Models\Product::class,
-        'i' => \Modules\Product\Models\Ingredient::class,
+        'p' => Product::class,
+        'i' => Product::class,
     ];
 
     public function getFillable()
@@ -43,7 +43,8 @@ class RecipeModifier extends Model
 
     public function ingredients()
     {
-        return $this->belongsTo(Ingredient::class, 'item_id', 'id');
+        // Ingredients are product rows (type=ingredint), not legacy product_ingredients.
+        return $this->belongsTo(Product::class, 'item_id', 'id');
     }
 
     public function products()

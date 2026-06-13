@@ -5,6 +5,7 @@ import UnitTransferIngredient from "./UnitTransferIngredient";
 import axios from "axios";
 import InventoryManagement from "./InventoryManagement";
 import IngredinsEstablishment from "./IngredinsEstablishment";
+import { formatDecimal } from "../lang/Utils";
 
 const IngredientDetail = ({ dir, translations }) => {
     const rootElement = document.getElementById("root");
@@ -168,7 +169,10 @@ const IngredientDetail = ({ dir, translations }) => {
                           .map((e) => {
                               return {
                                   id: e.id,
-                                  transfer: e.transfer,
+                                  transfer:
+                                      e.transfer != null && e.transfer !== -100
+                                          ? formatDecimal(e.transfer)
+                                          : e.transfer,
                                   unit1: e.unit1,
                                   unit2: e.unit2,
                                   primary: e.primary,
