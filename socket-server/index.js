@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 loadEnv({ path: resolve(__dirname, ".env") });
 import { createServer } from "http";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import cors from "cors";
 import express from "express";
 import { Server } from "socket.io";
@@ -23,6 +23,7 @@ const TENANT_URL_TEMPLATE =
   process.env.TENANT_URL_TEMPLATE || "http://{tenant}.localhost";
 const SCHEMA_VERSION = 1;
 const RATE_LIMIT_PER_MINUTE = Number(process.env.SOCKET_RATE_LIMIT_PER_MINUTE || 30);
+const VERIFY_TOKEN_CACHE_MS = Number(process.env.SOCKET_VERIFY_CACHE_MS || 120_000);
 const SCREEN_PAIRING_CHANNEL_PREFIX = "screen.pairing.";
 const SCREEN_DEVICE_CHANNEL_PREFIX = "screen.device.";
 
@@ -112,6 +113,13 @@ const io = new Server(httpServer, {
 /** @type {Map<string, { count: number, resetAt: number }>} */
 const connectionRate = new Map();
 
+/** @type {Map<string, number>} tokenHash → validUntil ms (نجاح التحقق فقط) */
+const verifyTokenCache = new Map();
+
+function verifyCacheKey(token) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 function tenantBaseUrl(tenantId) {
   return TENANT_URL_TEMPLATE.replace("{tenant}", tenantId);
 }
@@ -131,10 +139,18 @@ async function verifyBearerToken(token, tenantId) {
   if (!token) return false;
   const cleanToken = token.replace(/^Bearer\s+/i, "");
 
+  const cacheKey = verifyCacheKey(cleanToken);
+  const cachedUntil = verifyTokenCache.get(cacheKey);
+  if (cachedUntil && cachedUntil > Date.now()) {
+    return true;
+  }
+
   const authHeaders = {
     Authorization: `Bearer ${cleanToken}`,
     Accept: "application/json",
   };
+
+  let valid = false;
 
   // 1) Central — company-login token (Sanctum على DB المركزي)
   if (LARAVEL_VERIFY_URL) {
@@ -144,28 +160,28 @@ async function verifyBearerToken(token, tenantId) {
         headers: authHeaders,
         signal: AbortSignal.timeout(5000),
       });
-      if (res.ok) return true;
+      if (res.ok) valid = true;
     } catch (err) {
       console.error("[socket] central verify error:", err.message);
     }
   }
 
   // 2) Tenant domain — verify-socket-token
-  if (tenantId) {
+  if (!valid && tenantId) {
     const tenantUrl = `${tenantBaseUrl(tenantId).replace(/\/$/, "")}/api/verify-socket-token`;
     try {
       const res = await fetch(tenantUrl, {
         headers: authHeaders,
         signal: AbortSignal.timeout(5000),
       });
-      if (res.ok) return true;
+      if (res.ok) valid = true;
     } catch (err) {
       console.error("[socket] tenant verify error:", err.message);
     }
   }
 
   // 3) Internal — عبر دومين tenant (Apache → Laravel، X-Socket-Secret)
-  if (tenantId && SOCKET_INTERNAL_SECRET) {
+  if (!valid && tenantId && SOCKET_INTERNAL_SECRET) {
     const base = tenantBaseUrl(tenantId).replace(/\/$/, "");
     try {
       const res = await fetch(`${base}/api/internal/realtime/verify-token`, {
@@ -176,13 +192,17 @@ async function verifyBearerToken(token, tenantId) {
         },
         signal: AbortSignal.timeout(5000),
       });
-      if (res.ok) return true;
+      if (res.ok) valid = true;
     } catch (err) {
       console.error("[socket] internal verify error:", err.message);
     }
   }
 
-  return false;
+  if (valid) {
+    verifyTokenCache.set(cacheKey, Date.now() + VERIFY_TOKEN_CACHE_MS);
+  }
+
+  return valid;
 }
 
 function checkRateLimit(key) {
@@ -522,7 +542,8 @@ io.use(async (socket, next) => {
     return next(new Error("TENANT_REQUIRED"));
   }
 
-  const rateKey = `${tenantId}:${auth.employee_id || "anon"}`;
+  const clientType = String(auth.client_type || auth.app_type || "default").toLowerCase();
+  const rateKey = `${tenantId}:${clientType}:${auth.employee_id || auth.device_id || "anon"}`;
   if (!checkRateLimit(rateKey)) {
     return next(new Error("RATE_LIMITED"));
   }
@@ -533,6 +554,7 @@ io.use(async (socket, next) => {
   }
 
   socket.data.tenantId = tenantId;
+  socket.data.clientType = clientType;
   socket.data.employeeId = auth.employee_id ? Number(auth.employee_id) : null;
   socket.data.timecardId = auth.timecard_id ? Number(auth.timecard_id) : null;
   const headerEst =
