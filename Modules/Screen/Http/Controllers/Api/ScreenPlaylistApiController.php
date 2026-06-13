@@ -10,9 +10,14 @@ use Modules\Screen\Http\Requests\StorePlaylistRequest;
 use Modules\Screen\Models\Device;
 use Modules\Screen\Models\Playlist;
 use Modules\Screen\Models\Promo;
+use Modules\Screen\Services\ScreenPlaylistSyncNotifier;
 
 class ScreenPlaylistApiController extends Controller
 {
+    public function __construct(
+        protected ScreenPlaylistSyncNotifier $playlistSyncNotifier
+    ) {}
+
     public function index(): JsonResponse
     {
         $data = Playlist::query()->orderByDesc('id')->get()->map(fn (Playlist $p) => $this->serializePlaylistSummary($p));
@@ -64,6 +69,8 @@ class ScreenPlaylistApiController extends Controller
                 return $playlist->fresh();
             });
 
+            $this->playlistSyncNotifier->created($playlist);
+
             return response()->json([
                 'message' => __('employee::responses.operation_success'),
                 'data' => $this->serializePlaylistDetail($playlist),
@@ -114,6 +121,8 @@ class ScreenPlaylistApiController extends Controller
                 return $playlist->fresh();
             });
 
+            $this->playlistSyncNotifier->updated($playlist);
+
             return response()->json([
                 'message' => __('employee::responses.updated_successfully', ['name' => __('screen::general.playlist')]),
                 'data' => $this->serializePlaylistDetail($playlist),
@@ -143,7 +152,11 @@ class ScreenPlaylistApiController extends Controller
 
     public function destroy(Playlist $playlist): JsonResponse
     {
+        $deviceIds = $playlist->devices()->pluck('screen_devices.id')->all();
+        $playlistId = $playlist->id;
         $playlist->delete();
+
+        $this->playlistSyncNotifier->deleted($playlistId, $deviceIds);
 
         return response()->json([
             'message' => __('employee::responses.deleted_successfully', ['name' => __('screen::general.playlist')]),

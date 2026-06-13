@@ -67,6 +67,7 @@ return [
     'pairing_created_body' => 'Save this token or scan the QR from the admin panel. It will not be shown again after you close this dialog.',
     'pairing_token_copy' => 'Copy token',
     'screen_pairing_success' => 'Screen linked successfully.',
+    'screen_unlink_success' => 'Screen session disconnected successfully.',
     'screen_pairing_invalid_id' => 'Invalid pairing_id — must be 64 lowercase hex characters.',
     'screen_pairing_already_used' => 'This pairing_id was already used and cannot be reused.',
     'screen_auth_invalid_pairing' => 'Invalid pairing token.',

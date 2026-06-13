@@ -67,6 +67,7 @@ return [
     'pairing_created_body' => 'احفظ هذا الرمز أو امسح QR من لوحة التحكم. لن يُعرض مرة أخرى بعد إغلاق هذه النافذة.',
     'pairing_token_copy' => 'نسخ الرمز',
     'screen_pairing_success' => 'تم ربط الشاشة بنجاح.',
+    'screen_unlink_success' => 'تم فصل الشاشة بنجاح.',
     'screen_pairing_invalid_id' => 'معرّف الربط (pairing_id) غير صالح — يجب أن يكون 64 حرف hex.',
     'screen_pairing_already_used' => 'معرّف الربط مستخدم مسبقاً ولا يمكن إعادة استخدامه.',
     'screen_auth_invalid_pairing' => 'رمز الاقتران غير صالح.',

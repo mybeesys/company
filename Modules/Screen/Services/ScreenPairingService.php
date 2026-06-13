@@ -96,6 +96,7 @@ class ScreenPairingService
                 'api_base_url' => $request->getSchemeAndHttpHost(),
                 'expires_at' => $expiresAt?->toIso8601String(),
                 'device' => $devicePayload,
+                'device_channel' => config('screen.device_channel_prefix').$device->id,
             ]);
 
             return [
