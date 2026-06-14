@@ -60,17 +60,41 @@ class DashboardHubService
 
     protected function prepareTab(array $tab): array
     {
+        $params = request()->only(['start_date', 'end_date', 'choose_cost_center_select']);
+
         if (($tab['type'] ?? '') === 'inline') {
+            $tab['url'] = route('dashboard', $params);
+
             return $tab;
         }
 
-        $params = array_merge(
-            request()->only(['start_date', 'end_date', 'choose_cost_center_select']),
-            ['embed' => 1]
-        );
-
-        $tab['embed_url'] = route($tab['route'], $params);
+        $tab['url'] = route($tab['route'], $params);
 
         return $tab;
+    }
+
+    public function resolveActiveTabFromRoute(?Request $request = null): string
+    {
+        $request = $request ?? request();
+        $routeName = $request->route()?->getName();
+
+        foreach (config('dashboard_tabs', []) as $tab) {
+            if (! empty($tab['route']) && $tab['route'] === $routeName) {
+                return (string) $tab['id'];
+            }
+        }
+
+        return 'overview';
+    }
+
+    public function fullPageUrlForTab(string $tabId, array $visibleTabs): ?string
+    {
+        if ($tabId === 'overview') {
+            return null;
+        }
+
+        $tab = collect($visibleTabs)->firstWhere('id', $tabId);
+
+        return $tab['url'] ?? null;
     }
 }

@@ -273,7 +273,11 @@ const ModifierComponent = ({ translations, dir }) => {
                 <div class="row">
                     <div class="col-6">
                         <div class="d-flex align-items-center gap-2 gap-lg-3">
-                            <h1>{`${translations.Add} ${translations.modifier}`}</h1>
+                            <h1>
+                                {modifier?.id
+                                    ? `${translations.Edit} ${translations.modifier}`
+                                    : translations.AddNewmodifier}
+                            </h1>
                         </div>
                     </div>
                     <div

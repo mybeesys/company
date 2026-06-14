@@ -20,10 +20,12 @@
         .inv-alert { border-radius: 12px; border: 1px solid #ffd8d8; background: #fff6f6; padding: 14px 16px; }
         .inv-filter { background: #f8f9fc; border: 1px solid #eceff5; border-radius: 12px; padding: 12px; }
     </style>
+    @include('employee::dashboard.partials.tabs-styles')
 @endsection
 
 @section('content')
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-3">
+        @include('employee::dashboard.partials.tabs-nav')
         <div class="card inv-card mb-6">
             <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>

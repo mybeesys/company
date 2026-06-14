@@ -11,8 +11,11 @@
             padding-right: 1.75rem !important;
         }
     </style>
+    @include('employee::dashboard.partials.tabs-styles')
 @stop
 @section('content')
+    <div class="container-fluid py-3">
+        @include('employee::dashboard.partials.tabs-nav')
 
     @php
         $total_debit = $totals->total_debit;
@@ -311,9 +314,7 @@
             </div>
         </div>
 
-
-
-
+    </div>
 
     @stop
 

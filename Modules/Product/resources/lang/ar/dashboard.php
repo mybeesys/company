@@ -13,7 +13,7 @@ return [
     'total_pricings' => 'إجمالي التسعيرات',
     'add_product' => 'إضافة منتج',
     'add_ingredient' => 'إضافة مكون',
-    'add_modifier' => 'إضافة إضافة',
+    'add_modifier' => 'إنشاء إضافة',
     'add_variant' => 'إضافة متغير',
     'add_custom_menu' => 'إضافة قائمة',
     'add_service_fee' => 'إضافة رسوم',

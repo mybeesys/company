@@ -297,7 +297,13 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             true,
                         )
                     }
-                >{`${translations.Add} ${translations[node.data.type]}`}</a>
+                >{
+                    node.data.type === "modifier"
+                        ? translations.AddNewmodifier
+                        : node.data.type === "modifierClass"
+                          ? translations.AddNewmodifierClass
+                          : `${translations.Add} ${translations[node.data.type]}`
+                }</a>
             );
         } else {
             return node.key == currentKey ? (

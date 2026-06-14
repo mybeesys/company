@@ -23,112 +23,25 @@
         .table-wrap { max-height: 380px; overflow-y: auto; }
 
         .dashboard-hub-shell { min-height: calc(100vh - 140px); }
-        .dashboard-hub-tabs {
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #eef1f7;
-            padding: 6px 8px;
-            box-shadow: 0 2px 12px rgba(62, 57, 107, 0.05);
-            gap: 4px;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            scrollbar-width: thin;
-        }
-        .dashboard-hub-tabs .nav-link {
-            white-space: nowrap;
-            border-radius: 8px;
-            color: #5e6278;
-            font-weight: 600;
-            font-size: 13px;
-            padding: 8px 14px;
-            border: 0;
-            margin: 0;
-        }
-        .dashboard-hub-tabs .nav-link.active {
-            background: var(--bs-primary-light);
-            color: var(--bs-primary);
-        }
-        .dashboard-hub-tabs .nav-link:not(.active):hover {
-            background: #f8f9fc;
-            color: #181c32;
-        }
-        .dashboard-hub-panel,
-        #dashboard-hub-embed-wrap {
+        .dashboard-hub-panel {
             overflow: visible;
         }
-        #dashboard-hub-iframe {
-            width: 100%;
-            height: 0;
-            min-height: 0;
-            border: 0;
-            border-radius: 14px;
-            background: #f5f8fa;
-            display: none;
-            overflow: hidden;
-            vertical-align: top;
-        }
-        #dashboard-hub-iframe.is-visible { display: block; }
-        .dashboard-hub-loading {
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
     </style>
+    @include('employee::dashboard.partials.tabs-styles')
 @endsection
 
 @section('content')
     <div class="container-fluid py-3 dashboard-hub-shell">
-        <nav class="nav nav-pills dashboard-hub-tabs mb-4" id="dashboardHubTabs" role="tablist">
-            @foreach ($dashboardTabs as $tab)
-                @php
-                    $labelKey = $tab['label'];
-                    $tabLabel = __($labelKey);
-                    if ($tabLabel === $labelKey) {
-                        $tabLabel = $tab['id'];
-                    }
-                @endphp
-                <button type="button"
-                    class="nav-link {{ $activeDashboardTab === $tab['id'] ? 'active' : '' }}"
-                    data-dashboard-tab="{{ $tab['id'] }}"
-                    data-tab-type="{{ $tab['type'] }}"
-                    data-embed-url="{{ $tab['embed_url'] ?? '' }}"
-                    role="tab"
-                    aria-selected="{{ $activeDashboardTab === $tab['id'] ? 'true' : 'false' }}">
-                    <i class="{{ $tab['icon'] }} me-1 opacity-75"></i>{{ $tabLabel }}
-                </button>
-            @endforeach
-        </nav>
+        @include('employee::dashboard.partials.tabs-nav', ['activeDashboardTab' => $activeDashboardTab])
 
         <div class="dashboard-hub-panel">
-            <div id="dashboard-hub-overview-wrap" class="{{ $activeDashboardTab === 'overview' ? '' : 'd-none' }}">
-                @include('employee::dashboard.overview')
-            </div>
-            <div id="dashboard-hub-embed-wrap" class="{{ $activeDashboardTab === 'overview' ? 'd-none' : '' }}">
-                <div id="dashboard-hub-loading" class="dashboard-hub-loading {{ $activeDashboardTab === 'overview' ? 'd-none' : '' }}">
-                    <span class="spinner-border text-primary" role="status"></span>
-                </div>
-                <iframe id="dashboard-hub-iframe"
-                    title="@lang('employee::main.dashboard_hub_iframe_title')"
-                    scrolling="no"
-                    class="{{ $activeDashboardTab === 'overview' ? '' : 'is-visible' }}"></iframe>
-            </div>
+            @include('employee::dashboard.overview')
         </div>
     </div>
 @endsection
 
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
-    <script>
-        window.dashboardHubConfig = {
-            activeTab: @json($activeDashboardTab),
-            tabs: @json(collect($dashboardTabs)->mapWithKeys(fn ($t) => [$t['id'] => [
-                'type' => $t['type'],
-                'embed_url' => $t['embed_url'] ?? null,
-            ]]))
-        };
-    </script>
-    <script src="{{ asset('js/dashboard-hub.js') }}?v=5"></script>
     <script>
         (function () {
             var lang = '{{ app()->getLocale() }}';
