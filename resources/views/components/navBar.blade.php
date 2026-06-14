@@ -30,13 +30,13 @@
             'permission' => 'accountingReports.all.show',
         ],
         [
-            'url' => '/dashboard?tab=inventory',
+            'url' => route('inventory.dashboard'),
             'label' => __('general.inventory_dashboard'),
             'icon' => 'ki-outline ki-package',
             'permission' => 'inventory.dashboard.show',
         ],
         [
-            'url' => '/dashboard?tab=sales',
+            'url' => route('sales-dashbord'),
             'label' => __('general.sales_dashboard'),
             'icon' => 'ki-outline ki-dollar',
             'permission' => 'sales.all.show',

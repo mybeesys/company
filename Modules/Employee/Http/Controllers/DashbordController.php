@@ -18,6 +18,13 @@ class DashbordController extends Controller
      */
     public function index(Request $request)
     {
+        $hubService = app(DashboardHubService::class);
+        $dashboardTabs = $hubService->visibleTabs();
+        $activeDashboardTab = $hubService->resolveActiveTab($dashboardTabs, $request);
+
+        if ($redirectUrl = $hubService->fullPageUrlForTab($activeDashboardTab, $dashboardTabs)) {
+            return redirect()->to($redirectUrl);
+        }
 
         // Http::post('http://127.0.0.1:3000/api/order-created', [
         //     'type' => 'reservation',
@@ -337,10 +344,6 @@ class DashbordController extends Controller
             ? round((($periodExpenses - $previousPeriodExpenses) / $previousPeriodExpenses) * 100, 2)
             : 0;
         $periodNet = $periodSales - $periodPurchases - $periodExpenses;
-
-        $hubService = app(DashboardHubService::class);
-        $dashboardTabs = $hubService->visibleTabs();
-        $activeDashboardTab = $hubService->resolveActiveTab($dashboardTabs, $request);
 
         return view('employee::dashboard.hub', compact(
             'dashboardTabs',

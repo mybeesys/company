@@ -13,7 +13,7 @@ return [
     ],
     [
         'id' => 'sales',
-        'type' => 'embed',
+        'type' => 'link',
         'label' => 'menuItemLang.sales-dashbord',
         'icon' => 'fas fa-chart-line',
         'route' => 'sales-dashbord',
@@ -21,7 +21,7 @@ return [
     ],
     [
         'id' => 'purchases',
-        'type' => 'embed',
+        'type' => 'link',
         'label' => 'menuItemLang.purchase-dashbord',
         'icon' => 'fas fa-shopping-cart',
         'route' => 'purchase-dashbord',
@@ -29,7 +29,7 @@ return [
     ],
     [
         'id' => 'products',
-        'type' => 'embed',
+        'type' => 'link',
         'label' => 'menuItemLang.product_dashboard',
         'icon' => 'fas fa-box',
         'route' => 'product.dashboard',
@@ -37,7 +37,7 @@ return [
     ],
     [
         'id' => 'inventory',
-        'type' => 'embed',
+        'type' => 'link',
         'label' => 'menuItemLang.inventory_dashboard',
         'icon' => 'fas fa-warehouse',
         'route' => 'inventory.dashboard',
@@ -45,7 +45,7 @@ return [
     ],
     [
         'id' => 'accounting',
-        'type' => 'embed',
+        'type' => 'link',
         'label' => 'menuItemLang.accounting_dashboard',
         'icon' => 'fas fa-calculator',
         'route' => 'accounting-dashboard',

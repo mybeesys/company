@@ -20,10 +20,12 @@
         .pd-table-wrap { max-height: 360px; overflow-y: auto; }
         .pd-alert { border-radius: 12px; border: 1px solid #ffe5b4; background: #fffaf1; padding: 14px 16px; }
     </style>
+    @include('employee::dashboard.partials.tabs-styles')
 @endsection
 
 @section('content')
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-3">
+        @include('employee::dashboard.partials.tabs-nav')
         <div class="card pd-card mb-6">
             <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>

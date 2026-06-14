@@ -8,6 +8,7 @@
     .fin-kpi-link:hover { border-color: #d8dee8; box-shadow: 0 4px 14px rgba(24, 28, 50, 0.06); }
     .kpi-help { cursor: help; color:#7a8599; font-size: 12px; }
 </style>
+@include('employee::dashboard.partials.tabs-styles')
 @stop
 @section('content')
 @php
@@ -58,7 +59,8 @@
         'end_date' => $end_date,
     ];
 @endphp
-<div class="container-fluid">
+<div class="container-fluid py-3">
+    @include('employee::dashboard.partials.tabs-nav')
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <h2 class="mb-0">@lang('accounting::lang.accounting_dashboard')</h2>
         <form method="GET" class="row g-2 align-items-end">

@@ -38,6 +38,7 @@
 
    						
       <div id="root" type="modifierdetail" 
+        modifier-crud-url="{{ json_encode(route('modifier.index'))}}"
         modifier-url="{{ json_encode(route('modifier.store'))}}"
         modifier="{{json_encode($modifier)}}"
         listTax-url ="{{json_encode(route('taxList'))}}"

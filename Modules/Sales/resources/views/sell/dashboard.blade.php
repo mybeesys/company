@@ -14,10 +14,12 @@
         .s-soft-orange { background: #fff8f5; border-color: #ffe1d7; }
         .s-filter { background: #f8f9fc; border: 1px solid #eceff5; border-radius: 12px; padding: 12px; }
     </style>
+    @include('employee::dashboard.partials.tabs-styles')
 @endsection
 
 @section('content')
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-3">
+        @include('employee::dashboard.partials.tabs-nav')
         @php
             $translatePaymentMethod = function ($method) {
                 $method = (string) $method;

@@ -265,6 +265,18 @@ class ModifierController extends Controller
         }
     }
 
+    public function create()
+    {
+        $modifier = new Product([
+            'type' => 'modifier',
+            'active' => 1,
+        ]);
+        $modifier->setRelation('recipe', collect());
+        $modifier->setRelation('priceTiers', collect());
+
+        return view('product::modifier.create', compact('modifier'));
+    }
+
     public function edit($id)
     {
         $modifier = Product::restrictByFranchise('modifier')

@@ -30,12 +30,18 @@ class ModifierLOVController extends Controller
         $this->unitController = $unitController;
     }
 
-    public function getModifierLOVs($id, Request $request)
+    public function getModifierLOVs(Request $request, $id = null)
     {
+        if (! is_numeric($id) || (int) $id <= 0) {
+            $id = null;
+        }
+
         $ingredient = $this->ingredientController->ingredientProductList();
         $taxes = $this->generalController->taxes($request);
         $modifierClasses = $this->modifierClassController->getMiniModifierClasslist();
-        $unitTransfer = $this->unitTransferController->getUnitsTransferList('modifier', $id);
+        $unitTransfer = $id !== null
+            ? $this->unitTransferController->getUnitsTransferList('modifier', $id)
+            : response()->json([]);
 
         $lov = [];
         $lov['ingredient'] = $ingredient->original;
