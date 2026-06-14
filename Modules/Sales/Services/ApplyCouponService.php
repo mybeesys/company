@@ -18,10 +18,38 @@ class ApplyCouponService
      */
     public function applyForSale(string $couponCode, int $contactId, int $establishmentId, array $products, float $taxableBefore, float $currentTax): array
     {
-        $coupon = Coupon::query()
-            ->where('code', $couponCode)
-            ->lockForUpdate()
-            ->first();
+        return $this->resolveForSale($couponCode, $contactId, $establishmentId, $products, $taxableBefore, $currentTax, lock: true);
+    }
+
+    /**
+     * Validate coupon and preview discount without row locks (for API / POS preview).
+     *
+     * @param  array<int, object|array<string, mixed>>  $products
+     * @return array{coupon:Coupon,discount_amount:float,taxable_before:float,taxable_after:float,tax_amount:float,final_total:float}
+     */
+    public function previewForSale(string $couponCode, int $contactId, int $establishmentId, array $products, float $taxableBefore, float $currentTax): array
+    {
+        return $this->resolveForSale($couponCode, $contactId, $establishmentId, $products, $taxableBefore, $currentTax, lock: false);
+    }
+
+    /**
+     * @param  array<int, object|array<string, mixed>>  $products
+     * @return array{coupon:Coupon,discount_amount:float,taxable_before:float,taxable_after:float,tax_amount:float,final_total:float}
+     */
+    protected function resolveForSale(
+        string $couponCode,
+        int $contactId,
+        int $establishmentId,
+        array $products,
+        float $taxableBefore,
+        float $currentTax,
+        bool $lock
+    ): array {
+        $query = Coupon::query()->where('code', $couponCode);
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+        $coupon = $query->first();
 
         if (! $coupon) {
             throw new RuntimeException(__('sales::responses.coupon_not_found'));
@@ -78,6 +106,23 @@ class ApplyCouponService
             'tax_amount' => $taxAmount,
             'final_total' => $finalTotal,
         ];
+    }
+
+    public static function errorCodeFromMessage(string $message): string
+    {
+        $map = [
+            __('sales::responses.coupon_not_found') => 'coupon_not_found',
+            __('sales::responses.coupon_not_active') => 'coupon_not_active',
+            __('sales::responses.coupon_not_started') => 'coupon_not_started',
+            __('sales::responses.coupon_expired') => 'coupon_expired',
+            __('sales::responses.coupon_invalid_establishment') => 'coupon_invalid_establishment',
+            __('sales::responses.coupon_usage_limit_reached') => 'coupon_usage_limit_reached',
+            __('sales::responses.coupon_person_limit_reached') => 'coupon_person_limit_reached',
+            __('sales::responses.coupon_not_applicable_to_items') => 'coupon_not_applicable_to_items',
+            __('sales::responses.coupon_disabled') => 'coupon_disabled',
+        ];
+
+        return $map[$message] ?? 'coupon_invalid';
     }
 
     public function registerUsage(int $couponId, int $clientId, int $transactionId): void

@@ -10,4 +10,5 @@ return [
     'coupon_usage_limit_reached' => 'تم استهلاك الحد الأقصى لاستخدام الكوبون',
     'coupon_person_limit_reached' => 'تم استهلاك حد الاستخدام لهذا العميل',
     'coupon_not_applicable_to_items' => 'الكوبون لا ينطبق على الأصناف المختارة',
+    'coupon_disabled' => 'الكوبونات غير مفعّلة في إعدادات النظام',
 ];
