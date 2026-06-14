@@ -10,4 +10,5 @@ return [
     'coupon_usage_limit_reached' => 'Coupon usage limit has been reached.',
     'coupon_person_limit_reached' => 'This customer has reached the coupon usage limit.',
     'coupon_not_applicable_to_items' => 'Coupon does not apply to selected items.',
+    'coupon_disabled' => 'Coupons are disabled in system settings.',
 ];

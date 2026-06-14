@@ -18,6 +18,7 @@ use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductCombo;
 use Modules\Reservation\Services\KitchenBroadcastService;
+use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Utils\SalesUtile;
 
 class SellApiController extends Controller
@@ -65,6 +66,57 @@ class SellApiController extends Controller
                 return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
             }
 
+            $products = json_decode(json_encode($request->items));
+            $couponUsage = null;
+            $couponCode = trim((string) $request->input('coupon_code', ''));
+            $discountValue = (float) ($request->discount_value ?? 0);
+            $totalAfterDiscount = (float) ($request->total_after_discount ?? $request->total_before_discount ?? 0);
+            $totalTax = (float) ($request->total_tax ?? 0);
+            $finalTotal = (float) ($request->total_paid ?? 0);
+
+            if ($couponCode !== '') {
+                $toggle = Setting::where('key', 'toggleCoupon')->value('value');
+                if (! is_null($toggle) && (int) $toggle !== 1) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => __('sales::responses.coupon_disabled'),
+                        'code' => 'coupon_disabled',
+                    ], 422);
+                }
+
+                try {
+                    $couponProducts = array_map(static function ($product) {
+                        return [
+                            'product_id' => (int) ($product->product_id ?? 0),
+                            'quantity' => (float) ($product->quantity ?? 0),
+                            'unit_price' => (float) ($product->price_after_discount ?? $product->price ?? 0),
+                        ];
+                    }, $products ?? []);
+
+                    $couponUsage = app(ApplyCouponService::class)->applyForSale(
+                        $couponCode,
+                        (int) $request->customer_id,
+                        (int) $establishment_id,
+                        $couponProducts,
+                        $totalAfterDiscount,
+                        $totalTax,
+                    );
+
+                    $discountValue += (float) $couponUsage['discount_amount'];
+                    $totalAfterDiscount = (float) $couponUsage['taxable_after'];
+                    $totalTax = (float) $couponUsage['tax_amount'];
+                    $finalTotal = (float) $couponUsage['final_total'];
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => $e->getMessage(),
+                        'code' => ApplyCouponService::errorCodeFromMessage($e->getMessage()),
+                    ], 422);
+                }
+            }
+
             $transaction = Transaction::create([
                 'type' => 'sell',
                 'local_id' => $request->id,
@@ -73,12 +125,12 @@ class SellApiController extends Controller
                 'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
                 'contact_id' => $request->customer_id,
                 // 'cost_center' => $request->cost_center ?? null,
-                'discount_amount' => $request->discount_value,
+                'discount_amount' => $discountValue,
                 'discount_type' => $request->discount_type,
                 'total_before_tax' => $request->total_before_discount,
-                'total_after_discount' => $request->total_after_discount,
-                'tax_amount' => $request->total_tax,
-                'final_total' => $request->total_paid,
+                'total_after_discount' => $totalAfterDiscount,
+                'tax_amount' => $totalTax,
+                'final_total' => $finalTotal,
                 'created_by' => $request->user_id,
                 'description' => $request->note,
                 'ref_no' => $ref_no,
@@ -92,7 +144,14 @@ class SellApiController extends Controller
                 'order_type' => $request->device_id ?? 2,
             ]);
 
-            $products = json_decode(json_encode($request->items));
+            if ($couponUsage && ($request->status ?? '') !== 'draft') {
+                app(ApplyCouponService::class)->registerUsage(
+                    (int) $couponUsage['coupon']->id,
+                    (int) $request->customer_id,
+                    (int) $transaction->id,
+                );
+            }
+
             $mustValidateStock = Setting::mustValidatePerpetualStock($created_by);
 
             foreach ($products as $product) {
