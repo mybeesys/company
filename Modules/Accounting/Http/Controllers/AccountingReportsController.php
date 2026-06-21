@@ -25,6 +25,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Support\AccountingReportDateResolver;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Expense\Models\Expense;
@@ -143,8 +144,9 @@ class AccountingReportsController extends Controller
 
     public function incomeStatement()
     {
-        $start_date = request()->start_date ?? now()->startOfYear()->format('Y-m-d');
-        $end_date = request()->end_date ?? now()->format('Y-m-d');
+        [$start_date, $end_date] = AccountingReportDateResolver::range(request());
+        $start_date = request()->start_date ?? $start_date;
+        $end_date = request()->end_date ?? $end_date;
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $choose_cost_center_select = request()->choose_cost_center_select ?? [];
         $compare_mode = request()->get('compare_mode', 'none');
@@ -264,7 +266,10 @@ class AccountingReportsController extends Controller
             ->when(! empty($choose_cost_center_select), function ($query) use ($choose_cost_center_select) {
                 $query->whereIn('AAT.cost_center_id', $choose_cost_center_select);
             })
-            ->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
+            ->where(function ($query) {
+                $query->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
+                    ->orWhereIn('accounting_accounts.account_primary_type', ['income', 'expenses']);
+            })
             ->select(
                 'accounting_accounts.id',
                 'accounting_accounts.parent_account_id',
@@ -321,7 +326,10 @@ class AccountingReportsController extends Controller
 
     private function resolveIncomeAccountCategory(object $account): string
     {
-        if ($account->account_type === 'income') {
+        $isIncome = $account->account_type === 'income'
+            || ($account->account_primary_type ?? null) === 'income';
+
+        if ($isIncome) {
             if ($this->isSalesReturnAccount($account)) {
                 return 'sales_returns';
             }
@@ -514,8 +522,7 @@ class AccountingReportsController extends Controller
             $start_date = $request->input('start_date');
             $end_date = $request->input('end_date');
         } else {
-            $start_date = now()->startOfYear()->format('Y-m-d');
-            $end_date = now()->format('Y-m-d');
+            [$start_date, $end_date] = AccountingReportDateResolver::range($request);
         }
 
         $costCenterIds = array_values(array_filter((array) ($choose_cost_center_select ?? [])));
@@ -948,8 +955,9 @@ class AccountingReportsController extends Controller
 
     public function balanceSheet(Request $request)
     {
-        $start_date = $request->input('start_date', now()->startOfYear()->format('Y-m-d'));
-        $end_date = $request->input('end_date', now()->format('Y-m-d'));
+        [$start_date, $end_date] = AccountingReportDateResolver::range($request);
+        $start_date = $request->input('start_date', $start_date);
+        $end_date = $request->input('end_date', $end_date);
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
         $compare_mode = $request->get('compare_mode', 'none');

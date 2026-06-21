@@ -125,6 +125,17 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('tree-of-accounts-import-store') }}" enctype="multipart/form-data">
                     @csrf
+                    @if (\Modules\Accounting\Models\AccountingAccount::exists())
+                        <div class="alert alert-warning mb-4">
+                            @lang('accounting::lang.import_tree_accounts_replace_hint')
+                        </div>
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" name="replace_existing" id="replace_existing" value="1">
+                            <label class="form-check-label" for="replace_existing">
+                                @lang('accounting::lang.import_tree_accounts_replace_label')
+                            </label>
+                        </div>
+                    @endif
                     <div class="mb-4" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
                         <div class="dropzone dz-clickable" style="padding: 8px 1.75rem;" id="kt_import_tree_accounts_dropzone">
                             <div class="dz-message needsclick">
