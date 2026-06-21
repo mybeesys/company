@@ -20,11 +20,7 @@ class JournalTransactionsExcelParser
      */
     public function parse(string $filePath): array
     {
-        $spreadsheet = IOFactory::load($filePath);
-        $sheet = $spreadsheet->getSheetByName('Journal Transactions (2)')
-            ?? $spreadsheet->getSheet(0);
-
-        $rows = $sheet->toArray(null, true, true, true);
+        $rows = $this->loadRows($filePath);
         $grouped = [];
         $currentRef = null;
         $errors = [];
@@ -276,5 +272,44 @@ class JournalTransactionsExcelParser
         $diff = round(((float) $left) - ((float) $right), 2);
 
         return $diff < 0 ? -1 : ($diff > 0 ? 1 : 0);
+    }
+
+    /**
+     * @return array<int|string, array<string, mixed>>
+     */
+    private function loadRows(string $filePath): array
+    {
+        @ini_set('memory_limit', '768M');
+
+        $reader = IOFactory::createReaderForFile($filePath);
+        if (method_exists($reader, 'setReadDataOnly')) {
+            $reader->setReadDataOnly(true);
+        }
+
+        $sheetName = $this->resolveSheetName($reader, $filePath);
+        if (method_exists($reader, 'setLoadSheetsOnly')) {
+            $reader->setLoadSheetsOnly([$sheetName]);
+        }
+
+        $spreadsheet = $reader->load($filePath);
+        $sheet = $spreadsheet->getSheetByName($sheetName) ?? $spreadsheet->getActiveSheet();
+
+        return $sheet->toArray(null, true, true, true);
+    }
+
+    private function resolveSheetName(object $reader, string $filePath): string
+    {
+        $preferred = 'Journal Transactions (2)';
+
+        if (method_exists($reader, 'listWorksheetNames')) {
+            $names = $reader->listWorksheetNames($filePath);
+            if (in_array($preferred, $names, true)) {
+                return $preferred;
+            }
+
+            return $names[0] ?? $preferred;
+        }
+
+        return $preferred;
     }
 }
