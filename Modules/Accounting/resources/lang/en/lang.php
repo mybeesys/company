@@ -415,7 +415,7 @@ return [
     'import_journal_entries' => 'Import Journal Entries',
     'import_journal_entries_hint' => 'Import journal entries from an Excel file (Journal Transactions) after importing the matching chart of accounts.',
     'import_journal_instructions_title' => 'Import instructions',
-    'import_journal_instructions_body' => 'The file must include: date, entry number, account name, GL code, description, source, debit, credit. Prefer sheet «Journal Transactions (2)».',
+    'import_journal_instructions_body' => 'The file must include: date, entry number, account name, GL code, description, source, debit, credit.',
     'import_journal_column' => 'Column',
     'import_journal_required' => 'Required',
     'import_journal_description' => 'Description',
