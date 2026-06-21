@@ -407,7 +407,7 @@ return [
     'import_journal_entries' => 'استيراد القيود اليومية',
     'import_journal_entries_hint' => 'استيراد القيود من ملف Excel (Journal Transactions) بعد استيراد الدليل المحاسبي المطابق.',
     'import_journal_instructions_title' => 'تعليمات الاستيراد',
-    'import_journal_instructions_body' => 'الملف يجب أن يحتوي على الأعمدة: التاريخ، رقم القيد، الحساب، كود الحساب، الوصف، المصدر، مدين، دائن. يُفضّل استخدام ورقة «Journal Transactions (2)».',
+    'import_journal_instructions_body' => 'الملف يجب أن يحتوي على الأعمدة: التاريخ، رقم القيد، الحساب، كود الحساب، الوصف، المصدر، مدين، دائن.',
     'import_journal_column' => 'العمود',
     'import_journal_required' => 'إلزامي',
     'import_journal_description' => 'الوصف',
