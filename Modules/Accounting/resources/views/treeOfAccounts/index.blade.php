@@ -181,7 +181,11 @@
         </div>
     @else
         <div>
-            @include('accounting::treeOfAccounts.accounts_tree', ['account' => $accounts])
+            @if (! empty($useImportedChartLayout))
+                @include('accounting::treeOfAccounts.accounts_tree_imported')
+            @else
+                @include('accounting::treeOfAccounts.accounts_tree', ['account' => $accounts])
+            @endif
             @include('accounting::treeOfAccounts.edit-account', [
                 'account_main_types' => $account_main_types,
                 'account_category' => $account_category,

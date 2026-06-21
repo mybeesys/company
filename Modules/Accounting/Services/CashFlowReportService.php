@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
+use Modules\Accounting\Support\AccountingReportDateResolver;
 use Modules\Expense\Support\TreasuryAccounts;
 
 final class CashFlowReportService
@@ -49,8 +50,9 @@ final class CashFlowReportService
     /** @return array<string, mixed> */
     public static function dataset(Request $request): array
     {
-        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
+        [$defaultStart, $defaultEnd] = AccountingReportDateResolver::range($request);
+        $startDate = $request->input('start_date', $defaultStart);
+        $endDate = $request->input('end_date', $defaultEnd);
         $costCenterIds = array_values(array_filter((array) $request->input('choose_cost_center_select', [])));
         $movementType = $request->input('movement_type');
         $selectedSubTypes = (array) $request->input('sub_types', []);

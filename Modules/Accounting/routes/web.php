@@ -10,6 +10,7 @@ use Modules\Accounting\Http\Controllers\FinancialYearSettingsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
+use Modules\Accounting\Http\Controllers\JournalEntryImportController;
 use Modules\Accounting\Http\Controllers\PaymentVouchersController;
 use Modules\Accounting\Http\Controllers\PeriodicInventoryController;
 use Modules\Accounting\Http\Controllers\ReceiptVouchersController;
@@ -103,6 +104,11 @@ Route::middleware([
         Route::get('journal-entry-export-pdf/{id}', [JournalEntryController::class, 'exportPDF'])->name('journal-entry-export-pdf');
         Route::get('journal-entry-export-excel/{id}', [JournalEntryController::class, 'exportExcel'])->name('journal-entry-export-excel');
         Route::get('journal-entry-attachment/{id}', [JournalEntryController::class, 'downloadAttachment'])->name('journal-entry-attachment');
+
+        Route::get('journal-entry/import', [JournalEntryImportController::class, 'importPage'])->name('journal-entry-import');
+        Route::post('journal-entry/import/preview', [JournalEntryImportController::class, 'preview'])->name('journal-entry-import-preview');
+        Route::post('journal-entry/import/process', [JournalEntryImportController::class, 'process'])->name('journal-entry-import-process');
+        Route::post('journal-entry/import/cancel', [JournalEntryImportController::class, 'cancel'])->name('journal-entry-import-cancel');
 
         // Cost Center
         Route::get('cost-center-index', [CostCenterConrollerController::class, 'index'])->name('cost-center-index');

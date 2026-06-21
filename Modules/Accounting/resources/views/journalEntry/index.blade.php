@@ -25,6 +25,13 @@
 @stop
 @section('content')
 
+    @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if (session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
     <p class="text-muted small mb-4">{{ __('accounting::lang.journal_entry_manual_only') }}</p>
 
     <div class="row g-3 align-items-end">
@@ -60,10 +67,14 @@
     </div>
     <div class="card card-flush">
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="journalEntry" url="journal-entry-create" module="accounting">
-                <x-slot:filters>
-
-                </x-slot:filters>
+            <x-tables.table-header model="journalEntry" url="journal-entry-create" module="accounting" :addButton="false">
+                <a href="{{ route('journal-entry-import') }}" class="btn btn-light-primary fv-row flex-md-root min-w-150px mw-250px">
+                    @lang('accounting::lang.import_journal_entries')
+                </a>
+                <a href="{{ url('/journal-entry-create') }}" id="add_journalEntry_button"
+                    class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
+                    @lang('accounting::general.add_journalEntry')
+                </a>
             </x-tables.table-header>
         </x-cards.card-header>
 

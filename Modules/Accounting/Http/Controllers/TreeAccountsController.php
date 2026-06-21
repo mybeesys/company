@@ -17,6 +17,9 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Support\LedgerStatementPresenter;
+use Modules\Accounting\Support\AccountingReportDateResolver;
+use Modules\Accounting\Support\ImportedAccountTypeSync;
+use Modules\Accounting\Services\ChartOfAccountsTreeBuilder;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\GlCodeRepairService;
 use Modules\Accounting\Utils\ContractorsAccUtil;
@@ -68,10 +71,15 @@ class TreeAccountsController extends Controller
     /** @return array{0: string, 1: string} */
     protected function ledgerDateRange(Request $request): array
     {
-        $start = $request->get('start_date', now()->startOfYear()->format('Y-m-d'));
-        $end = $request->get('end_date', now()->addDay(1)->format('Y-m-d'));
+        [$start, $end] = AccountingReportDateResolver::range($request);
 
-        return [$start, $end];
+        if (! $request->filled('start_date') && ! $request->filled('end_date')) {
+            return [$start, $end];
+        }
+
+        $end = $request->get('end_date', now()->addDay()->format('Y-m-d'));
+
+        return [$request->get('start_date', $start), $end];
     }
 
     /** @return list<int|string> */
@@ -215,8 +223,22 @@ class TreeAccountsController extends Controller
         $account_exist = AccountingAccount::exists();
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
+        $useImportedChartLayout = ChartOfAccountsTreeBuilder::usesImportedChartLayout();
+        $imported_roots = $useImportedChartLayout
+            ? ChartOfAccountsTreeBuilder::rootsByPrimaryType()
+            : [];
 
-        return view('accounting::treeOfAccounts.index', compact('accounts', 'account_category', 'account_main_types', 'account_exist', 'account_types', 'account_GLC', 'account_sub_types'));
+        return view('accounting::treeOfAccounts.index', compact(
+            'accounts',
+            'account_category',
+            'account_main_types',
+            'account_exist',
+            'account_types',
+            'account_GLC',
+            'account_sub_types',
+            'useImportedChartLayout',
+            'imported_roots',
+        ));
     }
 
     public function importPage()
@@ -233,7 +255,18 @@ class TreeAccountsController extends Controller
     {
         $validated = $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
+            'replace_existing' => ['nullable', 'boolean'],
         ]);
+
+        $replaceExisting = $request->boolean('replace_existing');
+
+        if ($replaceExisting) {
+            if (AccountingAccountsTransaction::query()->exists()) {
+                return redirect()->back()->with('error', __('accounting::lang.import_tree_accounts_replace_has_transactions'));
+            }
+
+            AccountingAccount::query()->delete();
+        }
 
         $import = new TreeAccountsExcelImport;
         Excel::import($import, $validated['file']);
@@ -300,11 +333,15 @@ class TreeAccountsController extends Controller
                     }
                 }
 
+                $primaryType = trim((string) ($r['account_primary_type'] ?? ''));
+                $accountType = in_array($primaryType, ['income', 'expenses'], true) ? $primaryType : 'normal';
+
                 $acc = AccountingAccount::query()->create([
                     'gl_code' => $r['gl_code'],
                     'name_ar' => $r['name_ar'] ?: $r['gl_code'],
                     'name_en' => $r['name_en'] ?: $r['gl_code'],
-                    'account_primary_type' => $r['account_primary_type'] ?: null,
+                    'account_primary_type' => $primaryType ?: null,
+                    'account_type' => $accountType,
                     'parent_account_id' => $parentId,
                     'status' => in_array($r['status'], ['active', 'inactive'], true) ? $r['status'] : 'active',
                 ]);
@@ -314,6 +351,7 @@ class TreeAccountsController extends Controller
             }
 
             DB::commit();
+            ImportedAccountTypeSync::syncFromPrimaryType();
             if ($createdCount <= 0) {
                 return redirect()->back()->with('error', __('messages.no_data_found'));
             }
