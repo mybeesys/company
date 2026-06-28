@@ -11,17 +11,17 @@ final class JournalEntryImportStorage
 {
     public const DIRECTORY = 'journal-import';
 
-    public static function store(UploadedFile $file): string
+    public static function store(UploadedFile $file, string $directory = self::DIRECTORY): string
     {
         $extension = strtolower($file->getClientOriginalExtension() ?: 'xls');
         if (! in_array($extension, ['xls', 'xlsx'], true)) {
             throw new RuntimeException('Invalid file extension.');
         }
 
-        Storage::disk('local')->makeDirectory(self::DIRECTORY);
+        Storage::disk('local')->makeDirectory($directory);
 
-        $relativePath = self::DIRECTORY.'/'.Str::uuid().'.'.$extension;
-        $stored = $file->storeAs(self::DIRECTORY, basename($relativePath), 'local');
+        $relativePath = $directory.'/'.Str::uuid().'.'.$extension;
+        $stored = $file->storeAs($directory, basename($relativePath), 'local');
 
         if (! is_string($stored) || $stored === '') {
             throw new RuntimeException('Could not store uploaded file.');
