@@ -11,6 +11,7 @@ use Modules\Accounting\Http\Controllers\AccountsRoutingController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
 use Modules\Accounting\Http\Controllers\JournalEntryImportController;
+use Modules\Accounting\Http\Controllers\OpeningBalanceImportController;
 use Modules\Accounting\Http\Controllers\PaymentVouchersController;
 use Modules\Accounting\Http\Controllers\PeriodicInventoryController;
 use Modules\Accounting\Http\Controllers\ReceiptVouchersController;
@@ -109,6 +110,11 @@ Route::middleware([
         Route::post('journal-entry/import/preview', [JournalEntryImportController::class, 'preview'])->name('journal-entry-import-preview');
         Route::post('journal-entry/import/process', [JournalEntryImportController::class, 'process'])->name('journal-entry-import-process');
         Route::post('journal-entry/import/cancel', [JournalEntryImportController::class, 'cancel'])->name('journal-entry-import-cancel');
+
+        Route::get('opening-balance/import', [OpeningBalanceImportController::class, 'importPage'])->name('opening-balance-import');
+        Route::post('opening-balance/import/preview', [OpeningBalanceImportController::class, 'preview'])->name('opening-balance-import-preview');
+        Route::post('opening-balance/import/process', [OpeningBalanceImportController::class, 'process'])->name('opening-balance-import-process');
+        Route::post('opening-balance/import/cancel', [OpeningBalanceImportController::class, 'cancel'])->name('opening-balance-import-cancel');
 
         // Cost Center
         Route::get('cost-center-index', [CostCenterConrollerController::class, 'index'])->name('cost-center-index');

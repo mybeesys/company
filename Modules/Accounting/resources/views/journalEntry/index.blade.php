@@ -71,6 +71,9 @@
                 <a href="{{ route('journal-entry-import') }}" class="btn btn-light-primary fv-row flex-md-root min-w-150px mw-250px">
                     @lang('accounting::lang.import_journal_entries')
                 </a>
+                <a href="{{ route('opening-balance-import') }}" class="btn btn-light-primary fv-row flex-md-root min-w-150px mw-250px">
+                    @lang('accounting::lang.import_opening_balance')
+                </a>
                 <a href="{{ url('/journal-entry-create') }}" id="add_journalEntry_button"
                     class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
                     @lang('accounting::general.add_journalEntry')
