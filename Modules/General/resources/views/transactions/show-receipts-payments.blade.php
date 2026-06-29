@@ -310,7 +310,7 @@
 
                                                 <td>
                                                     <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                                        {{ $line->tax_id }} %
+                                                        {{ $line->tax_rate_percent }} %
                                                     </a>
                                                 </td>
 

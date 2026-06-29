@@ -67,5 +67,6 @@ final class PosSalesInvoiceMapperTest extends TestCase
         $this->assertEqualsWithDelta(11.3, (float) $line['unit_price'], 0.0001);
         $this->assertEqualsWithDelta(11.3, (float) $line['total_before_vat'], 0.0001);
         $this->assertEqualsWithDelta(13.0, (float) $line['unit_price_inc_tax'], 0.0001);
+        $this->assertSame('45', $line['tax_id']);
     }
 }
