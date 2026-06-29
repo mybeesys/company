@@ -6,6 +6,7 @@ namespace Modules\Sales\Services;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Modules\General\Support\TransactionLineTaxRate;
 
 /**
  * Maps POS / Flutter stor-sales-invoice payload fields to DB columns used by the web UI.
@@ -132,7 +133,7 @@ final class PosSalesInvoiceMapper
             'discount_type' => $discountType !== '' ? $discountType : null,
             'discount_amount' => $product->discount_amount,
             'unit_price_inc_tax' => $priceWithTax,
-            'tax_id' => $product->tax_id,
+            'tax_id' => TransactionLineTaxRate::normalizeForStorage($product->tax_id ?? null),
             'tax_value' => $product->tax_value,
             'total_before_vat' => $lineTotalBeforeVat,
         ];

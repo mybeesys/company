@@ -166,7 +166,7 @@
                                 <td class="text-center">{{ $line->unit_price_before_discount }}</td>
                                 <td class="text-center">{{ $line->discount_amount ?? 0 }}</td>
                                 <td class="text-center">{{ $line->total_before_vat }}</td>
-                                <td class="text-center">{{ $line->tax_id }} %</td>
+                                <td class="text-center">{{ $line->tax_rate_percent }} %</td>
                                 <td class="text-center">{{ $line->tax_value }}</td>
                                 <td class="text-center">{{ $line->unit_price_inc_tax }}</td>
                             </tr>
