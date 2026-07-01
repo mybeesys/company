@@ -30,7 +30,7 @@
     <div class="separator d-flex flex-center my-5">
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
-    <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store') }}" enctype="multipart/form-data">
+    <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store') }}" enctype="multipart/form-data" novalidate>
         @csrf
 
         <div class="row g-10" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
@@ -286,8 +286,8 @@
             @endforeach
         </select>
     </td>
-    <td><input type="number" step="0.01" min="0" class="form-control debit-field" name="debit" placeholder="0.00" style="width: 100px;"></td>
-    <td><input type="number" step="0.01" min="0" class="form-control credit-field" name="credit" placeholder="0.00" style="width: 107px;"></td>
+    <td><input type="number" step="any" min="0" class="form-control debit-field" name="debit" placeholder="0.0" style="width: 100px;"></td>
+    <td><input type="number" step="any" min="0" class="form-control credit-field" name="credit" placeholder="0.0" style="width: 107px;"></td>
     <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
     <td>
         <button class="btn btn-icon btn-danger delete-row" type="button">
