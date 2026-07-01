@@ -66,6 +66,14 @@ class Establishment extends Model
         $query->where('is_main', false);
     }
 
+    /**
+     * Leaf-level establishments only — branches with no sub-branches.
+     */
+    public function scopeLeafLevel(Builder $query)
+    {
+        $query->whereDoesntHave('children');
+    }
+
     public function employees()
     {
         return $this->hasMany(Employee::class)->withTrashed();

@@ -1,12 +1,14 @@
 @php
+    use Modules\Report\Support\RegisterShiftReport;
+
     $paymentRows = [];
     foreach ($payment_types as $method) {
-        $saleField = 'total_'.$method->name_en;
-        $refundField = 'total_'.$method->name_en.'_refund';
+        $saleField = RegisterShiftReport::PAYMENT_FIELD_MAP[$method->name_en] ?? null;
+        $refundField = $saleField ? $saleField.'_refund' : null;
         $paymentRows[] = [
             'label' => app()->getLocale() === 'ar' ? $method->name_ar : $method->name_en,
-            'sale' => (float) ($register_details->$saleField ?? 0),
-            'refund' => (float) ($register_details->$refundField ?? 0),
+            'sale' => $saleField ? (float) ($register_details->$saleField ?? 0) : 0.0,
+            'refund' => $refundField ? (float) ($register_details->$refundField ?? 0) : 0.0,
         ];
     }
 @endphp

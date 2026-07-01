@@ -169,7 +169,7 @@ class TransactionController extends Controller
     {
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        $transaction = Transaction::find($id);
+        $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
         $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
@@ -222,7 +222,7 @@ class TransactionController extends Controller
 
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        $transaction = Transaction::find($id);
+        $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
         $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
@@ -254,7 +254,7 @@ class TransactionController extends Controller
     {
 
         $transactionUtil = new TransactionUtils;
-        $transaction = Transaction::find($id);
+        $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
         $accounts = AccountingAccount::forDropdown();
         $paid_amount = $transactionUtil->getTotalPaid($id);
         $amount = $transaction->final_total - $paid_amount;

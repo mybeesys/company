@@ -1,5 +1,11 @@
 <div class="card mb-5 mb-xl-8" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
 
+    @php
+        $showPaymentMethodColumn = $transaction->payment->contains(
+            fn ($line) => $line->payment_method_id || filled($line->method)
+        );
+    @endphp
+
     <div class="card-header border-0 p-0">
         <h3 class="card-title align-items-start flex-column">
             <span class="card-label fw-bold fs-3 mb-1 px-3">@lang('general::lang.Payments')</span>
@@ -18,6 +24,9 @@
                         <th class="min-w-200px ">@lang('sales::fields.ref_no')</th>
                         <th class="min-w-80px">@lang('sales::lang.pament_on')</th>
                         <th class="min-w-100px">@lang('sales::lang.paid_amount')</th>
+                        @if ($showPaymentMethodColumn)
+                            <th class="min-w-120px">@lang('sales::lang.payment_type')</th>
+                        @endif
                         <th class="min-w-150px">@lang('sales::lang.payment_account_note')</th>
                         <th class="min-w-150px">@lang('accounting::lang.additionalNotes')</th>
                     </tr>
@@ -47,6 +56,13 @@
                                 </a>
                             </td>
 
+                            @if ($showPaymentMethodColumn)
+                                <td>
+                                    <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
+                                        {{ $line->displayPaymentMethod() ?? '--' }}
+                                    </a>
+                                </td>
+                            @endif
 
                             <td>
                                 <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">

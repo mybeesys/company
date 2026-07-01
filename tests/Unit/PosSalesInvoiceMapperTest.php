@@ -67,6 +67,66 @@ final class PosSalesInvoiceMapperTest extends TestCase
         $this->assertEqualsWithDelta(11.3, (float) $line['unit_price'], 0.0001);
         $this->assertEqualsWithDelta(11.3, (float) $line['total_before_vat'], 0.0001);
         $this->assertEqualsWithDelta(13.0, (float) $line['unit_price_inc_tax'], 0.0001);
+        $this->assertEqualsWithDelta(1.7, (float) $line['tax_value'], 0.0001);
         $this->assertSame('45', $line['tax_id']);
+    }
+
+    public function test_maps_sample_pos_return_payload_when_header_tax_is_zero(): void
+    {
+        $request = Request::create('/api/stor-sell-return', 'POST', [
+            'id' => 1782884664913,
+            'invoice_type' => 'cash',
+            'payment_status' => 'paid',
+            'total_before_discount' => 40.0,
+            'total_after_discount' => 40.0,
+            'total_tax' => 0.0,
+            'total_paid' => 40.0,
+            'discount_value' => 0.0,
+            'created_at' => '2026-07-01 08:44',
+            'customer_id' => 11,
+            'user_id' => 1,
+            'establishment_id' => 6,
+            'status' => 'approved',
+            'invoice_number' => 'RET0001',
+            'shift_id' => 1782883440805,
+            'order_type' => 'سفري',
+            'items' => [
+                [
+                    'product_id' => 283,
+                    'quantity' => 2.0,
+                    'price' => 17.39,
+                    'price_with_tax' => 20.0,
+                    'price_after_discount' => 0.0,
+                    'price_with_tax_after_discount' => 0.0,
+                    'tax_id' => 45,
+                    'tax_value' => 2.61,
+                    'discount_type' => 'fixd',
+                    'discount_amount' => '0',
+                    'unit_id' => 297,
+                ],
+            ],
+        ]);
+
+        $this->assertSame('cash', PosSalesInvoiceMapper::resolveInvoiceType($request));
+        $this->assertEqualsWithDelta(5.22, PosSalesInvoiceMapper::resolveTaxAmount($request), 0.0001);
+        $this->assertEqualsWithDelta(34.78, PosSalesInvoiceMapper::resolveTaxableAfterDiscount($request), 0.0001);
+
+        $transaction = PosSalesInvoiceMapper::mapReturnTransactionAttributes($request, [
+            'parent_id' => 99,
+            'establishment_id' => 6,
+        ]);
+
+        $this->assertSame('sell-return', $transaction['type']);
+        $this->assertSame(99, $transaction['parent_id']);
+        $this->assertEqualsWithDelta(34.78, (float) $transaction['total_before_tax'], 0.0001);
+        $this->assertEqualsWithDelta(34.78, (float) $transaction['totalAfterDiscount'], 0.0001);
+        $this->assertEqualsWithDelta(5.22, (float) $transaction['tax_amount'], 0.0001);
+        $this->assertEqualsWithDelta(40.0, (float) $transaction['final_total'], 0.0001);
+        $this->assertArrayNotHasKey('total_after_discount', $transaction);
+
+        $line = PosSalesInvoiceMapper::mapSellLineAttributes((object) $request->input('items')[0]);
+        $this->assertEqualsWithDelta(34.78, (float) $line['total_before_vat'], 0.0001);
+        $this->assertEqualsWithDelta(5.22, (float) $line['tax_value'], 0.0001);
+        $this->assertEqualsWithDelta(40.0, (float) $line['unit_price_inc_tax'], 0.0001);
     }
 }

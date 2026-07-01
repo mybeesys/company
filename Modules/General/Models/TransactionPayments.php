@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Sales\Utils\SalesUtile;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\General\Database\Factories\TransactionPaymentsFactory;
@@ -21,6 +22,31 @@ class TransactionPayments extends Model
     public function account()
     {
         return $this->belongsTo(AccountingAccount::class, 'account_id');
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
+    }
+
+    public function displayPaymentMethod(): ?string
+    {
+        if ($this->paymentMethod) {
+            return app()->getLocale() === 'ar'
+                ? $this->paymentMethod->name_ar
+                : $this->paymentMethod->name_en;
+        }
+
+        if (! $this->method) {
+            return null;
+        }
+
+        $labels = SalesUtile::paymentMethods();
+
+        return $labels[$this->method]
+            ?? (__('general::lang.'.$this->method) !== 'general::lang.'.$this->method
+                ? __('general::lang.'.$this->method)
+                : $this->method);
     }
 
     public function transaction()

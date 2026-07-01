@@ -16,7 +16,7 @@ class EstablishmentController extends Controller
      */
     public function index()
     {
-        $establishments = Establishment::all();
+        $establishments = Establishment::leafLevel()->get();
 
         return new EstablishmentCollection($establishments);
     }
