@@ -113,10 +113,10 @@
         <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
     </div>
     @if ($duplication)
-        <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store') }}" enctype="multipart/form-data">
+        <form id="journalEntryForm" method="POST" action="{{ route('journal-entry-store') }}" enctype="multipart/form-data" novalidate>
         @else
             <form id="journalEntryForm" method="POST"
-                action="{{ route('journal-entry-update', $acc_trans_mapping->id) }}" enctype="multipart/form-data">
+                action="{{ route('journal-entry-update', $acc_trans_mapping->id) }}" enctype="multipart/form-data" novalidate>
     @endif
     @csrf
 
@@ -442,8 +442,8 @@
 
                 </select>
             </td>
-            <td><input type="number" class="form-control debit-field" step="0.01" min="0" name="debit" placeholder="0.00" style="width: 100px;"></td>
-            <td><input type="number" class="form-control credit-field" step="0.01" min="0" name="credit" placeholder="0.00" style="width: 107px;"></td>
+            <td><input type="number" class="form-control debit-field" step="any" min="0" name="debit" placeholder="0.0" style="width: 100px;"></td>
+            <td><input type="number" class="form-control credit-field" step="any" min="0" name="credit" placeholder="0.0" style="width: 107px;"></td>
             <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
             <td>
                 <button class="btn btn-icon btn-danger delete-row" type="button">
