@@ -433,14 +433,18 @@
         });
 
 
+        $(document).ready(function() {
+            $('#addJournalEntry').trigger('click');
+        });
+
         function getJournalEntries() {
             let journalEntries = [];
 
             $('table tbody tr').each(function() {
                 let account_id = $(this).find('select[name="account_id"]').val();
                 let cost_center = $(this).find('select[name="cost_center"]').val();
-                let debit = $(this).find('input[name="debit"]').val();
-                let credit = $(this).find('input[name="credit"]').val();
+                let debit = $(this).find('.debit-field').val();
+                let credit = $(this).find('.credit-field').val();
                 let notes = $(this).find('textarea[name="notes"]').val();
 
                 journalEntries.push({

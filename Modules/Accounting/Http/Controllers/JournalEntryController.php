@@ -97,13 +97,20 @@ class JournalEntryController extends Controller
         $journalEntriesJson = (string) $request->input('JournalEntries');
         $journalEntries = json_decode($journalEntriesJson, true);
         if (! is_array($journalEntries)) {
-            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+            return redirect()->back()
+                ->withInput()
+                ->with('error', __('accounting::lang.journal_entries_payload_invalid'));
         }
 
         try {
             $journalEntries = JournalEntryValidator::validateAndNormalize($journalEntries);
         } catch (ValidationException $e) {
-            return redirect()->back()->withErrors($e->errors())->withInput();
+            $firstError = collect($e->errors())->flatten()->first();
+
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('error', $firstError ?: __('messages.something_went_wrong'));
         }
         try {
             FiscalPeriodGatekeeper::assertPostable($request->journalEntry_date);
@@ -115,6 +122,8 @@ class JournalEntryController extends Controller
             $ref_number = $request->get('ref_number');
 
             if (! empty($ref_number) && AccountingAccTransMapping::where('ref_no', $ref_number)->exists()) {
+                DB::rollBack();
+
                 return redirect()->back()->with('error', __('messages.ref_number already exists'));
             }
             if (empty($ref_number)) {
@@ -166,6 +175,8 @@ class JournalEntryController extends Controller
             if ($request->submit_type == 'print') {
                 return redirect()->route('journal-entry-print', ['id' => $acc_trans_mapping->id]);
             }
+
+            return redirect()->route('journal-entry-index')->with('success', __('messages.add_successfully'));
         } catch (FiscalPeriodException $e) {
             DB::rollBack();
 

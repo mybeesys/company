@@ -167,6 +167,7 @@ return [
 
     'journalEntry_date' => 'تاريخ القيد',
     'Pick_journalEntry_date' => 'إختر تاريخ القيد',
+    'journal_entries_payload_invalid' => 'بيانات أطراف القيد غير صالحة. أضف سطرين على الأقل واضغط حفظ بعد توازن المدين والدائن.',
     'ref_number' => 'الرقم المرجعي',
     'ref_number_note' => ' اتركه فارغًا للإنشاء تلقائيًا',
     'additionalNotes' => 'ملاحظات إضافية',

@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Modules\General\Models\PaymentMethod;
 use Modules\General\Support\TransactionLineTaxRate;
+use Modules\Product\Models\ProductComboItem;
 
 /**
  * Maps POS / Flutter stor-sales-invoice payload fields to DB columns used by the web UI.
@@ -266,6 +267,46 @@ final class PosSalesInvoiceMapper
         }
 
         return round($taxValue * $qty, 4);
+    }
+
+    /**
+     * Combo selections are stored as zero-priced component lines; the meal total lives on the parent item.
+     *
+     * @return array<string, mixed>
+     */
+    public static function mapComboLineAttributes(object $combo, ProductComboItem $comboItem): array
+    {
+        $qty = (float) ($combo->quantity ?? 1);
+
+        return [
+            'product_id' => (int) $comboItem->item_id,
+            'qyt' => $qty,
+            'unit_price_before_discount' => 0,
+            'unit_price' => 0,
+            'discount_type' => null,
+            'discount_amount' => null,
+            'unit_price_inc_tax' => 0,
+            'tax_id' => null,
+            'tax_value' => 0,
+            'total_before_vat' => 0,
+            'is_show' => '1',
+        ];
+    }
+
+    public static function resolveComboOption(object $combo): ?ProductComboItem
+    {
+        $optionId = (int) ($combo->option_id ?? 0);
+        if ($optionId <= 0) {
+            return null;
+        }
+
+        $query = ProductComboItem::query()->where('id', $optionId);
+        $comboGroupId = (int) ($combo->combo_group_id ?? 0);
+        if ($comboGroupId > 0) {
+            $query->where('combo_id', $comboGroupId);
+        }
+
+        return $query->first();
     }
 
     /**
