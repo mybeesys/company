@@ -66,13 +66,12 @@
 
                             <td>
                                 <a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6">
-                                    ({{ $line?->account?->gl_code }})
-                                    - @if (app()->getLocale() == 'ar')
-                                        {{ $line?->account?->name_ar }}
+                                    @if ($line->account)
+                                        ({{ $line->account->gl_code }})
+                                        - {{ app()->getLocale() == 'ar' ? $line->account->name_ar : $line->account->name_en }}
                                     @else
-                                        {{ $line?->account?->name_en }}
+                                        --
                                     @endif
-
                                 </a>
                             </td>
 
