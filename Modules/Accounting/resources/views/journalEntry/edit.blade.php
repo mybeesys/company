@@ -442,8 +442,8 @@
 
                 </select>
             </td>
-            <td><input type="number" class="form-control debit-field" step="any" name="debit" placeholder="0.0" style="width: 100px;"></td>
-            <td><input type="number" class="form-control credit-field" step="any" name="credit" placeholder="0.0" style="width: 107px;"></td>
+            <td><input type="number" class="form-control debit-field" step="0.01" min="0" name="debit" placeholder="0.00" style="width: 100px;"></td>
+            <td><input type="number" class="form-control credit-field" step="0.01" min="0" name="credit" placeholder="0.00" style="width: 107px;"></td>
             <td><textarea class="form-control form-control-solid" rows="1" name="notes"></textarea></td>
             <td>
                 <button class="btn btn-icon btn-danger delete-row" type="button">
@@ -592,22 +592,37 @@
         let totalDebit = 0;
         let totalCredit = 0;
 
+        function roundMoney(value) {
+            const n = parseFloat(value);
+            if (!Number.isFinite(n)) {
+                return 0;
+            }
+
+            return Math.round((n + Number.EPSILON) * 100) / 100;
+        }
+
+        function formatMoney(value) {
+            return roundMoney(value).toFixed(2);
+        }
+
        function updateTotals() {
     totalDebit = 0;
     totalCredit = 0;
 
     $('table tbody tr').each(function() {
-        const debit = parseFloat($(this).find('.debit-field').val()) || 0;
-        const credit = parseFloat($(this).find('.credit-field').val()) || 0;
+        const debit = roundMoney($(this).find('.debit-field').val());
+        const credit = roundMoney($(this).find('.credit-field').val());
 
         totalDebit += debit;
         totalCredit += credit;
     });
 
-    const diff = Math.abs(totalDebit - totalCredit);
-    const tolerance = 0.0001;
+    totalDebit = roundMoney(totalDebit);
+    totalCredit = roundMoney(totalCredit);
 
-    if (diff > tolerance) {
+    const diff = Math.abs(totalDebit - totalCredit);
+
+    if (diff > 0) {
         let budgetDifferenceText = "@lang('accounting::lang.The journal entry is unbalanced with a difference of')";
         $('#Budget').text(budgetDifferenceText + ' : ( ' + diff.toFixed(2) + ' ) ');
     } else {
@@ -646,6 +661,14 @@
 
 
 
+
+        $(document).on('blur', '.debit-field, .credit-field', function() {
+            const raw = $(this).val();
+            if (raw !== '' && raw != null) {
+                $(this).val(formatMoney(raw));
+                updateTotals();
+            }
+        });
 
         $(document).on('input', '.debit-field', function() {
             const row = $(this).closest('tr');
@@ -699,15 +722,15 @@
             $('table tbody tr').each(function() {
                 let account_id = $(this).find('select[name="account_id"]').val();
                 let cost_center = $(this).find('select[name="cost_center"]').val();
-                let debit = $(this).find('input[name="debit"]').val();
-                let credit = $(this).find('input[name="credit"]').val();
+                let debit = $(this).find('.debit-field').val();
+                let credit = $(this).find('.credit-field').val();
                 let notes = $(this).find('textarea[name="notes"]').val();
 
                 journalEntries.push({
                     account_id: account_id,
                     cost_center: cost_center,
-                    debit: debit,
-                    credit: credit,
+                    debit: debit !== '' ? formatMoney(debit) : '',
+                    credit: credit !== '' ? formatMoney(credit) : '',
                     notes: notes
                 });
             });
@@ -730,9 +753,8 @@
 
         $('#journalEntryForm').on('submit', function(event) {
             event.preventDefault();
-            const tolerance = 0.0001;
-            const diff = Math.abs((totalDebit || 0) - (totalCredit || 0));
-            if (diff > tolerance || (totalDebit == 0 && totalCredit == 0)) {
+            const diff = Math.abs(totalDebit - totalCredit);
+            if (diff > 0 || (totalDebit == 0 && totalCredit == 0)) {
                 Swal.fire({
                     title: '@lang('accounting::lang.Error in the process')',
                     text: "@lang('accounting::lang.The journal entry is unbalanced with a difference between debit and credit.')",
