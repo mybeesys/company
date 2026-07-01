@@ -2293,27 +2293,21 @@ class AccountingUtil
 
     public static function generateReferenceNumber($type)
     {
-
-        $AAT = AccountingAccTransMapping::where('type', $type)->latest()->first();
         $currentYear = date('Y');
+        $lastMapping = AccountingAccTransMapping::where('type', $type)->latest()->first();
 
-        if ($AAT) {
-            // $AAT =$AAT->accTransMapping;
-            $last_ref_no = $AAT->ref_no;
+        if ($lastMapping && is_string($lastMapping->ref_no) && $lastMapping->ref_no !== '') {
+            if (preg_match('/^(\d{4})\/(\d+)$/', $lastMapping->ref_no, $matches)) {
+                $year = $matches[1];
+                $number = (int) $matches[2];
 
-            [$year, $number] = explode('/', $last_ref_no);
-
-            if ($year == $currentYear) {
-                $newNumber = str_pad($number + 1, 4, '0', STR_PAD_LEFT);
-                $new_ref_no = $currentYear.'/'.$newNumber;
-            } else {
-                $new_ref_no = $currentYear.'/0001';
+                if ($year === $currentYear) {
+                    return $currentYear.'/'.str_pad((string) ($number + 1), 4, '0', STR_PAD_LEFT);
+                }
             }
-
-            return $new_ref_no;
         }
 
-        return $new_ref_no = $currentYear.'/0001';
+        return $currentYear.'/0001';
     }
 
     public function getAgeingReport($type, $group_by, array $filters = [])

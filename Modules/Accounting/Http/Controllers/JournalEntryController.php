@@ -8,6 +8,8 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
@@ -122,7 +124,7 @@ class JournalEntryController extends Controller
             $ref_number = $request->get('ref_number');
 
             if (! empty($ref_number) && AccountingAccTransMapping::where('ref_no', $ref_number)->exists()) {
-                DB::rollBack();
+                $this->rollbackJournalEntryTransaction();
 
                 return redirect()->back()->with('error', __('messages.ref_number already exists'));
             }
@@ -132,24 +134,22 @@ class JournalEntryController extends Controller
             }
 
             $acc_trans_mapping = new AccountingAccTransMapping;
-            if ($request->hasFile('attachment')) {
-                $attachment = $request->file('attachment');
-                $attachment_name = $attachment->store('/journal_entry');
-                $acc_trans_mapping->path_file = $attachment_name;
-            }
+            $this->attachJournalEntryFile($request, $acc_trans_mapping);
 
             $acc_trans_mapping->ref_no = $ref_number;
             $acc_trans_mapping->note = $request->get('additionalNotes');
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = $user_id;
-            $acc_trans_mapping->is_manual = 1;
+            if (Schema::hasColumn($acc_trans_mapping->getTable(), 'is_manual')) {
+                $acc_trans_mapping->is_manual = 1;
+            }
             $acc_trans_mapping->operation_date = Carbon::parse($request->journalEntry_date)->format('Y-m-d H:i:s');
             $acc_trans_mapping->save();
 
             foreach ($journalEntries as $entry) {
                 $transaction_row = [
                     'accounting_account_id' => $entry['account_id'],
-                    'amount' => $entry['amount'],
+                    'amount' => (float) $entry['amount'],
                     'type' => $entry['type'],
                     'cost_center_id' => $entry['cost_center_id'],
                     'note' => $entry['notes'],
@@ -178,13 +178,23 @@ class JournalEntryController extends Controller
 
             return redirect()->route('journal-entry-index')->with('success', __('messages.add_successfully'));
         } catch (FiscalPeriodException $e) {
-            DB::rollBack();
+            $this->rollbackJournalEntryTransaction();
 
             return redirect()->back()->with('error', $e->getMessage())->withInput();
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (\Throwable $e) {
+            $this->rollbackJournalEntryTransaction();
+            Log::error('journal-entry-store failed', [
+                'message' => $e->getMessage(),
+                'user_id' => Auth::id(),
+            ]);
 
-            return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
+            $errorMessage = config('app.debug')
+                ? $e->getMessage()
+                : __('messages.something_went_wrong');
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $errorMessage);
         }
     }
 
@@ -398,24 +408,26 @@ class JournalEntryController extends Controller
             } elseif (AccountingAccTransMapping::where('ref_no', $ref_number)->where('id', '<>', $acc_trans_mapping->id)->exists()) {
                 return redirect()->back()->with('error', __('messages.ref_number already exists'));
             }
+            $updateData = [
+                'ref_no' => $ref_number,
+                'note' => $request->get('additionalNotes'),
+                'operation_date' => Carbon::parse($request->journalEntry_date)->format('Y-m-d H:i:s'),
+            ];
             if ($request->hasFile('attachment')) {
-                $attachment = $request->file('attachment');
-                $attachment_name = $attachment->store('/journal_entry');
-
-                $acc_trans_mapping->update([
-                    'ref_no' => $ref_number,
-                    'note' => $request->get('additionalNotes'),
-                    'operation_date' => Carbon::parse($request->journalEntry_date)->format('Y-m-d H:i:s'),
-                    'path_file' => $attachment_name,
-                ]);
-            } else {
-                $acc_trans_mapping->update([
-                    'ref_no' => $ref_number,
-                    'note' => $request->get('additionalNotes'),
-                    'operation_date' => Carbon::parse($request->journalEntry_date)->format('Y-m-d H:i:s'),
-                    'ref_no' => $ref_number,
-                ]);
+                try {
+                    $attachmentName = $request->file('attachment')->store('journal_entry');
+                    if ($attachmentName && Schema::hasColumn($acc_trans_mapping->getTable(), 'path_file')) {
+                        $updateData['path_file'] = $attachmentName;
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('journal-entry attachment upload failed on update', [
+                        'message' => $e->getMessage(),
+                        'journal_entry_id' => $id,
+                        'user_id' => Auth::id(),
+                    ]);
+                }
             }
+            $acc_trans_mapping->update($updateData);
 
             if ($acc_trans_mapping->transactions) {
                 AccountingAccountsTransaction::where('acc_trans_mapping_id', $acc_trans_mapping->id)->delete();
@@ -423,7 +435,7 @@ class JournalEntryController extends Controller
             foreach ($journalEntries as $entry) {
                 $transaction_row = [
                     'accounting_account_id' => $entry['account_id'],
-                    'amount' => $entry['amount'],
+                    'amount' => (float) $entry['amount'],
                     'type' => $entry['type'],
                     'cost_center_id' => $entry['cost_center_id'],
                     'note' => $entry['notes'],
@@ -447,13 +459,50 @@ class JournalEntryController extends Controller
                 return redirect()->route('journal-entry-print', ['id' => $acc_trans_mapping->id]);
             }
         } catch (FiscalPeriodException $e) {
-            DB::rollBack();
+            $this->rollbackJournalEntryTransaction();
 
             return redirect()->back()->with('error', $e->getMessage())->withInput();
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (\Throwable $e) {
+            $this->rollbackJournalEntryTransaction();
+            Log::error('journal-entry-update failed', [
+                'message' => $e->getMessage(),
+                'journal_entry_id' => $id,
+                'user_id' => Auth::id(),
+            ]);
 
-            return redirect()->route('journal-entry-index')->with('error', __('messages.something_went_wrong'));
+            $errorMessage = config('app.debug')
+                ? $e->getMessage()
+                : __('messages.something_went_wrong');
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $errorMessage);
+        }
+    }
+
+    private function attachJournalEntryFile(Request $request, AccountingAccTransMapping $mapping): void
+    {
+        if (! $request->hasFile('attachment')) {
+            return;
+        }
+
+        try {
+            $attachmentName = $request->file('attachment')->store('journal_entry');
+            if ($attachmentName && Schema::hasColumn($mapping->getTable(), 'path_file')) {
+                $mapping->path_file = $attachmentName;
+            }
+        } catch (\Throwable $e) {
+            Log::warning('journal-entry attachment upload failed', [
+                'message' => $e->getMessage(),
+                'user_id' => Auth::id(),
+            ]);
+        }
+    }
+
+    private function rollbackJournalEntryTransaction(): void
+    {
+        if (DB::transactionLevel() > 0) {
+            DB::rollBack();
         }
     }
 
