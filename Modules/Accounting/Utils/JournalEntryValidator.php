@@ -29,6 +29,97 @@ class JournalEntryValidator
         return $diff < 0 ? -1 : ($diff > 0 ? 1 : 0);
     }
 
+    private static function formatAmount(float $value): string
+    {
+        return number_format(round($value, 2), 2, '.', '');
+    }
+
+    /**
+     * @param  array<int, array{type: string, amount: string}>  $normalized
+     * @return array{debit: string, credit: string}
+     */
+    private static function sumNormalizedTotals(array $normalized): array
+    {
+        $debitTotal = '0.00';
+        $creditTotal = '0.00';
+
+        foreach ($normalized as $line) {
+            if ($line['type'] === 'debit') {
+                $debitTotal = self::addDecimal($debitTotal, $line['amount'], 2);
+            } else {
+                $creditTotal = self::addDecimal($creditTotal, $line['amount'], 2);
+            }
+        }
+
+        return ['debit' => $debitTotal, 'credit' => $creditTotal];
+    }
+
+    /**
+     * @param  array<int, array{type: string, amount: string}>  $normalized
+     */
+    private static function lastIndexOfType(array $normalized, string $type): ?int
+    {
+        for ($i = count($normalized) - 1; $i >= 0; $i--) {
+            if (($normalized[$i]['type'] ?? '') === $type) {
+                return $i;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Fix ≤ 0.01 drift after per-line rounding (common with 3-decimal source amounts).
+     *
+     * @param  array<int, array{type: string, amount: string, account_id: int, cost_center_id: int|null, notes: string|null}>  $normalized
+     * @return array<int, array{type: string, amount: string, account_id: int, cost_center_id: int|null, notes: string|null}>
+     */
+    private static function rebalanceNormalizedLines(array $normalized): array
+    {
+        $totals = self::sumNormalizedTotals($normalized);
+        $diff = function_exists('bcsub')
+            ? (float) \bcsub($totals['credit'], $totals['debit'], 2)
+            : round((float) $totals['credit'] - (float) $totals['debit'], 2);
+
+        if (abs($diff) < 0.00001) {
+            return $normalized;
+        }
+
+        if (abs($diff) > 0.01) {
+            return $normalized;
+        }
+
+        if ($diff > 0) {
+            $debitIdx = self::lastIndexOfType($normalized, 'debit');
+            if ($debitIdx !== null) {
+                $normalized[$debitIdx]['amount'] = self::formatAmount((float) $normalized[$debitIdx]['amount'] + $diff);
+
+                return $normalized;
+            }
+
+            $creditIdx = self::lastIndexOfType($normalized, 'credit');
+            if ($creditIdx !== null) {
+                $normalized[$creditIdx]['amount'] = self::formatAmount((float) $normalized[$creditIdx]['amount'] - $diff);
+            }
+
+            return $normalized;
+        }
+
+        $debitIdx = self::lastIndexOfType($normalized, 'debit');
+        if ($debitIdx !== null) {
+            $normalized[$debitIdx]['amount'] = self::formatAmount((float) $normalized[$debitIdx]['amount'] + $diff);
+
+            return $normalized;
+        }
+
+        $creditIdx = self::lastIndexOfType($normalized, 'credit');
+        if ($creditIdx !== null) {
+            $normalized[$creditIdx]['amount'] = self::formatAmount((float) $normalized[$creditIdx]['amount'] - abs($diff));
+        }
+
+        return $normalized;
+    }
+
     /**
      * @param  array<int, array<string, mixed>>  $entries
      * @return array<int, array{account_id:int,type:string,amount:string,cost_center_id:int|null,notes:string|null}>
@@ -38,8 +129,8 @@ class JournalEntryValidator
     public static function validateAndNormalize(array $entries): array
     {
         $normalized = [];
-        $debitTotal = '0.00';
-        $creditTotal = '0.00';
+        $rawDebitTotal = 0.0;
+        $rawCreditTotal = 0.0;
 
         foreach (array_values($entries) as $i => $entry) {
             if (! is_array($entry)) {
@@ -75,15 +166,12 @@ class JournalEntryValidator
             }
 
             $type = $hasDebit ? 'debit' : 'credit';
-            $amount = $hasDebit ? $debit : $credit;
-
-            // Saudi Riyal: 2-decimal money; keep as string for DB decimal columns.
-            $amount = number_format((float) $amount, 2, '.', '');
+            $rawAmount = (float) ($hasDebit ? $debit : $credit);
 
             if ($type === 'debit') {
-                $debitTotal = self::addDecimal($debitTotal, $amount, 2);
+                $rawDebitTotal += $rawAmount;
             } else {
-                $creditTotal = self::addDecimal($creditTotal, $amount, 2);
+                $rawCreditTotal += $rawAmount;
             }
 
             $costCenterRaw = $entry['cost_center'] ?? null;
@@ -98,7 +186,7 @@ class JournalEntryValidator
             $normalized[] = [
                 'account_id' => (int) $entry['account_id'],
                 'type' => $type,
-                'amount' => $amount,
+                'amount' => self::formatAmount($rawAmount),
                 'cost_center_id' => $costCenterId,
                 'notes' => isset($entry['notes']) ? (string) $entry['notes'] : null,
             ];
@@ -110,9 +198,24 @@ class JournalEntryValidator
             ]);
         }
 
-        if (self::compareDecimal($debitTotal, $creditTotal, 2) !== 0) {
+        $balancedRawTotal = self::formatAmount($rawDebitTotal) === self::formatAmount($rawCreditTotal);
+        if (! $balancedRawTotal) {
+            $totals = self::sumNormalizedTotals($normalized);
             throw ValidationException::withMessages([
-                'JournalEntries' => ["Journal entry is not balanced. Debit $debitTotal must equal credit $creditTotal."],
+                'JournalEntries' => [
+                    'Journal entry is not balanced. Debit '.$totals['debit'].' must equal credit '.$totals['credit'].'.',
+                ],
+            ]);
+        }
+
+        $normalized = self::rebalanceNormalizedLines($normalized);
+
+        $totals = self::sumNormalizedTotals($normalized);
+        if (self::compareDecimal($totals['debit'], $totals['credit'], 2) !== 0) {
+            throw ValidationException::withMessages([
+                'JournalEntries' => [
+                    'Journal entry is not balanced. Debit '.$totals['debit'].' must equal credit '.$totals['credit'].'.',
+                ],
             ]);
         }
 
