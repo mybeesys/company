@@ -34,7 +34,7 @@ class KitchenBroadcastService
         $this->send('kitchen:order:created', [
             'establishment_id' => $establishmentId,
             'order' => $formatted,
-        ], $establishmentId);
+        ], $establishmentId, $this->categoryIdsFromOrder($order));
     }
 
     /**
@@ -48,7 +48,12 @@ class KitchenBroadcastService
         }
 
         if (! KitchenOrderPayload::appearsInKitchen($order->order_status)) {
-            $this->orderRemoved($order->id, $establishmentId, $this->removalReason($order->order_status));
+            $this->orderRemoved(
+                $order->id,
+                $establishmentId,
+                $this->removalReason($order->order_status),
+                $order
+            );
 
             return;
         }
@@ -62,16 +67,19 @@ class KitchenBroadcastService
         $this->send('kitchen:order:updated', [
             'establishment_id' => $establishmentId,
             'order' => $formatted,
-        ], $establishmentId);
+        ], $establishmentId, $this->categoryIdsFromOrder($order));
     }
 
-    public function orderRemoved(int $orderId, int $establishmentId, string $reason = 'completed'): void
+    /**
+     * @param  TableOrders|Transaction|null  $order
+     */
+    public function orderRemoved(int $orderId, int $establishmentId, string $reason = 'completed', $order = null): void
     {
         $this->send('kitchen:order:removed', [
             'establishment_id' => $establishmentId,
             'order_id' => $orderId,
             'reason' => $reason,
-        ], $establishmentId);
+        ], $establishmentId, $this->resolveCategoryIdsForOrderId($orderId, $order));
     }
 
     /**
@@ -94,7 +102,7 @@ class KitchenBroadcastService
             'status' => $itemStatus,
             'order_status' => $order->order_status,
             'order_type' => $formatted['order_type'] ?? ($source === 'local' ? 'محلي' : 'سفري'),
-        ], $establishmentId);
+        ], $establishmentId, $this->categoryIdsFromOrder($order));
 
         $this->orderUpdated($order, $source);
     }
@@ -109,9 +117,50 @@ class KitchenBroadcastService
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  TableOrders|Transaction  $order
+     * @return array<int, int>
      */
-    private function send(string $event, array $payload, int $establishmentId): void
+    private function categoryIdsFromOrder($order): array
+    {
+        $order->loadMissing(['sell_lines.product']);
+
+        return $order->sell_lines
+            ->map(fn ($line) => $line->product?->category_id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    /**
+     * @param  TableOrders|Transaction|null  $order
+     * @return array<int, int>
+     */
+    private function resolveCategoryIdsForOrderId(int $orderId, $order = null): array
+    {
+        if ($order) {
+            return $this->categoryIdsFromOrder($order);
+        }
+
+        $tableOrder = TableOrders::with('sell_lines.product')->find($orderId);
+        if ($tableOrder) {
+            return $this->categoryIdsFromOrder($tableOrder);
+        }
+
+        $transaction = Transaction::with('sell_lines.product')->find($orderId);
+        if ($transaction) {
+            return $this->categoryIdsFromOrder($transaction);
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<int, int>  $categoryIds
+     */
+    private function send(string $event, array $payload, int $establishmentId, array $categoryIds = []): void
     {
         if (! tenant()) {
             return;
@@ -135,6 +184,7 @@ class KitchenBroadcastService
                     'establishment_id' => $establishmentId,
                     'event' => $event,
                     'payload' => $envelope,
+                    'category_ids' => $categoryIds,
                     'kitchen' => true,
                 ]);
         } catch (\Throwable $e) {
