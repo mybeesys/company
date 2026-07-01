@@ -42,13 +42,29 @@ class JournalEntryValidatorTest extends TestCase
         $this->assertSame('10.00', $normalized[1]['amount']);
     }
 
-    public function test_rejects_three_decimal_amounts_when_rounded_total_differs(): void
+    public function test_balances_three_decimal_lines_by_rounding_total_then_adjusting_last_line(): void
+    {
+        $normalized = JournalEntryValidator::validateAndNormalize([
+            ['account_id' => 1, 'debit' => 822.955],
+            ['account_id' => 1, 'debit' => 822.955],
+            ['account_id' => 2, 'credit' => 1645.91],
+        ]);
+
+        $this->assertCount(3, $normalized);
+        $this->assertSame('822.95', $normalized[1]['amount']);
+        $this->assertSame('1645.91', $normalized[2]['amount']);
+
+        $debitSum = (float) $normalized[0]['amount'] + (float) $normalized[1]['amount'];
+        $this->assertEqualsWithDelta(1645.91, $debitSum, 0.001);
+    }
+
+    public function test_rejects_when_two_decimal_lines_are_genuinely_unbalanced(): void
     {
         $this->expectException(ValidationException::class);
 
         JournalEntryValidator::validateAndNormalize([
-            ['account_id' => 1, 'debit' => 822.955],
-            ['account_id' => 1, 'debit' => 822.955],
+            ['account_id' => 1, 'debit' => 822.96],
+            ['account_id' => 1, 'debit' => 822.96],
             ['account_id' => 2, 'credit' => 1645.91],
         ]);
     }

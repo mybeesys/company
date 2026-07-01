@@ -606,19 +606,16 @@
         }
 
        function updateTotals() {
-    totalDebit = 0;
-    totalCredit = 0;
+    let rawDebit = 0;
+    let rawCredit = 0;
 
     $('table tbody tr').each(function() {
-        const debit = roundMoney($(this).find('.debit-field').val());
-        const credit = roundMoney($(this).find('.credit-field').val());
-
-        totalDebit += debit;
-        totalCredit += credit;
+        rawDebit += parseFloat($(this).find('.debit-field').val()) || 0;
+        rawCredit += parseFloat($(this).find('.credit-field').val()) || 0;
     });
 
-    totalDebit = roundMoney(totalDebit);
-    totalCredit = roundMoney(totalCredit);
+    totalDebit = roundMoney(rawDebit);
+    totalCredit = roundMoney(rawCredit);
 
     const diff = Math.abs(totalDebit - totalCredit);
 
@@ -661,14 +658,6 @@
 
 
 
-
-        $(document).on('blur', '.debit-field, .credit-field', function() {
-            const raw = $(this).val();
-            if (raw !== '' && raw != null) {
-                $(this).val(formatMoney(raw));
-                updateTotals();
-            }
-        });
 
         $(document).on('input', '.debit-field', function() {
             const row = $(this).closest('tr');
@@ -729,8 +718,8 @@
                 journalEntries.push({
                     account_id: account_id,
                     cost_center: cost_center,
-                    debit: debit !== '' ? formatMoney(debit) : '',
-                    credit: credit !== '' ? formatMoney(credit) : '',
+                    debit: debit,
+                    credit: credit,
                     notes: notes
                 });
             });
