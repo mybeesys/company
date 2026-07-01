@@ -206,6 +206,7 @@
 
     $txTypeLabels = [
         'sell' => __('report::fields.sale'),
+        'sell-return' => __('report::fields.refund'),
         'purchases' => __('report::fields.expense'),
         'refund' => __('report::fields.refund'),
         'initial' => __('report::fields.cash_in_hand'),
@@ -285,7 +286,7 @@
                         @forelse ($register_transactions as $tx)
                             @php
                                 $txType = strtolower((string) ($tx->transaction_type ?? ''));
-                                $typeClass = in_array($txType, ['refund'], true)
+                                $typeClass = in_array($txType, ['refund', 'sell-return'], true)
                                     ? 'is-refund'
                                     : (in_array($txType, ['purchases'], true) ? 'is-expense' : '');
                                 $typeLabel = $txTypeLabels[$txType]
@@ -293,11 +294,14 @@
                                         ? __('accounting::lang.'.$txType)
                                         : ($tx->transaction_type ?: '—'));
                                 $payKey = strtolower((string) ($tx->pay_method ?? ''));
-                                $payLabel = $payMethodLabels[$payKey] ?? ($tx->pay_method ?: '—');
+                                $payLabel = app()->getLocale() === 'ar' && ! empty($tx->pay_method_ar)
+                                    ? $tx->pay_method_ar
+                                    : ($payMethodLabels[$payKey] ?? ($tx->pay_method ?: '—'));
+                                $invoiceRef = ! empty($tx->invoice_no) ? ' · '.$tx->invoice_no : '';
                             @endphp
                             <tr>
                                 <td>{{ $tx->created_at ? \Carbon\Carbon::parse($tx->created_at)->format('d/m/Y h:i A') : '—' }}</td>
-                                <td><span class="rrd-tx-type {{ $typeClass }}">{{ $typeLabel }}</span></td>
+                                <td><span class="rrd-tx-type {{ $typeClass }}">{{ $typeLabel }}{{ $invoiceRef }}</span></td>
                                 <td>{{ $payLabel }}</td>
                                 <td class="text-end fw-semibold">@format_currency($tx->amount ?? 0)</td>
                             </tr>

@@ -28,6 +28,7 @@ use Modules\Report\Exports\ProductSalesExcelExport;
 use Modules\Report\Exports\SalesComparisonExcelExport;
 use Modules\Report\Exports\SellPaymentExcelExport;
 use Modules\Report\Exports\WeekdaySimpleGridExcelExport;
+use Modules\Report\Support\RegisterShiftReport;
 use Modules\Report\Utils\ReportTransactionsUtile;
 use Modules\Report\Utils\SalesComparisonPeriodResolver;
 use Modules\Report\Utils\TransactionUtile;
@@ -2419,51 +2420,47 @@ class SalesReportController extends Controller
 
     public function registerReport($start_date = null, $end_date = null, $user_id = null)
     {
-        $registers = CashRegister::leftjoin(
-            'cash_register_transactions as ct',
-            'ct.cash_register_id',
-            '=',
-            'cash_registers.id'
-        )->join(
-            'emp_employees as u',
-            'u.id',
-            '=',
-            'cash_registers.user_id'
-        )->leftJoin(
-            'est_establishments as bl',
-            'bl.id',
-            '=',
-            'cash_registers.establishment_id'
-        )->select(
-            'cash_registers.id',
-            'cash_registers.user_id',
-            'cash_registers.establishment_id',
-            'cash_registers.status',
-            'cash_registers.created_at',
-            'cash_registers.closed_at',
-
-            DB::raw("MIN(CONCAT(
-                COALESCE(u.name, ''),
-                ' - ',
-                COALESCE(u.name_en, '')
-
-            )) as user_name"),
-
-            DB::raw('MIN(bl.name) as location_name'),
-
-            DB::raw("SUM(IF(pay_method='cash', IF(transaction_type='sell', amount, 0), 0)) as total_cash_payment"),
-            DB::raw("SUM(IF(pay_method='cheque', IF(transaction_type='sell', amount, 0), 0)) as total_cheque_payment"),
-            DB::raw("SUM(IF(pay_method='card', IF(transaction_type='sell', amount, 0), 0)) as total_card_payment"),
-            DB::raw("SUM(IF(pay_method='bank_transfer', IF(transaction_type='sell', amount, 0), 0)) as total_bank_transfer_payment")
-        )
-            ->groupBy([
+        $registers = CashRegister::query()
+            ->join(
+                'emp_employees as u',
+                'u.id',
+                '=',
+                'cash_registers.user_id'
+            )
+            ->leftJoin(
+                'est_establishments as bl',
+                'bl.id',
+                '=',
+                'cash_registers.establishment_id'
+            )
+            ->leftJoinSub(
+                RegisterShiftReport::shiftPaymentTotalsSubquery(),
+                'sp',
+                function ($join) {
+                    $join->on('sp.shift_key', '=', 'cash_registers.shift_number');
+                }
+            )
+            ->select(
                 'cash_registers.id',
                 'cash_registers.user_id',
                 'cash_registers.establishment_id',
                 'cash_registers.status',
                 'cash_registers.created_at',
                 'cash_registers.closed_at',
-            ])
+
+                DB::raw("CONCAT(
+                    COALESCE(u.name, ''),
+                    ' - ',
+                    COALESCE(u.name_en, '')
+                ) as user_name"),
+
+                DB::raw('bl.name as location_name'),
+
+                DB::raw('COALESCE(sp.total_cash_payment, 0) as total_cash_payment'),
+                DB::raw('COALESCE(sp.total_cheque_payment, 0) as total_cheque_payment'),
+                DB::raw('COALESCE(sp.total_card_payment, 0) as total_card_payment'),
+                DB::raw('COALESCE(sp.total_bank_transfer_payment, 0) as total_bank_transfer_payment')
+            )
             ->orderByDesc('cash_registers.created_at');
 
         if (! empty(request()->input('register_user_id'))) {
@@ -2483,16 +2480,20 @@ class SalesReportController extends Controller
 
     protected function resolveRegisterDetailsViewData(int|string $id): array
     {
+        $cashRegister = CashRegister::findOrFail($id);
         $register_details = $this->getRegisterDetails($id);
-        $user_id = $register_details->user_id;
-        $open_time = $register_details['open_time'];
-        $close_time = ! empty($register_details['closed_at']) ? $register_details['closed_at'] : Carbon::now()->toDateTimeString();
-        $details = $this->getRegisterTransactionDetails($user_id, $open_time, $close_time);
+        $shiftTotals = RegisterShiftReport::paymentTotals($cashRegister);
+        $register_details = RegisterShiftReport::mergePaymentTotalsInto($register_details, $shiftTotals);
+
+        $close_time = ! empty($register_details->closed_at)
+            ? $register_details->closed_at
+            : Carbon::now()->toDateTimeString();
+        $details = RegisterShiftReport::transactionDetails($cashRegister);
         $payment_types = PaymentMethod::all();
-        $register_transactions = CashRegister::findOrFail($id)
-            ->cash_register_transactions()
-            ->orderByDesc('created_at')
-            ->get();
+
+        $shiftLines = RegisterShiftReport::paymentLines($cashRegister);
+        $cashLines = $cashRegister->cash_register_transactions()->orderByDesc('created_at')->get();
+        $register_transactions = $shiftLines->concat($cashLines)->sortByDesc('created_at')->values();
 
         return compact('register_details', 'payment_types', 'details', 'close_time', 'register_transactions');
     }
@@ -2577,6 +2578,16 @@ class SalesReportController extends Controller
 
     public function getRegisterTransactionDetails($user_id, $open_time, $close_time)
     {
+        $cashRegister = CashRegister::query()
+            ->where('user_id', $user_id)
+            ->where('created_at', $open_time)
+            ->when($close_time, fn ($q) => $q->where('closed_at', $close_time))
+            ->first();
+
+        if ($cashRegister) {
+            return RegisterShiftReport::transactionDetails($cashRegister);
+        }
+
         $product_details = TransactionSellLine::join('transactions as t', 'transaction_sell_lines.transaction_id', '=', 't.id')
             ->join('product_products as p', 'transaction_sell_lines.product_id', '=', 'p.id')
             ->where('t.created_by', $user_id)

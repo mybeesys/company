@@ -6,6 +6,7 @@ namespace Modules\Sales\Services;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Modules\General\Models\PaymentMethod;
 use Modules\General\Support\TransactionLineTaxRate;
 
 /**
@@ -32,16 +33,30 @@ final class PosSalesInvoiceMapper
         return 'due';
     }
 
+    public static function resolveTaxAmount(Request $request): float
+    {
+        $headerTax = (float) ($request->input('total_tax') ?? 0);
+        if ($headerTax > 0) {
+            return $headerTax;
+        }
+
+        return self::sumItemsTax($request);
+    }
+
     public static function resolveTaxableAfterDiscount(Request $request): float
     {
         $beforeDiscount = (float) ($request->input('total_before_discount') ?? 0);
         $afterDiscount = (float) ($request->input('total_after_discount') ?? 0);
-        $totalTax = (float) ($request->input('total_tax') ?? 0);
+        $totalTax = self::resolveTaxAmount($request);
         $finalTotal = (float) ($request->input('total_paid') ?? 0);
-        $discountValue = (float) ($request->input('discount_value') ?? 0);
+        $itemsBeforeVat = self::sumItemsBeforeVat($request);
 
-        if ($discountValue <= 0 && $beforeDiscount > 0) {
-            return $beforeDiscount;
+        if ($totalTax > 0 && $finalTotal > 0) {
+            return round($finalTotal - $totalTax, 4);
+        }
+
+        if ($itemsBeforeVat > 0) {
+            return $itemsBeforeVat;
         }
 
         if ($afterDiscount > 0) {
@@ -52,11 +67,56 @@ final class PosSalesInvoiceMapper
             return $afterDiscount;
         }
 
-        if ($finalTotal > 0 && $totalTax > 0) {
-            return round($finalTotal - $totalTax, 4);
+        return $beforeDiscount;
+    }
+
+    public static function resolveTotalBeforeTax(Request $request): float
+    {
+        $headerBefore = (float) ($request->input('total_before_discount') ?? 0);
+        $finalTotal = (float) ($request->input('total_paid') ?? 0);
+        $totalTax = self::resolveTaxAmount($request);
+        $itemsBeforeVat = self::sumItemsBeforeVat($request);
+
+        if ($itemsBeforeVat > 0 && ($headerBefore <= 0 || ($totalTax > 0 && abs($headerBefore - $finalTotal) < 0.05))) {
+            return $itemsBeforeVat;
         }
 
-        return $beforeDiscount;
+        return $headerBefore > 0 ? $headerBefore : $itemsBeforeVat;
+    }
+
+    public static function sumItemsBeforeVat(Request $request): float
+    {
+        $items = $request->input('items', []);
+        if (! is_array($items) || $items === []) {
+            return 0.0;
+        }
+
+        $sum = 0.0;
+        foreach ($items as $item) {
+            $line = self::mapSellLineAttributes((object) $item);
+
+            $sum += (float) ($line['total_before_vat'] ?? 0);
+        }
+
+        return round($sum, 4);
+    }
+
+    public static function sumItemsTax(Request $request): float
+    {
+        $items = $request->input('items', []);
+        if (! is_array($items) || $items === []) {
+            return 0.0;
+        }
+
+        $sum = 0.0;
+        foreach ($items as $item) {
+            $item = (object) $item;
+            $qty = (float) ($item->quantity ?? 0);
+            $lineBeforeVat = (float) (self::mapSellLineAttributes($item)['total_before_vat'] ?? 0);
+            $sum += self::resolveLineTaxAmount($item, $qty, $lineBeforeVat);
+        }
+
+        return round($sum, 4);
     }
 
     /**
@@ -66,9 +126,10 @@ final class PosSalesInvoiceMapper
     public static function mapTransactionAttributes(Request $request, array $overrides = []): array
     {
         $discountValue = (float) ($overrides['discount_amount'] ?? $request->input('discount_value') ?? 0);
-        $totalTax = (float) ($overrides['tax_amount'] ?? $request->input('total_tax') ?? 0);
+        $totalTax = (float) ($overrides['tax_amount'] ?? self::resolveTaxAmount($request));
         $finalTotal = (float) ($overrides['final_total'] ?? $request->input('total_paid') ?? 0);
         $totalAfterDiscount = (float) ($overrides['totalAfterDiscount'] ?? self::resolveTaxableAfterDiscount($request));
+        $totalBeforeTax = (float) ($overrides['total_before_tax'] ?? self::resolveTotalBeforeTax($request));
         $discountType = trim((string) $request->input('discount_type', ''));
 
         return [
@@ -80,7 +141,7 @@ final class PosSalesInvoiceMapper
             'contact_id' => $request->customer_id,
             'discount_amount' => $discountValue,
             'discount_type' => $discountType !== '' ? $discountType : null,
-            'total_before_tax' => $request->total_before_discount,
+            'total_before_tax' => $totalBeforeTax,
             'totalAfterDiscount' => $totalAfterDiscount,
             'tax_amount' => $totalTax,
             'final_total' => $finalTotal,
@@ -93,6 +154,45 @@ final class PosSalesInvoiceMapper
             'establishment_id' => $overrides['establishment_id'] ?? $request->establishment_id,
             'device_id' => $request->device_id,
             'order_status' => 'inpreparation',
+            'order_type' => $request->input('order_type'),
+        ];
+    }
+
+    /**
+     * @param  array{parent_id?: int, establishment_id?: int, discount_amount?: float, totalAfterDiscount?: float, tax_amount?: float, final_total?: float, total_before_tax?: float}  $overrides
+     * @return array<string, mixed>
+     */
+    public static function mapReturnTransactionAttributes(Request $request, array $overrides = []): array
+    {
+        $discountValue = (float) ($overrides['discount_amount'] ?? $request->input('discount_value') ?? 0);
+        $totalTax = (float) ($overrides['tax_amount'] ?? self::resolveTaxAmount($request));
+        $finalTotal = (float) ($overrides['final_total'] ?? $request->input('total_paid') ?? 0);
+        $totalAfterDiscount = (float) ($overrides['totalAfterDiscount'] ?? self::resolveTaxableAfterDiscount($request));
+        $totalBeforeTax = (float) ($overrides['total_before_tax'] ?? self::resolveTotalBeforeTax($request));
+        $discountType = trim((string) $request->input('discount_type', ''));
+
+        return [
+            'type' => 'sell-return',
+            'local_id' => $request->id,
+            'invoice_type' => self::resolveInvoiceType($request),
+            'due_date' => null,
+            'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+            'contact_id' => $request->customer_id,
+            'parent_id' => $overrides['parent_id'] ?? null,
+            'discount_amount' => $discountValue,
+            'discount_type' => $discountType !== '' ? $discountType : null,
+            'total_before_tax' => $totalBeforeTax,
+            'totalAfterDiscount' => $totalAfterDiscount,
+            'tax_amount' => $totalTax,
+            'final_total' => $finalTotal,
+            'created_by' => $request->user_id,
+            'description' => $request->note,
+            'status' => $request->status,
+            'notice' => null,
+            'invoice_no' => $request->invoice_number,
+            'shift_number' => $request->shift_id,
+            'establishment_id' => $overrides['establishment_id'] ?? $request->establishment_id,
+            'device_id' => $request->device_id,
             'order_type' => $request->input('order_type'),
         ];
     }
@@ -114,12 +214,14 @@ final class PosSalesInvoiceMapper
             ? (float) $product->total_before_vat
             : round($qty * $priceBefore - $discountAmount, 4);
 
-        $priceWithTax = (float) ($product->price_with_tax_after_discount ?? 0);
-        if ($priceWithTax <= 0) {
-            $priceWithTax = (float) ($product->price_with_tax ?? 0);
+        $lineTaxAmount = self::resolveLineTaxAmount($product, $qty, $lineTotalBeforeVat);
+        $unitPriceWithTax = (float) ($product->price_with_tax_after_discount ?? 0);
+        if ($unitPriceWithTax <= 0) {
+            $unitPriceWithTax = (float) ($product->price_with_tax ?? 0);
         }
-        if ($priceWithTax <= 0 && $qty > 0) {
-            $priceWithTax = round($lineTotalBeforeVat + (float) ($product->tax_value ?? 0), 4);
+        $lineTotalIncTax = round($lineTotalBeforeVat + $lineTaxAmount, 4);
+        if ($lineTotalIncTax <= 0 && $unitPriceWithTax > 0 && $qty > 0) {
+            $lineTotalIncTax = round($unitPriceWithTax * $qty, 4);
         }
 
         $discountType = trim((string) ($product->discount_type ?? ''));
@@ -132,11 +234,38 @@ final class PosSalesInvoiceMapper
             'unit_price' => $priceAfter,
             'discount_type' => $discountType !== '' ? $discountType : null,
             'discount_amount' => $product->discount_amount,
-            'unit_price_inc_tax' => $priceWithTax,
+            'unit_price_inc_tax' => $lineTotalIncTax,
             'tax_id' => TransactionLineTaxRate::normalizeForStorage($product->tax_id ?? null),
-            'tax_value' => $product->tax_value,
+            'tax_value' => $lineTaxAmount,
             'total_before_vat' => $lineTotalBeforeVat,
         ];
+    }
+
+    public static function resolveLineTaxAmount(object $product, float $qty, float $lineTotalBeforeVat): float
+    {
+        $taxValue = (float) ($product->tax_value ?? 0);
+        if ($taxValue <= 0) {
+            return 0.0;
+        }
+
+        $unitPriceWithTax = (float) ($product->price_with_tax ?? 0);
+        $expectedLineTotal = $unitPriceWithTax > 0 && $qty > 0 ? round($unitPriceWithTax * $qty, 4) : 0.0;
+
+        if ($qty > 1 && $expectedLineTotal > 0) {
+            if (abs($lineTotalBeforeVat + ($taxValue * $qty) - $expectedLineTotal) < 0.05) {
+                return round($taxValue * $qty, 4);
+            }
+
+            if (abs($lineTotalBeforeVat + $taxValue - $expectedLineTotal) < 0.05) {
+                return round($taxValue, 4);
+            }
+        }
+
+        if ($qty <= 1) {
+            return round($taxValue, 4);
+        }
+
+        return round($taxValue * $qty, 4);
     }
 
     /**
@@ -150,9 +279,11 @@ final class PosSalesInvoiceMapper
             ? (float) $modifier->total_before_vat
             : round($qty * $price - (float) ($modifier->discount_amount ?? 0), 4);
 
-        $priceWithTax = (float) ($modifier->price_with_tax ?? 0);
-        if ($priceWithTax <= 0 && $qty > 0) {
-            $priceWithTax = round($lineTotalBeforeVat + (float) ($modifier->tax_value ?? 0), 4);
+        $lineTaxAmount = self::resolveLineTaxAmount($modifier, $qty, $lineTotalBeforeVat);
+        $unitPriceWithTax = (float) ($modifier->price_with_tax ?? 0);
+        $lineTotalIncTax = round($lineTotalBeforeVat + $lineTaxAmount, 4);
+        if ($lineTotalIncTax <= 0 && $unitPriceWithTax > 0 && $qty > 0) {
+            $lineTotalIncTax = round($unitPriceWithTax * $qty, 4);
         }
 
         $discountType = trim((string) ($modifier->discount_type ?? ''));
@@ -164,21 +295,36 @@ final class PosSalesInvoiceMapper
             'unit_price' => $price,
             'discount_type' => $discountType !== '' ? $discountType : null,
             'discount_amount' => $modifier->discount_amount,
-            'unit_price_inc_tax' => $priceWithTax,
-            'tax_value' => $modifier->tax_value,
+            'unit_price_inc_tax' => $lineTotalIncTax,
+            'tax_id' => TransactionLineTaxRate::normalizeForStorage($modifier->tax_id ?? null),
+            'tax_value' => $lineTaxAmount,
             'total_before_vat' => $lineTotalBeforeVat,
         ];
+    }
+
+    public static function resolvePaymentMethodId(object $payment, ?PaymentMethod $resolvedMethod): int
+    {
+        $methodId = $payment->method_id ?? null;
+        if ($methodId === -1 || $methodId === '-1') {
+            return (int) ($resolvedMethod?->id ?? 0);
+        }
+
+        return (int) $methodId;
     }
 
     /**
      * @return array<string, mixed>
      */
-    public static function paymentRequestAttributes(Request $request, object $payment, ?int $accountId): array
-    {
+    public static function paymentRequestAttributes(
+        Request $request,
+        object $payment,
+        ?int $accountId,
+        ?int $paymentMethodId = null,
+    ): array {
         return [
             'paid_amount' => $payment->amount,
             'amount' => $payment->amount,
-            'payment_method_id' => $payment->method_id,
+            'payment_method_id' => $paymentMethodId ?? $payment->method_id,
             'created_by' => $request->user_id,
             'shift_id' => $payment->shift_id ?? $request->shift_id,
             'cash_account' => $accountId,
