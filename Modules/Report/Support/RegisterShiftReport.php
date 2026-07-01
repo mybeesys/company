@@ -139,7 +139,7 @@ final class RegisterShiftReport
         return $row ?? new stdClass;
     }
 
-    public static function mergePaymentTotalsInto(stdClass $registerDetails, stdClass $shiftTotals): stdClass
+    public static function mergePaymentTotalsInto(object $registerDetails, stdClass $shiftTotals): object
     {
         foreach (self::PAYMENT_FIELD_MAP as $saleField) {
             $refundField = $saleField.'_refund';
