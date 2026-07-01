@@ -235,11 +235,62 @@ function resolveRooms(tenantId, establishmentId, tableId) {
 }
 
 function resolveKitchenRooms(tenantId, establishmentId, categoryIds = []) {
-  const rooms = [`tenant:${tenantId}`, `kitchen:establishment:${establishmentId}`];
+  const rooms = [`tenant:${tenantId}`];
+  if (!categoryIds.length) {
+    rooms.push(`kitchen:establishment:${establishmentId}`);
+  }
   for (const c of categoryIds) {
     rooms.push(`kitchen:establishment:${establishmentId}:category:${c}`);
   }
   return rooms;
+}
+
+function categoryIdsFromOrder(order) {
+  if (!order?.items?.length) return [];
+  const ids = new Set();
+  for (const item of order.items) {
+    const categoryId = Number(item.category_id);
+    if (categoryId) ids.add(categoryId);
+  }
+  return [...ids];
+}
+
+function filterOrderItems(order, allowedCategoryIds) {
+  if (!order) return null;
+  if (!allowedCategoryIds?.length) return order;
+  const allowed = new Set(allowedCategoryIds.map(Number).filter(Boolean));
+  const items = (order.items || []).filter((item) => allowed.has(Number(item.category_id)));
+  if (!items.length) return null;
+  return { ...order, items };
+}
+
+function broadcastKitchenEvent(establishmentId, eventName, envelope, options = {}) {
+  const estRoom = `kitchen:establishment:${establishmentId}`;
+  const order = envelope.order ?? null;
+  const explicitCategories = (options.category_ids || [])
+    .map(Number)
+    .filter(Boolean);
+  const itemCategories = explicitCategories.length
+    ? explicitCategories
+    : categoryIdsFromOrder(order);
+
+  io.to(estRoom).emit(eventName, envelope);
+
+  for (const catId of itemCategories) {
+    const catRoom = `kitchen:establishment:${establishmentId}:category:${catId}`;
+    if (order) {
+      const filteredOrder = filterOrderItems(order, [catId]);
+      if (!filteredOrder) continue;
+      io.to(catRoom).emit(eventName, { ...envelope, order: filteredOrder });
+    } else {
+      io.to(catRoom).emit(eventName, envelope);
+    }
+  }
+
+  return {
+    establishment: estRoom,
+    categories: itemCategories,
+  };
 }
 
 /** My Bee POS — طلبات الطاولات (establishment-orders) */
@@ -423,8 +474,9 @@ app.post("/broadcast", (req, res) => {
           event: payload.event || eventName,
           timestamp: payload.timestamp || new Date().toISOString(),
         };
-    const rooms = resolveKitchenRooms(tenantId, estId, body.category_ids || []);
-    emitToRooms(eventName, envelope, rooms);
+    const rooms = broadcastKitchenEvent(estId, eventName, envelope, {
+      category_ids: body.category_ids || categoryIdsFromOrder(envelope.order),
+    });
     return res.json({ ok: true, rooms, kitchen: true });
   }
 
@@ -651,11 +703,15 @@ io.on("connection", (socket) => {
       return;
     }
     const categoryIds = (body?.category_ids || []).map(Number).filter(Boolean);
-    socket.join(`kitchen:establishment:${estId}`);
-    for (const c of categoryIds) {
-      socket.join(`kitchen:establishment:${estId}:category:${c}`);
-    }
     socket.data.kitchenEstablishmentId = estId;
+    socket.data.kitchenCategoryIds = categoryIds;
+    if (categoryIds.length === 0) {
+      socket.join(`kitchen:establishment:${estId}`);
+    } else {
+      for (const c of categoryIds) {
+        socket.join(`kitchen:establishment:${estId}:category:${c}`);
+      }
+    }
     try {
       const orders = await fetchKitchenOrders(tenantId, estId, categoryIds);
       socket.emit("kitchen:sync", {
@@ -674,9 +730,14 @@ io.on("connection", (socket) => {
 
   socket.on("kitchen:leave", (body, ack) => {
     const estId = parseEstablishmentId(socket, body) || socket.data.kitchenEstablishmentId;
+    const categoryIds = socket.data.kitchenCategoryIds || [];
     if (estId) {
       socket.leave(`kitchen:establishment:${estId}`);
+      for (const c of categoryIds) {
+        socket.leave(`kitchen:establishment:${estId}:category:${c}`);
+      }
     }
+    socket.data.kitchenCategoryIds = [];
     ack?.({ ok: true });
   });
 

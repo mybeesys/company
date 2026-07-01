@@ -105,7 +105,9 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 { "ok": true, "room": "kitchen:establishment:3", "count": 12 }
 ```
 
-**يرسل السيرفر فوراً:** `kitchen:sync` (لقطة الطلبات).
+**يرسل السيرفر فوراً:** `kitchen:sync` (لقطة الطلبات مفلترة حسب `category_ids`).
+
+> **فلترة الكاتوغري (realtime):** عند إرسال `category_ids` في `kitchen:join`، العميل يدخل غرف الكاتوغري فقط (`kitchen:establishment:{id}:category:{cat}`) وليس الغرفة العامة. أحداث `kitchen:order:*` تُبث لكل غرفة كاتوغري مع `items` مفلترة لتلك الكاتوغري فقط — مطابق لـ `kitchen:sync`.
 
 ### `kitchen:leave` (اختياري)
 

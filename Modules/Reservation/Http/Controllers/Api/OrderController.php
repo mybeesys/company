@@ -220,7 +220,7 @@ class OrderController extends Controller
                 $this->realtime->orderFinished($order);
             }
             if ($establishmentId = KitchenOrderPayload::establishmentIdFromOrder($order)) {
-                $this->kitchen->orderRemoved($order->id, $establishmentId, 'cancelled');
+                $this->kitchen->orderRemoved($order->id, $establishmentId, 'cancelled', $order);
             }
             $this->posOrders->orderCancelled($order);
 
