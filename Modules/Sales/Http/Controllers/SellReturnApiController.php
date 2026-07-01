@@ -14,7 +14,7 @@ use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
-use Modules\Product\Models\ProductCombo;
+use Modules\Product\Models\ProductComboItem;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Modules\Sales\Utils\SalesUtile;
 
@@ -103,22 +103,17 @@ class SellReturnApiController extends Controller
                 $order_item_combos = json_decode(json_encode($product->order_item_combos ?? []));
 
                 foreach ($order_item_combos ?? [] as $order_item_combo) {
-                    $find_product = ProductCombo::where('id', $order_item_combo->combo_group_id)->first();
-                    if (! $find_product) {
-                        return response()->json(['message' => 'Combo not found id ='.$order_item_combo->combo_group_id], 404);
+                    $comboItem = PosSalesInvoiceMapper::resolveComboOption($order_item_combo);
+                    if (! $comboItem) {
+                        return response()->json([
+                            'message' => 'Combo option not found id ='.($order_item_combo->option_id ?? ''),
+                        ], 404);
                     }
 
-                    TransactionePurchasesLine::create([
-                        'transaction_id' => $transaction->id,
-                        'product_id' => $find_product->product_id,
-                        'qyt' => $find_product->quantity,
-                        'unit_price_before_discount' => $find_product->price,
-                        'unit_price' => $find_product->price,
-                        'discount_type' => null,
-                        'discount_amount' => null,
-                        'unit_price_inc_tax' => null,
-                        'tax_value' => null,
-                    ]);
+                    TransactionePurchasesLine::create(array_merge(
+                        ['transaction_id' => $transaction->id],
+                        PosSalesInvoiceMapper::mapComboLineAttributes($order_item_combo, $comboItem)
+                    ));
                 }
             }
 

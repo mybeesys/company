@@ -171,6 +171,7 @@ return [
     'edit_journalEntry' => 'Edit Journal Entry',
     'journalEntry_date' => 'Journal Entry Date',
     'Pick_journalEntry_date' => 'Pick Journal Entry Date',
+    'journal_entries_payload_invalid' => 'Journal entry lines are invalid. Add at least two balanced rows before saving.',
     'ref_number' => 'Reference Number',
     'ref_number_note' => 'Leave blank for automatic creation',
     'additionalNotes' => 'Additional Notes',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use Illuminate\Http\Request;
+use Modules\Product\Models\ProductComboItem;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Tests\TestCase;
 
@@ -128,5 +129,30 @@ final class PosSalesInvoiceMapperTest extends TestCase
         $this->assertEqualsWithDelta(34.78, (float) $line['total_before_vat'], 0.0001);
         $this->assertEqualsWithDelta(5.22, (float) $line['tax_value'], 0.0001);
         $this->assertEqualsWithDelta(40.0, (float) $line['unit_price_inc_tax'], 0.0001);
+    }
+
+    public function test_maps_combo_line_from_option_id_with_zero_invoice_price(): void
+    {
+        $comboItem = new ProductComboItem([
+            'item_id' => 287,
+            'combo_id' => 32,
+            'price' => 100,
+        ]);
+        $comboItem->id = 287;
+
+        $combo = (object) [
+            'combo_group_id' => 32,
+            'option_id' => 287,
+            'option_name' => 'شاورما عربي',
+            'price' => 100.0,
+            'quantity' => 1,
+        ];
+
+        $line = PosSalesInvoiceMapper::mapComboLineAttributes($combo, $comboItem);
+
+        $this->assertSame(287, $line['product_id']);
+        $this->assertSame(0.0, (float) $line['unit_price_before_discount']);
+        $this->assertSame(0.0, (float) $line['unit_price_inc_tax']);
+        $this->assertSame('1', $line['is_show']);
     }
 }
