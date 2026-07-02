@@ -255,6 +255,29 @@ function categoryIdsFromOrder(order) {
   return [...ids];
 }
 
+function normalizeCategoryIds(raw) {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) return raw.map(Number).filter((n) => n > 0);
+  if (typeof raw === "number" && raw > 0) return [raw];
+  if (typeof raw === "string" && raw.trim()) {
+    return raw.split(/[,;\s]+/).map(Number).filter((n) => n > 0);
+  }
+  return [];
+}
+
+function leaveKitchenRooms(socket, establishmentId, categoryIds = []) {
+  if (!establishmentId) return;
+  socket.leave(`kitchen:establishment:${establishmentId}`);
+  for (const c of categoryIds) {
+    socket.leave(`kitchen:establishment:${establishmentId}:category:${c}`);
+  }
+  const multiRoom = socket.data.kitchenMultiCategoryRoom;
+  if (multiRoom) {
+    socket.leave(multiRoom);
+    socket.data.kitchenMultiCategoryRoom = null;
+  }
+}
+
 function filterOrderItems(order, allowedCategoryIds) {
   if (!order) return null;
   if (!allowedCategoryIds?.length) return order;
@@ -264,16 +287,23 @@ function filterOrderItems(order, allowedCategoryIds) {
   return { ...order, items };
 }
 
+function filterOrdersForCategories(orders, categoryIds) {
+  if (!Array.isArray(orders)) return [];
+  if (!categoryIds?.length) return orders;
+  return orders
+    .map((order) => filterOrderItems(order, categoryIds))
+    .filter(Boolean);
+}
+
 function broadcastKitchenEvent(establishmentId, eventName, envelope, options = {}) {
   const estRoom = `kitchen:establishment:${establishmentId}`;
   const order = envelope.order ?? null;
-  const explicitCategories = (options.category_ids || [])
-    .map(Number)
-    .filter(Boolean);
+  const explicitCategories = normalizeCategoryIds(options.category_ids);
   const itemCategories = explicitCategories.length
     ? explicitCategories
     : categoryIdsFromOrder(order);
 
+  // Full order only for clients in the establishment-wide kitchen room (no category filter).
   io.to(estRoom).emit(eventName, envelope);
 
   for (const catId of itemCategories) {
@@ -287,10 +317,31 @@ function broadcastKitchenEvent(establishmentId, eventName, envelope, options = {
     }
   }
 
+  broadcastToEstablishmentCategoryFilterRooms(establishmentId, eventName, envelope, order);
+
   return {
     establishment: estRoom,
     categories: itemCategories,
   };
+}
+
+function broadcastToEstablishmentCategoryFilterRooms(establishmentId, eventName, envelope, order) {
+  const prefix = `kitchen:establishment:${establishmentId}:categories:`;
+  const rooms = io.sockets.adapter?.rooms;
+  if (!rooms) return;
+
+  for (const room of rooms.keys()) {
+    if (!room.startsWith(prefix)) continue;
+    const roomCats = normalizeCategoryIds(room.slice(prefix.length));
+    if (!roomCats.length) continue;
+    if (order) {
+      const filteredOrder = filterOrderItems(order, roomCats);
+      if (!filteredOrder) continue;
+      io.to(room).emit(eventName, { ...envelope, order: filteredOrder });
+    } else {
+      io.to(room).emit(eventName, envelope);
+    }
+  }
 }
 
 /** My Bee POS — طلبات الطاولات (establishment-orders) */
@@ -702,29 +753,62 @@ io.on("connection", (socket) => {
       ack?.({ ok: false, code: "ESTABLISHMENT_REQUIRED", message: "establishment_id required" });
       return;
     }
-    const categoryIds = (body?.category_ids || []).map(Number).filter(Boolean);
+    const categoryIds = normalizeCategoryIds(body?.category_ids);
+
+    const prevEst = socket.data.kitchenEstablishmentId;
+    const prevCats = socket.data.kitchenCategoryIds || [];
+    if (prevEst) {
+      leaveKitchenRooms(socket, prevEst, prevCats);
+    }
+
     socket.data.kitchenEstablishmentId = estId;
     socket.data.kitchenCategoryIds = categoryIds;
+
     if (categoryIds.length === 0) {
       socket.join(`kitchen:establishment:${estId}`);
     } else {
-      for (const c of categoryIds) {
-        socket.join(`kitchen:establishment:${estId}:category:${c}`);
+      // Must not stay in the establishment-wide room — it receives unfiltered orders.
+      socket.leave(`kitchen:establishment:${estId}`);
+      if (categoryIds.length === 1) {
+        socket.join(`kitchen:establishment:${estId}:category:${categoryIds[0]}`);
+      } else {
+        const multiKey = [...categoryIds].sort((a, b) => a - b).join(",");
+        const multiRoom = `kitchen:establishment:${estId}:categories:${multiKey}`;
+        socket.join(multiRoom);
+        socket.data.kitchenMultiCategoryRoom = multiRoom;
       }
     }
     try {
-      const orders = await fetchKitchenOrders(tenantId, estId, categoryIds);
+      const ordersRaw = await fetchKitchenOrders(tenantId, estId, categoryIds);
+      const orders = filterOrdersForCategories(ordersRaw, categoryIds);
       socket.emit("kitchen:sync", {
         event_id: randomUUID(),
         schema_version: SCHEMA_VERSION,
         event: "kitchen:sync",
         timestamp: new Date().toISOString(),
         establishment_id: estId,
+        category_ids: categoryIds,
         orders,
       });
-      ack?.({ ok: true, room: `kitchen:establishment:${estId}`, count: orders.length });
+      ack?.({
+        ok: true,
+        room:
+          categoryIds.length === 0
+            ? `kitchen:establishment:${estId}`
+            : categoryIds.length === 1
+              ? `kitchen:establishment:${estId}:category:${categoryIds[0]}`
+              : socket.data.kitchenMultiCategoryRoom,
+        category_ids: categoryIds,
+        count: orders.length,
+      });
     } catch (e) {
-      ack?.({ ok: true, room: `kitchen:establishment:${estId}`, sync: false, error: e.message });
+      ack?.({
+        ok: true,
+        room: `kitchen:establishment:${estId}`,
+        category_ids: categoryIds,
+        sync: false,
+        error: e.message,
+      });
     }
   });
 
@@ -732,12 +816,10 @@ io.on("connection", (socket) => {
     const estId = parseEstablishmentId(socket, body) || socket.data.kitchenEstablishmentId;
     const categoryIds = socket.data.kitchenCategoryIds || [];
     if (estId) {
-      socket.leave(`kitchen:establishment:${estId}`);
-      for (const c of categoryIds) {
-        socket.leave(`kitchen:establishment:${estId}:category:${c}`);
-      }
+      leaveKitchenRooms(socket, estId, categoryIds);
     }
     socket.data.kitchenCategoryIds = [];
+    socket.data.kitchenEstablishmentId = null;
     ack?.({ ok: true });
   });
 

@@ -28,5 +28,8 @@ Route::prefix('admin/v1/screen')->name('admin.v1.screen.')->middleware(['auth-ce
     Route::post('devices/{device}/unlink', [ScreenAdminDeviceApiController::class, 'unlink'])
         ->middleware('throttle:30,1')
         ->name('devices.unlink');
+    Route::post('devices/{device}/pairing-pin', [ScreenAdminDeviceApiController::class, 'generatePairingPin'])
+        ->middleware('throttle:30,1')
+        ->name('devices.pairing-pin');
     Route::apiResource('devices', ScreenDeviceApiController::class);
 });
