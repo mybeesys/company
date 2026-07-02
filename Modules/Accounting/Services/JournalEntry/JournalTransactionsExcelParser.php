@@ -43,6 +43,13 @@ class JournalTransactionsExcelParser
                 continue;
             }
 
+            $debit = $this->normalizeAmount($debitRaw);
+            $credit = $this->normalizeAmount($creditRaw);
+
+            if ($this->isSubtotalRow($dateRaw, $accountName, $glCode, $debit, $credit)) {
+                continue;
+            }
+
             if ($this->isEntryHeaderRow($dateRaw, $refRaw, $accountName, $glCode)) {
                 $currentRef = $this->normalizeRef($dateRaw);
 
@@ -64,14 +71,14 @@ class JournalTransactionsExcelParser
                 continue;
             }
 
-            $debit = $this->normalizeAmount($debitRaw);
-            $credit = $this->normalizeAmount($creditRaw);
+            $debitRawValue = $this->parseAmountRaw($debitRaw);
+            $creditRawValue = $this->parseAmountRaw($creditRaw);
 
-            if ($debit === '0.00' && $credit === '0.00') {
+            if ($debitRawValue == 0.0 && $creditRawValue == 0.0) {
                 continue;
             }
 
-            if ($debit !== '0.00' && $credit !== '0.00') {
+            if ($debitRawValue > 0.0 && $creditRawValue > 0.0) {
                 $errors[] = [
                     'ref_no' => $refNo,
                     'row' => (int) $rowNum,
@@ -118,14 +125,15 @@ class JournalTransactionsExcelParser
             $grouped[$refNo]['lines'][] = [
                 'gl_code' => $glCode,
                 'account_name' => $accountName,
-                'debit' => $debit,
-                'credit' => $credit,
+                'debit_raw' => $debitRawValue,
+                'credit_raw' => $creditRawValue,
                 'note' => $description !== '' ? $description : null,
             ];
         }
 
         $entries = [];
         foreach ($grouped as $refNo => $entry) {
+            $entry = $this->normalizeAndBalanceEntry($entry);
             $validationError = $this->validateEntryBalance($entry);
             if ($validationError !== null) {
                 $errors[] = [
@@ -167,6 +175,23 @@ class JournalTransactionsExcelParser
             && preg_match('/^\d+$/', $dateRaw) === 1;
     }
 
+    private function isSubtotalRow(string $dateRaw, string $accountName, string $glCode, string $debit, string $credit): bool
+    {
+        if ($dateRaw === 'المجموع') {
+            return true;
+        }
+
+        if ($accountName !== '' || $glCode !== '') {
+            return false;
+        }
+
+        if ($debit === '0.00' || $credit === '0.00') {
+            return false;
+        }
+
+        return $debit === $credit;
+    }
+
     private function normalizeRef(string $raw): string
     {
         $ref = trim($raw);
@@ -198,16 +223,85 @@ class JournalTransactionsExcelParser
 
     private function normalizeAmount(mixed $raw): string
     {
+        return $this->formatAmount($this->parseAmountRaw($raw));
+    }
+
+    private function parseAmountRaw(mixed $raw): float
+    {
         if ($raw === null || $raw === '') {
-            return '0.00';
+            return 0.0;
         }
 
         $value = str_replace(',', '', trim((string) $raw));
         if ($value === '' || ! is_numeric($value)) {
-            return '0.00';
+            return 0.0;
         }
 
-        return number_format((float) $value, 2, '.', '');
+        return (float) $value;
+    }
+
+    private function formatAmount(float $value): string
+    {
+        return number_format(round($value, 2), 2, '.', '');
+    }
+
+    /**
+     * @param  array{lines: list<array{gl_code: string, account_name: string, debit_raw: float, credit_raw: float, note: string|null}>}  $entry
+     * @return array{lines: list<array{gl_code: string, account_name: string, debit: string, credit: string, note: string|null}>}
+     */
+    private function normalizeAndBalanceEntry(array $entry): array
+    {
+        $lines = [];
+        foreach ($entry['lines'] as $line) {
+            $lines[] = [
+                'gl_code' => $line['gl_code'],
+                'account_name' => $line['account_name'],
+                'debit' => $line['debit_raw'] > 0 ? $this->formatAmount($line['debit_raw']) : '0.00',
+                'credit' => $line['credit_raw'] > 0 ? $this->formatAmount($line['credit_raw']) : '0.00',
+                'note' => $line['note'],
+            ];
+        }
+
+        $entry['lines'] = $this->rebalanceNormalizedLines($lines);
+
+        return $entry;
+    }
+
+    /**
+     * @param  list<array{debit: string, credit: string}>  $lines
+     * @return list<array{debit: string, credit: string}>
+     */
+    private function rebalanceNormalizedLines(array $lines): array
+    {
+        $debitTotal = '0.00';
+        $creditTotal = '0.00';
+        foreach ($lines as $line) {
+            $debitTotal = $this->addDecimal($debitTotal, $line['debit']);
+            $creditTotal = $this->addDecimal($creditTotal, $line['credit']);
+        }
+
+        $diff = function_exists('bcsub')
+            ? (float) bcsub($creditTotal, $debitTotal, 2)
+            : round((float) $creditTotal - (float) $debitTotal, 2);
+
+        if (abs($diff) < 0.00001 || abs($diff) > 0.01) {
+            return $lines;
+        }
+
+        for ($i = count($lines) - 1; $i >= 0; $i--) {
+            if ($diff > 0 && (float) $lines[$i]['debit'] > 0) {
+                $lines[$i]['debit'] = $this->formatAmount((float) $lines[$i]['debit'] + $diff);
+
+                return $lines;
+            }
+            if ($diff < 0 && (float) $lines[$i]['credit'] > 0) {
+                $lines[$i]['credit'] = $this->formatAmount((float) $lines[$i]['credit'] + abs($diff));
+
+                return $lines;
+            }
+        }
+
+        return $lines;
     }
 
     private function parseDate(string $raw): ?string
@@ -235,16 +329,34 @@ class JournalTransactionsExcelParser
     }
 
     /**
-     * @param  array{lines: list<array{debit: string, credit: string}>}  $entry
+     * @param  array{lines: list<array{debit_raw?: float, credit_raw?: float, debit?: string, credit?: string}>}  $entry
      */
     private function validateEntryBalance(array $entry): ?string
     {
-        $debitTotal = '0.00';
-        $creditTotal = '0.00';
+        $rawDebit = 0.0;
+        $rawCredit = 0.0;
 
         foreach ($entry['lines'] as $line) {
-            $debitTotal = $this->addDecimal($debitTotal, $line['debit']);
-            $creditTotal = $this->addDecimal($creditTotal, $line['credit']);
+            if (isset($line['debit_raw'], $line['credit_raw'])) {
+                $rawDebit += (float) $line['debit_raw'];
+                $rawCredit += (float) $line['credit_raw'];
+
+                continue;
+            }
+
+            $rawDebit += (float) ($line['debit'] ?? 0);
+            $rawCredit += (float) ($line['credit'] ?? 0);
+        }
+
+        if ($this->formatAmount($rawDebit) === $this->formatAmount($rawCredit)) {
+            return null;
+        }
+
+        $debitTotal = '0.00';
+        $creditTotal = '0.00';
+        foreach ($entry['lines'] as $line) {
+            $debitTotal = $this->addDecimal($debitTotal, (string) ($line['debit'] ?? '0.00'));
+            $creditTotal = $this->addDecimal($creditTotal, (string) ($line['credit'] ?? '0.00'));
         }
 
         if ($this->compareDecimal($debitTotal, $creditTotal) !== 0) {
