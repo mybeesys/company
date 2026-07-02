@@ -13,4 +13,10 @@ return [
     'device_unlinked_event' => 'screen.unlinked',
     'playlist_updated_event' => 'screen.playlist.updated',
     'websocket_path' => env('SCREEN_WEBSOCKET_PATH', '/ws'),
+
+    /** مدة صلاحية PIN الربط المؤقت بالثواني (افتراضي 120 = دقيقتان) */
+    'pairing_pin_ttl_seconds' => (int) env('SCREEN_PAIRING_PIN_TTL_SECONDS', 120),
+
+    /** طول PIN الربط (أرقام فقط) */
+    'pairing_pin_length' => (int) env('SCREEN_PAIRING_PIN_LENGTH', 6),
 ];

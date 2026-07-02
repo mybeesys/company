@@ -7,7 +7,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Modules\Screen\Models\Device;
+use Modules\Screen\Services\ScreenPairingPinService;
 
 class ScreenPlayerAuthApiController extends Controller
 {
@@ -49,6 +51,38 @@ class ScreenPlayerAuthApiController extends Controller
         }
 
         return response()->json($payload);
+    }
+
+    /**
+     * ربط الشاشة عبر PIN مؤقت يولّده الأدمن (بديل لمسح QR).
+     *
+     * POST /api/v1/screen/player/auth/pair-pin
+     */
+    public function verifyPairingPin(Request $request, ScreenPairingPinService $pinService): JsonResponse
+    {
+        $pinLength = max(4, min(8, (int) config('screen.pairing_pin_length', 6)));
+
+        try {
+            $validated = $request->validate([
+                'pin' => ['required', 'string', 'regex:/^\d{'.$pinLength.'}$/'],
+            ]);
+        } catch (ValidationException $e) {
+            throw ValidationException::withMessages([
+                'pin' => [__('screen::general.screen_pairing_pin_invalid')],
+            ]);
+        }
+
+        $result = $pinService->verifyAndPair($request, $validated['pin']);
+        $device = $result['device'];
+
+        return response()->json([
+            'message' => __('screen::general.screen_pairing_success'),
+            'token' => $result['token'],
+            'token_type' => 'Bearer',
+            'expires_at' => $result['expires_at'],
+            'device_channel' => $result['device_channel'],
+            'device' => $this->serializeDevice($device),
+        ]);
     }
 
     public function me(Request $request): JsonResponse

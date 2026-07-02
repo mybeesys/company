@@ -45,6 +45,10 @@ Route::middleware([
                 ->middleware('throttle:20,1')
                 ->name('auth.token');
 
+            Route::post('auth/pair-pin', [ScreenPlayerAuthApiController::class, 'verifyPairingPin'])
+                ->middleware('throttle:20,1')
+                ->name('auth.pair-pin');
+
             Route::middleware(['auth:sanctum', EnsureScreenPlayerToken::class])->group(function () {
                 Route::post('auth/revoke', [ScreenPlayerAuthApiController::class, 'revokeCurrent'])
                     ->name('auth.revoke');
