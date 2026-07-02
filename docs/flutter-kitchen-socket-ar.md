@@ -107,7 +107,12 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 
 **يرسل السيرفر فوراً:** `kitchen:sync` (لقطة الطلبات مفلترة حسب `category_ids`).
 
-> **فلترة الكاتوغري (realtime):** عند إرسال `category_ids` في `kitchen:join`، العميل يدخل غرف الكاتوغري فقط (`kitchen:establishment:{id}:category:{cat}`) وليس الغرفة العامة. أحداث `kitchen:order:*` تُبث لكل غرفة كاتوغري مع `items` مفلترة لتلك الكاتوغري فقط — مطابق لـ `kitchen:sync`.
+> **فلترة الكاتوغري (realtime):**
+> - عند إرسال `category_ids` في `kitchen:join`، العميل **لا يدخل** الغرفة العامة `kitchen:establishment:{id}` (تستقبل طلبات كاملة بدون فلتر).
+> - كاتوغري واحدة → غرفة `kitchen:establishment:{id}:category:{cat}`
+> - عدة كاتوغريات (مثل `[9, 18]`) → غرفة مجمّعة `kitchen:establishment:{id}:categories:9,18` مع `items` مفلترة لاتحاد الكاتوغريات فقط.
+> - أحداث `kitchen:order:*` تُبث مفلترة — لا يجب أن يظهر صنف من كاتوغري خارج المحدد (مثل سندويش عند اختيار حلو + عصير).
+> - عند تغيير `category_ids` أرسل `kitchen:leave` ثم `kitchen:join` من جديد (السيرفر يُفرّغ الغرف القديمة تلقائياً أيضاً).
 
 ### `kitchen:leave` (اختياري)
 
@@ -144,6 +149,16 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 
 **العميل:** استبدل القائمة كاملة أو دمج مع REST للتأكد.
 
+**فلترة إضافية (موصى بها في Flutter):** حتى مع السيرفر، طبّق فلتراً محلياً على `order.items` حسب `category_ids` المختارة — احتياط إذا وصل حدث قديم قبل إعادة الاتصال.
+
+```dart
+List<KitchenItem> filterItems(List<KitchenItem> items, List<int> categoryIds) {
+  if (categoryIds.isEmpty) return items;
+  final allowed = categoryIds.toSet();
+  return items.where((i) => allowed.contains(i.categoryId)).toList();
+}
+```
+
 ---
 
 ### 4.2 `kitchen:order:created`
@@ -170,7 +185,9 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 }
 ```
 
-**العميل:** استبدل الطلب بنفس `id`.
+**العميل:** استبدل الطلب بنفس `id` — `order.items` يحتوي فقط أصناف كاتوغريك المحددة (عند `category_ids` في join).
+
+> إذا اخترت **عدة كاتوغريات** `[9, 18]`، كل حدث `kitchen:order:updated` يأتي بـ `items` مفلترة لـ **9 و 18 معاً** — لا دمج يدوي من أحداث منفصلة.
 
 يُبث بعد:
 - `POST /api/update-item-status`

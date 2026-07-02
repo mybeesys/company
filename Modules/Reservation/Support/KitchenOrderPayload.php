@@ -66,7 +66,11 @@ class KitchenOrderPayload
                 return true;
             }
 
-            return $line->product && in_array($line->product->category_id, $categoryIds);
+            if (! $line->product || $line->product->category_id === null) {
+                return false;
+            }
+
+            return in_array((int) $line->product->category_id, array_map('intval', $categoryIds), true);
         });
 
         if (! empty($categoryIds) && $filteredLines->isEmpty()) {
