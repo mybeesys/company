@@ -71,6 +71,8 @@ class OpeningBalanceExcelParser
             ];
         }
 
+        $lines = $this->rebalanceLines($lines);
+
         $debitTotal = '0.00';
         $creditTotal = '0.00';
         foreach ($lines as $line) {
@@ -78,7 +80,7 @@ class OpeningBalanceExcelParser
             $creditTotal = $this->addDecimal($creditTotal, $line['credit']);
         }
 
-        if ($lines !== [] && abs((float) $debitTotal - (float) $creditTotal) > 1.0) {
+        if ($lines !== [] && abs((float) $debitTotal - (float) $creditTotal) > 0.02) {
             $errors[] = ['row' => 0, 'message' => 'unbalanced'];
         }
 
@@ -97,6 +99,76 @@ class OpeningBalanceExcelParser
     /**
      * @param  array<int|string, array<string, mixed>>  $rows
      */
+    /**
+     * Fix ≤ 0.02 drift after per-line rounding (e.g. 3-decimal source amounts).
+     *
+     * @param  list<array{gl_code: string, account_name: string, debit: string, credit: string}>  $lines
+     * @return list<array{gl_code: string, account_name: string, debit: string, credit: string}>
+     */
+    private function rebalanceLines(array $lines): array
+    {
+        if ($lines === []) {
+            return $lines;
+        }
+
+        $debitTotal = '0.00';
+        $creditTotal = '0.00';
+        foreach ($lines as $line) {
+            $debitTotal = $this->addDecimal($debitTotal, $line['debit']);
+            $creditTotal = $this->addDecimal($creditTotal, $line['credit']);
+        }
+
+        $gap = round(abs((float) $debitTotal - (float) $creditTotal), 2);
+        if ($gap === 0.0 || $gap > 0.02) {
+            return $lines;
+        }
+
+        $adjust = number_format($gap, 2, '.', '');
+        $debitShort = $this->compareDecimal($debitTotal, $creditTotal) < 0;
+
+        $idx = $debitShort
+            ? $this->lastLineIndexWithAmount($lines, 'debit')
+            : $this->lastLineIndexWithAmount($lines, 'credit');
+
+        if ($idx === null) {
+            $idx = $debitShort
+                ? $this->lastLineIndexWithAmount($lines, 'credit')
+                : $this->lastLineIndexWithAmount($lines, 'debit');
+        }
+
+        if ($idx === null) {
+            return $lines;
+        }
+
+        if ($debitShort) {
+            if ((float) $lines[$idx]['debit'] > 0) {
+                $lines[$idx]['debit'] = $this->addDecimal($lines[$idx]['debit'], $adjust);
+            } else {
+                $lines[$idx]['credit'] = $this->subtractDecimal($lines[$idx]['credit'], $adjust);
+            }
+        } elseif ((float) $lines[$idx]['credit'] > 0) {
+            $lines[$idx]['credit'] = $this->addDecimal($lines[$idx]['credit'], $adjust);
+        } else {
+            $lines[$idx]['debit'] = $this->subtractDecimal($lines[$idx]['debit'], $adjust);
+        }
+
+        return $lines;
+    }
+
+    /**
+     * @param  list<array{gl_code: string, account_name: string, debit: string, credit: string}>  $lines
+     */
+    private function lastLineIndexWithAmount(array $lines, string $side): ?int
+    {
+        for ($i = count($lines) - 1; $i >= 0; $i--) {
+            if ((float) ($lines[$i][$side] ?? 0) > 0) {
+                return $i;
+            }
+        }
+
+        return null;
+    }
+
     private function detectDataStartRow(array $rows): int
     {
         foreach ($rows as $rowNum => $row) {
@@ -173,6 +245,15 @@ class OpeningBalanceExcelParser
         }
 
         return number_format(((float) $left) + ((float) $right), 2, '.', '');
+    }
+
+    private function subtractDecimal(string $left, string $right): string
+    {
+        if (function_exists('bcsub')) {
+            return bcsub($left, $right, 2);
+        }
+
+        return number_format(((float) $left) - ((float) $right), 2, '.', '');
     }
 
     private function compareDecimal(string $left, string $right): int
