@@ -25,6 +25,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Support\AccountingOpeningBalanceScope;
 use Modules\Accounting\Support\AccountingReportDateResolver;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
@@ -807,18 +808,27 @@ class AccountingReportsController extends Controller
     }
 
     /**
-     * تجميع حركات الحساب: افتتاحي قبل بداية الفترة (مثل كشف الحساب)، وحركة الفترة ضمن [start, end].
+     * تجميع حركات الحساب: افتتاحي قبل بداية الفترة + قيد الرصيد الافتتاحي بتاريخ البداية،
+     * وحركة الفترة ضمن [start, end] باستثناء قيد الافتتاح في أول يوم.
      */
     protected function trialBalanceTransactionsSubquery(string $startDate, string $endDate, array $costCenterIds): Builder
     {
+        $openingCondition = AccountingOpeningBalanceScope::openingConditionSql();
+        $periodCondition = AccountingOpeningBalanceScope::periodConditionSql();
+
         $q = DB::table('accounting_accounts_transactions as t')
             ->selectRaw(
                 "t.accounting_account_id,
-                SUM(CASE WHEN t.type = 'debit' AND DATE(t.operation_date) < DATE(?) THEN t.amount ELSE 0 END) as debit_opening,
-                SUM(CASE WHEN t.type = 'credit' AND DATE(t.operation_date) < DATE(?) THEN t.amount ELSE 0 END) as credit_opening,
-                SUM(CASE WHEN t.type = 'debit' AND DATE(t.operation_date) >= DATE(?) AND DATE(t.operation_date) <= DATE(?) THEN t.amount ELSE 0 END) as debit_period,
-                SUM(CASE WHEN t.type = 'credit' AND DATE(t.operation_date) >= DATE(?) AND DATE(t.operation_date) <= DATE(?) THEN t.amount ELSE 0 END) as credit_period",
-                [$startDate, $startDate, $startDate, $endDate, $startDate, $endDate]
+                SUM(CASE WHEN t.type = 'debit' AND {$openingCondition} THEN t.amount ELSE 0 END) as debit_opening,
+                SUM(CASE WHEN t.type = 'credit' AND {$openingCondition} THEN t.amount ELSE 0 END) as credit_opening,
+                SUM(CASE WHEN t.type = 'debit' AND {$periodCondition} THEN t.amount ELSE 0 END) as debit_period,
+                SUM(CASE WHEN t.type = 'credit' AND {$periodCondition} THEN t.amount ELSE 0 END) as credit_period",
+                [
+                    $startDate, $startDate,
+                    $startDate, $startDate,
+                    $startDate, $endDate, $startDate,
+                    $startDate, $endDate, $startDate,
+                ]
             )
             ->groupBy('t.accounting_account_id');
 

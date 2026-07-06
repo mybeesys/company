@@ -16,6 +16,7 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Support\AccountingOpeningBalanceScope;
 use Modules\Accounting\Support\LedgerStatementPresenter;
 use Modules\Accounting\Support\AccountingReportDateResolver;
 use Modules\Accounting\Support\ImportedAccountTypeSync;
@@ -102,8 +103,9 @@ class TreeAccountsController extends Controller
         $openingQuery = AccountingAccountsTransaction::where('accounting_account_id', $account->id)
             ->when($costCenterIds, function ($query) use ($costCenterIds) {
                 return $query->whereIn('cost_center_id', $costCenterIds);
-            })
-            ->where('operation_date', '<', $startDate);
+            });
+
+        AccountingOpeningBalanceScope::applyOpeningScope($openingQuery, $startDate);
 
         $openingTransactions = $openingQuery->get();
         $totalDebitOpening = $openingTransactions->where('type', 'debit')->sum('amount');
@@ -124,6 +126,9 @@ class TreeAccountsController extends Controller
         return AccountingAccountsTransaction::with(['accTransMapping', 'createdBy', 'transaction', 'account', 'costCenter'])
             ->where('accounting_account_id', $account->id)
             ->whereBetween('operation_date', [$start, $end])
+            ->tap(function ($query) use ($start) {
+                AccountingOpeningBalanceScope::applyExcludeOpeningOnStartFromPeriod($query, $start);
+            })
             ->when($costCenters, function ($query) use ($costCenters) {
                 return $query->whereIn('cost_center_id', $costCenters);
             })
