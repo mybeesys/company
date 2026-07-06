@@ -236,6 +236,8 @@
         const tbBalancedLabel = @json(__('accounting::lang.balanced'));
         const tbUnbalancedLabel = @json(__('accounting::lang.unbalanced'));
         const tbCompareGrowthLabel = @json(__('accounting::lang.tb_compare_growth'));
+        const tbInitialStartDate = @json($defaultStart);
+        const tbInitialEndDate = @json($defaultEnd);
 
         let dataTable;
         let typeChart;
@@ -361,10 +363,20 @@
             }
         }
 
+        function readTbStartDate() {
+            return $('#start_date_filter').val() || tbInitialStartDate || '';
+        }
+
+        function readTbEndDate() {
+            return $('#end_date_filter').val() || tbInitialEndDate || '';
+        }
+
         function buildReportQuery() {
             const params = new URLSearchParams();
-            if ($('#start_date_filter').val()) params.append('start_date', $('#start_date_filter').val());
-            if ($('#end_date_filter').val()) params.append('end_date', $('#end_date_filter').val());
+            const startDate = readTbStartDate();
+            const endDate = readTbEndDate();
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
             params.append('aggregated', $('#classification').val() ?? '1');
             const lvl = $('#level_filter').val();
             if (lvl !== undefined && lvl !== null && lvl !== '') params.append('level_filter', lvl);
@@ -376,15 +388,23 @@
         }
 
         function ajaxData(d) {
-            if ($('#start_date_filter').val()) d.start_date = $('#start_date_filter').val();
-            if ($('#end_date_filter').val()) d.end_date = $('#end_date_filter').val();
+            const startDate = readTbStartDate();
+            const endDate = readTbEndDate();
+            if (startDate) d.start_date = startDate;
+            if (endDate) d.end_date = endDate;
             d.aggregated = $('#classification').val() ?? '1';
             const lvl = $('#level_filter').val();
             if (lvl !== undefined && lvl !== null && lvl !== '') d.level_filter = lvl;
             d.with_zero_balances = $('#with_zero_balances').val() ?? '0';
             d.compare_mode = $('#compare_mode').val() ?? 'none';
-            if ($('#choose_accounts_select').val()) d.choose_accounts_select = $('#choose_accounts_select').val();
-            if ($('#choose_cost_center_select').val()) d.choose_cost_center_select = $('#choose_cost_center_select').val();
+            const accountTypes = $('#choose_accounts_select').val();
+            if (accountTypes && accountTypes.length) {
+                d.choose_accounts_select = accountTypes;
+            }
+            const costCenters = $('#choose_cost_center_select').val();
+            if (costCenters && costCenters.length) {
+                d.choose_cost_center_select = costCenters;
+            }
         }
 
         function initDatatable() {
@@ -394,7 +414,11 @@
                 ajax: {
                     url: dataUrl,
                     data: ajaxData,
+                    error: function(xhr) {
+                        console.error('trial-balance ajax failed', xhr.status, xhr.responseText);
+                    },
                 },
+                deferLoading: 0,
                 info: true,
                 columns: [
                     { data: 'gl_code', name: 'gl_code', orderable: true },
@@ -454,14 +478,28 @@
         $(document).ready(function() {
             if (!table.length) return;
 
-            $('#classification, #with_zero_balances, #level_filter, #choose_accounts_select, #choose_cost_center_select, #compare_mode').select2({ width: '100%' });
+            if (!$('#start_date_filter').val() && tbInitialStartDate) {
+                $('#start_date_filter').val(tbInitialStartDate);
+            }
+            if (!$('#end_date_filter').val() && tbInitialEndDate) {
+                $('#end_date_filter').val(tbInitialEndDate);
+            }
+
+            $('#classification, #with_zero_balances, #level_filter, #choose_cost_center_select, #compare_mode').select2({ width: '100%' });
+            $('#choose_accounts_select').select2({ width: '100%' });
+            const allAccountTypes = $('#choose_accounts_select option').map(function() {
+                return this.value;
+            }).get();
+            if (allAccountTypes.length) {
+                $('#choose_accounts_select').val(allAccountTypes).trigger('change.select2');
+            }
 
             initDatatable();
 
             function reloadTb() {
                 $('#tbPrintPeriod').text(
-                    @json(__('accounting::lang.from_date')) + ': ' + ($('#start_date_filter').val() || '') +
-                    ' — ' + @json(__('accounting::lang.to_date')) + ': ' + ($('#end_date_filter').val() || '')
+                    @json(__('accounting::lang.from_date')) + ': ' + (readTbStartDate() || '') +
+                    ' — ' + @json(__('accounting::lang.to_date')) + ': ' + (readTbEndDate() || '')
                 );
                 dataTable.ajax.reload();
             }
@@ -482,7 +520,7 @@
                 window.location.href = exportExcelUrl + '?' + buildReportQuery();
             });
 
-            reloadTb();
+            setTimeout(reloadTb, 0);
         });
     </script>
 @stop
