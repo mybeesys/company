@@ -11,6 +11,14 @@ return [
     ],
 
     [
+        'name' => 'my_companies',
+        'url' => '/my-companies',
+        'icon' => 'fas fa-building',
+        'permission' => '',
+        'subMenu' => [],
+    ],
+
+    [
         'name' => 'franchise',
         'url' => '/franchise/companies',
         'icon' => 'fas fa-certificate',

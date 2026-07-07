@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Employee\Http\Controllers\DashboardRoleController;
+use Modules\Employee\Http\Controllers\MyCompaniesController;
 use Modules\Employee\Http\Controllers\DashbordController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentController;
@@ -49,6 +50,9 @@ Route::middleware([
 
         Route::get('/dashboard', [DashbordController::class, 'index'])->name('dashboard');
         Route::get('/', [DashbordController::class, 'index']);
+
+        Route::get('/my-companies', [MyCompaniesController::class, 'index'])->name('my-companies.index');
+        Route::get('/my-companies/{tenantId}/switch', [MyCompaniesController::class, 'switchUrl'])->name('my-companies.switch');
 
         Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
 

@@ -1,5 +1,7 @@
 <!--begin::Navbar-->
 @php
+    use App\Services\CentralCompanyMembershipService;
+
     $navbarDate = \Illuminate\Support\Carbon::now()->locale(app()->getLocale())->isoFormat('ddd D MMM YYYY');
     $hasQuickPermission = function ($permission) {
         if (!isset($permission) || $permission === '' || $permission === null) {
@@ -55,6 +57,16 @@
         ],
     ])->filter(fn($link) => $hasQuickPermission($link['permission']))->values();
     $unreadCount = auth()->user()->unreadNotifications()->count();
+    $linkedCompaniesCount = 0;
+    if (auth()->check() && filled(auth()->user()->email)) {
+        try {
+            $linkedCompaniesCount = app(CentralCompanyMembershipService::class)
+                ->companiesForEmail((string) auth()->user()->email, tenant('id'))
+                ->count();
+        } catch (\Throwable) {
+            $linkedCompaniesCount = 0;
+        }
+    }
 @endphp
 <div class="app-navbar app-navbar--compact flex-grow-1 d-flex align-items-center min-w-0 pe-lg-8 pe-3" id="kt_app_header_navbar">
     <div class="app-navbar-meta d-none d-lg-flex align-items-center gap-2 text-gray-600 min-w-0 me-2">
@@ -294,6 +306,14 @@
                     <span class="menu-title">@lang('general.subscriptions')</span>
                 </a>
             </div>
+            @if ($linkedCompaniesCount > 0)
+                <div class="menu-item px-5">
+                    <a href="{{ route('my-companies.index') }}" class="menu-link px-5">
+                        <i class="ki-outline ki-abstract-26 fs-2 me-2"></i>
+                        <span class="menu-title">@lang('employee::my_companies.menu')</span>
+                    </a>
+                </div>
+            @endif
             <!--end::Menu item-->
             <!--begin::Menu separator-->
             <div class="separator my-2"></div>

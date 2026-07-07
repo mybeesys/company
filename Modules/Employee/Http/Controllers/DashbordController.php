@@ -3,6 +3,7 @@
 namespace Modules\Employee\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\CentralCompanyMembershipService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -345,6 +346,16 @@ class DashbordController extends Controller
             : 0;
         $periodNet = $periodSales - $periodPurchases - $periodExpenses;
 
+        $linkedCompanies = collect();
+        if (auth()->check() && filled(auth()->user()->email)) {
+            try {
+                $linkedCompanies = app(CentralCompanyMembershipService::class)
+                    ->companiesForEmail((string) auth()->user()->email, tenant('id'));
+            } catch (\Throwable) {
+                $linkedCompanies = collect();
+            }
+        }
+
         return view('employee::dashboard.hub', compact(
             'dashboardTabs',
             'activeDashboardTab',
@@ -386,7 +397,8 @@ class DashbordController extends Controller
             'periodPurchasesChange',
             'periodExpenses',
             'periodExpensesChange',
-            'periodNet'
+            'periodNet',
+            'linkedCompanies'
 
         ));
     }

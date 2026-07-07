@@ -17,6 +17,9 @@ Route::middleware([
         Route::get('/login', 'index')->name('login');
 
         Route::post('/postlogin', 'login')->name('login.postLogin');
+
+        Route::get('/auth/tenant-switch', \Modules\Employee\Http\Controllers\TenantSwitchAuthController::class)
+            ->name('auth.tenant-switch');
     });
 
     Route::middleware(['guest'])->controller(PasswordResetController::class)->group(function () {
