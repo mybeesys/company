@@ -14,8 +14,11 @@ class EmailOrUserNameExists implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         $exists = DB::table('emp_employees')
-            ->where('email', $value)
-            ->orWhere('user_name', $value)
+            ->whereNull('deleted_at')
+            ->where(function ($query) use ($value) {
+                $query->where('email', $value)
+                    ->orWhere('user_name', $value);
+            })
             ->exists();
         if (! $exists) {
             $fail(__('employee::responses.incorrect_credential'));
