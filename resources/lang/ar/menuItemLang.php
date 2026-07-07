@@ -4,6 +4,7 @@ return [
 
     'accounting_module' => 'المحاسبة',
     'dashboard' => 'لوحة التحكم',
+    'my_companies' => 'شركاتي',
     'user_module' => 'إدارة المسنخدمين',
     'product_module' => 'إدارة الأصناف',
     'chart_of_accounts' => 'شجرة الحسابات',
