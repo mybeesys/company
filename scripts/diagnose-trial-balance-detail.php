@@ -13,8 +13,14 @@ $start = '2025-01-01';
 $end = '2025-12-31';
 
 foreach (['31', '221', '222'] as $gl) {
-    $accountId = DB::table('accounting_accounts')->where('gl_code', $gl)->value('id');
+    $account = DB::table('accounting_accounts')->where('gl_code', $gl)->first(['id', 'gl_code', 'name_ar']);
     echo "\n######## GL {$gl} ALL TRANSACTIONS ########\n";
+    if (! $account) {
+        echo "ACCOUNT MISSING — gl_code {$gl} not in chart of accounts (import will fail for this code).\n";
+        continue;
+    }
+    echo "account id={$account->id} | {$account->name_ar}\n";
+    $accountId = $account->id;
     $rows = DB::table('accounting_accounts_transactions as t')
         ->leftJoin('accounting_acc_trans_mappings as m', 'm.id', '=', 't.acc_trans_mapping_id')
         ->where('t.accounting_account_id', $accountId)
@@ -36,6 +42,10 @@ $periodSqlNew = "(DATE(t.operation_date) >= ? AND DATE(t.operation_date) <= ? AN
 
 foreach (['31', '221', '222'] as $gl) {
     $id = DB::table('accounting_accounts')->where('gl_code', $gl)->value('id');
+    if (! $id) {
+        echo "GL {$gl} OLD/NEW/SIM: ACCOUNT MISSING\n";
+        continue;
+    }
     $old = DB::table('accounting_accounts_transactions as t')->where('accounting_account_id', $id)
         ->selectRaw(
             "SUM(CASE WHEN type='debit' AND {$openingSqlOld} THEN amount ELSE 0 END) dro,
@@ -60,6 +70,10 @@ foreach (['31', '221', '222'] as $gl) {
 echo "\n######## If opening moved to 2025-01-01 (server scenario) ########\n";
 foreach (['31', '221', '222'] as $gl) {
     $id = DB::table('accounting_accounts')->where('gl_code', $gl)->value('id');
+    if (! $id) {
+        echo "GL {$gl} OLD/NEW/SIM: ACCOUNT MISSING\n";
+        continue;
+    }
     $sim = DB::table('accounting_accounts_transactions as t')->where('accounting_account_id', $id)
         ->selectRaw(
             "SUM(CASE WHEN type='debit' AND DATE(operation_date) < ? THEN amount ELSE 0 END) dro,

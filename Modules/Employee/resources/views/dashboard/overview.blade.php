@@ -23,6 +23,21 @@
         </div>
     </div>
 
+    @if (($linkedCompanies ?? collect())->isNotEmpty())
+        <div class="card dash-card mb-6">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <h4 class="mb-1">@lang('employee::my_companies.title')</h4>
+                    <p class="text-muted mb-0">@lang('employee::my_companies.dashboard_hint', ['count' => $linkedCompanies->count()])</p>
+                </div>
+                <a href="{{ route('my-companies.index') }}" class="btn btn-light-primary">
+                    <i class="ki-outline ki-abstract-26 fs-3 me-2"></i>
+                    @lang('employee::my_companies.menu')
+                </a>
+            </div>
+        </div>
+    @endif
+
     <div class="row g-4 mb-6">
         <div class="col-md-6 col-xl-3">
             <div class="kpi-card kpi-soft-sales">

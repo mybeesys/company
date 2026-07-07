@@ -39,7 +39,11 @@ return [
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.
      */
     'database' => [
-        'central_connection' => env('DB_CONNECTION', 'central'),
+        // IMPORTANT:
+        // Tenant apps usually run on a dynamic tenant connection, while the "central" app (membership DB)
+        // lives on a separate, fixed connection. We keep this configurable so local/dev can point at the
+        // central DB without changing the tenant DB connection.
+        'central_connection' => env('CENTRAL_DB_CONNECTION', 'central'),
 
         /**
          * Connection used as a "template" for the dynamically created tenant database connection.
