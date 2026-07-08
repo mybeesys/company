@@ -300,13 +300,25 @@ final class PosSalesInvoiceMapper
             return null;
         }
 
-        $query = ProductComboItem::query()->where('id', $optionId);
         $comboGroupId = (int) ($combo->combo_group_id ?? 0);
+
+        $byPivotId = ProductComboItem::query()->where('id', $optionId);
         if ($comboGroupId > 0) {
-            $query->where('combo_id', $comboGroupId);
+            $byPivotId->where('combo_id', $comboGroupId);
         }
 
-        return $query->first();
+        $found = $byPivotId->first();
+        if ($found) {
+            return $found;
+        }
+
+        // POS / Flutter often sends product id (item_id) as option_id, not pivot row id.
+        $byProductId = ProductComboItem::query()->where('item_id', $optionId);
+        if ($comboGroupId > 0) {
+            $byProductId->where('combo_id', $comboGroupId);
+        }
+
+        return $byProductId->first();
     }
 
     /**

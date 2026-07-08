@@ -138,7 +138,7 @@ final class PosSalesInvoiceMapperTest extends TestCase
             'combo_id' => 32,
             'price' => 100,
         ]);
-        $comboItem->id = 287;
+        $comboItem->id = 56;
 
         $combo = (object) [
             'combo_group_id' => 32,
