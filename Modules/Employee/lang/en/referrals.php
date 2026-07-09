@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'title' => 'Share & earn points',
-    'menu' => 'Referral program',
-    'subtitle' => 'Share your promotional link and earn points when new customers subscribe from a different device.',
+    'title' => 'Share & earn',
+    'menu' => 'Share & earn',
+    'subtitle' => 'Invite friends and partners — share your personal link and earn points for every new customer who joins through you!',
     'default_referrer_name' => 'My Bee partner',
 
     'not_ready' => 'The referral program is not available yet. Check central database configuration and migrations.',

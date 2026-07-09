@@ -5,7 +5,7 @@ return [
     'accounting_module' => 'المحاسبة',
     'dashboard' => 'لوحة التحكم',
     'my_companies' => 'شركاتي',
-    'referrals' => 'برنامج الإحالة',
+    'referrals' => 'شارك واربح',
     'user_module' => 'إدارة المسنخدمين',
     'product_module' => 'إدارة الأصناف',
     'chart_of_accounts' => 'شجرة الحسابات',
