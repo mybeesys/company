@@ -38,6 +38,8 @@ return [
     'device_name_must_be_unique' => 'Device name must be unique.',
     'transition_speed_seconds' => 'Transition speed (seconds)',
     'select_branch_first' => 'Select branch first to load related devices.',
+    'devices_not_in_establishments' => 'Some selected devices (:devices) are not linked to the chosen branches. Select branches first, then pick only their devices.',
+    'devices_required' => 'Select at least one display device.',
     'branch' => 'Branch',
     'dashboard_hero_subtitle' => 'Manage ad materials, playlists, and display devices from one organized workspace.',
     'tab_materials_title' => 'Material library',

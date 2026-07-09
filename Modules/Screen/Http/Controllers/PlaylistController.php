@@ -31,11 +31,13 @@ class PlaylistController extends Controller
         $data = $request->safe();
         try {
             return DB::transaction(function () use ($data) {
-                $validDevicesCount = Device::whereIn('id', $data->devices)
-                    ->whereIn('establishment_id', $data->establishments_ids)
-                    ->count();
-                if ($validDevicesCount !== count($data->devices)) {
-                    return response()->json(['error' => __('employee::responses.something_wrong_happened')], 422);
+                $invalidDeviceIds = Device::idsNotMatchingEstablishments($data->devices, $data->establishments_ids);
+                if ($invalidDeviceIds !== []) {
+                    $deviceLabel = Device::codesForIds($invalidDeviceIds) ?: implode(', ', $invalidDeviceIds);
+
+                    return response()->json([
+                        'error' => __('screen::general.devices_not_in_establishments', ['devices' => $deviceLabel]),
+                    ], 422);
                 }
 
                 $days_settings = [
@@ -90,11 +92,13 @@ class PlaylistController extends Controller
         $data = $request->safe();
         try {
             return DB::transaction(function () use ($data, $playlist) {
-                $validDevicesCount = Device::whereIn('id', $data->devices)
-                    ->whereIn('establishment_id', $data->establishments_ids)
-                    ->count();
-                if ($validDevicesCount !== count($data->devices)) {
-                    return response()->json(['error' => __('employee::responses.something_wrong_happened')], 422);
+                $invalidDeviceIds = Device::idsNotMatchingEstablishments($data->devices, $data->establishments_ids);
+                if ($invalidDeviceIds !== []) {
+                    $deviceLabel = Device::codesForIds($invalidDeviceIds) ?: implode(', ', $invalidDeviceIds);
+
+                    return response()->json([
+                        'error' => __('screen::general.devices_not_in_establishments', ['devices' => $deviceLabel]),
+                    ], 422);
                 }
 
                 $days_settings = [
