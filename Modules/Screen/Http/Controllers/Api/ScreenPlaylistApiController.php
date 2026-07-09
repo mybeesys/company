@@ -8,12 +8,14 @@ use Illuminate\Support\Facades\DB;
 use Modules\Screen\Http\Requests\StorePlaylistRequest;
 use Modules\Screen\Models\Playlist;
 use Modules\Screen\Models\Promo;
+use Modules\Screen\Services\ScreenEstablishmentService;
 use Modules\Screen\Services\ScreenPlaylistSyncNotifier;
 
 class ScreenPlaylistApiController extends Controller
 {
     public function __construct(
-        protected ScreenPlaylistSyncNotifier $playlistSyncNotifier
+        protected ScreenPlaylistSyncNotifier $playlistSyncNotifier,
+        protected ScreenEstablishmentService $establishments
     ) {}
 
     public function index(): JsonResponse
@@ -35,6 +37,11 @@ class ScreenPlaylistApiController extends Controller
 
         try {
             $playlist = DB::transaction(function () use ($data, $orientation) {
+                $establishmentIds = $this->establishments->resolvePlaylistEstablishmentIds(
+                    $data->devices,
+                    $data->establishments_ids
+                );
+
                 $days_settings = [
                     'days_settings_option' => $data->days_settings,
                     'start_time' => $data->start_time,
@@ -56,7 +63,7 @@ class ScreenPlaylistApiController extends Controller
                         'updated_at' => now()->addSeconds($index),
                     ]);
                 }
-                $playlist->establishments()->sync($data->establishments_ids);
+                $playlist->establishments()->sync($establishmentIds);
                 $playlist->devices()->sync($data->devices);
 
                 return $playlist->fresh();
@@ -82,6 +89,11 @@ class ScreenPlaylistApiController extends Controller
 
         try {
             $playlist = DB::transaction(function () use ($data, $playlist, $orientation) {
+                $establishmentIds = $this->establishments->resolvePlaylistEstablishmentIds(
+                    $data->devices,
+                    $data->establishments_ids
+                );
+
                 $days_settings = [
                     'days_settings_option' => $data->days_settings,
                     'start_time' => $data->start_time,
@@ -103,7 +115,7 @@ class ScreenPlaylistApiController extends Controller
                         'updated_at' => now()->addSeconds($index),
                     ]);
                 }
-                $playlist->establishments()->sync($data->establishments_ids);
+                $playlist->establishments()->sync($establishmentIds);
                 $playlist->devices()->sync($data->devices);
 
                 return $playlist->fresh();

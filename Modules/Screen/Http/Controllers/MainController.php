@@ -4,13 +4,17 @@ namespace Modules\Screen\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Schema;
-use Modules\Establishment\Models\Establishment;
 use Modules\Screen\Models\Device;
 use Modules\Screen\Models\Playlist;
 use Modules\Screen\Models\Promo;
+use Modules\Screen\Services\ScreenEstablishmentService;
 
 class MainController extends Controller
 {
+    public function __construct(
+        protected ScreenEstablishmentService $establishments
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -18,7 +22,7 @@ class MainController extends Controller
     {
         $promos = Promo::all();
         $playlistsCount = Playlist::count();
-        $establishments = Establishment::active()->notMain()->select('name', 'id')->get();
+        $establishments = $this->establishments->listForPlaylists();
         $hasEstablishmentColumn = Schema::hasColumn('screen_devices', 'establishment_id');
         $devices = $hasEstablishmentColumn
             ? Device::with('establishment')->select('code', 'id', 'establishment_id')->get()

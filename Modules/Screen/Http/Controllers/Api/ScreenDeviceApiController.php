@@ -7,9 +7,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Modules\Screen\Models\Device;
+use Modules\Screen\Services\ScreenEstablishmentService;
 
 class ScreenDeviceApiController extends Controller
 {
+    public function __construct(
+        protected ScreenEstablishmentService $establishments
+    ) {}
+
     public function index(): JsonResponse
     {
         $hasEstablishment = Schema::hasColumn('screen_devices', 'establishment_id');
@@ -109,7 +114,13 @@ class ScreenDeviceApiController extends Controller
         $columns = $hasEstablishment ? ['id', 'code', 'establishment_id'] : ['id', 'code'];
 
         $devices = Device::query()
-            ->when($hasEstablishment && ! empty($ids), fn ($q) => $q->whereIn('establishment_id', $ids))
+            ->when(
+                $hasEstablishment && ! empty($ids) && ! $this->establishments->allSelectableChosen($ids),
+                fn ($q) => $q->where(function ($query) use ($ids) {
+                    $query->whereIn('establishment_id', $ids)
+                        ->orWhereNull('establishment_id');
+                })
+            )
             ->orderBy('code')
             ->get($columns);
 
