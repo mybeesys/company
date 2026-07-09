@@ -19,6 +19,14 @@ return [
     ],
 
     [
+        'name' => 'referrals',
+        'url' => '/referrals',
+        'icon' => 'fas fa-gift',
+        'permission' => '',
+        'subMenu' => [],
+    ],
+
+    [
         'name' => 'franchise',
         'url' => '/franchise/companies',
         'icon' => 'fas fa-certificate',
