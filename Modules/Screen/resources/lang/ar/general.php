@@ -38,6 +38,8 @@ return [
     'device_name_must_be_unique' => 'اسم الجهاز يجب أن يكون فريدًا ولا يتكرر.',
     'transition_speed_seconds' => 'سرعة التنقل (ثواني)',
     'select_branch_first' => 'اختر الفرع أولاً لعرض الأجهزة التابعة له.',
+    'devices_not_in_establishments' => 'بعض الأجهزة المحددة (:devices) غير مرتبطة بالفروع المختارة. اختر الفرع أولاً ثم الأجهزة التابعة له فقط.',
+    'devices_required' => 'يجب اختيار جهاز عرض واحد على الأقل.',
     'branch' => 'الفرع',
     'dashboard_hero_subtitle' => 'إدارة المواد الإعلانية، قوائم التشغيل، وأجهزة العرض من لوحة واحدة منظمة.',
     'tab_materials_title' => 'مكتبة المواد',

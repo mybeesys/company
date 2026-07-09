@@ -5,9 +5,7 @@ namespace Modules\Screen\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Modules\Screen\Http\Requests\StorePlaylistRequest;
-use Modules\Screen\Models\Device;
 use Modules\Screen\Models\Playlist;
 use Modules\Screen\Models\Promo;
 use Modules\Screen\Services\ScreenPlaylistSyncNotifier;
@@ -34,11 +32,6 @@ class ScreenPlaylistApiController extends Controller
     {
         $data = $request->safe();
         $orientation = $data->screen_orientation ?? 'landscape';
-
-        $devicesValid = $this->devicesBelongToEstablishments($data->devices, $data->establishments_ids);
-        if (! $devicesValid) {
-            return response()->json(['message' => __('employee::responses.something_wrong_happened')], 422);
-        }
 
         try {
             $playlist = DB::transaction(function () use ($data, $orientation) {
@@ -87,11 +80,6 @@ class ScreenPlaylistApiController extends Controller
         $data = $request->safe();
         $orientation = $data->screen_orientation ?? $playlist->screen_orientation ?? 'landscape';
 
-        $devicesValid = $this->devicesBelongToEstablishments($data->devices, $data->establishments_ids);
-        if (! $devicesValid) {
-            return response()->json(['message' => __('employee::responses.something_wrong_happened')], 422);
-        }
-
         try {
             $playlist = DB::transaction(function () use ($data, $playlist, $orientation) {
                 $days_settings = [
@@ -132,22 +120,6 @@ class ScreenPlaylistApiController extends Controller
 
             return response()->json(['message' => __('employee::responses.something_wrong_happened')], 500);
         }
-    }
-
-    protected function devicesBelongToEstablishments(array $deviceIds, array $establishmentIds): bool
-    {
-        if ($deviceIds === []) {
-            return false;
-        }
-        if (! Schema::hasColumn('screen_devices', 'establishment_id')) {
-            return Device::whereIn('id', $deviceIds)->count() === count($deviceIds);
-        }
-
-        $validDevicesCount = Device::whereIn('id', $deviceIds)
-            ->whereIn('establishment_id', $establishmentIds)
-            ->count();
-
-        return $validDevicesCount === count($deviceIds);
     }
 
     public function destroy(Playlist $playlist): JsonResponse

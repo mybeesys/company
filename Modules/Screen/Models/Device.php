@@ -4,6 +4,7 @@ namespace Modules\Screen\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Establishment\Models\Establishment;
 
@@ -35,6 +36,49 @@ class Device extends Model
     public function establishment()
     {
         return $this->belongsTo(Establishment::class, 'establishment_id');
+    }
+
+    /**
+     * @return list<int> Device IDs that are missing or not linked to any of the given establishments.
+     */
+    public static function idsNotMatchingEstablishments(array $deviceIds, array $establishmentIds): array
+    {
+        $deviceIds = array_values(array_unique(array_filter(array_map('intval', $deviceIds))));
+        $establishmentIds = array_values(array_unique(array_filter(array_map('intval', $establishmentIds))));
+
+        if ($deviceIds === []) {
+            return [];
+        }
+
+        if (! Schema::hasColumn('screen_devices', 'establishment_id')) {
+            $foundIds = static::query()->whereIn('id', $deviceIds)->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+            return array_values(array_diff($deviceIds, $foundIds));
+        }
+
+        $validIds = static::query()
+            ->whereIn('id', $deviceIds)
+            ->whereIn('establishment_id', $establishmentIds)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        return array_values(array_diff($deviceIds, $validIds));
+    }
+
+    public static function codesForIds(array $deviceIds): string
+    {
+        $deviceIds = array_values(array_unique(array_filter(array_map('intval', $deviceIds))));
+
+        if ($deviceIds === []) {
+            return '';
+        }
+
+        return static::query()
+            ->whereIn('id', $deviceIds)
+            ->orderBy('id')
+            ->pluck('code')
+            ->implode(', ');
     }
 
     public static function hashPairingToken(string $plainToken): string
