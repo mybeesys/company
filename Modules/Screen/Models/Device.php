@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Establishment\Models\Establishment;
+use Modules\Screen\Services\ScreenEstablishmentService;
 
 class Device extends Model
 {
@@ -56,9 +57,20 @@ class Device extends Model
             return array_values(array_diff($deviceIds, $foundIds));
         }
 
+        $establishmentIds = array_values(array_unique(array_filter(array_map('intval', $establishmentIds))));
+
+        if (app(ScreenEstablishmentService::class)->allSelectableChosen($establishmentIds)) {
+            $foundIds = static::query()->whereIn('id', $deviceIds)->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+            return array_values(array_diff($deviceIds, $foundIds));
+        }
+
         $validIds = static::query()
             ->whereIn('id', $deviceIds)
-            ->whereIn('establishment_id', $establishmentIds)
+            ->where(function ($query) use ($establishmentIds) {
+                $query->whereIn('establishment_id', $establishmentIds)
+                    ->orWhereNull('establishment_id');
+            })
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();

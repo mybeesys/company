@@ -4,8 +4,6 @@ namespace Modules\Screen\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
-use Modules\Screen\Models\Device;
 
 class StorePlaylistRequest extends FormRequest
 {
@@ -28,30 +26,6 @@ class StorePlaylistRequest extends FormRequest
             'selected_promos' => $parseToArray($this->selected_promos),
             'days_of_the_weak' => $parseToArray($this->days_of_the_weak),
         ]);
-    }
-
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator) {
-            $deviceIds = array_values(array_unique(array_map('intval', $this->input('devices', []))));
-            $establishmentIds = array_values(array_unique(array_map('intval', $this->input('establishments_ids', []))));
-
-            if ($deviceIds === []) {
-                $validator->errors()->add('devices', __('screen::general.devices_required'));
-
-                return;
-            }
-
-            $invalidDeviceIds = Device::idsNotMatchingEstablishments($deviceIds, $establishmentIds);
-
-            if ($invalidDeviceIds !== []) {
-                $deviceLabel = Device::codesForIds($invalidDeviceIds) ?: implode(', ', $invalidDeviceIds);
-                $validator->errors()->add(
-                    'devices',
-                    __('screen::general.devices_not_in_establishments', ['devices' => $deviceLabel])
-                );
-            }
-        });
     }
 
     /**

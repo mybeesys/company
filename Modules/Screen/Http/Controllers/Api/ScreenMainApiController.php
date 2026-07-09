@@ -5,13 +5,17 @@ namespace Modules\Screen\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Schema;
-use Modules\Establishment\Models\Establishment;
 use Modules\Screen\Models\Device;
 use Modules\Screen\Models\Playlist;
 use Modules\Screen\Models\Promo;
+use Modules\Screen\Services\ScreenEstablishmentService;
 
 class ScreenMainApiController extends Controller
 {
+    public function __construct(
+        protected ScreenEstablishmentService $establishments
+    ) {}
+
     /**
      * بيانات لوحة الشاشات (نفس ما يُمرَّر لصفحة /main) بصيغة JSON.
      */
@@ -32,7 +36,7 @@ class ScreenMainApiController extends Controller
         });
 
         $playlistsCount = Playlist::count();
-        $establishments = Establishment::active()->notMain()->select('id', 'name')->orderBy('name')->get();
+        $establishments = $this->establishments->listForPlaylists();
 
         $hasEstablishmentColumn = Schema::hasColumn('screen_devices', 'establishment_id');
         $devicesQuery = Device::query()->orderBy('code');

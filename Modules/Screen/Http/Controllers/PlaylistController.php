@@ -7,14 +7,15 @@ use DB;
 use Illuminate\Http\Request;
 use Modules\Screen\Classes\PlaylistTable;
 use Modules\Screen\Http\Requests\StorePlaylistRequest;
-use Modules\Screen\Models\Device;
 use Modules\Screen\Models\Playlist;
+use Modules\Screen\Services\ScreenEstablishmentService;
 use Modules\Screen\Services\ScreenPlaylistSyncNotifier;
 
 class PlaylistController extends Controller
 {
     public function __construct(
-        protected ScreenPlaylistSyncNotifier $playlistSyncNotifier
+        protected ScreenPlaylistSyncNotifier $playlistSyncNotifier,
+        protected ScreenEstablishmentService $establishments
     ) {}
     public function index(Request $request)
     {
@@ -31,14 +32,10 @@ class PlaylistController extends Controller
         $data = $request->safe();
         try {
             return DB::transaction(function () use ($data) {
-                $invalidDeviceIds = Device::idsNotMatchingEstablishments($data->devices, $data->establishments_ids);
-                if ($invalidDeviceIds !== []) {
-                    $deviceLabel = Device::codesForIds($invalidDeviceIds) ?: implode(', ', $invalidDeviceIds);
-
-                    return response()->json([
-                        'error' => __('screen::general.devices_not_in_establishments', ['devices' => $deviceLabel]),
-                    ], 422);
-                }
+                $establishmentIds = $this->establishments->resolvePlaylistEstablishmentIds(
+                    $data->devices,
+                    $data->establishments_ids
+                );
 
                 $days_settings = [
                     'days_settings_option' => $data->days_settings,
@@ -56,7 +53,7 @@ class PlaylistController extends Controller
                         'updated_at' => now()->addSeconds($index),
                     ]);
                 }
-                $playlist->establishments()->sync($data->establishments_ids);
+                $playlist->establishments()->sync($establishmentIds);
                 $playlist->devices()->sync($data->devices);
 
                 $this->playlistSyncNotifier->created($playlist);
@@ -92,14 +89,10 @@ class PlaylistController extends Controller
         $data = $request->safe();
         try {
             return DB::transaction(function () use ($data, $playlist) {
-                $invalidDeviceIds = Device::idsNotMatchingEstablishments($data->devices, $data->establishments_ids);
-                if ($invalidDeviceIds !== []) {
-                    $deviceLabel = Device::codesForIds($invalidDeviceIds) ?: implode(', ', $invalidDeviceIds);
-
-                    return response()->json([
-                        'error' => __('screen::general.devices_not_in_establishments', ['devices' => $deviceLabel]),
-                    ], 422);
-                }
+                $establishmentIds = $this->establishments->resolvePlaylistEstablishmentIds(
+                    $data->devices,
+                    $data->establishments_ids
+                );
 
                 $days_settings = [
                     'days_settings_option' => $data->days_settings,
@@ -118,7 +111,7 @@ class PlaylistController extends Controller
                         'updated_at' => now()->addSeconds($index),
                     ]);
                 }
-                $playlist->establishments()->sync($data->establishments_ids);
+                $playlist->establishments()->sync($establishmentIds);
                 $playlist->devices()->sync($data->devices);
 
                 $this->playlistSyncNotifier->updated($playlist);

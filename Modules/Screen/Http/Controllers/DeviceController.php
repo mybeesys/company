@@ -7,11 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Modules\Screen\Models\Device;
+use Modules\Screen\Services\ScreenEstablishmentService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Yajra\DataTables\Facades\DataTables;
 
 class DeviceController extends Controller
 {
+    public function __construct(
+        protected ScreenEstablishmentService $establishments
+    ) {}
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -138,7 +143,13 @@ class DeviceController extends Controller
         }
 
         $devices = Device::query()
-            ->when(Schema::hasColumn('screen_devices', 'establishment_id') && ! empty($ids), fn ($q) => $q->whereIn('establishment_id', $ids))
+            ->when(
+                Schema::hasColumn('screen_devices', 'establishment_id') && ! empty($ids) && ! $this->establishments->allSelectableChosen($ids),
+                fn ($q) => $q->where(function ($query) use ($ids) {
+                    $query->whereIn('establishment_id', $ids)
+                        ->orWhereNull('establishment_id');
+                })
+            )
             ->orderBy('code')
             ->get(['id', 'code']);
 
