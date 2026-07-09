@@ -5,7 +5,7 @@ return [
     'accounting_module' => 'Accounting',
     'dashboard' => 'Dashboard',
     'my_companies' => 'My companies',
-    'referrals' => 'Referral program',
+    'referrals' => 'Share & earn',
     'user_module' => 'User Mangment',
     'product_module' => 'Product Mangment',
     'chart_of_accounts' => 'Tree of accounts',
