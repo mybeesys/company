@@ -694,4 +694,66 @@ class OrderController extends Controller
             'order_status' => $order ? $order->order_status : null,
         ]);
     }
+
+    /**
+     * تجهيز الطلب كاملاً من المطبخ (كل الأصناف + رأس الطلب) دفعة واحدة.
+     */
+    public function updateOrderStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id' => 'required|integer',
+            'order_type' => 'required|in:local,pos',
+            'status' => 'required|in:prepared',
+        ]);
+
+        $orderType = $validated['order_type'];
+        $orderId = (int) $validated['order_id'];
+
+        if ($orderType === 'local') {
+            $itemModel = OrderTableItems::class;
+            $order = TableOrders::find($orderId);
+        } else {
+            $itemModel = TransactionSellLine::class;
+            $order = Transaction::where('type', 'sell')->find($orderId);
+        }
+
+        if (! $order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        if ($order->order_status !== 'inpreparation') {
+            return response()->json([
+                'message' => 'Order is not in preparation',
+                'order_status' => $order->order_status,
+            ], 422);
+        }
+
+        $updatedLines = $itemModel::where('transaction_id', $order->id)
+            ->where('line_status', 'inpreparation')
+            ->update(['line_status' => 'prepared']);
+
+        $order->update(['order_status' => 'prepared']);
+        $order->refresh();
+        $order->load(['sell_lines.product', 'sell_lines.productCombo']);
+
+        $kitchenSource = $orderType === 'local' ? 'local' : 'pos';
+        $this->kitchen->orderUpdated($order, $kitchenSource);
+
+        if ($orderType === 'local' && $order instanceof TableOrders && $order->table_id) {
+            $this->realtime->orderStatusChanged($order);
+            $this->realtime->orderUpdated($order->table_id);
+            $this->posOrders->orderUpdated($order);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Order marked as prepared',
+            'order_id' => $order->id,
+            'order_type' => $orderType,
+            'source' => KitchenOrderPayload::resolveSource($order),
+            'kitchen_key' => KitchenOrderPayload::kitchenKey($order),
+            'order_status' => $order->order_status,
+            'updated_lines' => $updatedLines,
+        ]);
+    }
 }
