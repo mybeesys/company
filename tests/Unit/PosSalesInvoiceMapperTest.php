@@ -72,6 +72,40 @@ final class PosSalesInvoiceMapperTest extends TestCase
         $this->assertSame('45', $line['tax_id']);
     }
 
+    public function test_maps_sell_line_note_when_present(): void
+    {
+        $item = (object) [
+            'product_id' => 290,
+            'quantity' => 1.0,
+            'price' => 11.3,
+            'price_after_discount' => 11.3,
+            'tax_id' => 45,
+            'tax_value' => 1.7,
+            'discount_amount' => '0',
+            'note' => 'بدون بصل',
+        ];
+
+        $line = PosSalesInvoiceMapper::mapSellLineAttributes($item);
+
+        $this->assertSame('بدون بصل', $line['note']);
+    }
+
+    public function test_maps_sell_line_note_as_null_when_empty(): void
+    {
+        $item = (object) [
+            'product_id' => 290,
+            'quantity' => 1.0,
+            'price' => 11.3,
+            'price_after_discount' => 11.3,
+            'discount_amount' => '0',
+            'note' => '   ',
+        ];
+
+        $line = PosSalesInvoiceMapper::mapSellLineAttributes($item);
+
+        $this->assertNull($line['note']);
+    }
+
     public function test_maps_sample_pos_return_payload_when_header_tax_is_zero(): void
     {
         $request = Request::create('/api/stor-sell-return', 'POST', [

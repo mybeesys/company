@@ -18,6 +18,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\TypesOfService;
 use Modules\Reservation\Models\Order;
 use Modules\Reservation\Models\OrderTableItems;
+use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
@@ -49,27 +50,21 @@ class OrderController extends Controller
 
             $table = Table::findOrFail($request->table_id);
 
-            // البحث عن طلب نشط حالي (غير ملغي وغير مكتمل)
+            // آخر طلب على الطاولة (بما فيه المخدوم) — يُعاد فتحه عند إضافة أصناف بدل إنشاء طلب جديد
             $existingOrder = TableOrders::where('table_id', $table->id)
-                ->whereNotIn('order_status', ['canceled', 'served'])
+                ->whereNotIn('order_status', ['canceled'])
+                ->latest('id')
                 ->first();
 
             // فحص هل الطلب الجديد مدفوع؟
             $isNewRequestPaid = isset($request->payments) && is_array($request->payments) && count($request->payments) > 0;
 
+            $wasReopenedFromTerminal = false;
+
             // --- تطبيق المنطق الخاص بالحالات (بدون تحويل لترانزكشن) ---
             if ($existingOrder) {
-                // الحالة 1: القديم "خالص" (مدفوع أو مخدوم) والجديد قادم -> ننهي القديم ونفتح جديد
-                if ($existingOrder->payment_status == 'paid' || $existingOrder->order_status == 'served') {
-                    // نغلق الحجز القديم والطلب القديم رسمياً
-                    $existingOrder->update(['order_status' => 'canceled']);
-                    Reservation::where('table_id', $table->id)->where('status', 'active')->update(['status' => 'completed']);
-
-                    $table->update(['table_status' => 0]);
-                    $existingOrder = null; // تصفير المتغير لإنشاء طلب جديد تماماً تحت
-                }
                 // الحالة 3: القديم معلق (غير مدفوع) والجديد مدفوع -> مرفوض محاسبياً
-                elseif ($existingOrder->payment_status != 'paid' && $isNewRequestPaid) {
+                if ($existingOrder->payment_status != 'paid' && $isNewRequestPaid) {
                     DB::rollBack();
 
                     return response()->json([
@@ -77,10 +72,10 @@ class OrderController extends Controller
                         'message' => 'لا يمكن دفع طلب جديد منفصل وهناك طلبات سابقة معلقة على هذه الطاولة.',
                     ], 422);
                 }
-                // الحالة 2: دمج الطلبات (القديم والجديد غير مدفوعين)
-                else {
-                    $request->merge(['order_id' => $existingOrder->id]);
-                }
+
+                // الحالة 2: دمج / تحديث الطلب الحالي (بما فيه إعادة فتح المخدوم)
+                $wasReopenedFromTerminal = $this->isReopenableOrderStatus($existingOrder->order_status);
+                $request->merge(['order_id' => $existingOrder->id]);
             }
 
             $transaction = null;
@@ -89,7 +84,7 @@ class OrderController extends Controller
             // --- تنفيذ عملية التخزين (Update or Create) ---
             if (isset($request->order_id) && $existingOrder) {
                 $transaction = $existingOrder;
-                $transaction->update([
+                $updateData = [
                     'discount_amount' => $request->discount_value,
                     'discount_type' => $request->discount_type,
                     'total_before_tax' => $request->total_before_discount,
@@ -99,7 +94,20 @@ class OrderController extends Controller
                     'created_by' => $userId,
                     'description' => $request->note,
                     'payment_status' => $isNewRequestPaid ? 'paid' : $transaction->payment_status,
-                ]);
+                ];
+
+                if ($wasReopenedFromTerminal) {
+                    $updateData['order_status'] = 'inpreparation';
+                    if (! $isNewRequestPaid) {
+                        $updateData['payment_status'] = 'due';
+                    }
+                }
+
+                $transaction->update($updateData);
+
+                if ($wasReopenedFromTerminal) {
+                    $this->reopenTableForOrder($table, $userId, $request);
+                }
 
                 $this->saveOrderItems($transaction, $request->items);
             } else {
@@ -156,6 +164,12 @@ class OrderController extends Controller
                 $transaction->load(['sell_lines.product', 'sell_lines.productCombo', 'createdBy']);
                 $this->kitchen->orderCreated($transaction, 'local');
                 $this->posOrders->orderCreated($transaction);
+            } elseif ($wasReopenedFromTerminal) {
+                $this->realtime->tableUpdated($table);
+                $this->realtime->orderUpdated($table->id);
+                $transaction->load(['sell_lines.product', 'sell_lines.productCombo', 'createdBy']);
+                $this->kitchen->orderCreated($transaction, 'local');
+                $this->posOrders->orderUpdated($transaction);
             } elseif ($this->isTerminalOrderStatus($transaction->order_status)) {
                 $this->finalizeTableOrderIfTerminal($transaction);
                 $table->refresh();
@@ -164,6 +178,7 @@ class OrderController extends Controller
                 $this->realtime->tableUpdated($table);
                 $this->realtime->orderUpdated($table->id);
                 $transaction->load(['sell_lines.product', 'sell_lines.productCombo', 'createdBy']);
+                $this->kitchen->orderUpdated($transaction, 'local');
                 $this->posOrders->orderUpdated($transaction);
             } else {
                 $this->realtime->tableUpdated($table);
@@ -234,6 +249,8 @@ class OrderController extends Controller
 
     private function saveOrderItems($transaction, $items)
     {
+        OrderTableItems::where('transaction_id', $transaction->id)->delete();
+
         $products = json_decode(json_encode($items));
         foreach ($products as $product) {
             $mainItem = OrderTableItems::create([
@@ -248,6 +265,7 @@ class OrderController extends Controller
                 'tax_id' => $product->tax_id ?? null,
                 'tax_value' => $product->tax_value ?? 0,
                 'line_status' => 'inpreparation',
+                'note' => PosSalesInvoiceMapper::resolveItemNote($product),
             ]);
 
             if (isset($product->order_item_modifiers)) {
@@ -268,10 +286,19 @@ class OrderController extends Controller
 
             if (isset($product->order_item_combos)) {
                 foreach ($product->order_item_combos as $combo) {
+                    $comboProductId = (int) ($combo->product_id ?? 0);
+                    if ($comboProductId <= 0) {
+                        $resolved = PosSalesInvoiceMapper::resolveComboOption((object) [
+                            'option_id' => $combo->option_id ?? 0,
+                            'combo_group_id' => $combo->combo_group_id ?? 0,
+                        ]);
+                        $comboProductId = $resolved ? (int) $resolved->item_id : (int) ($combo->option_id ?? 0);
+                    }
+
                     OrderTableItems::create([
                         'transaction_id' => $transaction->id,
                         'combo_id' => $combo->option_id,
-                        'product_id' => $combo->product_id ?? $mainItem->product_id,
+                        'product_id' => $comboProductId,
                         'parent_id' => $mainItem->id,
                         'qyt' => $combo->quantity ?? 1,
                         'unit_price' => $combo->price ?? 0,
@@ -359,6 +386,7 @@ class OrderController extends Controller
                         'tax_value' => (float) $mainItem->tax_value,
                         'discount_type' => $mainItem->discount_type,
                         'discount_amount' => (float) $mainItem->discount_amount,
+                        'note' => $mainItem->note ?? '',
                         'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
                             return [
                                 'id' => $mod->id,
@@ -427,6 +455,37 @@ class OrderController extends Controller
     private function isTerminalOrderStatus(?string $status): bool
     {
         return in_array($status, ['served', 'canceled', 'completed'], true);
+    }
+
+    private function isReopenableOrderStatus(?string $status): bool
+    {
+        return in_array($status, ['served', 'prepared', 'completed'], true);
+    }
+
+    private function reopenTableForOrder(Table $table, int $userId, Request $request): void
+    {
+        $table->update([
+            'table_status' => 2,
+            'assigned_waiter_id' => $userId,
+        ]);
+
+        $hasActiveReservation = Reservation::where('table_id', $table->id)
+            ->where('status', 'active')
+            ->exists();
+
+        if ($hasActiveReservation) {
+            return;
+        }
+
+        Reservation::create([
+            'table_id' => $table->id,
+            'customer_name' => $request->customer_name ?? 'Guest',
+            'customer_phone' => $request->customer_phone ?? null,
+            'reservation_time' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
+            'guests_count' => $request->guests_count ?? 1,
+            'status' => 'active',
+            'created_by' => $userId,
+        ]);
     }
 
     private function finalizeTableOrderIfTerminal(TableOrders $order): void

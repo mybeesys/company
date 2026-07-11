@@ -20,6 +20,8 @@ class EnsureHasSubscription
         if ($request->is(
             'api/verify-token',
             'api/verify-socket-token',
+            'api/company-login',
+            'api/company-logout',
             'api/internal/realtime/*',
         )) {
             return $next($request);

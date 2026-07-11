@@ -22,8 +22,8 @@ const LARAVEL_INTERNAL_URL = process.env.LARAVEL_INTERNAL_URL || LARAVEL_VERIFY_
 const TENANT_URL_TEMPLATE =
   process.env.TENANT_URL_TEMPLATE || "http://{tenant}.localhost";
 const SCHEMA_VERSION = 1;
-const RATE_LIMIT_PER_MINUTE = Number(process.env.SOCKET_RATE_LIMIT_PER_MINUTE || 30);
-const VERIFY_TOKEN_CACHE_MS = Number(process.env.SOCKET_VERIFY_CACHE_MS || 120_000);
+const RATE_LIMIT_PER_MINUTE = Number(process.env.SOCKET_RATE_LIMIT_PER_MINUTE || 120);
+const VERIFY_TOKEN_CACHE_MS = Number(process.env.SOCKET_VERIFY_CACHE_MS || 86_400_000);
 const SCREEN_PAIRING_CHANNEL_PREFIX = "screen.pairing.";
 const SCREEN_DEVICE_CHANNEL_PREFIX = "screen.device.";
 
@@ -118,6 +118,12 @@ const verifyTokenCache = new Map();
 
 function verifyCacheKey(token) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+function isVerifyCacheValid(token) {
+  const cleanToken = token.replace(/^Bearer\s+/i, "");
+  const cachedUntil = verifyTokenCache.get(verifyCacheKey(cleanToken));
+  return Boolean(cachedUntil && cachedUntil > Date.now());
 }
 
 function tenantBaseUrl(tenantId) {
@@ -646,12 +652,14 @@ io.use(async (socket, next) => {
   }
 
   const clientType = String(auth.client_type || auth.app_type || "default").toLowerCase();
-  const rateKey = `${tenantId}:${clientType}:${auth.employee_id || auth.device_id || "anon"}`;
-  if (!checkRateLimit(rateKey)) {
+  const tokenCacheValid = isVerifyCacheValid(token);
+  const rateKey = `${tenantId}:${verifyCacheKey(token)}`;
+
+  if (!tokenCacheValid && !checkRateLimit(rateKey)) {
     return next(new Error("RATE_LIMITED"));
   }
 
-  const valid = await verifyBearerToken(token, tenantId);
+  const valid = tokenCacheValid || (await verifyBearerToken(token, tenantId));
   if (!valid) {
     return next(new Error("INVALID_TOKEN"));
   }

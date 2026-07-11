@@ -75,9 +75,13 @@ class KitchenBroadcastService
      */
     public function orderRemoved(int $orderId, int $establishmentId, string $reason = 'completed', $order = null): void
     {
+        $source = $order ? KitchenOrderPayload::resolveSource($order) : 'local';
+
         $this->send('kitchen:order:removed', [
             'establishment_id' => $establishmentId,
             'order_id' => $orderId,
+            'source' => $source,
+            'kitchen_key' => KitchenOrderPayload::kitchenKeyFromParts($source, $orderId),
             'reason' => $reason,
         ], $establishmentId, $this->resolveCategoryIdsForOrderId($orderId, $order));
     }
@@ -98,6 +102,8 @@ class KitchenBroadcastService
         $this->send('kitchen:item:status_changed', [
             'establishment_id' => $establishmentId,
             'order_id' => $order->id,
+            'source' => KitchenOrderPayload::resolveSource($order),
+            'kitchen_key' => KitchenOrderPayload::kitchenKey($order),
             'item_id' => $itemId,
             'status' => $itemStatus,
             'order_status' => $order->order_status,
@@ -148,7 +154,9 @@ class KitchenBroadcastService
             return $this->categoryIdsFromOrder($tableOrder);
         }
 
-        $transaction = Transaction::with('sell_lines.product')->find($orderId);
+        $transaction = Transaction::with('sell_lines.product')
+            ->where('type', 'sell')
+            ->find($orderId);
         if ($transaction) {
             return $this->categoryIdsFromOrder($transaction);
         }

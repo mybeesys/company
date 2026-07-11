@@ -239,7 +239,15 @@ final class PosSalesInvoiceMapper
             'tax_id' => TransactionLineTaxRate::normalizeForStorage($product->tax_id ?? null),
             'tax_value' => $lineTaxAmount,
             'total_before_vat' => $lineTotalBeforeVat,
+            'note' => self::resolveItemNote($product),
         ];
+    }
+
+    public static function resolveItemNote(object $product): ?string
+    {
+        $note = trim((string) ($product->note ?? ''));
+
+        return $note !== '' ? $note : null;
     }
 
     public static function resolveLineTaxAmount(object $product, float $qty, float $lineTotalBeforeVat): float

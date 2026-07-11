@@ -115,6 +115,7 @@ class TableConrtollerController extends Controller
                     'tax_id' => $mainItem->tax_id,
                     'tax_value' => (float) $mainItem->tax_value,
                     'price_with_tax_after_discount' => (float) $mainItem->unit_price_inc_tax,
+                    'note' => $mainItem->note ?? '',
                     'order_item_modifiers' => $subItems->whereNotNull('modifier_id')->map(function ($mod) {
                         return [
                             'id' => $mod->id,
@@ -176,6 +177,7 @@ class TableConrtollerController extends Controller
                 'total_after_discount' => $order->total_after_discount,
                 'created_by' => $order->created_by,
                 'description' => $order->description,
+                'note' => $order->description ?? '',
                 'tax_amount' => $order->tax_amount,
                 'order_status' => $order->order_status,
                 'order_type' => $service_name,
