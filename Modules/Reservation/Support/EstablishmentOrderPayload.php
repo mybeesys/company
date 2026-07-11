@@ -100,6 +100,7 @@ class EstablishmentOrderPayload
             'tax_amount' => (string) $taxAmount,
             'paid_amount' => $order->payment?->sum('amount') ?? 0,
             'description' => $order->description,
+            'note' => $order->description ?? '',
             'establishment_id' => $order->establishment_id,
             'created_by' => $order->created_by,
             'waiter_name' => $waiter?->name_ar ?? $waiter?->name_en ?? '',

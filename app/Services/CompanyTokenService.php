@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use Laravel\Sanctum\NewAccessToken;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * إصدار توكنات company-login متعددة — تطبيق لكل client_type (waiter / cashier / kitchen…).
@@ -23,14 +24,40 @@ class CompanyTokenService
         'default',
     ];
 
-    public function issue(User $user, ?string $clientType = null, ?string $deviceId = null): NewAccessToken
-    {
+    public function issue(
+        User $user,
+        ?string $clientType = null,
+        ?string $deviceId = null,
+        ?bool $revokePrevious = null,
+    ): NewAccessToken {
         $tokenName = $this->tokenName($clientType, $deviceId);
+        $shouldRevoke = $revokePrevious ?? (bool) config('company_api.revoke_previous_on_login', false);
 
-        // إلغاء توken نفس التطبيق/الجهاز فقط — وليس كل توkenات المستخدم
-        $user->tokens()->where('name', $tokenName)->delete();
+        if ($shouldRevoke) {
+            $user->tokens()->where('name', $tokenName)->delete();
+        }
 
-        return $user->createToken($tokenName, ['company:api']);
+        return $user->createToken(
+            $tokenName,
+            ['company:api'],
+            $this->resolveExpiration(),
+        );
+    }
+
+    public function revokePlainTextToken(string $plainTextToken): void
+    {
+        $connection = (string) config('tenancy.database.central_connection', 'mysql');
+
+        if (! str_contains($plainTextToken, '|')) {
+            PersonalAccessToken::on($connection)
+                ->where('token', hash('sha256', $plainTextToken))
+                ->delete();
+
+            return;
+        }
+
+        [$id] = explode('|', $plainTextToken, 2);
+        PersonalAccessToken::on($connection)->whereKey($id)->delete();
     }
 
     public function tokenName(?string $clientType, ?string $deviceId = null): string
@@ -50,5 +77,15 @@ class CompanyTokenService
         $type = strtolower(trim((string) $clientType));
 
         return in_array($type, self::ALLOWED_CLIENT_TYPES, true) ? $type : 'default';
+    }
+
+    private function resolveExpiration(): ?\DateTimeInterface
+    {
+        $minutes = config('company_api.token_expiration_minutes');
+        if ($minutes === null || $minutes === '' || (int) $minutes <= 0) {
+            return null;
+        }
+
+        return now()->addMinutes((int) $minutes);
     }
 }

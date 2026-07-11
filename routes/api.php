@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\CompanyAuthController;
 use App\Support\SanctumBearerValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/company-login', [CompanyAuthController::class, 'login']);
+Route::post('/company-logout', [CompanyAuthController::class, 'logout']);
 
 Route::get('/verify-token', function (Request $request) {
     if (! SanctumBearerValidator::isValid($request->bearerToken())) {
