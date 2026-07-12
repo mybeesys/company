@@ -325,7 +325,7 @@ socket.onReconnect((_) {
 | الحدث في النظام | Socket |
 |-----------------|--------|
 | طلب جديد (طاولة / POS) | `kitchen:order:created` |
-| تعليم صنف prepared | `kitchen:item:status_changed` + `kitchen:order:updated` |
+| تعليم صنف prepared | `kitchen:item:status_changed` + `kitchen:order:updated` (يُحدَّث الرئيسي + الكومبو/الموديفاير معاً في DB) |
 | اكتمال الطلب (`prepared` / إلغاء / إنهاء) | `kitchen:order:removed` |
 | اتصال + join | `kitchen:sync` |
 

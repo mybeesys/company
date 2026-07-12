@@ -26,6 +26,7 @@ use Modules\Reservation\Services\EstablishmentOrdersBroadcastService;
 use Modules\Reservation\Services\KitchenBroadcastService;
 use Modules\Reservation\Services\RealtimeBroadcastService;
 use Modules\Reservation\Support\EstablishmentOrderPayload;
+use Modules\Reservation\Support\KitchenItemStatusGrouper;
 use Modules\Reservation\Support\KitchenOrderPayload;
 
 class OrderController extends Controller
@@ -658,7 +659,10 @@ class OrderController extends Controller
             return response()->json(['message' => 'Item not found'], 404);
         }
 
-        $item->update(['line_status' => 'prepared']);
+        $lineIds = $this->resolvePreparedLineGroupIds($itemModel, $item);
+        $itemModel::whereIn('id', $lineIds)
+            ->where('line_status', 'inpreparation')
+            ->update(['line_status' => 'prepared']);
 
         $order = $orderModel::find($item->transaction_id);
         $allOrderPrepared = false;
@@ -677,7 +681,7 @@ class OrderController extends Controller
         if ($order) {
             $order->refresh();
             $order->load(['sell_lines.product']);
-            $this->kitchen->itemStatusChanged($order, (int) $item->id, $item->line_status ?? 'prepared', $orderType);
+            $this->kitchen->itemStatusChanged($order, (int) $item->id, 'prepared', $orderType);
 
             if ($orderType === 'local' && $order->table_id) {
                 if ($allOrderPrepared) {
@@ -690,9 +694,26 @@ class OrderController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Status updated successfully',
-            'new_status' => $item->line_status,
+            'new_status' => 'prepared',
+            'updated_line_ids' => $lineIds,
             'order_status' => $order ? $order->order_status : null,
         ]);
+    }
+
+    /**
+     * @param  OrderTableItems|TransactionSellLine  $item
+     * @param  class-string  $itemModel
+     * @return array<int, int>
+     */
+    private function resolvePreparedLineGroupIds(string $itemModel, $item): array
+    {
+        if ($itemModel === OrderTableItems::class) {
+            return KitchenItemStatusGrouper::tableLineGroupIds($item);
+        }
+
+        $allLines = TransactionSellLine::where('transaction_id', $item->transaction_id)->get();
+
+        return KitchenItemStatusGrouper::posLineGroupIds($allLines, (int) $item->id);
     }
 
     /**

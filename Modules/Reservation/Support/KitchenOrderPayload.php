@@ -311,7 +311,7 @@ class KitchenOrderPayload
         ];
     }
 
-    private static function isPosComboComponentLine(TransactionSellLine $line): bool
+    public static function isPosComboComponentLine(TransactionSellLine $line): bool
     {
         if ($line->modifier_id !== null && $line->modifier_id !== '') {
             return false;
@@ -329,7 +329,7 @@ class KitchenOrderPayload
             || (float) ($line->unit_price_inc_tax ?? 0) > 0.0;
     }
 
-    private static function looksLikePosMainProductLine(TransactionSellLine $line, TransactionSellLine $currentMain): bool
+    public static function looksLikePosMainProductLine(TransactionSellLine $line, TransactionSellLine $currentMain): bool
     {
         if ((int) $line->product_id === (int) $currentMain->product_id) {
             return false;
