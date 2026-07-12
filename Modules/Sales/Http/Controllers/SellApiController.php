@@ -16,7 +16,9 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductComboItem;
+use Modules\Reservation\Models\TableOrders;
 use Modules\Reservation\Services\KitchenBroadcastService;
+use Modules\Reservation\Support\KitchenOrderPayload;
 use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Modules\Sales\Utils\SalesUtile;
@@ -61,6 +63,15 @@ class SellApiController extends Controller
             $created_by = Employee::find($request->user_id);
             if (! $created_by) {
                 return response()->json(['message' => 'Employee not found'], 404);
+            }
+            if ($request->filled('table_id') && ! $request->filled('table_order_id')) {
+                $linkedTableOrderId = TableOrders::where('table_id', $request->table_id)
+                    ->where('order_status', 'inpreparation')
+                    ->latest('id')
+                    ->value('id');
+                if ($linkedTableOrderId) {
+                    $request->merge(['table_order_id' => $linkedTableOrderId]);
+                }
             }
             if ($request->filled('device_id') && ! EstPos::find($request->device_id)) {
                 return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
@@ -244,7 +255,12 @@ class SellApiController extends Controller
             DB::commit();
 
             $transaction->load(['sell_lines.product']);
-            $this->kitchen->orderCreated($transaction, 'pos');
+            if (
+                ! KitchenOrderPayload::requestRepresentsTableSale($request)
+                && KitchenOrderPayload::shouldBroadcastPosTransactionToKitchen($transaction)
+            ) {
+                $this->kitchen->orderCreated($transaction, 'pos');
+            }
 
             return response()->json(['message' => 'Added successfully'], 200);
         } catch (Exception $e) {
