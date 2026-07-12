@@ -117,7 +117,10 @@ class KitchenOrderPayloadTest extends TestCase
     public function test_request_with_table_id_is_table_sale(): void
     {
         $this->assertTrue(KitchenOrderPayload::requestRepresentsTableSale(
-            Request::create('/api/stor-sales-invoice', 'POST', ['table_id' => 15])
+            Request::create('/api/stor-sales-invoice', 'POST', [
+                'table_id' => 15,
+                'table_order_id' => 99,
+            ])
         ));
         $this->assertFalse(KitchenOrderPayload::requestRepresentsTableSale(
             Request::create('/api/stor-sales-invoice', 'POST', [])

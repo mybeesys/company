@@ -70,7 +70,82 @@ class KitchenOrderPayload
      */
     public static function requestRepresentsTableSale(Request $request): bool
     {
+        self::linkTableOrderToInvoiceRequest($request);
+
         return $request->filled('table_id') || $request->filled('table_order_id');
+    }
+
+    /**
+     * يربط فاتورة الكاشير بطلب الطاولة إن وُجد (table_id / table_order_id / محلي + نفس الإجمالي).
+     */
+    public static function linkTableOrderToInvoiceRequest(Request $request): void
+    {
+        if ($request->filled('table_id') && ! $request->filled('table_order_id')) {
+            $linkedTableOrderId = TableOrders::where('table_id', $request->table_id)
+                ->where('order_status', 'inpreparation')
+                ->when($request->filled('establishment_id'), function ($query) use ($request) {
+                    $query->where('establishment_id', $request->establishment_id);
+                })
+                ->latest('id')
+                ->value('id');
+
+            if ($linkedTableOrderId) {
+                $request->merge(['table_order_id' => $linkedTableOrderId]);
+            }
+
+            return;
+        }
+
+        if ($request->filled('table_order_id') || $request->filled('table_id')) {
+            return;
+        }
+
+        if (! self::isDineInOrderType($request->input('order_type'))) {
+            return;
+        }
+
+        $establishmentId = $request->input('establishment_id');
+        $userId = $request->input('user_id');
+        $finalTotal = (float) $request->input('total_paid', 0);
+
+        if (! $establishmentId || ! $userId || $finalTotal <= 0) {
+            return;
+        }
+
+        $tableOrder = TableOrders::query()
+            ->where('establishment_id', $establishmentId)
+            ->where('created_by', $userId)
+            ->where('order_status', 'inpreparation')
+            ->whereBetween('final_total', [$finalTotal - 0.05, $finalTotal + 0.05])
+            ->latest('id')
+            ->first();
+
+        if ($tableOrder) {
+            $request->merge([
+                'table_order_id' => $tableOrder->id,
+                'table_id' => $tableOrder->table_id,
+            ]);
+        }
+    }
+
+    public static function isDineInOrderType(mixed $orderType): bool
+    {
+        if ($orderType === null || $orderType === '') {
+            return false;
+        }
+
+        $service = TypesOfService::find($orderType);
+        if (! $service) {
+            return false;
+        }
+
+        $name = mb_strtolower((string) ($service->name_ar ?? $service->name ?? ''));
+
+        if (str_contains($name, 'سفر')) {
+            return false;
+        }
+
+        return str_contains($name, 'محل');
     }
 
     /**
@@ -92,13 +167,48 @@ class KitchenOrderPayload
         }
 
         $tableId = self::normalizeOptionalId($transaction->table_id);
-        if ($tableId === null) {
-            return false;
+        if ($tableId !== null) {
+            return $activeTableOrders->contains(
+                fn (TableOrders $order) => (int) $order->table_id === $tableId
+            );
         }
 
-        return $activeTableOrders->contains(
-            fn (TableOrders $order) => (int) $order->table_id === $tableId
-        );
+        if (self::isDineInOrderType($transaction->order_type)) {
+            return self::matchesActiveTableOrderDuplicate($transaction, $activeTableOrders);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  Collection<int, TableOrders>  $activeTableOrders
+     */
+    private static function matchesActiveTableOrderDuplicate(
+        Transaction $transaction,
+        Collection $activeTableOrders,
+    ): bool {
+        foreach ($activeTableOrders as $tableOrder) {
+            if ((int) $tableOrder->establishment_id !== (int) $transaction->establishment_id) {
+                continue;
+            }
+
+            if ((int) $tableOrder->created_by !== (int) $transaction->created_by) {
+                continue;
+            }
+
+            if (abs((float) $tableOrder->final_total - (float) $transaction->final_total) > 0.05) {
+                continue;
+            }
+
+            $tableAt = $tableOrder->updated_at ?? $tableOrder->created_at;
+            $txAt = $transaction->created_at;
+
+            if ($tableAt && $txAt && abs($tableAt->diffInSeconds($txAt)) <= 300) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function shouldBroadcastPosTransactionToKitchen(Transaction $transaction): bool
@@ -148,6 +258,11 @@ class KitchenOrderPayload
         if ($order instanceof TableOrders) {
             $service = TypesOfService::find($order->order_type);
             $serviceName = $service->name_ar ?? 'محلي';
+        } elseif (! empty($order->order_type)) {
+            $service = TypesOfService::find($order->order_type);
+            if ($service) {
+                $serviceName = $service->name_ar ?? $serviceName;
+            }
         }
 
         return [
