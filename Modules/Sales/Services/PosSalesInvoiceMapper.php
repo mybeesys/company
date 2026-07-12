@@ -156,6 +156,8 @@ final class PosSalesInvoiceMapper
             'device_id' => $request->device_id,
             'order_status' => 'inpreparation',
             'order_type' => $request->input('order_type'),
+            'table_id' => $request->input('table_id'),
+            'table_order_id' => $request->input('table_order_id'),
         ];
     }
 

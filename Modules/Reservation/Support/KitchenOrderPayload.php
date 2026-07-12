@@ -2,6 +2,7 @@
 
 namespace Modules\Reservation\Support;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
@@ -54,13 +55,71 @@ class KitchenOrderPayload
                 });
             })
             ->with(['sell_lines.product', 'createdBy', 'client'])
-            ->get();
+            ->get()
+            ->reject(fn (Transaction $transaction) => self::shouldExcludePosTransactionFromKitchen($transaction, $tableOrders));
 
         return $tableOrders->concat($posTransactions)
             ->map(fn ($order) => self::formatOrder($order, $categoryIds))
             ->filter()
             ->values()
             ->all();
+    }
+
+    /**
+     * فاتورة POS مرتبطة بطاولة — المطبخ يعرض table_orders فقط (محلي).
+     */
+    public static function requestRepresentsTableSale(Request $request): bool
+    {
+        return $request->filled('table_id') || $request->filled('table_order_id');
+    }
+
+    /**
+     * @param  Collection<int, TableOrders>  $activeTableOrders
+     */
+    public static function shouldExcludePosTransactionFromKitchen(
+        Transaction $transaction,
+        Collection $activeTableOrders,
+    ): bool {
+        $tableOrderId = self::normalizeOptionalId($transaction->table_order_id);
+        if ($tableOrderId !== null) {
+            if ($activeTableOrders->contains(fn (TableOrders $order) => (int) $order->id === $tableOrderId)) {
+                return true;
+            }
+
+            return TableOrders::where('id', $tableOrderId)
+                ->where('order_status', 'inpreparation')
+                ->exists();
+        }
+
+        $tableId = self::normalizeOptionalId($transaction->table_id);
+        if ($tableId === null) {
+            return false;
+        }
+
+        return $activeTableOrders->contains(
+            fn (TableOrders $order) => (int) $order->table_id === $tableId
+        );
+    }
+
+    public static function shouldBroadcastPosTransactionToKitchen(Transaction $transaction): bool
+    {
+        $query = TableOrders::where('order_status', 'inpreparation');
+        if (! empty($transaction->establishment_id)) {
+            $query->where('establishment_id', $transaction->establishment_id);
+        }
+
+        return ! self::shouldExcludePosTransactionFromKitchen($transaction, $query->get());
+    }
+
+    private static function normalizeOptionalId(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $id = (int) $value;
+
+        return $id > 0 ? $id : null;
     }
 
     /**

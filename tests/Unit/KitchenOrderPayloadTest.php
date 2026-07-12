@@ -2,9 +2,12 @@
 
 namespace Tests\Unit;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Reservation\Models\OrderTableItems;
+use Modules\Reservation\Models\TableOrders;
 use Modules\Reservation\Support\KitchenOrderPayload;
 use Tests\TestCase;
 
@@ -64,6 +67,61 @@ class KitchenOrderPayloadTest extends TestCase
         $this->assertSame('pos', KitchenOrderPayload::resolveSource($posOrder));
         $this->assertSame('local:42', KitchenOrderPayload::kitchenKey($tableOrder));
         $this->assertSame('pos:42', KitchenOrderPayload::kitchenKey($posOrder));
+    }
+
+    public function test_pos_transaction_linked_to_table_order_is_excluded_from_kitchen(): void
+    {
+        $tableOrder = new TableOrders([
+            'table_id' => 15,
+            'establishment_id' => 3,
+            'order_status' => 'inpreparation',
+        ]);
+        $tableOrder->id = 207;
+
+        $linkedPos = new Transaction([
+            'type' => 'sell',
+            'table_order_id' => '207',
+            'order_status' => 'inpreparation',
+        ]);
+
+        $takeawayPos = new Transaction([
+            'type' => 'sell',
+            'order_status' => 'inpreparation',
+        ]);
+
+        $active = collect([$tableOrder]);
+
+        $this->assertTrue(KitchenOrderPayload::shouldExcludePosTransactionFromKitchen($linkedPos, $active));
+        $this->assertFalse(KitchenOrderPayload::shouldExcludePosTransactionFromKitchen($takeawayPos, $active));
+    }
+
+    public function test_pos_transaction_with_table_id_is_excluded_when_table_has_active_order(): void
+    {
+        $tableOrder = new TableOrders([
+            'table_id' => 15,
+            'order_status' => 'inpreparation',
+        ]);
+        $tableOrder->id = 88;
+
+        $linkedPos = new Transaction([
+            'type' => 'sell',
+            'table_id' => '15',
+            'order_status' => 'inpreparation',
+        ]);
+
+        $this->assertTrue(
+            KitchenOrderPayload::shouldExcludePosTransactionFromKitchen($linkedPos, collect([$tableOrder]))
+        );
+    }
+
+    public function test_request_with_table_id_is_table_sale(): void
+    {
+        $this->assertTrue(KitchenOrderPayload::requestRepresentsTableSale(
+            Request::create('/api/stor-sales-invoice', 'POST', ['table_id' => 15])
+        ));
+        $this->assertFalse(KitchenOrderPayload::requestRepresentsTableSale(
+            Request::create('/api/stor-sales-invoice', 'POST', [])
+        ));
     }
 
     private function makeTableLine(
