@@ -47,6 +47,44 @@ final class KitchenItemStatusGrouper
      */
     public static function posLineGroupIds(Collection $allLines, int $targetLineId): array
     {
+        if ($allLines->contains(fn (TransactionSellLine $line) => ! empty($line->parent_id))) {
+            $target = $allLines->firstWhere('id', $targetLineId);
+            if ($target instanceof TransactionSellLine) {
+                return self::posLineGroupIdsByParent($allLines, $target);
+            }
+        }
+
+        return self::posLineGroupIdsSequential($allLines, $targetLineId);
+    }
+
+    /**
+     * @param  Collection<int, TransactionSellLine>  $allLines
+     * @return array<int, int>
+     */
+    private static function posLineGroupIdsByParent(Collection $allLines, TransactionSellLine $item): array
+    {
+        $mainId = ! empty($item->parent_id) ? (int) $item->parent_id : (int) $item->id;
+
+        return $allLines
+            ->filter(static function (TransactionSellLine $line) use ($mainId): bool {
+                if ((int) $line->id === $mainId) {
+                    return true;
+                }
+
+                return (string) $line->parent_id === (string) $mainId;
+            })
+            ->pluck('id')
+            ->map(static fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  Collection<int, TransactionSellLine>  $allLines
+     * @return array<int, int>
+     */
+    private static function posLineGroupIdsSequential(Collection $allLines, int $targetLineId): array
+    {
         $matchedGroup = [$targetLineId];
         $currentMain = null;
         $currentGroupIds = [];

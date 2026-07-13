@@ -334,39 +334,89 @@ class KitchenOrderPayload
      */
     public static function formatPosSellLines(Collection $allLines, array $categoryIds = []): array
     {
+        if ($allLines->contains(fn (TransactionSellLine $line) => ! empty($line->parent_id))) {
+            return self::formatPosSellLinesByParent($allLines, $categoryIds);
+        }
+
+        return self::formatPosSellLinesSequential($allLines, $categoryIds);
+    }
+
+    /**
+     * @param  Collection<int, TransactionSellLine>  $allLines
+     * @param  array<int>  $categoryIds
+     * @return array<int, array<string, mixed>>
+     */
+    private static function formatPosSellLinesByParent(Collection $allLines, array $categoryIds = []): array
+    {
+        $parentItems = $allLines->filter(
+            fn (TransactionSellLine $line) => empty($line->parent_id)
+        );
+
+        return $parentItems
+            ->map(function (TransactionSellLine $mainItem) use ($allLines, $categoryIds) {
+                $subItems = $allLines->filter(
+                    fn (TransactionSellLine $line) => (string) $line->parent_id === (string) $mainItem->id
+                );
+
+                $modifiers = $subItems
+                    ->filter(fn (TransactionSellLine $line) => self::isPosModifierLine($line))
+                    ->values();
+                $combos = $subItems
+                    ->filter(fn (TransactionSellLine $line) => self::isPosComboLine($line))
+                    ->values();
+
+                if (! self::lineGroupMatchesCategories($mainItem, $modifiers, $combos, $categoryIds)) {
+                    return null;
+                }
+
+                return self::mapMainKitchenItem(
+                    $mainItem,
+                    $modifiers,
+                    $combos,
+                    fn ($combo) => $combo->product->name_ar ?? ''
+                );
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  Collection<int, TransactionSellLine>  $allLines
+     * @param  array<int>  $categoryIds
+     * @return array<int, array<string, mixed>>
+     */
+    private static function formatPosSellLinesSequential(Collection $allLines, array $categoryIds = []): array
+    {
         $items = [];
         $currentMain = null;
-        /** @var array<int, TransactionSellLine> $currentModifiers */
-        $currentModifiers = [];
-        /** @var array<int, TransactionSellLine> $currentCombos */
-        $currentCombos = [];
+        /** @var array<int, TransactionSellLine> $currentChildren */
+        $currentChildren = [];
 
-        $flush = function () use (&$items, &$currentMain, &$currentModifiers, &$currentCombos, $categoryIds) {
+        $flush = function () use (&$items, &$currentMain, &$currentChildren, $categoryIds) {
             if (! $currentMain) {
                 return;
             }
 
-            $modifierCollection = collect($currentModifiers);
-            $comboCollection = collect($currentCombos);
+            [$modifiers, $combos] = self::splitLegacyPosChildLines(collect($currentChildren));
 
-            if (self::lineGroupMatchesCategories($currentMain, $modifierCollection, $comboCollection, $categoryIds)) {
+            if (self::lineGroupMatchesCategories($currentMain, $modifiers, $combos, $categoryIds)) {
                 $items[] = self::mapMainKitchenItem(
                     $currentMain,
-                    $modifierCollection,
-                    $comboCollection,
+                    $modifiers,
+                    $combos,
                     fn ($combo) => $combo->product->name_ar ?? ''
                 );
             }
 
             $currentMain = null;
-            $currentModifiers = [];
-            $currentCombos = [];
+            $currentChildren = [];
         };
 
         foreach ($allLines->sortBy('id')->values() as $line) {
             if (self::isPosComboComponentLine($line)) {
                 if ($currentMain) {
-                    $currentCombos[] = $line;
+                    $currentChildren[] = $line;
                 }
 
                 continue;
@@ -378,26 +428,86 @@ class KitchenOrderPayload
                 continue;
             }
 
-            if ($currentCombos !== []) {
+            if (self::legacyPosChildrenContainCombos($currentChildren)) {
                 $flush();
                 $currentMain = $line;
 
                 continue;
             }
 
-            if ($currentModifiers === [] && self::looksLikePosMainProductLine($line, $currentMain)) {
+            if ($currentChildren === [] && self::looksLikePosMainProductLine($line, $currentMain)) {
                 $flush();
                 $currentMain = $line;
 
                 continue;
             }
 
-            $currentModifiers[] = $line;
+            $currentChildren[] = $line;
         }
 
         $flush();
 
         return $items;
+    }
+
+    /**
+     * @param  Collection<int, TransactionSellLine>  $children
+     * @return array{0: Collection<int, TransactionSellLine>, 1: Collection<int, TransactionSellLine>}
+     */
+    private static function splitLegacyPosChildLines(Collection $children): array
+    {
+        if ($children->isEmpty()) {
+            return [collect(), collect()];
+        }
+
+        $lines = $children->values()->all();
+        $firstZeroIndex = null;
+
+        foreach ($lines as $index => $line) {
+            if (self::isPosComboComponentLine($line)) {
+                $firstZeroIndex = $index;
+                break;
+            }
+        }
+
+        if ($firstZeroIndex === null) {
+            return [$children->values(), collect()];
+        }
+
+        $comboStart = $firstZeroIndex;
+        while ($comboStart > 0) {
+            $previous = $lines[$comboStart - 1];
+            if (self::isPosComboComponentLine($previous)) {
+                break;
+            }
+
+            if ((float) ($previous->unit_price ?? 0) >= 5.0) {
+                $comboStart--;
+
+                continue;
+            }
+
+            break;
+        }
+
+        return [
+            collect(array_slice($lines, 0, $comboStart))->values(),
+            collect(array_slice($lines, $comboStart))->values(),
+        ];
+    }
+
+    /**
+     * @param  array<int, TransactionSellLine>  $children
+     */
+    private static function legacyPosChildrenContainCombos(array $children): bool
+    {
+        if ($children === []) {
+            return false;
+        }
+
+        [, $combos] = self::splitLegacyPosChildLines(collect($children));
+
+        return $combos->isNotEmpty();
     }
 
     public static function appearsInKitchen(?string $orderStatus): bool
@@ -487,6 +597,10 @@ class KitchenOrderPayload
 
     public static function isPosComboComponentLine(TransactionSellLine $line): bool
     {
+        if (! empty($line->combo_id)) {
+            return true;
+        }
+
         if ($line->modifier_id !== null && $line->modifier_id !== '') {
             return false;
         }
@@ -494,6 +608,24 @@ class KitchenOrderPayload
         return (float) ($line->unit_price ?? 0) === 0.0
             && (float) ($line->unit_price_before_discount ?? 0) === 0.0
             && (float) ($line->unit_price_inc_tax ?? 0) === 0.0;
+    }
+
+    public static function isPosModifierLine(TransactionSellLine $line): bool
+    {
+        return $line->modifier_id !== null && $line->modifier_id !== '';
+    }
+
+    public static function isPosComboLine(TransactionSellLine $line): bool
+    {
+        if (! empty($line->combo_id)) {
+            return true;
+        }
+
+        if (self::isPosModifierLine($line)) {
+            return false;
+        }
+
+        return ! empty($line->parent_id);
     }
 
     private static function isPosMainLine(TransactionSellLine $line): bool

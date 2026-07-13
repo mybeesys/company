@@ -159,7 +159,7 @@ class SellApiController extends Controller
                     }
                 }
 
-                TransactionSellLine::create(array_merge(
+                $mainLine = TransactionSellLine::create(array_merge(
                     ['transaction_id' => $transaction->id],
                     PosSalesInvoiceMapper::mapSellLineAttributes($product)
                 ));
@@ -186,7 +186,10 @@ class SellApiController extends Controller
                     }
 
                     TransactionSellLine::create(array_merge(
-                        ['transaction_id' => $transaction->id],
+                        [
+                            'transaction_id' => $transaction->id,
+                            'parent_id' => $mainLine->id,
+                        ],
                         PosSalesInvoiceMapper::mapModifierLineAttributes($modifier)
                     ));
                 }
@@ -217,7 +220,10 @@ class SellApiController extends Controller
                     }
 
                     TransactionSellLine::create(array_merge(
-                        ['transaction_id' => $transaction->id],
+                        [
+                            'transaction_id' => $transaction->id,
+                            'parent_id' => $mainLine->id,
+                        ],
                         PosSalesInvoiceMapper::mapComboLineAttributes($order_item_combo, $comboItem)
                     ));
                 }
