@@ -287,18 +287,21 @@ final class PosSalesInvoiceMapper
     public static function mapComboLineAttributes(object $combo, ProductComboItem $comboItem): array
     {
         $qty = (float) ($combo->quantity ?? 1);
+        $price = (float) ($combo->price ?? 0);
+        $priceWithTax = (float) ($combo->price_with_tax ?? $price);
 
         return [
             'product_id' => (int) $comboItem->item_id,
+            'combo_id' => (string) ($combo->option_id ?? $comboItem->item_id),
             'qyt' => $qty,
-            'unit_price_before_discount' => 0,
-            'unit_price' => 0,
+            'unit_price_before_discount' => $price,
+            'unit_price' => $price,
             'discount_type' => null,
             'discount_amount' => null,
-            'unit_price_inc_tax' => 0,
+            'unit_price_inc_tax' => $priceWithTax > 0 ? $priceWithTax : $price,
             'tax_id' => null,
             'tax_value' => 0,
-            'total_before_vat' => 0,
+            'total_before_vat' => round($price * $qty, 4),
             'is_show' => '1',
         ];
     }
@@ -353,6 +356,7 @@ final class PosSalesInvoiceMapper
 
         return [
             'product_id' => $modifier->modifier_id,
+            'modifier_id' => $modifier->modifier_id,
             'qyt' => $modifier->quantity,
             'unit_price_before_discount' => $price,
             'unit_price' => $price,

@@ -47,6 +47,50 @@ class KitchenOrderPayloadTest extends TestCase
         $this->assertSame('بيبسي', $items[0]['order_item_combos'][1]['option_name']);
     }
 
+    public function test_legacy_pos_lines_keep_paid_combo_upgrade_out_of_modifiers(): void
+    {
+        $burgerMain = $this->makePosLine(1645, 262, 'برجر دبل', 6.09, 21);
+        $shawarmaMain = $this->makePosLine(1646, 287, 'شاورما عربي', 100, 230);
+        $cheese = $this->makePosLine(1647, 274, 'جبنة شرائح', 1, 2);
+        $lotus = $this->makePosLine(1648, 279, 'كريمة اللوتس', 2, 4);
+        $bigBakeCombo = $this->makePosLine(1649, 292, 'بيج بيك', 18, 20.7);
+        $comboBurger = $this->makePosLine(1650, 262, 'برجر دبل', 0, 0);
+        $comboPepsi = $this->makePosLine(1651, 263, 'بيبسي', 0, 0);
+
+        $items = KitchenOrderPayload::formatPosSellLines(collect([
+            $burgerMain,
+            $shawarmaMain,
+            $cheese,
+            $lotus,
+            $bigBakeCombo,
+            $comboBurger,
+            $comboPepsi,
+        ]));
+
+        $this->assertCount(2, $items);
+        $shawarma = $items[1];
+        $this->assertSame(287, $shawarma['product_id']);
+        $this->assertCount(2, $shawarma['order_item_modifiers']);
+        $this->assertSame('جبنة شرائح', $shawarma['order_item_modifiers'][0]['modifier_name']);
+        $this->assertCount(3, $shawarma['order_item_combos']);
+        $this->assertSame('بيج بيك', $shawarma['order_item_combos'][0]['option_name']);
+        $this->assertSame('برجر دبل', $shawarma['order_item_combos'][1]['option_name']);
+    }
+
+    public function test_pos_sell_lines_with_parent_id_use_explicit_combo_and_modifier_flags(): void
+    {
+        $main = $this->makePosLine(20, 287, 'شاورما عربي', 100, 230);
+        $modifier = $this->makePosLine(21, 274, 'جبنة شرائح', 1, 2, parentId: 20, modifierId: 274);
+        $combo = $this->makePosLine(22, 292, 'بيج بيك', 18, 20.7, parentId: 20, comboId: '292');
+
+        $items = KitchenOrderPayload::formatPosSellLines(collect([$main, $modifier, $combo]));
+
+        $this->assertCount(1, $items);
+        $this->assertCount(1, $items[0]['order_item_modifiers']);
+        $this->assertCount(1, $items[0]['order_item_combos']);
+        $this->assertSame('بيج بيك', $items[0]['order_item_combos'][0]['option_name']);
+    }
+
     public function test_table_order_item_note_is_included_in_kitchen_payload(): void
     {
         $main = $this->makeTableLine(1, null, 292, 'بيج بيك', 18, 20.7, note: 'حار جداً');
@@ -165,10 +209,16 @@ class KitchenOrderPayloadTest extends TestCase
         string $name,
         float $price,
         float $priceWithTax,
+        ?int $parentId = null,
+        ?int $modifierId = null,
+        ?string $comboId = null,
     ): TransactionSellLine {
         $line = new TransactionSellLine([
             'transaction_id' => 1108,
             'product_id' => $productId,
+            'parent_id' => $parentId,
+            'modifier_id' => $modifierId,
+            'combo_id' => $comboId,
             'qyt' => 1,
             'unit_price' => $price,
             'unit_price_before_discount' => $price,
