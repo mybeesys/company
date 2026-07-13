@@ -87,11 +87,11 @@ final class KitchenItemStatusGrouper
     {
         $matchedGroup = [$targetLineId];
         $currentMain = null;
+        /** @var array<int, TransactionSellLine> $currentChildren */
+        $currentChildren = [];
         $currentGroupIds = [];
-        $hasCombosInGroup = false;
-        $nonComboChildCount = 0;
 
-        $flush = static function () use (&$currentGroupIds, &$matchedGroup, $targetLineId, &$hasCombosInGroup, &$nonComboChildCount) {
+        $flush = static function () use (&$currentGroupIds, &$matchedGroup, $targetLineId, &$currentChildren, &$currentMain) {
             if ($currentGroupIds === []) {
                 return;
             }
@@ -100,8 +100,9 @@ final class KitchenItemStatusGrouper
                 $matchedGroup = $currentGroupIds;
             }
 
-            $hasCombosInGroup = false;
-            $nonComboChildCount = 0;
+            $currentMain = null;
+            $currentGroupIds = [];
+            $currentChildren = [];
         };
 
         foreach ($allLines->sortBy('id')->values() as $line) {
@@ -109,8 +110,8 @@ final class KitchenItemStatusGrouper
 
             if (KitchenOrderPayload::isPosComboComponentLine($line)) {
                 if ($currentMain) {
+                    $currentChildren[] = $line;
                     $currentGroupIds[] = $lineId;
-                    $hasCombosInGroup = true;
                 }
 
                 continue;
@@ -123,7 +124,7 @@ final class KitchenItemStatusGrouper
                 continue;
             }
 
-            if ($hasCombosInGroup) {
+            if (KitchenOrderPayload::legacyPosChildrenContainCombos($currentChildren)) {
                 $flush();
                 $currentMain = $line;
                 $currentGroupIds = [$lineId];
@@ -131,7 +132,7 @@ final class KitchenItemStatusGrouper
                 continue;
             }
 
-            if ($nonComboChildCount === 0 && KitchenOrderPayload::looksLikePosMainProductLine($line, $currentMain)) {
+            if (! KitchenOrderPayload::shouldAttachAsLegacyPosChildLine($line, $currentMain, $currentChildren)) {
                 $flush();
                 $currentMain = $line;
                 $currentGroupIds = [$lineId];
@@ -139,8 +140,8 @@ final class KitchenItemStatusGrouper
                 continue;
             }
 
+            $currentChildren[] = $line;
             $currentGroupIds[] = $lineId;
-            $nonComboChildCount++;
         }
 
         $flush();

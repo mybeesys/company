@@ -435,7 +435,7 @@ class KitchenOrderPayload
                 continue;
             }
 
-            if ($currentChildren === [] && self::looksLikePosMainProductLine($line, $currentMain)) {
+            if (! self::shouldAttachAsLegacyPosChildLine($line, $currentMain, $currentChildren)) {
                 $flush();
                 $currentMain = $line;
 
@@ -499,7 +499,7 @@ class KitchenOrderPayload
     /**
      * @param  array<int, TransactionSellLine>  $children
      */
-    private static function legacyPosChildrenContainCombos(array $children): bool
+    public static function legacyPosChildrenContainCombos(array $children): bool
     {
         if ($children === []) {
             return false;
@@ -508,6 +508,60 @@ class KitchenOrderPayload
         [, $combos] = self::splitLegacyPosChildLines(collect($children));
 
         return $combos->isNotEmpty();
+    }
+
+    /**
+     * هل يُضاف السطر كابن (موديفاير/كومبو) للمنتج الرئيسي الحالي؟
+     *
+     * @param  array<int, TransactionSellLine>  $currentChildren
+     */
+    public static function shouldAttachAsLegacyPosChildLine(
+        TransactionSellLine $line,
+        TransactionSellLine $currentMain,
+        array $currentChildren,
+    ): bool {
+        if (self::isPosModifierLine($line)) {
+            return true;
+        }
+
+        if (! empty($line->combo_id) || self::isPosComboComponentLine($line)) {
+            return true;
+        }
+
+        if (self::legacyPosChildrenContainCombos($currentChildren)) {
+            return false;
+        }
+
+        return self::couldBeLegacyPosModifierLine($line, $currentMain);
+    }
+
+    /**
+     * تخمين إضافة POS قديمة (بدون parent_id) — لا تُطبَّق على منتج مستقل بسعر قريب من الرئيسي.
+     */
+    public static function couldBeLegacyPosModifierLine(
+        TransactionSellLine $line,
+        TransactionSellLine $main,
+    ): bool {
+        if (self::isPosModifierLine($line)) {
+            return true;
+        }
+
+        $linePrice = (float) ($line->unit_price ?? 0);
+        $mainPrice = (float) ($main->unit_price ?? 0);
+
+        if ($linePrice <= 0) {
+            return false;
+        }
+
+        if ($mainPrice > 0 && $linePrice <= ($mainPrice * 0.35)) {
+            return true;
+        }
+
+        if ($linePrice < 3.0 && ($mainPrice <= 0 || $linePrice <= ($mainPrice * 0.5))) {
+            return true;
+        }
+
+        return false;
     }
 
     public static function appearsInKitchen(?string $orderStatus): bool
