@@ -52,6 +52,17 @@ class KitchenItemStatusGrouperTest extends TestCase
         $this->assertSame([14], $fromNextMain);
     }
 
+    public function test_pos_line_group_keeps_two_cheap_products_separate(): void
+    {
+        $lines = collect([
+            $this->makePosLine(1664, 263, 'بيبسي', 1.74, 2),
+            $this->makePosLine(1665, 264, 'برتقال المراعي', 2.61, 3),
+        ]);
+
+        $this->assertSame([1664], KitchenItemStatusGrouper::posLineGroupIds($lines, 1664));
+        $this->assertSame([1665], KitchenItemStatusGrouper::posLineGroupIds($lines, 1665));
+    }
+
     private function makeTableLine(int $id, ?int $parentId, int $productId, float $price): OrderTableItems
     {
         $line = new OrderTableItems([

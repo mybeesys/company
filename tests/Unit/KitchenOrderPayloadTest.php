@@ -47,6 +47,20 @@ class KitchenOrderPayloadTest extends TestCase
         $this->assertSame('بيبسي', $items[0]['order_item_combos'][1]['option_name']);
     }
 
+    public function test_two_cheap_pos_products_stay_separate_mains(): void
+    {
+        $pepsi = $this->makePosLine(1664, 263, 'بيبسي', 1.74, 2);
+        $orange = $this->makePosLine(1665, 264, 'برتقال المراعي', 2.61, 3);
+
+        $items = KitchenOrderPayload::formatPosSellLines(collect([$pepsi, $orange]));
+
+        $this->assertCount(2, $items);
+        $this->assertSame(263, $items[0]['product_id']);
+        $this->assertSame(264, $items[1]['product_id']);
+        $this->assertSame([], $items[0]['order_item_modifiers']);
+        $this->assertSame([], $items[1]['order_item_modifiers']);
+    }
+
     public function test_legacy_pos_lines_keep_paid_combo_upgrade_out_of_modifiers(): void
     {
         $burgerMain = $this->makePosLine(1645, 262, 'برجر دبل', 6.09, 21);
