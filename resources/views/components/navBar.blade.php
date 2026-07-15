@@ -68,6 +68,12 @@
     }
     $linkedCompaniesCount = $linkedCompanies->count();
     $otherLinkedCompanies = $linkedCompanies->where('is_current', false)->values();
+    $currentLinkedCompany = $linkedCompanies->firstWhere('is_current', true);
+    $roleLabel = function (?string $role): string {
+        $key = 'employee::my_companies.roles.' . ($role ?: 'member');
+
+        return \Illuminate\Support\Facades\Lang::has($key) ? __($key) : (string) $role;
+    };
 @endphp
 <div class="app-navbar app-navbar--compact flex-grow-1 d-flex align-items-center min-w-0 pe-lg-8 pe-3" id="kt_app_header_navbar">
     <div class="app-navbar-meta d-none d-lg-flex align-items-center gap-2 text-gray-600 min-w-0 me-2">
@@ -253,193 +259,185 @@
         <!--begin::Menu wrapper-->
         <div class="cursor-pointer symbol symbol-circle symbol-35px"
             data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
-            data-kt-menu-placement="{{ $menu_placement_y }}">
+            data-kt-menu-placement="{{ $menu_placement_y }}" data-kt-menu-flip="top">
             <img src="{{ auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}"
                 alt="user" />
         </div>
         <!--begin::User account menu-->
-        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-350px user-quick-menu"
+        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold fs-6 user-quick-menu"
             data-kt-menu="true">
-            <!--begin::Menu item-->
-            <div class="menu-item px-3">
-                <div class="menu-content d-flex align-items-center px-3">
-                    <div class="symbol symbol-50px me-5">
-                        <img alt="Logo"
+            <div class="user-quick-menu-header">
+                <div class="user-quick-menu-profile">
+                    <div class="symbol symbol-45px flex-shrink-0">
+                        <img alt="{{ auth()->user()->user_name }}"
                             src="{{ auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}" />
                     </div>
-                    <div class="d-flex flex-column">
-                        <div class="fw-bold d-flex align-items-center fs-5">{{ auth()->user()->user_name }}</div>
-                        <a href="#"
-                            class="fw-semibold text-muted text-hover-primary fs-7">{{ auth()->user()->email }}</a>
+                    <div class="user-quick-menu-profile-text min-w-0">
+                        <div class="fw-bold fs-6 text-truncate">{{ auth()->user()->user_name }}</div>
+                        <div class="text-muted fs-8 text-truncate">{{ auth()->user()->email }}</div>
                     </div>
                 </div>
             </div>
-            <div class="separator my-2"></div>
-            <div class="menu-item px-3">
-                <div class="menu-content px-3 pb-2">
-                    <div class="fs-8 text-uppercase fw-bold text-muted">@lang('general.quick_access')</div>
-                </div>
-            </div>
-            @if ($quickLinks->isNotEmpty())
-                <div class="menu-item px-3">
-                    <div class="menu-content px-3">
+
+            <div class="user-quick-menu-scroll">
+                @if ($linkedCompaniesCount > 0)
+                    <div class="user-quick-menu-section">
+                        <div class="user-quick-menu-section-title">
+                            <i class="ki-outline ki-abstract-26 fs-6"></i>
+                            <span>@lang('general.workspace')</span>
+                        </div>
+
+                        <div class="user-companies-list @if ($linkedCompaniesCount > 3) is-scrollable @endif">
+                            @if ($currentLinkedCompany)
+                                <div class="user-company-chip is-current" title="{{ $currentLinkedCompany->domain }}">
+                                    <span class="user-company-chip-icon">
+                                        <i class="ki-outline ki-check-circle fs-4"></i>
+                                    </span>
+                                    <span class="user-company-chip-body">
+                                        <span class="user-company-chip-name">{{ $currentLinkedCompany->company_name }}</span>
+                                        <span class="user-company-chip-meta">{{ $currentLinkedCompany->domain }}</span>
+                                    </span>
+                                    <span class="user-company-chip-badge">@lang('employee::my_companies.current')</span>
+                                </div>
+                            @endif
+
+                            @foreach ($otherLinkedCompanies as $company)
+                                <button
+                                    type="button"
+                                    class="user-company-chip js-navbar-open-company"
+                                    data-url="{{ route('my-companies.switch', ['tenantId' => $company->tenant_id]) }}"
+                                    title="{{ $company->domain }}"
+                                >
+                                    <span class="user-company-chip-icon">
+                                        <i class="ki-outline ki-office-bag fs-4"></i>
+                                    </span>
+                                    <span class="user-company-chip-body">
+                                        <span class="user-company-chip-name">{{ $company->company_name }}</span>
+                                        <span class="user-company-chip-meta">{{ $company->domain }} · {{ $roleLabel($company->role) }}</span>
+                                    </span>
+                                    <span class="user-company-chip-action">
+                                        <i class="ki-outline ki-exit-right fs-5"></i>
+                                    </span>
+                                    <span class="user-company-chip-progress d-none">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <div class="user-workspace-links">
+                            <a href="{{ route('my-companies.index') }}" class="user-workspace-link">
+                                <i class="ki-outline ki-element-11 fs-5"></i>
+                                <span>@lang('employee::my_companies.menu')</span>
+                            </a>
+                            <a href="{{ url('/subscription') }}" class="user-workspace-link">
+                                <i class="ki-outline ki-crown fs-5"></i>
+                                <span>@lang('general.subscriptions')</span>
+                            </a>
+                        </div>
+                    </div>
+                @else
+                    <div class="user-quick-menu-section">
+                        <div class="user-quick-menu-section-title">
+                            <i class="ki-outline ki-abstract-26 fs-6"></i>
+                            <span>@lang('general.workspace')</span>
+                        </div>
+                        <a href="{{ url('/subscription') }}" class="user-workspace-link">
+                            <i class="ki-outline ki-crown fs-5"></i>
+                            <span>@lang('general.subscriptions')</span>
+                        </a>
+                    </div>
+                @endif
+
+                @if ($quickLinks->isNotEmpty())
+                    <div class="user-quick-menu-section">
+                        <div class="user-quick-menu-section-title">
+                            <i class="ki-outline ki-flash-circle fs-6"></i>
+                            <span>@lang('general.quick_access')</span>
+                        </div>
                         <div class="user-shortcuts-grid">
                             @foreach ($quickLinks as $link)
                                 <a href="{{ url($link['url']) }}" class="user-shortcut-item"
                                     data-quick-link-key="{{ md5($link['url']) }}">
-                                    <i class="{{ $link['icon'] }} fs-3"></i>
+                                    <i class="{{ $link['icon'] }} fs-4"></i>
                                     <span>{{ $link['label'] }}</span>
                                 </a>
                             @endforeach
                         </div>
                     </div>
-                </div>
-            @endif
-            <div class="separator my-2"></div>
-            <div class="menu-item px-3">
-                <div class="menu-content px-3 pb-2">
-                    <div class="fs-8 text-uppercase fw-bold text-muted">@lang('general.workspace')</div>
-                </div>
+                @endif
             </div>
-            <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
-                data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
-                <a href="{{ url('/subscription') }}" class="menu-link px-5">
-                    <span class="menu-title">@lang('general.subscriptions')</span>
-                </a>
-            </div>
-            @if ($linkedCompaniesCount > 0)
-                <div class="menu-item px-5">
-                    <a href="{{ route('my-companies.index') }}" class="menu-link px-5">
-                        <i class="ki-outline ki-abstract-26 fs-2 me-2"></i>
-                        <span class="menu-title">@lang('employee::my_companies.menu')</span>
-                    </a>
-                </div>
-                @foreach ($otherLinkedCompanies as $company)
-                    <div class="menu-item px-5">
-                        <button
-                            type="button"
-                            class="menu-link px-5 w-100 text-start border-0 bg-transparent js-navbar-open-company user-workspace-company"
-                            data-url="{{ route('my-companies.switch', ['tenantId' => $company->tenant_id]) }}"
-                        >
-                            <span class="d-flex align-items-center gap-2 w-100">
-                                <i class="ki-outline ki-office-bag fs-2 text-primary flex-shrink-0"></i>
-                                <span class="d-flex flex-column min-w-0">
-                                    <span class="menu-title text-truncate">{{ $company->company_name }}</span>
-                                    <span class="text-muted fs-8 text-truncate">{{ $company->domain }}</span>
-                                </span>
-                                <i class="ki-outline ki-exit-right fs-5 text-gray-500 flex-shrink-0 ms-auto"></i>
-                            </span>
-                            <span class="indicator-progress d-none text-muted fs-8 mt-1">
-                                @lang('employee::my_companies.opening')
-                                <span class="spinner-border spinner-border-sm align-middle ms-1"></span>
-                            </span>
-                        </button>
-                    </div>
-                @endforeach
-            @endif
-            <!--end::Menu item-->
-            <!--begin::Menu separator-->
-            <div class="separator my-2"></div>
-            <!--end::Menu separator-->
-            <div class="menu-item px-3">
-                <div class="menu-content px-3 pb-2">
-                    <div class="fs-8 text-uppercase fw-bold text-muted">@lang('general.preferences')</div>
-                </div>
-            </div>
-            <!--begin::Menu item-->
-            <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
-                data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
-                <a href="#" class="menu-link px-5">
-                    <span class="menu-title position-relative">@lang('general.mode')
-                        <span class="ms-5 position-absolute translate-middle-y top-50 end-0">
-                            <i class="ki-outline ki-night-day theme-light-show fs-2"></i>
-                            <i class="ki-outline ki-moon theme-dark-show fs-2"></i>
-                        </span></span>
-                </a>
-                <!--begin::Menu-->
-                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 fs-base w-150px"
-                    data-kt-menu="true" data-kt-element="theme-mode-menu">
-                    <!--begin::Menu item-->
-                    <div class="menu-item px-3 my-0">
-                        <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="light">
-                            <span class="menu-icon" data-kt-element="icon">
-                                <i class="ki-outline ki-night-day fs-2"></i>
-                            </span>
-                            <span class="menu-title">@lang('general.light')</span>
-                        </a>
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item px-3 my-0">
-                        <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="dark">
-                            <span class="menu-icon" data-kt-element="icon">
-                                <i class="ki-outline ki-moon fs-2"></i>
-                            </span>
-                            <span class="menu-title">@lang('general.dark')</span>
-                        </a>
-                    </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item px-3 my-0">
-                        <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="system">
-                            <span class="menu-icon" data-kt-element="icon">
-                                <i class="ki-outline ki-screen fs-2"></i>
-                            </span>
-                            <span class="menu-title">@lang('general.system')</span>
-                        </a>
-                    </div>
-                    <!--end::Menu item-->
-                </div>
-                <!--end::Menu-->
-            </div>
-            <!--end::Menu item-->
-            <!--begin::Menu item-->
-            <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
-                data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-15px, 0">
-                <a href="#" class="menu-link px-5">
-                    <span class="menu-title position-relative">@lang('lang.Language')
-                        <span
-                            class="fs-8 rounded bg-light px-3 py-2 position-absolute translate-middle-y top-50 end-0">
-                            {{ session('locale') == 'ar' ? 'العربية' : 'English' }}
 
-                            <img class="w-15px h-15px rounded-1 ms-2"
+            <div class="user-quick-menu-footer">
+                <div class="user-quick-menu-footer-row">
+                    <div class="menu-item flex-grow-1" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
+                        data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-8px, 0">
+                        <button type="button" class="user-footer-btn">
+                            <i class="ki-outline ki-night-day theme-light-show fs-4"></i>
+                            <i class="ki-outline ki-moon theme-dark-show fs-4"></i>
+                            <span>@lang('general.mode')</span>
+                        </button>
+                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-3 fs-7 w-140px"
+                            data-kt-menu="true" data-kt-element="theme-mode-menu">
+                            <div class="menu-item px-3 my-0">
+                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="light">
+                                    <span class="menu-icon" data-kt-element="icon">
+                                        <i class="ki-outline ki-night-day fs-3"></i>
+                                    </span>
+                                    <span class="menu-title">@lang('general.light')</span>
+                                </a>
+                            </div>
+                            <div class="menu-item px-3 my-0">
+                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="dark">
+                                    <span class="menu-icon" data-kt-element="icon">
+                                        <i class="ki-outline ki-moon fs-3"></i>
+                                    </span>
+                                    <span class="menu-title">@lang('general.dark')</span>
+                                </a>
+                            </div>
+                            <div class="menu-item px-3 my-0">
+                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="system">
+                                    <span class="menu-icon" data-kt-element="icon">
+                                        <i class="ki-outline ki-screen fs-3"></i>
+                                    </span>
+                                    <span class="menu-title">@lang('general.system')</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-item flex-grow-1" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
+                        data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-8px, 0">
+                        <button type="button" class="user-footer-btn">
+                            <img class="user-footer-flag"
                                 src="/assets/media/flags/{{ session('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
                                 alt="" />
-                        </span>
-                    </span>
-                </a>
-                <!--begin::Menu sub-->
-                <div class="menu-sub menu-sub-dropdown w-175px py-4">
-                    <!--begin::Menu item-->
-                    <div class="menu-item px-3">
-                        <a href="{{ route('set_locale', ['locale' => 'en']) }}"
-                            class="menu-link d-flex px-5 {{ session('locale') == 'en' ? 'active' : '' }}">
-                            <span class="symbol symbol-20px me-4">
-                                <img class="rounded-1" src="/assets/media/flags/united-states.svg" alt="" />
-                            </span>English</a>
+                            <span>{{ session('locale') == 'ar' ? 'العربية' : 'English' }}</span>
+                        </button>
+                        <div class="menu-sub menu-sub-dropdown w-160px py-3">
+                            <div class="menu-item px-3">
+                                <a href="{{ route('set_locale', ['locale' => 'en']) }}"
+                                    class="menu-link d-flex px-3 {{ session('locale') == 'en' ? 'active' : '' }}">
+                                    <span class="symbol symbol-20px me-3">
+                                        <img class="rounded-1" src="/assets/media/flags/united-states.svg" alt="" />
+                                    </span>English</a>
+                            </div>
+                            <div class="menu-item px-3">
+                                <a href="{{ route('set_locale', ['locale' => 'ar']) }}"
+                                    class="menu-link d-flex px-3 {{ session('locale') == 'ar' ? 'active' : '' }}">
+                                    <span class="symbol symbol-20px me-3">
+                                        <img class="rounded-1" src="/assets/media/flags/saudi-arabia.svg" alt="" />
+                                    </span>العربية</a>
+                            </div>
+                        </div>
                     </div>
-                    <!--end::Menu item-->
-                    <!--begin::Menu item-->
-                    <div class="menu-item px-3">
-                        <a href="{{ route('set_locale', ['locale' => 'ar']) }}"
-                            class="menu-link d-flex px-5 {{ session('locale') == 'ar' ? 'active' : '' }}">
-                            <span class="symbol symbol-20px me-4">
-                                <img class="rounded-1" src="/assets/media/flags/saudi-arabia.svg" alt="" />
-                            </span>العربية</a>
-                    </div>
-                    <!--end::Menu item-->
-
                 </div>
-                <!--end::Menu sub-->
-            </div>
-            <!--end::Menu item-->
-            <!--begin::Menu item-->
-            <div class="menu-item px-5">
-                <a href="{{ route('logout') }}" class="menu-link px-5">
-                    <i class="ki-outline ki-exit-right fs-2 me-2"></i>@lang('general.sign_out')
+
+                <a href="{{ route('logout') }}" class="user-footer-logout">
+                    <i class="ki-outline ki-exit-right fs-4"></i>
+                    <span>@lang('general.sign_out')</span>
                 </a>
             </div>
-            <!--end::Menu item-->
         </div>
         <!--end::User account menu-->
         <!--end::Menu wrapper-->
@@ -461,79 +459,370 @@
     }
 
     .user-quick-menu {
-        border-radius: 16px;
-        box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+        --uqm-accent: #e8b923;
+        --uqm-border: #e8edf4;
+        --uqm-surface: #f8fafc;
+        --uqm-text: #3f4254;
+        display: flex;
+        flex-direction: column;
+        width: min(340px, calc(100vw - 1.5rem));
+        max-height: min(88dvh, 620px);
+        padding: 0;
+        margin: 0;
         overflow: hidden;
-        border: 1px solid #edf1f7;
-        background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+        border-radius: 14px;
+        border: 1px solid var(--uqm-border);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+        background: #fff;
+    }
+
+    .user-quick-menu-header {
+        flex-shrink: 0;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--uqm-border);
+        background: linear-gradient(180deg, #fffdf6 0%, #ffffff 100%);
+    }
+
+    .user-quick-menu-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 0;
+    }
+
+    .user-quick-menu-profile-text {
+        line-height: 1.25;
+    }
+
+    .user-quick-menu-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.65rem 0.85rem 0.75rem;
+    }
+
+    .user-quick-menu-scroll::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .user-quick-menu-scroll::-webkit-scrollbar-thumb {
+        background: #d5dbe5;
+        border-radius: 99px;
+    }
+
+    .user-quick-menu-section + .user-quick-menu-section {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+        border-top: 1px dashed #e7ecf3;
+    }
+
+    .user-quick-menu-section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-bottom: 0.55rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #99a1b7;
+    }
+
+    .user-companies-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+
+    .user-companies-list.is-scrollable {
+        max-height: 9.5rem;
+        overflow-y: auto;
+        padding-inline-end: 0.15rem;
+    }
+
+    .user-company-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        width: 100%;
+        min-width: 0;
+        padding: 0.5rem 0.6rem;
+        border-radius: 10px;
+        border: 1px solid var(--uqm-border);
+        background: var(--uqm-surface);
+        text-align: start;
+        transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+    }
+
+    button.user-company-chip {
+        cursor: pointer;
+    }
+
+    button.user-company-chip:hover:not(:disabled) {
+        border-color: #e8c96a;
+        background: #fff9e8;
+        transform: translateY(-1px);
+    }
+
+    button.user-company-chip:disabled {
+        opacity: .7;
+        cursor: wait;
+    }
+
+    .user-company-chip.is-current {
+        border-color: #b7e4c7;
+        background: #f3fbf6;
+    }
+
+    .user-company-chip-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.85rem;
+        height: 1.85rem;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--uqm-accent);
+        flex-shrink: 0;
+    }
+
+    .user-company-chip.is-current .user-company-chip-icon {
+        color: #50cd89;
+    }
+
+    .user-company-chip-body {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .user-company-chip-name {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--uqm-text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-company-chip-meta {
+        font-size: 0.68rem;
+        color: #99a1b7;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-company-chip-badge {
+        flex-shrink: 0;
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 0.15rem 0.45rem;
+        border-radius: 999px;
+        background: #e8fff3;
+        color: #1f8f55;
+    }
+
+    .user-company-chip-action {
+        flex-shrink: 0;
+        color: #99a1b7;
+    }
+
+    .user-company-chip-progress {
+        flex-shrink: 0;
+    }
+
+    .user-workspace-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.55rem;
+    }
+
+    .user-workspace-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 8px;
+        border: 1px solid var(--uqm-border);
+        background: #fff;
+        color: #5e6278;
+        font-size: 0.74rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .15s ease;
+    }
+
+    .user-workspace-link:hover {
+        border-color: #e8c96a;
+        color: #b8890d;
+        background: #fffdf4;
     }
 
     .user-shortcuts-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        gap: 0.45rem;
     }
 
     .user-shortcut-item {
-        border: 1px solid #edf0f4;
-        border-radius: 10px;
-        padding: 9px 8px;
+        border: 1px solid var(--uqm-border);
+        border-radius: 9px;
+        padding: 0.5rem 0.45rem;
         display: flex;
         align-items: center;
-        gap: 8px;
-        color: #3f4254;
-        background: #f9fbff;
+        gap: 0.4rem;
+        min-height: 2.35rem;
+        color: var(--uqm-text);
+        background: var(--uqm-surface);
         text-decoration: none;
-        font-size: 12px;
+        font-size: 0.72rem;
         font-weight: 600;
-        transition: all .2s ease;
-        position: relative;
+        line-height: 1.2;
+        transition: all .15s ease;
+    }
+
+    .user-shortcut-item span {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
     .user-shortcut-item:hover {
-        transform: translateY(-1px);
-        border-color: #eed592;
-        background: #fdf6e3;
-        color: #c99a19;
+        border-color: #e8c96a;
+        background: #fff9e8;
+        color: #b8890d;
     }
 
-    .user-shortcut-item::after {
-        content: '';
-        position: absolute;
-        inset-inline-start: -120%;
-        top: 0;
-        width: 70%;
-        height: 100%;
-        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.75), transparent);
-        transition: inset-inline-start .45s ease;
+    .user-quick-menu-footer {
+        flex-shrink: 0;
+        padding: 0.65rem 0.85rem 0.8rem;
+        border-top: 1px solid var(--uqm-border);
+        background: #fbfcfe;
     }
 
-    .user-shortcut-item:hover::after {
-        inset-inline-start: 140%;
+    .user-quick-menu-footer-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+        margin-bottom: 0.45rem;
     }
 
-    .user-quick-menu .menu-content .text-muted {
-        letter-spacing: .04em;
+    .user-footer-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        width: 100%;
+        padding: 0.45rem 0.5rem;
+        border: 1px solid var(--uqm-border);
+        border-radius: 9px;
+        background: #fff;
+        color: #5e6278;
+        font-size: 0.74rem;
+        font-weight: 600;
     }
 
-    .user-workspace-company {
-        transition: background-color .15s ease;
+    .user-footer-btn:hover {
+        border-color: #d5dbe5;
+        background: #f8fafc;
     }
 
-    .user-workspace-company:hover,
-    .user-workspace-company:focus-visible {
-        background-color: #f9fbff;
+    .user-footer-flag {
+        width: 1rem;
+        height: 1rem;
+        border-radius: 2px;
+        object-fit: cover;
     }
 
-    .user-workspace-company:disabled {
-        opacity: .75;
-        cursor: wait;
+    .user-footer-logout {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 9px;
+        background: #fff5f5;
+        border: 1px solid #ffd6d6;
+        color: #d9214e;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all .15s ease;
     }
 
-    [data-bs-theme="dark"] .user-workspace-company:hover,
-    [data-bs-theme="dark"] .user-workspace-company:focus-visible {
-        background-color: rgba(255, 255, 255, 0.04);
+    .user-footer-logout:hover {
+        background: #ffe9e9;
+        color: #b81940;
+    }
+
+    [data-bs-theme="dark"] .user-quick-menu {
+        --uqm-border: rgba(255, 255, 255, 0.08);
+        --uqm-surface: rgba(255, 255, 255, 0.04);
+        --uqm-text: #f1f1f4;
+        background: #151521;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    [data-bs-theme="dark"] .user-quick-menu-header {
+        background: linear-gradient(180deg, rgba(232, 185, 35, 0.08) 0%, #151521 100%);
+    }
+
+    [data-bs-theme="dark"] .user-quick-menu-footer {
+        background: #12121c;
+    }
+
+    [data-bs-theme="dark"] .user-company-chip.is-current {
+        border-color: rgba(80, 205, 137, 0.35);
+        background: rgba(80, 205, 137, 0.08);
+    }
+
+    [data-bs-theme="dark"] .user-company-chip-icon {
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    [data-bs-theme="dark"] .user-workspace-link,
+    [data-bs-theme="dark"] .user-footer-btn,
+    [data-bs-theme="dark"] .user-shortcut-item {
+        background: rgba(255, 255, 255, 0.03);
+        color: #d1d5de;
+    }
+
+    [data-bs-theme="dark"] .user-footer-logout {
+        background: rgba(217, 33, 78, 0.12);
+        border-color: rgba(217, 33, 78, 0.25);
+    }
+
+    @media (max-width: 575.98px) {
+        .user-quick-menu {
+            width: min(320px, calc(100vw - 1rem));
+            max-height: min(92dvh, 680px);
+        }
+
+        .user-shortcuts-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .user-quick-menu-scroll {
+            padding-inline: 0.7rem;
+        }
+    }
+
+    @media (max-height: 700px) {
+        .user-quick-menu {
+            max-height: calc(100dvh - 4.5rem);
+        }
+
+        .user-companies-list.is-scrollable {
+            max-height: 6.5rem;
+        }
     }
 </style>
 <script>
@@ -595,11 +884,13 @@
                     return;
                 }
 
-                const label = this.querySelector('.d-flex.align-items-center');
-                const progress = this.querySelector('.indicator-progress');
+                const body = this.querySelector('.user-company-chip-body');
+                const action = this.querySelector('.user-company-chip-action');
+                const progress = this.querySelector('.user-company-chip-progress');
 
                 this.disabled = true;
-                label?.classList.add('d-none');
+                body?.classList.add('d-none');
+                action?.classList.add('d-none');
                 progress?.classList.remove('d-none');
 
                 try {
@@ -622,7 +913,8 @@
                 } catch (error) {
                     alert(@json(__('employee::my_companies.switch_failed')));
                     this.disabled = false;
-                    label?.classList.remove('d-none');
+                    body?.classList.remove('d-none');
+                    action?.classList.remove('d-none');
                     progress?.classList.add('d-none');
                 }
             });
