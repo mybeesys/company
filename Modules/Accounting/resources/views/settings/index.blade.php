@@ -407,6 +407,8 @@
             </div>
         </div>
     </div>
+
+    @include('accounting::settings.financial-year-modals')
 @endsection
 
 @section('script')
@@ -506,8 +508,8 @@
             },
         };
     </script>
-    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=13"></script>
-    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=15"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=14"></script>
+    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=16"></script>
     @if ($hasAccounts ?? false)
         @include('accounting::AccountsRouting.select2-init')
     @endif
