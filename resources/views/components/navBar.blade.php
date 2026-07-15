@@ -57,16 +57,17 @@
         ],
     ])->filter(fn($link) => $hasQuickPermission($link['permission']))->values();
     $unreadCount = auth()->user()->unreadNotifications()->count();
-    $linkedCompaniesCount = 0;
+    $linkedCompanies = collect();
     if (auth()->check() && filled(auth()->user()->email)) {
         try {
-            $linkedCompaniesCount = app(CentralCompanyMembershipService::class)
-                ->companiesForEmail((string) auth()->user()->email, tenant('id'))
-                ->count();
+            $linkedCompanies = app(CentralCompanyMembershipService::class)
+                ->companiesForEmail((string) auth()->user()->email, tenant('id'));
         } catch (\Throwable) {
-            $linkedCompaniesCount = 0;
+            $linkedCompanies = collect();
         }
     }
+    $linkedCompaniesCount = $linkedCompanies->count();
+    $otherLinkedCompanies = $linkedCompanies->where('is_current', false)->values();
 @endphp
 <div class="app-navbar app-navbar--compact flex-grow-1 d-flex align-items-center min-w-0 pe-lg-8 pe-3" id="kt_app_header_navbar">
     <div class="app-navbar-meta d-none d-lg-flex align-items-center gap-2 text-gray-600 min-w-0 me-2">
@@ -313,6 +314,28 @@
                         <span class="menu-title">@lang('employee::my_companies.menu')</span>
                     </a>
                 </div>
+                @foreach ($otherLinkedCompanies as $company)
+                    <div class="menu-item px-5">
+                        <button
+                            type="button"
+                            class="menu-link px-5 w-100 text-start border-0 bg-transparent js-navbar-open-company user-workspace-company"
+                            data-url="{{ route('my-companies.switch', ['tenantId' => $company->tenant_id]) }}"
+                        >
+                            <span class="d-flex align-items-center gap-2 w-100">
+                                <i class="ki-outline ki-office-bag fs-2 text-primary flex-shrink-0"></i>
+                                <span class="d-flex flex-column min-w-0">
+                                    <span class="menu-title text-truncate">{{ $company->company_name }}</span>
+                                    <span class="text-muted fs-8 text-truncate">{{ $company->domain }}</span>
+                                </span>
+                                <i class="ki-outline ki-exit-right fs-5 text-gray-500 flex-shrink-0 ms-auto"></i>
+                            </span>
+                            <span class="indicator-progress d-none text-muted fs-8 mt-1">
+                                @lang('employee::my_companies.opening')
+                                <span class="spinner-border spinner-border-sm align-middle ms-1"></span>
+                            </span>
+                        </button>
+                    </div>
+                @endforeach
             @endif
             <!--end::Menu item-->
             <!--begin::Menu separator-->
@@ -493,6 +516,25 @@
     .user-quick-menu .menu-content .text-muted {
         letter-spacing: .04em;
     }
+
+    .user-workspace-company {
+        transition: background-color .15s ease;
+    }
+
+    .user-workspace-company:hover,
+    .user-workspace-company:focus-visible {
+        background-color: #f9fbff;
+    }
+
+    .user-workspace-company:disabled {
+        opacity: .75;
+        cursor: wait;
+    }
+
+    [data-bs-theme="dark"] .user-workspace-company:hover,
+    [data-bs-theme="dark"] .user-workspace-company:focus-visible {
+        background-color: rgba(255, 255, 255, 0.04);
+    }
 </style>
 <script>
     let unreadNotificationCount = "{{ $unreadCount }}";
@@ -545,6 +587,46 @@
                 });
             });
         }
+
+        document.querySelectorAll('.js-navbar-open-company').forEach((button) => {
+            button.addEventListener('click', async function () {
+                const endpoint = this.dataset.url;
+                if (!endpoint || this.disabled) {
+                    return;
+                }
+
+                const label = this.querySelector('.d-flex.align-items-center');
+                const progress = this.querySelector('.indicator-progress');
+
+                this.disabled = true;
+                label?.classList.add('d-none');
+                progress?.classList.remove('d-none');
+
+                try {
+                    const response = await fetch(endpoint, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('switch failed');
+                    }
+
+                    const data = await response.json();
+                    if (data.url) {
+                        window.location.href = data.url;
+                    }
+                } catch (error) {
+                    alert(@json(__('employee::my_companies.switch_failed')));
+                    this.disabled = false;
+                    label?.classList.remove('d-none');
+                    progress?.classList.add('d-none');
+                }
+            });
+        });
 
         setInterval(fetchNotifications, 120000);
         $('.notification_btn').on('click', function(e) {
