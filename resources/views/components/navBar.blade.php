@@ -264,7 +264,7 @@
                 alt="user" />
         </div>
         <!--begin::User account menu-->
-        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold fs-6 user-quick-menu"
+        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded fw-semibold fs-6 user-quick-menu"
             data-kt-menu="true">
             <div class="user-quick-menu-header">
                 <div class="user-quick-menu-profile">
@@ -355,11 +355,11 @@
                             <i class="ki-outline ki-flash-circle fs-6"></i>
                             <span>@lang('general.quick_access')</span>
                         </div>
-                        <div class="user-shortcuts-grid">
+                        <div class="user-shortcuts-list">
                             @foreach ($quickLinks as $link)
                                 <a href="{{ url($link['url']) }}" class="user-shortcut-item"
                                     data-quick-link-key="{{ md5($link['url']) }}">
-                                    <i class="{{ $link['icon'] }} fs-4"></i>
+                                    <i class="{{ $link['icon'] }}"></i>
                                     <span>{{ $link['label'] }}</span>
                                 </a>
                             @endforeach
@@ -370,11 +370,11 @@
 
             <div class="user-quick-menu-footer">
                 <div class="user-quick-menu-footer-row">
-                    <div class="menu-item flex-grow-1" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
+                    <div class="user-footer-picker" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
                         data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-8px, 0">
                         <button type="button" class="user-footer-btn">
-                            <i class="ki-outline ki-night-day theme-light-show fs-4"></i>
-                            <i class="ki-outline ki-moon theme-dark-show fs-4"></i>
+                            <i class="ki-outline ki-night-day theme-light-show"></i>
+                            <i class="ki-outline ki-moon theme-dark-show"></i>
                             <span>@lang('general.mode')</span>
                         </button>
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-3 fs-7 w-140px"
@@ -406,7 +406,7 @@
                         </div>
                     </div>
 
-                    <div class="menu-item flex-grow-1" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
+                    <div class="user-footer-picker" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
                         data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-8px, 0">
                         <button type="button" class="user-footer-btn">
                             <img class="user-footer-flag"
@@ -414,7 +414,7 @@
                                 alt="" />
                             <span>{{ session('locale') == 'ar' ? 'العربية' : 'English' }}</span>
                         </button>
-                        <div class="menu-sub menu-sub-dropdown w-160px py-3">
+                        <div class="menu menu-sub menu-sub-dropdown w-160px py-3">
                             <div class="menu-item px-3">
                                 <a href="{{ route('set_locale', ['locale' => 'en']) }}"
                                     class="menu-link d-flex px-3 {{ session('locale') == 'en' ? 'active' : '' }}">
@@ -458,139 +458,148 @@
         transition: background-color 0.5s ease-out;
     }
 
-    .user-quick-menu {
-        --uqm-accent: #e8b923;
-        --uqm-border: #e8edf4;
-        --uqm-surface: #f8fafc;
+    .user-quick-menu.menu-sub-dropdown {
+        --uqm-accent: #d4a017;
+        --uqm-border: #e4e9f0;
+        --uqm-muted: #99a1b7;
         --uqm-text: #3f4254;
-        display: flex;
-        flex-direction: column;
-        width: min(340px, calc(100vw - 1.5rem));
-        max-height: min(88dvh, 620px);
-        padding: 0;
-        margin: 0;
-        overflow: hidden;
-        border-radius: 14px;
-        border: 1px solid var(--uqm-border);
-        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
-        background: #fff;
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        width: 300px !important;
+        max-width: calc(100vw - 1.25rem) !important;
+        max-height: calc(100dvh - 4.5rem) !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        border-radius: 12px !important;
+        border: 1px solid var(--uqm-border) !important;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12) !important;
+        background: #fff !important;
+        z-index: 1080 !important;
     }
 
     .user-quick-menu-header {
-        flex-shrink: 0;
-        padding: 0.85rem 1rem;
+        flex: 0 0 auto;
+        padding: 0.75rem 0.9rem;
         border-bottom: 1px solid var(--uqm-border);
-        background: linear-gradient(180deg, #fffdf6 0%, #ffffff 100%);
+        background: #fafbfc;
     }
 
     .user-quick-menu-profile {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.65rem;
         min-width: 0;
     }
 
+    .user-quick-menu-profile .symbol img {
+        object-fit: cover;
+    }
+
     .user-quick-menu-profile-text {
-        line-height: 1.25;
+        line-height: 1.3;
+        min-width: 0;
     }
 
     .user-quick-menu-scroll {
         flex: 1 1 auto;
         min-height: 0;
+        max-height: min(46dvh, 280px);
         overflow-x: hidden;
         overflow-y: auto;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
-        padding: 0.65rem 0.85rem 0.75rem;
+        padding: 0.6rem 0.75rem;
     }
 
     .user-quick-menu-scroll::-webkit-scrollbar {
-        width: 5px;
+        width: 4px;
     }
 
     .user-quick-menu-scroll::-webkit-scrollbar-thumb {
-        background: #d5dbe5;
+        background: #cfd6e0;
         border-radius: 99px;
     }
 
     .user-quick-menu-section + .user-quick-menu-section {
-        margin-top: 0.85rem;
-        padding-top: 0.85rem;
-        border-top: 1px dashed #e7ecf3;
+        margin-top: 0.7rem;
+        padding-top: 0.7rem;
+        border-top: 1px solid #eef1f5;
     }
 
     .user-quick-menu-section-title {
         display: flex;
         align-items: center;
-        gap: 0.4rem;
-        margin-bottom: 0.55rem;
-        font-size: 0.68rem;
+        gap: 0.35rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: #99a1b7;
+        color: var(--uqm-muted);
     }
 
     .user-companies-list {
         display: flex;
         flex-direction: column;
-        gap: 0.45rem;
+        gap: 0.4rem;
     }
 
     .user-companies-list.is-scrollable {
-        max-height: 9.5rem;
+        max-height: 7.5rem;
         overflow-y: auto;
-        padding-inline-end: 0.15rem;
     }
 
     .user-company-chip {
         display: flex;
         align-items: center;
-        gap: 0.55rem;
+        gap: 0.5rem;
         width: 100%;
         min-width: 0;
-        padding: 0.5rem 0.6rem;
-        border-radius: 10px;
+        padding: 0.45rem 0.55rem;
+        border-radius: 8px;
         border: 1px solid var(--uqm-border);
-        background: var(--uqm-surface);
+        background: #f8fafc;
         text-align: start;
-        transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+        color: inherit;
     }
 
     button.user-company-chip {
         cursor: pointer;
+        transition: background-color .15s ease, border-color .15s ease;
     }
 
     button.user-company-chip:hover:not(:disabled) {
-        border-color: #e8c96a;
-        background: #fff9e8;
-        transform: translateY(-1px);
+        border-color: #e5c76b;
+        background: #fffbeb;
     }
 
     button.user-company-chip:disabled {
-        opacity: .7;
+        opacity: .75;
         cursor: wait;
     }
 
     .user-company-chip.is-current {
-        border-color: #b7e4c7;
-        background: #f3fbf6;
+        border-color: #c8ead6;
+        background: #f0faf4;
     }
 
     .user-company-chip-icon {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 1.85rem;
-        height: 1.85rem;
-        border-radius: 8px;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 7px;
         background: #fff;
         color: var(--uqm-accent);
         flex-shrink: 0;
+        font-size: 1rem;
     }
 
     .user-company-chip.is-current .user-company-chip-icon {
-        color: #50cd89;
+        color: #47be7d;
     }
 
     .user-company-chip-body {
@@ -598,10 +607,11 @@
         flex-direction: column;
         min-width: 0;
         flex: 1 1 auto;
+        gap: 0.05rem;
     }
 
     .user-company-chip-name {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-weight: 700;
         color: var(--uqm-text);
         white-space: nowrap;
@@ -611,7 +621,7 @@
 
     .user-company-chip-meta {
         font-size: 0.68rem;
-        color: #99a1b7;
+        color: var(--uqm-muted);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -621,112 +631,143 @@
         flex-shrink: 0;
         font-size: 0.62rem;
         font-weight: 700;
-        padding: 0.15rem 0.45rem;
+        padding: 0.12rem 0.4rem;
         border-radius: 999px;
-        background: #e8fff3;
-        color: #1f8f55;
+        background: #dff7ea;
+        color: #1a8f55;
+        white-space: nowrap;
     }
 
     .user-company-chip-action {
         flex-shrink: 0;
-        color: #99a1b7;
+        color: var(--uqm-muted);
+        font-size: 1rem;
+        line-height: 1;
     }
 
-    .user-company-chip-progress {
-        flex-shrink: 0;
+    [dir="rtl"] .user-company-chip-action i {
+        transform: scaleX(-1);
     }
 
     .user-workspace-links {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        margin-top: 0.55rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem;
+        margin-top: 0.5rem;
     }
 
     .user-workspace-link {
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
-        padding: 0.35rem 0.55rem;
+        justify-content: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.45rem;
         border-radius: 8px;
         border: 1px solid var(--uqm-border);
         background: #fff;
         color: #5e6278;
-        font-size: 0.74rem;
+        font-size: 0.72rem;
         font-weight: 600;
         text-decoration: none;
-        transition: all .15s ease;
+        text-align: center;
+        min-width: 0;
+    }
+
+    .user-workspace-link span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .user-workspace-link:hover {
-        border-color: #e8c96a;
-        color: #b8890d;
-        background: #fffdf4;
+        border-color: #e5c76b;
+        color: #a67c00;
+        background: #fffdf5;
     }
 
-    .user-shortcuts-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.45rem;
+    .user-shortcuts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
     }
 
     .user-shortcut-item {
-        border: 1px solid var(--uqm-border);
-        border-radius: 9px;
-        padding: 0.5rem 0.45rem;
         display: flex;
         align-items: center;
-        gap: 0.4rem;
-        min-height: 2.35rem;
+        gap: 0.55rem;
+        padding: 0.42rem 0.5rem;
+        border-radius: 8px;
         color: var(--uqm-text);
-        background: var(--uqm-surface);
+        background: transparent;
         text-decoration: none;
-        font-size: 0.72rem;
+        font-size: 0.78rem;
         font-weight: 600;
-        line-height: 1.2;
-        transition: all .15s ease;
+        line-height: 1.25;
+        transition: background-color .15s ease, color .15s ease;
+    }
+
+    .user-shortcut-item i {
+        font-size: 1.05rem;
+        color: var(--uqm-muted);
+        flex-shrink: 0;
+        width: 1.15rem;
+        text-align: center;
     }
 
     .user-shortcut-item span {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .user-shortcut-item:hover {
-        border-color: #e8c96a;
-        background: #fff9e8;
-        color: #b8890d;
+        background: #f4f6fa;
+        color: #a67c00;
+    }
+
+    .user-shortcut-item:hover i {
+        color: var(--uqm-accent);
     }
 
     .user-quick-menu-footer {
-        flex-shrink: 0;
-        padding: 0.65rem 0.85rem 0.8rem;
+        flex: 0 0 auto;
+        padding: 0.6rem 0.75rem 0.7rem;
         border-top: 1px solid var(--uqm-border);
-        background: #fbfcfe;
+        background: #fafbfc;
     }
 
     .user-quick-menu-footer-row {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.45rem;
-        margin-bottom: 0.45rem;
+        gap: 0.35rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .user-footer-picker {
+        position: relative;
+        min-width: 0;
     }
 
     .user-footer-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.35rem;
+        gap: 0.3rem;
         width: 100%;
-        padding: 0.45rem 0.5rem;
+        padding: 0.42rem 0.4rem;
         border: 1px solid var(--uqm-border);
-        border-radius: 9px;
+        border-radius: 8px;
         background: #fff;
         color: #5e6278;
-        font-size: 0.74rem;
+        font-size: 0.72rem;
         font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .user-footer-btn i {
+        font-size: 0.95rem;
     }
 
     .user-footer-btn:hover {
@@ -735,93 +776,88 @@
     }
 
     .user-footer-flag {
-        width: 1rem;
-        height: 1rem;
+        width: 0.95rem;
+        height: 0.95rem;
         border-radius: 2px;
         object-fit: cover;
+        flex-shrink: 0;
     }
 
     .user-footer-logout {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.4rem;
+        gap: 0.35rem;
         width: 100%;
-        padding: 0.5rem;
-        border-radius: 9px;
+        padding: 0.45rem;
+        border-radius: 8px;
         background: #fff5f5;
-        border: 1px solid #ffd6d6;
+        border: 1px solid #ffd8d8;
         color: #d9214e;
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         font-weight: 700;
         text-decoration: none;
-        transition: all .15s ease;
     }
 
     .user-footer-logout:hover {
-        background: #ffe9e9;
+        background: #ffecec;
         color: #b81940;
     }
 
-    [data-bs-theme="dark"] .user-quick-menu {
-        --uqm-border: rgba(255, 255, 255, 0.08);
-        --uqm-surface: rgba(255, 255, 255, 0.04);
+    [data-bs-theme="dark"] .user-quick-menu.menu-sub-dropdown {
+        --uqm-border: rgba(255, 255, 255, 0.1);
         --uqm-text: #f1f1f4;
-        background: #151521;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+        background: #1a1a27 !important;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
     }
 
-    [data-bs-theme="dark"] .user-quick-menu-header {
-        background: linear-gradient(180deg, rgba(232, 185, 35, 0.08) 0%, #151521 100%);
-    }
-
+    [data-bs-theme="dark"] .user-quick-menu-header,
     [data-bs-theme="dark"] .user-quick-menu-footer {
-        background: #12121c;
+        background: #151521;
+    }
+
+    [data-bs-theme="dark"] .user-company-chip {
+        background: rgba(255, 255, 255, 0.04);
     }
 
     [data-bs-theme="dark"] .user-company-chip.is-current {
-        border-color: rgba(80, 205, 137, 0.35);
-        background: rgba(80, 205, 137, 0.08);
+        border-color: rgba(71, 190, 125, 0.35);
+        background: rgba(71, 190, 125, 0.1);
     }
 
-    [data-bs-theme="dark"] .user-company-chip-icon {
-        background: rgba(255, 255, 255, 0.06);
-    }
-
+    [data-bs-theme="dark"] .user-company-chip-icon,
     [data-bs-theme="dark"] .user-workspace-link,
-    [data-bs-theme="dark"] .user-footer-btn,
-    [data-bs-theme="dark"] .user-shortcut-item {
-        background: rgba(255, 255, 255, 0.03);
+    [data-bs-theme="dark"] .user-footer-btn {
+        background: rgba(255, 255, 255, 0.05);
         color: #d1d5de;
+    }
+
+    [data-bs-theme="dark"] .user-shortcut-item:hover {
+        background: rgba(255, 255, 255, 0.06);
     }
 
     [data-bs-theme="dark"] .user-footer-logout {
         background: rgba(217, 33, 78, 0.12);
-        border-color: rgba(217, 33, 78, 0.25);
+        border-color: rgba(217, 33, 78, 0.28);
     }
 
     @media (max-width: 575.98px) {
-        .user-quick-menu {
-            width: min(320px, calc(100vw - 1rem));
-            max-height: min(92dvh, 680px);
-        }
-
-        .user-shortcuts-grid {
-            grid-template-columns: 1fr;
+        .user-quick-menu.menu-sub-dropdown {
+            width: min(290px, calc(100vw - 1rem)) !important;
         }
 
         .user-quick-menu-scroll {
-            padding-inline: 0.7rem;
+            max-height: min(50dvh, 260px);
         }
     }
 
-    @media (max-height: 700px) {
-        .user-quick-menu {
-            max-height: calc(100dvh - 4.5rem);
+    @media (max-height: 720px) {
+        .user-quick-menu.menu-sub-dropdown {
+            max-height: calc(100dvh - 3.5rem) !important;
         }
 
-        .user-companies-list.is-scrollable {
-            max-height: 6.5rem;
+        .user-quick-menu-scroll {
+            max-height: min(38dvh, 220px);
         }
     }
 </style>
@@ -841,7 +877,44 @@
         }
     }
     $(document).ready(function() {
-        const quickLinksContainer = document.querySelector('.user-shortcuts-grid');
+        const quickLinksContainer = document.querySelector('.user-shortcuts-list');
+        const clampUserQuickMenu = () => {
+            const menu = document.querySelector('.user-quick-menu[data-popper-placement]');
+            if (!menu) {
+                return;
+            }
+
+            const margin = 12;
+            const rect = menu.getBoundingClientRect();
+            let shift = 0;
+
+            if (rect.top < margin) {
+                shift = margin - rect.top;
+            } else if (rect.bottom > window.innerHeight - margin) {
+                shift = (window.innerHeight - margin) - rect.bottom;
+            }
+
+            if (shift !== 0) {
+                const currentTop = parseFloat(menu.style.top || '0') || 0;
+                menu.style.top = `${currentTop + shift}px`;
+            }
+
+            const available = window.innerHeight - margin * 2;
+            if (rect.height > available) {
+                menu.style.maxHeight = `${available}px`;
+            }
+        };
+
+        document.getElementById('kt_header_user_menu_toggle')?.addEventListener('click', () => {
+            const menu = document.querySelector('.user-quick-menu');
+            if (menu) {
+                menu.style.top = '';
+                menu.style.maxHeight = '';
+            }
+            setTimeout(clampUserQuickMenu, 30);
+            setTimeout(clampUserQuickMenu, 180);
+        });
+
         if (quickLinksContainer) {
             const userId = "{{ auth()->id() }}";
             const storageKey = `user_quick_links_order_${userId}`;
