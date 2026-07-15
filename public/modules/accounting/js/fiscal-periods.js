@@ -456,11 +456,29 @@
         });
     }
 
+    function isFinancialYearTabActive() {
+        const pane = document.getElementById('financial_year_settings_tab');
+        return pane?.classList.contains('active') && pane?.classList.contains('show');
+    }
+
     function tryOpenFromUrl() {
-        const yearParam = new URL(window.location.href).searchParams.get('year');
-        if (yearParam && findYear(api()?.getState(), yearParam)) {
-            showDetailView(yearParam);
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('tab') === 'accounts-routing') {
+            return;
         }
+
+        const yearParam = url.searchParams.get('year');
+        if (!yearParam || !findYear(api()?.getState(), yearParam)) {
+            return;
+        }
+
+        if (!isFinancialYearTabActive()) {
+            document
+                .querySelector('#accountingSettingsTabs a[href="#financial_year_settings_tab"]')
+                ?.click();
+        }
+
+        showDetailView(yearParam);
     }
 
     window.FyFiscalPeriods = {

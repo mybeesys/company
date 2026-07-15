@@ -880,8 +880,27 @@
         }
         const modalEl = document.getElementById('fyYearAddModal');
         if (modalEl && window.bootstrap?.Modal) {
-            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: true, focus: true }).show();
         }
+    }
+
+    function isFinancialYearTabActive() {
+        const pane = document.getElementById('financial_year_settings_tab');
+        return pane?.classList.contains('active') && pane?.classList.contains('show');
+    }
+
+    function maybeAutoOpenAddYearModal(state) {
+        if (!state.years.length && isFinancialYearTabActive()) {
+            openAddYearModal(state);
+        }
+    }
+
+    function bindFinancialYearTabAutoOpen(state) {
+        document
+            .querySelector('#accountingSettingsTabs a[href="#financial_year_settings_tab"]')
+            ?.addEventListener('shown.bs.tab', function () {
+                maybeAutoOpenAddYearModal(loadState());
+            });
     }
 
     function initAddModalTooltips() {
@@ -1082,11 +1101,10 @@
         bindForm(state);
         bindYearEditForm(state);
         bindLockingToggle();
+        bindFinancialYearTabAutoOpen(state);
         refreshUi(state);
 
-        if (!state.years.length) {
-            openAddYearModal(state);
-        }
+        maybeAutoOpenAddYearModal(state);
 
         window.fySettingsApi = {
             loadState,
