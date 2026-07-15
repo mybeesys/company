@@ -233,9 +233,8 @@
                                         data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
                                         <i class="ki-solid ki-dots-vertical fs-2x"></i>
                                     </button>
-                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3 show"
-                                        data-kt-menu="true" data-popper-placement="bottom-end"
-                                        style="z-index: 107; position: fixed; inset: 0px 0px auto auto; margin: 0px; transform: translate3d(-145.6px, 175.2px, 0px);">
+                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
+                                        data-kt-menu="true">
                                         <div class="menu-item px-3 my-1">
                                             <a data-id="{{ $notification['id'] }}"
                                                 class="menu-link px-3 notification-delete-btn">@lang('employee::fields.delete')</a>
@@ -258,8 +257,8 @@
     <div class="app-navbar-item" id="kt_header_user_menu_toggle">
         <!--begin::Menu wrapper-->
         <div class="cursor-pointer symbol symbol-circle symbol-35px"
-            data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent"
-            data-kt-menu-placement="{{ $menu_placement_y }}" data-kt-menu-flip="top">
+            data-kt-menu-trigger="click" data-kt-menu-attach="parent"
+            data-kt-menu-placement="{{ $menu_placement_y }}">
             <img src="{{ auth()->user()->image ? asset('storage/tenant' . tenancy()->tenant->id . '/' . auth()->user()->image) : url('/assets/media/avatars/blank.png') }}"
                 alt="user" />
         </div>
@@ -458,12 +457,25 @@
         transition: background-color 0.5s ease-out;
     }
 
+    #kt_header_user_menu_toggle {
+        position: relative;
+        align-self: center;
+    }
+
+    .app-navbar--compact {
+        align-items: center !important;
+    }
+
+    .app-navbar--compact .app-navbar-actions {
+        align-items: center;
+    }
+
     .user-quick-menu.menu-sub-dropdown {
         --uqm-accent: #d4a017;
         --uqm-border: #e4e9f0;
         --uqm-muted: #99a1b7;
         --uqm-text: #3f4254;
-        display: flex !important;
+        display: none !important;
         flex-direction: column !important;
         flex-wrap: nowrap !important;
         align-items: stretch !important;
@@ -479,6 +491,11 @@
         box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12) !important;
         background: #fff !important;
         z-index: 1080 !important;
+    }
+
+    .user-quick-menu.menu-sub-dropdown.show[data-popper-placement],
+    .user-quick-menu.menu-sub-dropdown.show {
+        display: flex !important;
     }
 
     .user-quick-menu-header {
@@ -878,42 +895,6 @@
     }
     $(document).ready(function() {
         const quickLinksContainer = document.querySelector('.user-shortcuts-list');
-        const clampUserQuickMenu = () => {
-            const menu = document.querySelector('.user-quick-menu[data-popper-placement]');
-            if (!menu) {
-                return;
-            }
-
-            const margin = 12;
-            const rect = menu.getBoundingClientRect();
-            let shift = 0;
-
-            if (rect.top < margin) {
-                shift = margin - rect.top;
-            } else if (rect.bottom > window.innerHeight - margin) {
-                shift = (window.innerHeight - margin) - rect.bottom;
-            }
-
-            if (shift !== 0) {
-                const currentTop = parseFloat(menu.style.top || '0') || 0;
-                menu.style.top = `${currentTop + shift}px`;
-            }
-
-            const available = window.innerHeight - margin * 2;
-            if (rect.height > available) {
-                menu.style.maxHeight = `${available}px`;
-            }
-        };
-
-        document.getElementById('kt_header_user_menu_toggle')?.addEventListener('click', () => {
-            const menu = document.querySelector('.user-quick-menu');
-            if (menu) {
-                menu.style.top = '';
-                menu.style.maxHeight = '';
-            }
-            setTimeout(clampUserQuickMenu, 30);
-            setTimeout(clampUserQuickMenu, 180);
-        });
 
         if (quickLinksContainer) {
             const userId = "{{ auth()->id() }}";
