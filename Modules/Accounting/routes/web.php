@@ -82,6 +82,11 @@ Route::middleware([
             Route::get('{id}/report/print', [FinancialYearPagesController::class, 'reportYearPrint'])->whereNumber('id')->name('report.print');
             Route::get('{id}/report/pdf', [FinancialYearPagesController::class, 'exportYearPdf'])->whereNumber('id')->name('report.pdf');
 
+            Route::get('{id}/accounting-close', [FinancialYearPagesController::class, 'accountingClose'])->whereNumber('id')->name('accounting-close.page');
+            Route::get('{id}/accounting-close/readiness', [FinancialYearSettingsController::class, 'accountingCloseReadiness'])->whereNumber('id')->name('accounting-close.readiness');
+            Route::get('{id}/accounting-close/preview', [FinancialYearSettingsController::class, 'accountingClosePreview'])->whereNumber('id')->name('accounting-close.preview');
+            Route::post('{id}/accounting-close/execute', [FinancialYearSettingsController::class, 'accountingCloseExecute'])->whereNumber('id')->name('accounting-close.execute');
+
             Route::post('{id}/close', [FinancialYearSettingsController::class, 'closeYear'])->whereNumber('id')->name('close');
             Route::post('{id}/open', [FinancialYearSettingsController::class, 'openYear'])->whereNumber('id')->name('open');
 

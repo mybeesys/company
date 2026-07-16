@@ -21,6 +21,7 @@ class FinancialYear extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'is_first_year' => 'boolean',
+        'accounting_closed_at' => 'datetime',
     ];
 
     public function periods(): HasMany

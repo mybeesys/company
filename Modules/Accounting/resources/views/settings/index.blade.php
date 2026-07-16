@@ -421,6 +421,7 @@
             locale: @json(app()->getLocale()),
             storageKey: 'bee_accounting_financial_years_v1',
             csrfToken: @json(csrf_token()),
+            journalShowBaseUrl: @json(url('journal-entry-show')),
             lockingEnabled: @json($financialPeriodLockingEnabled ?? false),
             api: {
                 index: @json(route('accounting.financial-years.index')),
@@ -438,7 +439,12 @@
                 reportYear: (id) => @json(url('accounting/financial-years')) + '/' + id + '/report',
                 viewPeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/view',
                 reportPeriod: (id) => @json(url('accounting/financial-years/periods')) + '/' + id + '/report',
+                accountingCloseReadiness: (id) => @json(url('accounting/financial-years')) + '/' + id + '/accounting-close/readiness',
+                accountingClosePreview: (id) => @json(url('accounting/financial-years')) + '/' + id + '/accounting-close/preview',
+                accountingCloseExecute: (id) => @json(url('accounting/financial-years')) + '/' + id + '/accounting-close/execute',
+                accountingClosePage: (id) => @json(url('accounting/financial-years')) + '/' + id + '/accounting-close',
             },
+            accountsRoutingUrl: @json(route('accounting-settings', ['tab' => 'accounts-routing'])),
             messages: {
                 required: @json(__('accounting::financial_year.validation_required')),
                 invalidDate: @json(__('accounting::financial_year.validation_invalid_date')),
@@ -505,11 +511,43 @@
                 apiError: @json(__('accounting::financial_year.api_error')),
                 periodLockingSaved: @json(__('accounting::financial_year.period_locking_saved')),
                 reopenYearFirst: @json(__('accounting::financial_year.reopen_year_first', ['year' => ':year'])),
+                fiscalCloseWizardTitle: @json(__('accounting::fiscal_close.wizard_title')),
+                fiscalCloseWizardStepReadiness: @json(__('accounting::fiscal_close.wizard_step_readiness')),
+                fiscalCloseWizardStepPreview: @json(__('accounting::fiscal_close.wizard_step_preview')),
+                fiscalCloseWizardStepConfirm: @json(__('accounting::fiscal_close.wizard_step_confirm')),
+                fiscalCloseWizardAdminOnlyNote: @json(__('accounting::fiscal_close.wizard_admin_only_note')),
+                fiscalCloseWizardExecuteAndClose: @json(__('accounting::fiscal_close.wizard_execute_and_close')),
+                fiscalCloseWizardExecuting: @json(__('accounting::fiscal_close.wizard_executing')),
+                fiscalCloseViewJournal: @json(__('accounting::fiscal_close.wizard_view_journal')),
+                fiscalCloseWizardContinueAdminClose: @json(__('accounting::fiscal_close.wizard_continue_admin_close')),
+                fiscalCloseExecuteSuccess: @json(__('accounting::fiscal_close.execute_success')),
+                fiscalCloseRoutingReady: @json(__('accounting::fiscal_close.wizard_routing_ready')),
+                fiscalCloseRoutingMissing: @json(__('accounting::fiscal_close.wizard_routing_missing')),
+                fiscalCloseWizardNetIncome: @json(__('accounting::fiscal_close.wizard_net_income')),
+                fiscalCloseWizardTotalIncome: @json(__('accounting::fiscal_close.wizard_total_income')),
+                fiscalCloseWizardTotalExpenses: @json(__('accounting::fiscal_close.wizard_total_expenses')),
+                fiscalCloseWizardPlAccounts: @json(__('accounting::fiscal_close.wizard_pl_accounts')),
+                fiscalCloseWizardJournalDate: @json(__('accounting::fiscal_close.wizard_journal_date')),
+                fiscalCloseWizardBalanced: @json(__('accounting::fiscal_close.wizard_balanced')),
+                fiscalCloseWizardUnbalanced: @json(__('accounting::fiscal_close.wizard_unbalanced')),
+                fiscalCloseWizardColAccount: @json(__('accounting::fiscal_close.wizard_col_account')),
+                fiscalCloseWizardColDebit: @json(__('accounting::fiscal_close.wizard_col_debit')),
+                fiscalCloseWizardColCredit: @json(__('accounting::fiscal_close.wizard_col_credit')),
+                fiscalCloseWizardColDescription: @json(__('accounting::fiscal_close.wizard_col_description')),
+                fiscalCloseWizardWarnings: @json(__('accounting::fiscal_close.wizard_warnings')),
+                fiscalCloseWizardBlockers: @json(__('accounting::fiscal_close.wizard_blockers')),
+                fiscalCloseGoRouting: @json(__('accounting::fiscal_close.wizard_go_routing')),
+                fiscalCloseWizardConfirmAdminClose: @json(__('accounting::fiscal_close.wizard_confirm_admin_close')),
+                fiscalCloseWizardBack: @json(__('accounting::fiscal_close.wizard_back')),
+                fiscalCloseWizardNext: @json(__('accounting::fiscal_close.wizard_next')),
+                fiscalClosePeriodAdminNote: @json(__('accounting::fiscal_close.wizard_period_admin_note')),
+                fiscalCloseWizardNoLines: @json(__('accounting::fiscal_close.wizard_no_lines')),
             },
         };
     </script>
-    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=14"></script>
-    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=16"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-period-close-wizard.js') }}?v=3"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-periods.js') }}?v=16"></script>
+    <script src="{{ asset('modules/accounting/js/financial-year-settings.js') }}?v=18"></script>
     @if ($hasAccounts ?? false)
         @include('accounting::AccountsRouting.select2-init')
     @endif

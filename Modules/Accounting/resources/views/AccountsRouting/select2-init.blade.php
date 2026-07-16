@@ -1,10 +1,5 @@
 <script>
-    function initAccountsRoutingSelect2() {
-        if (window.__accountsRoutingSelect2Initialized) {
-            return;
-        }
-        window.__accountsRoutingSelect2Initialized = true;
-
+    function applyAccountsRoutingSelect2() {
         const $root = $('#accounts_routing_settings_tab');
         const selects = [
             '#sales_client_account', '#sales_client_type_route', '#sales_sales_type_route',
@@ -27,6 +22,8 @@
             '#sales_amount_before_vat_account', '#sales_discount_calculation_account',
             '#sales_discount_allowed_type_route', '#sales_discount_allowed_account',
             '#periodic_inventory_adjustment_type_route', '#periodic_inventory_adjustment_account',
+            '#fiscal_close_current_period_result_account',
+            '#fiscal_close_retained_earnings_account',
         ];
 
         selects.forEach(function (selector) {
@@ -37,9 +34,14 @@
         });
     }
 
+    function initAccountsRoutingSelect2() {
+        applyAccountsRoutingSelect2();
+    }
+
     $(document).ready(function () {
         const routingTab = document.querySelector('a[href="#accounts_routing_settings_tab"]');
         const routingPane = document.getElementById('accounts_routing_settings_tab');
+        const fiscalCloseSubTab = document.querySelector('a[href="#accounts-routing-fiscal-close-tab"]');
 
         if (routingPane?.classList.contains('active') || routingPane?.classList.contains('show')) {
             initAccountsRoutingSelect2();
@@ -47,6 +49,12 @@
 
         if (routingTab) {
             routingTab.addEventListener('shown.bs.tab', function () {
+                initAccountsRoutingSelect2();
+            });
+        }
+
+        if (fiscalCloseSubTab) {
+            fiscalCloseSubTab.addEventListener('shown.bs.tab', function () {
                 initAccountsRoutingSelect2();
             });
         }

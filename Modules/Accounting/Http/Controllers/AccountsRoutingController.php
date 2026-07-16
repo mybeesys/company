@@ -40,6 +40,10 @@ class AccountsRoutingController extends Controller
 
         return [
             'accounts' => $accounts,
+            'equityAccounts' => $accounts->filter(
+                fn ($account) => in_array((string) $account->account_primary_type, ['equity'], true)
+                    || in_array((string) $account->account_type, ['equity'], true)
+            )->values(),
             'accountsRoting' => AccountsRoting::all(),
             'options' => $options,
             'isPeriodicInventoryPolicy' => Setting::isPeriodicInventory(),
@@ -80,6 +84,8 @@ class AccountsRoutingController extends Controller
             'purchases_purchase' => 'expense',
             'purchases_purchase_return' => 'expense',
             'periodic_inventory_adjustment' => 'expense',
+            'fiscal_close_current_period_result' => 'equity',
+            'fiscal_close_retained_earnings' => 'equity',
         ];
 
         foreach ($data as $key => $value) {
@@ -97,6 +103,8 @@ class AccountsRoutingController extends Controller
                 $section = 'purchases';
             } elseif (str_starts_with((string) $key, 'periodic_inventory_')) {
                 $section = 'periodic_inventory';
+            } elseif (str_starts_with((string) $key, 'fiscal_close_')) {
+                $section = 'fiscal_close';
             }
 
             $directions[$type] = [
@@ -114,6 +122,12 @@ class AccountsRoutingController extends Controller
             DB::beginTransaction();
             foreach ($formattedDirections as $direction) {
                 if (isset($direction['type'], $direction['routing_type'], $direction['direction'], $direction['account_id'])) {
+                    if (($direction['section'] ?? '') === 'fiscal_close') {
+                        $account = AccountingAccount::query()->find($direction['account_id']);
+                        if ($account === null || ! in_array((string) $account->account_primary_type, ['equity'], true)) {
+                            throw new \InvalidArgumentException(__('accounting::fiscal_close.routing_must_be_equity'));
+                        }
+                    }
 
                     AccountsRoting::updateOrCreate(
                         [
@@ -129,9 +143,23 @@ class AccountsRoutingController extends Controller
                 }
             }
 
+            $fiscalCloseIds = collect($formattedDirections)
+                ->where('section', 'fiscal_close')
+                ->pluck('account_id')
+                ->filter()
+                ->values();
+
+            if ($fiscalCloseIds->count() >= 2 && $fiscalCloseIds->unique()->count() < $fiscalCloseIds->count()) {
+                throw new \InvalidArgumentException(__('accounting::fiscal_close.routing_accounts_must_differ'));
+            }
+
             DB::commit();
 
             return redirect()->back()->with('success', __('messages.add_successfully'));
+        } catch (\InvalidArgumentException $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', $e->getMessage());
         } catch (Exception $e) {
             DB::rollBack();
 

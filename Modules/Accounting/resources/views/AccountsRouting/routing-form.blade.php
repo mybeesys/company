@@ -26,6 +26,11 @@
                     @lang('accounting::lang.periodic_inventory_routing_tab')
                 </a>
             </li>
+            <li class="nav-item w-md-200px me-0 py-1">
+                <a class="nav-link py-3" data-bs-toggle="tab" href="#accounts-routing-fiscal-close-tab">
+                    @lang('accounting::fiscal_close.routing_tab')
+                </a>
+            </li>
         </ul>
 
         <div class="tab-content w-100" id="accountsRoutingSubTabContent">
@@ -37,6 +42,9 @@
             </div>
             <div class="tab-pane fade" id="accounts-routing-periodic-inventory-tab" role="tabpanel">
                 @include('accounting::AccountsRouting.periodic-inventory.periodic-inventory-tab')
+            </div>
+            <div class="tab-pane fade" id="accounts-routing-fiscal-close-tab" role="tabpanel">
+                @include('accounting::AccountsRouting.fiscal-close.fiscal-close-tab')
             </div>
         </div>
     </div>
