@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Mpdf\Mpdf;
 use Modules\Accounting\Models\FinancialYear;
 use Modules\Accounting\Models\FiscalPeriod;
@@ -65,6 +66,21 @@ class FinancialYearPagesController extends Controller
         $filename = 'financial-year-'.$year->id.'.pdf';
 
         return $mpdf->Output($filename, 'D');
+    }
+
+    public function accountingClose(int $id, Request $request)
+    {
+        $year = $this->loadYear($id);
+        $period = null;
+
+        if ($request->filled('period_id')) {
+            $period = $year->periods->firstWhere('id', (int) $request->query('period_id'));
+        }
+
+        return view('accounting::settings.fiscal-close-page', [
+            'year' => $year,
+            'period' => $period,
+        ]);
     }
 
     public function showPeriod(int $periodId)

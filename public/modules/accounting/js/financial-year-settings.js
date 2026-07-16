@@ -433,8 +433,6 @@
 
     function confirmCloseYear(state, year) {
         const label = year.description || `FY ${parseDate(year.end_date)?.getFullYear() || ''}`;
-        const SwalApi = window.Swal;
-
         const runClose = async () => {
             try {
                 await apiRequest('POST', cfg.api.closeYear(year.id));
@@ -446,6 +444,17 @@
             }
         };
 
+        if (window.FyAccountingCloseWizard?.runWizard) {
+            window.FyAccountingCloseWizard.runWizard({
+                year,
+                period: null,
+                label,
+                onConfirmAdministrativeClose: runClose,
+            });
+            return;
+        }
+
+        const SwalApi = window.Swal;
         if (SwalApi?.fire) {
             SwalApi.fire({
                 title: msg.confirmCloseYearTitle || 'Close fiscal year?',

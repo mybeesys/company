@@ -331,7 +331,6 @@
 
     function confirmClosePeriod(year, period) {
         const m = msg();
-        const SwalApi = window.Swal;
         const runClose = async () => {
             try {
                 await api().apiRequest('POST', api().cfg.api.closePeriod(period.id));
@@ -346,6 +345,17 @@
             }
         };
 
+        if (window.FyAccountingCloseWizard?.runWizard) {
+            window.FyAccountingCloseWizard.runWizard({
+                year,
+                period,
+                label: period.name,
+                onConfirmAdministrativeClose: runClose,
+            });
+            return;
+        }
+
+        const SwalApi = window.Swal;
         if (SwalApi?.fire) {
             SwalApi.fire({
                 title: m.confirmCloseTitle,

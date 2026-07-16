@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Modules\Accounting\Exceptions\FiscalPeriodException;
 use Modules\Accounting\Models\FinancialYear;
 use Modules\Accounting\Models\FiscalPeriod;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodAccountingCloseService;
 use Modules\Accounting\Services\FiscalPeriod\FinancialYearApiPresenter;
 use Modules\Accounting\Services\FiscalPeriod\FinancialYearService;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodLifecycleService;
@@ -21,7 +22,8 @@ class FinancialYearSettingsController extends Controller
     public function __construct(
         private readonly FinancialYearService $yearService,
         private readonly FiscalPeriodLifecycleService $lifecycle,
-        private readonly FiscalPeriodMaintenanceService $periodMaintenance
+        private readonly FiscalPeriodMaintenanceService $periodMaintenance,
+        private readonly FiscalPeriodAccountingCloseService $accountingClose,
     ) {}
 
     public function nextRange(): JsonResponse
@@ -245,6 +247,67 @@ class FinancialYearSettingsController extends Controller
         } catch (\Throwable $e) {
             return $this->errorResponse($e);
         }
+    }
+
+    public function accountingCloseReadiness(Request $request, int $id): JsonResponse
+    {
+        $year = FinancialYear::query()->with('periods')->findOrFail($id);
+        $period = $this->resolveClosingPeriod($request, $year);
+
+        return response()->json(
+            $this->accountingClose->readiness($year, $period)
+        );
+    }
+
+    public function accountingClosePreview(Request $request, int $id): JsonResponse
+    {
+        $year = FinancialYear::query()->with('periods')->findOrFail($id);
+        $period = $this->resolveClosingPeriod($request, $year);
+        $payload = $this->accountingClose->preview($year, $period);
+
+        if ($payload['preview'] === null) {
+            return response()->json([
+                'message' => __('accounting::fiscal_close.preview_not_available'),
+                'readiness' => $payload['readiness'],
+                'year' => $payload['year'],
+            ], 422);
+        }
+
+        return response()->json($payload);
+    }
+
+    public function accountingCloseExecute(Request $request, int $id): JsonResponse
+    {
+        $year = FinancialYear::query()->with('periods')->findOrFail($id);
+        $period = $this->resolveClosingPeriod($request, $year);
+
+        try {
+            $result = $this->accountingClose->execute($year, $period, (int) auth()->id());
+
+            return response()->json([
+                'message' => $result['already_posted']
+                    ? __('accounting::fiscal_close.execute_already_posted')
+                    : __('accounting::fiscal_close.execute_success'),
+                ...$result,
+            ]);
+        } catch (\Throwable $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
+    private function resolveClosingPeriod(Request $request, FinancialYear $year): ?FiscalPeriod
+    {
+        $periodId = $request->query('period_id');
+
+        if ($periodId === null || $periodId === '') {
+            return null;
+        }
+
+        return $year->periods->firstWhere('id', (int) $periodId)
+            ?? FiscalPeriod::query()
+                ->where('financial_year_id', $year->id)
+                ->where('id', (int) $periodId)
+                ->firstOrFail();
     }
 
     public function updateLocking(Request $request): JsonResponse
