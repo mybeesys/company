@@ -8,12 +8,13 @@
 
 ## ملخص سريع
 
-| طريقة الربط | من يبدأ؟ | آلية التسليم | مسار Player |
-|-------------|----------|--------------|-------------|
-| **QR** | الشاشة تعرض QR | WebSocket `screen.linked` | لا REST — انتظر WS |
+| طريقة الربط  | من يبدأ؟         | آلية التسليم                     | مسار Player          |
+| ------------ | ---------------- | -------------------------------- | -------------------- |
+| **QR**       | الشاشة تعرض QR   | WebSocket `screen.linked`        | لا REST — انتظر WS   |
 | **PIN مؤقت** | الأدمن يولّد PIN | REST `POST player/auth/pair-pin` | يستلم `token` مباشرة |
 
 بعد الربط بأي طريقة:
+
 - خزّن `token` + `device.id` + `device_channel`
 - اشترك في WebSocket على `device_channel` لتحديثات Playlist وفصل الجلسة
 
@@ -41,9 +42,9 @@ Authorization: Bearer {admin_token}
 
 ```json
 {
-  "pairing_id": "1a37d81c...64hex",
-  "device_code": "SCR-001",
-  "establishment_id": 2
+    "pairing_id": "1a37d81c...64hex",
+    "device_code": "SCR-001",
+    "establishment_id": 2
 }
 ```
 
@@ -69,33 +70,34 @@ POST /api/admin/v1/screen/devices/{device_id}/pairing-pin
 Authorization: Bearer {admin_token}
 ```
 
-| البند | القيمة |
-|--------|--------|
-| **Rate limit** | 30 طلب/دقيقة |
-| **Body** | فارغ `{}` أو بدون body |
+| البند          | القيمة                 |
+| -------------- | ---------------------- |
+| **Rate limit** | 30 طلب/دقيقة           |
+| **Body**       | فارغ `{}` أو بدون body |
 
 **Response 200:**
 
 ```json
 {
-  "message": "تم توليد رمز PIN للربط. أدخله على الشاشة خلال المدة المحددة.",
-  "pin": "482913",
-  "expires_at": "2026-07-01T12:02:00+00:00",
-  "expires_in_seconds": 120,
-  "device": {
-    "id": 12,
-    "code": "SCR-001"
-  }
+    "message": "تم توليد رمز PIN للربط. أدخله على الشاشة خلال المدة المحددة.",
+    "pin": "482913",
+    "expires_at": "2026-07-01T12:02:00+00:00",
+    "expires_in_seconds": 120,
+    "device": {
+        "id": 12,
+        "code": "SCR-001"
+    }
 }
 ```
 
-| الحقل | ملاحظة |
-|--------|--------|
-| `pin` | **يُعرض مرة واحدة** للأدمن — لا يُخزَّن في السيرفر كنص صريح |
-| `expires_in_seconds` | من الإعداد `SCREEN_PAIRING_PIN_TTL_SECONDS` (افتراضي 120) |
-| توليد PIN جديد لنفس الجهاز | يلغي أي PIN نشط سابق لذلك الجهاز |
+| الحقل                      | ملاحظة                                                      |
+| -------------------------- | ----------------------------------------------------------- |
+| `pin`                      | **يُعرض مرة واحدة** للأدمن — لا يُخزَّن في السيرفر كنص صريح |
+| `expires_in_seconds`       | من الإعداد `SCREEN_PAIRING_PIN_TTL_SECONDS` (افتراضي 120)   |
+| توليد PIN جديد لنفس الجهاز | يلغي أي PIN نشط سابق لذلك الجهاز                            |
 
 **واجهة Admin مقترحة:**
+
 - زر «ربط بـ PIN» بجانب «مسح QR»
 - عدّاد تنازلي حتى `expires_at`
 - إخفاء PIN بعد الربط أو انتهاء الوقت
@@ -110,38 +112,38 @@ POST /api/v1/screen/player/auth/pair-pin
 
 ```json
 {
-  "pin": "482913"
+    "pin": "482913"
 }
 ```
 
-| الحقل | النوع | مطلوب | الوصف |
-|--------|--------|--------|--------|
-| `pin` | string | نعم | أرقام فقط، الطول = `SCREEN_PAIRING_PIN_LENGTH` (افتراضي 6) |
+| الحقل | النوع  | مطلوب | الوصف                                                      |
+| ----- | ------ | ----- | ---------------------------------------------------------- |
+| `pin` | string | نعم   | أرقام فقط، الطول = `SCREEN_PAIRING_PIN_LENGTH` (افتراضي 6) |
 
 **Response 200:**
 
 ```json
 {
-  "message": "تم ربط الشاشة بنجاح.",
-  "token": "1|xxxxxxxx",
-  "token_type": "Bearer",
-  "expires_at": "2027-07-01T12:00:00+00:00",
-  "device_channel": "screen.device.12",
-  "device": {
-    "id": 12,
-    "code": "SCR-001",
-    "establishment_id": 2,
-    "establishment_name": "فرع الشمال"
-  }
+    "message": "تم ربط الشاشة بنجاح.",
+    "token": "1|xxxxxxxx",
+    "token_type": "Bearer",
+    "expires_at": "2027-07-01T12:00:00+00:00",
+    "device_channel": "screen.device.12",
+    "device": {
+        "id": 12,
+        "code": "SCR-001",
+        "establishment_id": 2,
+        "establishment_name": "فرع الشمال"
+    }
 }
 ```
 
 **أخطاء:**
 
-| HTTP | السبب |
-|------|--------|
+| HTTP  | السبب                                 |
+| ----- | ------------------------------------- |
 | `422` | PIN غير صالح، منتهي، أو مستخدم مسبقاً |
-| `429` | تجاوز حد الطلبات |
+| `429` | تجاوز حد الطلبات                      |
 
 ### 2.3 تدفق Player (PIN) — كود مقترح
 
@@ -184,24 +186,24 @@ Content-Type: application/json
 
 ```json
 {
-  "reason": "admin_unlink"
+    "reason": "admin_unlink"
 }
 ```
 
-| الحقل | النوع | مطلوب | الوصف |
-|--------|--------|--------|--------|
-| `reason` | string | لا | سبب اختياري (يُرسل في WebSocket للشاشة) |
+| الحقل    | النوع  | مطلوب | الوصف                                   |
+| -------- | ------ | ----- | --------------------------------------- |
+| `reason` | string | لا    | سبب اختياري (يُرسل في WebSocket للشاشة) |
 
 ### Response 200
 
 ```json
 {
-  "message": "تم فصل الشاشة بنجاح.",
-  "device": {
-    "id": 12,
-    "code": "SCR-001"
-  },
-  "tokens_revoked": 1
+    "message": "تم فصل الشاشة بنجاح.",
+    "device": {
+        "id": 12,
+        "code": "SCR-001"
+    },
+    "tokens_revoked": 1
 }
 ```
 
@@ -226,11 +228,11 @@ void onScreenUnlinked(Map<String, dynamic> msg) {
 
 ```json
 {
-  "event": "screen.unlinked",
-  "channel": "screen.device.12",
-  "device_id": 12,
-  "device": { "id": 12, "code": "SCR-001" },
-  "reason": "admin_unlink"
+    "event": "screen.unlinked",
+    "channel": "screen.device.12",
+    "device_id": 12,
+    "device": { "id": 12, "code": "SCR-001" },
+    "reason": "admin_unlink"
 }
 ```
 
@@ -243,7 +245,7 @@ void onScreenUnlinked(Map<String, dynamic> msg) {
 ### مثال cURL
 
 ```bash
-curl -X POST "https://test1.my-bee.info/api/admin/v1/screen/devices/12/unlink" \
+curl -X POST "https://test1.mybeesystem.net/api/admin/v1/screen/devices/12/unlink" \
   -H "Authorization: Bearer ADMIN_TOKEN" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -254,13 +256,13 @@ curl -X POST "https://test1.my-bee.info/api/admin/v1/screen/devices/12/unlink" \
 
 ## 4. مقارنة طرق المصادقة
 
-| | QR | PIN مؤقت | `player/auth/token` (قديم) |
-|--|-----|----------|---------------------------|
-| **الاستخدام** | ربط أولي موصى به | ربط بدون كاميرا | إعادة دخول بـ `device_code` فقط |
-| **يتطلب أدمن** | نعم (مسح QR) | نعم (توليد PIN) | لا |
-| **مدة PIN/QR** | pairing_id لمرة واحدة | ~2 دقيقة | — |
-| **توكن Player** | عبر WS | عبر REST (+ WS اختياري) | عبر REST |
-| **Ability** | `screen:player` | `screen:player` | `screen:player` |
+|                 | QR                    | PIN مؤقت                | `player/auth/token` (قديم)      |
+| --------------- | --------------------- | ----------------------- | ------------------------------- |
+| **الاستخدام**   | ربط أولي موصى به      | ربط بدون كاميرا         | إعادة دخول بـ `device_code` فقط |
+| **يتطلب أدمن**  | نعم (مسح QR)          | نعم (توليد PIN)         | لا                              |
+| **مدة PIN/QR**  | pairing_id لمرة واحدة | ~2 دقيقة                | —                               |
+| **توكن Player** | عبر WS                | عبر REST (+ WS اختياري) | عبر REST                        |
+| **Ability**     | `screen:player`       | `screen:player`         | `screen:player`                 |
 
 > **ملاحظة:** `pin_hash` الثابت على الجهاز + `/api/v1/screen/auth/token` (واجهة إدارية قديمة) **مختلف** عن PIN الربط المؤقت الجديد.
 
@@ -268,14 +270,14 @@ curl -X POST "https://test1.my-bee.info/api/admin/v1/screen/devices/12/unlink" \
 
 ## 5. مسارات Admin كاملة (مرجع)
 
-| Method | Path | الوصف |
-|--------|------|--------|
-| POST | `/api/admin/v1/screen/auth/token` | ربط QR |
-| POST | `/api/admin/v1/screen/devices/{id}/pairing-pin` | **جديد** — توليد PIN |
-| POST | `/api/admin/v1/screen/devices/{id}/unlink` | فصل الشاشة |
-| GET | `/api/admin/v1/screen/devices` | قائمة الأجهزة |
-| GET/POST/PUT/DELETE | `/api/admin/v1/screen/playlists` | قوائم التشغيل |
-| GET/POST/PUT/DELETE | `/api/admin/v1/screen/promos` | المواد |
+| Method              | Path                                            | الوصف                |
+| ------------------- | ----------------------------------------------- | -------------------- |
+| POST                | `/api/admin/v1/screen/auth/token`               | ربط QR               |
+| POST                | `/api/admin/v1/screen/devices/{id}/pairing-pin` | **جديد** — توليد PIN |
+| POST                | `/api/admin/v1/screen/devices/{id}/unlink`      | فصل الشاشة           |
+| GET                 | `/api/admin/v1/screen/devices`                  | قائمة الأجهزة        |
+| GET/POST/PUT/DELETE | `/api/admin/v1/screen/playlists`                | قوائم التشغيل        |
+| GET/POST/PUT/DELETE | `/api/admin/v1/screen/promos`                   | المواد               |
 
 **Auth:** `Authorization: Bearer {token}` — middleware `auth-central` (نفس توكن POS/Admin).
 
@@ -285,14 +287,14 @@ curl -X POST "https://test1.my-bee.info/api/admin/v1/screen/devices/12/unlink" \
 
 Base: `https://{tenant}/api/v1/screen/player`
 
-| Method | Path | Auth |
-|--------|------|------|
-| POST | `/auth/pair-pin` | **جديد** — ربط بـ PIN |
-| POST | `/auth/token` | إعادة إصدار توكن بـ `device_code` |
-| GET | `/me` | Bearer |
-| GET | `/playlists` | Bearer |
-| GET | `/playlists/{id}/promos` | Bearer |
-| POST | `/auth/revoke` | Bearer |
+| Method | Path                     | Auth                              |
+| ------ | ------------------------ | --------------------------------- |
+| POST   | `/auth/pair-pin`         | **جديد** — ربط بـ PIN             |
+| POST   | `/auth/token`            | إعادة إصدار توكن بـ `device_code` |
+| GET    | `/me`                    | Bearer                            |
+| GET    | `/playlists`             | Bearer                            |
+| GET    | `/playlists/{id}/promos` | Bearer                            |
+| POST   | `/auth/revoke`           | Bearer                            |
 
 تفاصيل Player: `Screen_Player_API.md`
 
@@ -300,12 +302,13 @@ Base: `https://{tenant}/api/v1/screen/player`
 
 ## 7. WebSocket بعد الربط
 
-| القناة | متى |
-|--------|-----|
-| `screen.pairing.{pairing_id}` | أثناء انتظار QR فقط |
-| `screen.device.{device_id}` | بعد الربط — Playlist + unlink |
+| القناة                        | متى                           |
+| ----------------------------- | ----------------------------- |
+| `screen.pairing.{pairing_id}` | أثناء انتظار QR فقط           |
+| `screen.device.{device_id}`   | بعد الربط — Playlist + unlink |
 
 أحداث مهمة:
+
 - `screen.linked` — اكتمل الربط
 - `screen.unlinked` — فصل من الأدمن
 - `screen.playlist.updated` — تحديث قائمة تشغيل
@@ -316,11 +319,11 @@ Base: `https://{tenant}/api/v1/screen/player`
 
 ## 8. إعدادات السيرفر (.env)
 
-| المتغير | افتراضي | الوصف |
-|---------|---------|--------|
-| `SCREEN_PAIRING_PIN_TTL_SECONDS` | `120` | مدة صلاحية PIN |
-| `SCREEN_PAIRING_PIN_LENGTH` | `6` | عدد أرقام PIN |
-| `SCREEN_API_TOKEN_TTL_DAYS` | `365` | مدة توكن Player بعد الربط |
+| المتغير                          | افتراضي | الوصف                     |
+| -------------------------------- | ------- | ------------------------- |
+| `SCREEN_PAIRING_PIN_TTL_SECONDS` | `120`   | مدة صلاحية PIN            |
+| `SCREEN_PAIRING_PIN_LENGTH`      | `6`     | عدد أرقام PIN             |
+| `SCREEN_API_TOKEN_TTL_DAYS`      | `365`   | مدة توكن Player بعد الربط |
 
 ---
 
@@ -337,12 +340,14 @@ php artisan tenants:migrate --path=Modules/Screen/database/migrations/tenant --f
 ## 10. Checklist تطوير Flutter
 
 ### Admin App
+
 - [ ] زر توليد PIN → `POST .../devices/{id}/pairing-pin`
 - [ ] عدّاد تنازلي لـ `expires_in_seconds`
 - [ ] زر فصل → `POST .../devices/{id}/unlink`
 - [ ] مسح QR → `POST .../auth/token` (موجود)
 
 ### Player App
+
 - [ ] شاشة ربط: QR **أو** إدخال PIN
 - [ ] QR: WS subscribe + انتظار `screen.linked`
 - [ ] PIN: `POST .../player/auth/pair-pin` + حفظ token
@@ -356,7 +361,7 @@ php artisan tenants:migrate --path=Modules/Screen/database/migrations/tenant --f
 ### توليد PIN (Admin)
 
 ```bash
-curl -X POST "https://test1.my-bee.info/api/admin/v1/screen/devices/12/pairing-pin" \
+curl -X POST "https://test1.mybeesystem.net/api/admin/v1/screen/devices/12/pairing-pin" \
   -H "Authorization: Bearer ADMIN_TOKEN" \
   -H "Accept: application/json"
 ```
@@ -364,7 +369,7 @@ curl -X POST "https://test1.my-bee.info/api/admin/v1/screen/devices/12/pairing-p
 ### التحقق من PIN (Player)
 
 ```bash
-curl -X POST "https://test1.my-bee.info/api/v1/screen/player/auth/pair-pin" \
+curl -X POST "https://test1.mybeesystem.net/api/v1/screen/player/auth/pair-pin" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"pin":"482913"}'
@@ -372,4 +377,4 @@ curl -X POST "https://test1.my-bee.info/api/v1/screen/player/auth/pair-pin" \
 
 ---
 
-*My Bee — Screen Module — Pairing QR + PIN + Unlink*
+_My Bee — Screen Module — Pairing QR + PIN + Unlink_

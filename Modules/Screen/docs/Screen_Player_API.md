@@ -7,14 +7,14 @@
 
 ## الأساسيات
 
-| البند | القيمة |
-|--------|--------|
-| **Base URL** | `https://{tenant-host}/api/v1/screen/player` |
-| **المستأجر (Tenant)** | الطلبات تُرسل إلى نطاق المستأجر فقط (مثل `https://test1.my-bee.info`) |
-| **المصادقة** | Bearer Token (Laravel Sanctum) |
-| **صلاحية التوكن** | Ability: `screen:player` (مختلف عن توكن الإدارة `screen:api`) |
-| **مدة التوكن** | حسب إعداد `SCREEN_API_TOKEN_TTL_DAYS` (افتراضي 365 يوماً) |
-| **Rate limit** | `POST auth/token` — 20 طلب/دقيقة |
+| البند                 | القيمة                                                                    |
+| --------------------- | ------------------------------------------------------------------------- |
+| **Base URL**          | `https://{tenant-host}/api/v1/screen/player`                              |
+| **المستأجر (Tenant)** | الطلبات تُرسل إلى نطاق المستأجر فقط (مثل `https://test1.mybeesystem.net`) |
+| **المصادقة**          | Bearer Token (Laravel Sanctum)                                            |
+| **صلاحية التوكن**     | Ability: `screen:player` (مختلف عن توكن الإدارة `screen:api`)             |
+| **مدة التوكن**        | حسب إعداد `SCREEN_API_TOKEN_TTL_DAYS` (افتراضي 365 يوماً)                 |
+| **Rate limit**        | `POST auth/token` — 20 طلب/دقيقة                                          |
 
 ### Headers موصى بها
 
@@ -54,30 +54,30 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 ```json
 {
-  "device_code": "SCR-001",
-  "device_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    "device_code": "SCR-001",
+    "device_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 }
 ```
 
-| الحقل | النوع | مطلوب | الوصف |
-|--------|--------|--------|--------|
-| `device_code` | string | نعم | كود الجهاز كما في لوحة التحكم (`screen_devices.code`) — **التحقق يعتمد عليه فقط** |
-| `device_id` | string | لا | معرّف يخزّنه التطبيق محلياً (UUID أو hardware id). **لا يُتحقق منه حالياً** — يُعاد في الرد إن أُرسل (للاستخدام المستقبلي) |
+| الحقل         | النوع  | مطلوب | الوصف                                                                                                                      |
+| ------------- | ------ | ----- | -------------------------------------------------------------------------------------------------------------------------- |
+| `device_code` | string | نعم   | كود الجهاز كما في لوحة التحكم (`screen_devices.code`) — **التحقق يعتمد عليه فقط**                                          |
+| `device_id`   | string | لا    | معرّف يخزّنه التطبيق محلياً (UUID أو hardware id). **لا يُتحقق منه حالياً** — يُعاد في الرد إن أُرسل (للاستخدام المستقبلي) |
 
 ### Response `200`
 
 ```json
 {
-  "token": "1|xxxxxxxxxxxxxxxx",
-  "token_type": "Bearer",
-  "expires_at": "2027-06-11T10:00:00+00:00",
-  "device_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "device": {
-    "id": 12,
-    "code": "SCR-001",
-    "establishment_id": 2,
-    "establishment_name": "فرع الشمال"
-  }
+    "token": "1|xxxxxxxxxxxxxxxx",
+    "token_type": "Bearer",
+    "expires_at": "2027-06-11T10:00:00+00:00",
+    "device_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "device": {
+        "id": 12,
+        "code": "SCR-001",
+        "establishment_id": 2,
+        "establishment_name": "فرع الشمال"
+    }
 }
 ```
 
@@ -86,11 +86,11 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 ### أخطاء
 
-| HTTP | السبب |
-|------|--------|
+| HTTP  | السبب                               |
+| ----- | ----------------------------------- |
 | `401` | `device_code` غير موجود أو غير صحيح |
-| `422` | حقول ناقصة أو غير صالحة |
-| `429` | تجاوز حد الطلبات (throttle) |
+| `422` | حقول ناقصة أو غير صالحة             |
+| `429` | تجاوز حد الطلبات (throttle)         |
 
 ---
 
@@ -102,12 +102,12 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 ```json
 {
-  "data": {
-    "id": 12,
-    "code": "SCR-001",
-    "establishment_id": 2,
-    "establishment_name": "فرع الشمال"
-  }
+    "data": {
+        "id": 12,
+        "code": "SCR-001",
+        "establishment_id": 2,
+        "establishment_name": "فرع الشمال"
+    }
 }
 ```
 
@@ -121,7 +121,7 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 ```json
 {
-  "message": "تم إلغاء التوكن."
+    "message": "تم إلغاء التوكن."
 }
 ```
 
@@ -135,20 +135,20 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 ```json
 {
-  "data": [
-    {
-      "id": 5,
-      "name": "قائمة الصباح",
-      "screen_orientation": "landscape",
-      "days_settings": {
-        "days_settings_option": "every_day",
-        "start_time": "08:00",
-        "transition_seconds": 10
-      },
-      "promos_count": 4,
-      "updated_at": "2026-06-01T12:00:00+00:00"
-    }
-  ]
+    "data": [
+        {
+            "id": 5,
+            "name": "قائمة الصباح",
+            "screen_orientation": "landscape",
+            "days_settings": {
+                "days_settings_option": "every_day",
+                "start_time": "08:00",
+                "transition_seconds": 10
+            },
+            "promos_count": 4,
+            "updated_at": "2026-06-01T12:00:00+00:00"
+        }
+    ]
 }
 ```
 
@@ -158,15 +158,15 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 ```json
 {
-  "data": {
-    "id": 5,
-    "name": "قائمة الصباح",
-    "screen_orientation": "landscape",
-    "days_settings": { },
-    "selected_promos": [1, 3, 7],
-    "created_at": "2026-05-01T08:00:00+00:00",
-    "updated_at": "2026-06-01T12:00:00+00:00"
-  }
+    "data": {
+        "id": 5,
+        "name": "قائمة الصباح",
+        "screen_orientation": "landscape",
+        "days_settings": {},
+        "selected_promos": [1, 3, 7],
+        "created_at": "2026-05-01T08:00:00+00:00",
+        "updated_at": "2026-06-01T12:00:00+00:00"
+    }
 }
 ```
 
@@ -176,23 +176,23 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 ```json
 {
-  "data": [
-    {
-      "id": 1,
-      "name": "إعلان صيفي",
-      "path": "promos/abc.mp4",
-      "media_url": "https://tenant.my-bee.info/storage/tenant1/promos/abc.mp4",
-      "thumbnail": "promos/abc_thumb.jpg",
-      "thumbnail_url": "https://tenant.my-bee.info/storage/tenant1/promos/abc_thumb.jpg",
-      "created_at": "2026-04-01T10:00:00+00:00",
-      "updated_at": "2026-04-01T10:00:00+00:00"
-    }
-  ]
+    "data": [
+        {
+            "id": 1,
+            "name": "إعلان صيفي",
+            "path": "promos/abc.mp4",
+            "media_url": "https://tenant.mybeesystem.net/storage/tenant1/promos/abc.mp4",
+            "thumbnail": "promos/abc_thumb.jpg",
+            "thumbnail_url": "https://tenant.mybeesystem.net/storage/tenant1/promos/abc_thumb.jpg",
+            "created_at": "2026-04-01T10:00:00+00:00",
+            "updated_at": "2026-04-01T10:00:00+00:00"
+        }
+    ]
 }
 ```
 
-| HTTP | السبب |
-|------|--------|
+| HTTP  | السبب                                        |
+| ----- | -------------------------------------------- |
 | `404` | القائمة غير موجودة أو غير مرتبطة بهذا الجهاز |
 
 ---
@@ -207,22 +207,22 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 
 مادة واحدة (فقط إن كانت ضمن قوائم الجهاز).
 
-| HTTP | السبب |
-|------|--------|
+| HTTP  | السبب                                             |
+| ----- | ------------------------------------------------- |
 | `404` | المادة غير موجودة أو غير مرتبطة بقوائم هذا الجهاز |
 
 ---
 
 ## الفرق بين واجهة Player وواجهة الإدارة
 
-| | **Player** (`/player/...`) | **Admin** (`/screen/...`) |
-|--|---------------------------|---------------------------|
-| **الغرض** | تشغيل على الجهاز | إدارة كاملة من التطبيق/اللوحة |
-| **التوكن** | `screen:player` | `screen:api` |
-| **طلب التوكن** | `device_code` (+ `device_id` اختياري من التطبيق) | PIN + `device_code` أو `pairing_token` (QR) |
-| **Playlists** | قراءة فقط، مفلترة بالجهاز | CRUD كامل |
-| **Promos** | قراءة فقط، مفلترة بقوائم الجهاز | CRUD + رفع ملفات |
-| **Devices / Dashboard** | غير متاح | متاح |
+|                         | **Player** (`/player/...`)                       | **Admin** (`/screen/...`)                   |
+| ----------------------- | ------------------------------------------------ | ------------------------------------------- |
+| **الغرض**               | تشغيل على الجهاز                                 | إدارة كاملة من التطبيق/اللوحة               |
+| **التوكن**              | `screen:player`                                  | `screen:api`                                |
+| **طلب التوكن**          | `device_code` (+ `device_id` اختياري من التطبيق) | PIN + `device_code` أو `pairing_token` (QR) |
+| **Playlists**           | قراءة فقط، مفلترة بالجهاز                        | CRUD كامل                                   |
+| **Promos**              | قراءة فقط، مفلترة بقوائم الجهاز                  | CRUD + رفع ملفات                            |
+| **Devices / Dashboard** | غير متاح                                         | متاح                                        |
 
 ---
 
@@ -231,7 +231,7 @@ Authorization: Bearer {token}   ← للمسارات المحمية فقط
 ### إصدار توكن
 
 ```bash
-curl -X POST "https://test1.my-bee.info/api/v1/screen/player/auth/token" \
+curl -X POST "https://test1.mybeesystem.net/api/v1/screen/player/auth/token" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"device_code":"SCR-001","device_id":"my-local-device-uuid"}'
@@ -240,7 +240,7 @@ curl -X POST "https://test1.my-bee.info/api/v1/screen/player/auth/token" \
 ### جلب قوائم التشغيل
 
 ```bash
-curl "https://test1.my-bee.info/api/v1/screen/player/playlists" \
+curl "https://test1.mybeesystem.net/api/v1/screen/player/playlists" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|YOUR_TOKEN"
 ```
@@ -248,7 +248,7 @@ curl "https://test1.my-bee.info/api/v1/screen/player/playlists" \
 ### جلب مواد قائمة معيّنة
 
 ```bash
-curl "https://test1.my-bee.info/api/v1/screen/player/playlists/5/promos" \
+curl "https://test1.mybeesystem.net/api/v1/screen/player/playlists/5/promos" \
   -H "Accept: application/json" \
   -H "Authorization: Bearer 1|YOUR_TOKEN"
 ```
@@ -267,19 +267,19 @@ curl "https://test1.my-bee.info/api/v1/screen/player/playlists/5/promos" \
 
 ## ملخص المسارات
 
-| Method | Path | Auth | الوصف |
-|--------|------|------|--------|
-| POST | `/auth/token` | لا | إصدار توكن |
-| POST | `/auth/revoke` | نعم | إلغاء التوكن الحالي |
-| GET | `/me` | نعم | بيانات الجهاز |
-| GET | `/playlists` | نعم | قوائم الجهاز |
-| GET | `/playlists/{id}` | نعم | تفاصيل قائمة |
-| GET | `/playlists/{id}/promos` | نعم | مواد القائمة |
-| GET | `/promos` | نعم | كل مواد الجهاز |
-| GET | `/promos/{id}` | نعم | مادة واحدة |
+| Method | Path                     | Auth | الوصف               |
+| ------ | ------------------------ | ---- | ------------------- |
+| POST   | `/auth/token`            | لا   | إصدار توكن          |
+| POST   | `/auth/revoke`           | نعم  | إلغاء التوكن الحالي |
+| GET    | `/me`                    | نعم  | بيانات الجهاز       |
+| GET    | `/playlists`             | نعم  | قوائم الجهاز        |
+| GET    | `/playlists/{id}`        | نعم  | تفاصيل قائمة        |
+| GET    | `/playlists/{id}/promos` | نعم  | مواد القائمة        |
+| GET    | `/promos`                | نعم  | كل مواد الجهاز      |
+| GET    | `/promos/{id}`           | نعم  | مادة واحدة          |
 
 **المسار الكامل:** `https://{host}/api/v1/screen/player` + المسار أعلاه.
 
 ---
 
-*آخر تحديث: يونيو 2026 — My Bee Screen Module*
+_آخر تحديث: يونيو 2026 — My Bee Screen Module_

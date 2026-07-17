@@ -11,7 +11,7 @@
 | البند | القيمة |
 |--------|--------|
 | البروتوكول | Socket.IO v4 (`socket_io_client` ^2.x مع Engine.IO v4) |
-| عنوان الاتصال | `https://{tenant_id}.my-bee.info` **بدون منفذ** (انظر §7.1) |
+| عنوان الاتصال | `https://{tenant_id}.mybeesystem.net` **بدون منفذ** (انظر §7.1) |
 | المسار | `/socket.io/` |
 | ⚠️ لا تستخدم `:0` أو `:3001` في الإنتاج إن وُجد Nginx proxy |
 | Transports | `['websocket', 'polling']` |
@@ -48,7 +48,7 @@ IO.Socket connectWaiterSocket({
   bool useHttps = true,
 }) {
   final scheme = useHttps ? 'https' : 'http';
-  final url = '$scheme://$tenantId.my-bee.info';
+  final url = '$scheme://$tenantId.mybeesystem.net';
 
   return IO.io(
     url,
@@ -247,19 +247,19 @@ bool isDuplicate(Map payload) {
 /// إنتاج: بدون منفذ أبداً
 String socketUrl(String tenantId, {bool useHttps = true}) {
   final scheme = useHttps ? 'https' : 'http';
-  return '$scheme://$tenantId.my-bee.info';
+  return '$scheme://$tenantId.mybeesystem.net';
 }
 
-// ❌ خطأ — يسبب: test1.my-bee.info:0
+// ❌ خطأ — يسبب: test1.mybeesystem.net:0
 // '$host:${socketPort}'  عندما socketPort = 0 أو null
 
 // ❌ خطأ في الإنتاج (إلا للتجربة المباشرة على IP)
-// 'https://test1.my-bee.info:3001'
+// 'https://test1.mybeesystem.net:3001'
 ```
 
 | البيئة | URL للاتصال |
 |--------|-------------|
-| إنتاج (مع Nginx) | `https://test1.my-bee.info` |
+| إنتاج (مع Nginx) | `https://test1.mybeesystem.net` |
 | تجربة مباشرة على Node | `http://IP_SERVER:3001` فقط للاختبار |
 
 ### 7.2 Nginx (الباك / DevOps)
@@ -300,7 +300,7 @@ socket.onReconnect((_) {
 
 ## 10. Checklist قبول
 
-- [ ] اتصال بـ token صالح على `{tenant}.my-bee.info`
+- [ ] اتصال بـ token صالح على `{tenant}.mybeesystem.net`
 - [ ] رفض بدون token (`UNAUTHORIZED`)
 - [ ] تغيير من المطبخ يظهر خلال &lt; 2 ثانية
 - [ ] `join:table` يحدّث التفاصيل دون إعادة فتح الشاشة
@@ -312,7 +312,7 @@ socket.onReconnect((_) {
 
 ## 11. إجابات أسئلة المواصفة (للفريق)
 
-1. **الدومين:** نفس دومين الـ tenant (`https://{tenant}.my-bee.info`)، منفذ Socket منفصل (3001) خلف reverse proxy إلى `/socket.io/`.
+1. **الدومين:** نفس دومين الـ tenant (`https://{tenant}.mybeesystem.net`)، منفذ Socket منفصل (3001) خلف reverse proxy إلى `/socket.io/`.
 2. **الـ token:** نفس Bearer token الـ REST؛ يُتحقق منه عبر `/api/verify-token`.
 3. **النطاق:** غرفة `tenant:{id}` لكل النوادل؛ غرفة `establishment:{id}` عند إرسال `establishment_id` في auth.
 4. **أسماء الأحداث:** `table:updated` (بنقطتين) — موحّد مع المواصفة.
@@ -339,7 +339,7 @@ curl -i -H "Authorization: Bearer TOKEN" \
   -H "X-Tenant-Id: test1" \
   "http://127.0.0.1/api/internal/realtime/verify-token"
 
-curl -I "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+curl -I "https://test1.mybeesystem.net/socket.io/?EIO=4&transport=polling"
 ```
 
 `internal verify` يجب **200**. Socket path يجب **ليس 404**.

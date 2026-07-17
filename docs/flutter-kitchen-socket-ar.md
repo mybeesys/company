@@ -8,14 +8,14 @@
 
 ## 1. ملخص سريع
 
-| البند | القيمة |
-|--------|--------|
-| البروتوكول | Socket.IO v4 (`socket_io_client`) |
-| عنوان الاتصال | **نفس scheme الـ REST** — `https://{tenant_id}.my-bee.info` **بدون** `:3001` وبدون `/socket.io/` في الـ URL |
-| المسار | `/socket.io/` |
-| Transports | `['websocket', 'polling']` |
-| Namespace | `/` (افتراضي) |
-| REST fallback | `GET /api/kitchen-orders` |
+| البند         | القيمة                                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
+| البروتوكول    | Socket.IO v4 (`socket_io_client`)                                                                               |
+| عنوان الاتصال | **نفس scheme الـ REST** — `https://{tenant_id}.mybeesystem.net` **بدون** `:3001` وبدون `/socket.io/` في الـ URL |
+| المسار        | `/socket.io/`                                                                                                   |
+| Transports    | `['websocket', 'polling']`                                                                                      |
+| Namespace     | `/` (افتراضي)                                                                                                   |
+| REST fallback | `GET /api/kitchen-orders`                                                                                       |
 
 ---
 
@@ -23,12 +23,12 @@
 
 نفس REST:
 
-| Header / auth | مطلوب |
-|---------------|--------|
-| `auth.token` | Bearer token **بدون** كلمة `Bearer` |
-| `auth.tenant_id` | معرّف الشركة |
-| `auth.establishment_id` | رقم الفرع |
-| أو header `Establishment-Id` | نفس قيمة الفرع |
+| Header / auth                | مطلوب                               |
+| ---------------------------- | ----------------------------------- |
+| `auth.token`                 | Bearer token **بدون** كلمة `Bearer` |
+| `auth.tenant_id`             | معرّف الشركة                        |
+| `auth.establishment_id`      | رقم الفرع                           |
+| أو header `Establishment-Id` | نفس قيمة الفرع                      |
 
 ```dart
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -39,7 +39,7 @@ IO.Socket connectKitchenSocket({
   required int establishmentId,
   List<int>? categoryIds,
 }) {
-  final url = 'https://$tenantId.my-bee.info';
+  final url = 'https://$tenantId.mybeesystem.net';
 
   final socket = IO.io(
     url,
@@ -72,18 +72,18 @@ IO.Socket connectKitchenSocket({
 
 ### أخطاء الاتصال
 
-| الرسالة | الإجراء |
-|---------|---------|
-| `timeout` | غالباً Apache لا يوجّه `/socket.io/` أو استخدم `https` إن REST على https — راجع §12 |
-| `UNAUTHORIZED` / `INVALID_TOKEN` | token منتهي أو `Bearer ` زائدة — أعد login |
-| `ESTABLISHMENT_REQUIRED` | أرسل `establishment_id` في `kitchen:join` |
+| الرسالة                          | الإجراء                                                                             |
+| -------------------------------- | ----------------------------------------------------------------------------------- |
+| `timeout`                        | غالباً Apache لا يوجّه `/socket.io/` أو استخدم `https` إن REST على https — راجع §12 |
+| `UNAUTHORIZED` / `INVALID_TOKEN` | token منتهي أو `Bearer ` زائدة — أعد login                                          |
+| `ESTABLISHMENT_REQUIRED`         | أرسل `establishment_id` في `kitchen:join`                                           |
 
 ```dart
 // ❌ خطأ — يسبب timeout أو 404
-IO.io('http://test1.my-bee.info/socket.io/', ...);
+IO.io('http://test1.mybeesystem.net/socket.io/', ...);
 
 // ✅ صح
-IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...);
+IO.io('https://test1.mybeesystem.net', IO.OptionBuilder().setPath('/socket.io/')...);
 ```
 
 ---
@@ -94,8 +94,8 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 
 ```json
 {
-  "establishment_id": 3,
-  "category_ids": [9, 10]
+    "establishment_id": 3,
+    "category_ids": [9, 10]
 }
 ```
 
@@ -108,6 +108,7 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 **يرسل السيرفر فوراً:** `kitchen:sync` (لقطة الطلبات مفلترة حسب `category_ids`).
 
 > **فلترة الكاتوغري (realtime):**
+>
 > - عند إرسال `category_ids` في `kitchen:join`، العميل **لا يدخل** الغرفة العامة `kitchen:establishment:{id}` (تستقبل طلبات كاملة بدون فلتر).
 > - كاتوغري واحدة → غرفة `kitchen:establishment:{id}:category:{cat}`
 > - عدة كاتوغريات (مثل `[9, 18]`) → غرفة مجمّعة `kitchen:establishment:{id}:categories:9,18` مع `items` مفلترة لاتحاد الكاتوغريات فقط.
@@ -128,12 +129,12 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 
 ```json
 {
-  "event_id": "uuid",
-  "schema_version": 1,
-  "event": "kitchen:order:updated",
-  "timestamp": "2026-05-31T12:00:00.000000Z",
-  "updated_at": "2026-05-31T12:00:00.000000Z",
-  "establishment_id": 3
+    "event_id": "uuid",
+    "schema_version": 1,
+    "event": "kitchen:order:updated",
+    "timestamp": "2026-05-31T12:00:00.000000Z",
+    "updated_at": "2026-05-31T12:00:00.000000Z",
+    "establishment_id": 3
 }
 ```
 
@@ -141,9 +142,11 @@ IO.io('https://test1.my-bee.info', IO.OptionBuilder().setPath('/socket.io/')...)
 
 ```json
 {
-  "event": "kitchen:sync",
-  "establishment_id": 3,
-  "orders": [ /* نفس GET /api/kitchen-orders */ ]
+    "event": "kitchen:sync",
+    "establishment_id": 3,
+    "orders": [
+        /* نفس GET /api/kitchen-orders */
+    ]
 }
 ```
 
@@ -179,9 +182,11 @@ List<KitchenItem> filterItems(List<KitchenItem> items, List<int> categoryIds) {
 
 ```json
 {
-  "event": "kitchen:order:updated",
-  "establishment_id": 3,
-  "order": { /* طلب كامل محدّث */ }
+    "event": "kitchen:order:updated",
+    "establishment_id": 3,
+    "order": {
+        /* طلب كامل محدّث */
+    }
 }
 ```
 
@@ -190,6 +195,7 @@ List<KitchenItem> filterItems(List<KitchenItem> items, List<int> categoryIds) {
 > إذا اخترت **عدة كاتوغريات** `[9, 18]`، كل حدث `kitchen:order:updated` يأتي بـ `items` مفلترة لـ **9 و 18 معاً** — لا دمج يدوي من أحداث منفصلة.
 
 يُبث بعد:
+
 - `POST /api/update-item-status`
 - أي تحديث من نادل / POS / جهاز مطبخ آخر
 
@@ -199,13 +205,13 @@ List<KitchenItem> filterItems(List<KitchenItem> items, List<int> categoryIds) {
 
 ```json
 {
-  "event": "kitchen:item:status_changed",
-  "establishment_id": 3,
-  "order_id": 1001,
-  "item_id": 501,
-  "status": "prepared",
-  "order_status": "inpreparation",
-  "order_type": "محلي"
+    "event": "kitchen:item:status_changed",
+    "establishment_id": 3,
+    "order_id": 1001,
+    "item_id": 501,
+    "status": "prepared",
+    "order_status": "inpreparation",
+    "order_type": "محلي"
 }
 ```
 
@@ -215,18 +221,18 @@ List<KitchenItem> filterItems(List<KitchenItem> items, List<int> categoryIds) {
 
 ```json
 {
-  "event": "kitchen:order:removed",
-  "establishment_id": 3,
-  "order_id": 1001,
-  "reason": "completed"
+    "event": "kitchen:order:removed",
+    "establishment_id": 3,
+    "order_id": 1001,
+    "reason": "completed"
 }
 ```
 
-| `reason` | متى |
-|----------|-----|
+| `reason`    | متى                                                            |
+| ----------- | -------------------------------------------------------------- |
 | `completed` | كل الأصناف `prepared` أو `order_status` لم يعد `inpreparation` |
-| `cancelled` | إلغاء |
-| `archived` | حالات أخرى |
+| `cancelled` | إلغاء                                                          |
+| `archived`  | حالات أخرى                                                     |
 
 **العميل:** احذف الطلب من القائمة.
 
@@ -236,11 +242,11 @@ List<KitchenItem> filterItems(List<KitchenItem> items, List<int> categoryIds) {
 
 نفس `GET /api/kitchen-orders` — لا محوّل إضافي.
 
-| حقل | ملاحظة |
-|-----|--------|
-| `order_status` | في المطبخ النشط: `inpreparation` |
-| `items[].status` | `inpreparation`, `prepared`, … |
-| `order_type` | `محلي` أو `سفري` |
+| حقل              | ملاحظة                           |
+| ---------------- | -------------------------------- |
+| `order_status`   | في المطبخ النشط: `inpreparation` |
+| `items[].status` | `inpreparation`, `prepared`, …   |
+| `order_type`     | `محلي` أو `سفري`                 |
 
 **Normalize الصنف (على العميل):**
 
@@ -311,10 +317,10 @@ socket.onReconnect((_) {
 
 ## 7. REST (fallback)
 
-| Method | Endpoint |
-|--------|----------|
-| GET | `/api/kitchen-orders?establishment_id=3&category_ids[]=9` |
-| POST | `/api/update-item-status` body: `{ item_id, order_type: local\|pos }` |
+| Method | Endpoint                                                              |
+| ------ | --------------------------------------------------------------------- |
+| GET    | `/api/kitchen-orders?establishment_id=3&category_ids[]=9`             |
+| POST   | `/api/update-item-status` body: `{ item_id, order_type: local\|pos }` |
 
 عند انقطاع Socket: أبقِ polling أو `GET` بعد إعادة الاتصال.
 
@@ -322,12 +328,12 @@ socket.onReconnect((_) {
 
 ## 8. جدول المحفّزات
 
-| الحدث في النظام | Socket |
-|-----------------|--------|
-| طلب جديد (طاولة / POS) | `kitchen:order:created` |
-| تعليم صنف prepared | `kitchen:item:status_changed` + `kitchen:order:updated` (يُحدَّث الرئيسي + الكومبو/الموديفاير معاً في DB) |
-| اكتمال الطلب (`prepared` / إلغاء / إنهاء) | `kitchen:order:removed` |
-| اتصال + join | `kitchen:sync` |
+| الحدث في النظام                           | Socket                                                                                                    |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| طلب جديد (طاولة / POS)                    | `kitchen:order:created`                                                                                   |
+| تعليم صنف prepared                        | `kitchen:item:status_changed` + `kitchen:order:updated` (يُحدَّث الرئيسي + الكومبو/الموديفاير معاً في DB) |
+| اكتمال الطلب (`prepared` / إلغاء / إنهاء) | `kitchen:order:removed`                                                                                   |
+| اتصال + join                              | `kitchen:sync`                                                                                            |
 
 ---
 
@@ -363,13 +369,13 @@ socket.onReconnect((_) {
 
 ```bash
 curl http://127.0.0.1:3001/health
-curl -I "http://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
-curl -Ik "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+curl -I "http://test1.mybeesystem.net/socket.io/?EIO=4&transport=polling"
+curl -Ik "https://test1.mybeesystem.net/socket.io/?EIO=4&transport=polling"
 ```
 
-| نتيجة curl | المعنى |
-|------------|--------|
-| health OK + socket 404 | أضف ProxyPass في `laravel.conf` |
+| نتيجة curl                | المعنى                          |
+| ------------------------- | ------------------------------- |
+| health OK + socket 404    | أضف ProxyPass في `laravel.conf` |
 | http timeout لكن https OK | Flutter يجب أن يستخدم **https** |
 
 ---

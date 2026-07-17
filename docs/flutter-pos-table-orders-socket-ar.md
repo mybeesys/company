@@ -9,13 +9,13 @@
 
 ## 1. ملخص
 
-| البند | القيمة |
-|--------|--------|
-| URL | `https://{tenant_id}.my-bee.info` |
-| Path | `/socket.io/` |
-| Transports | `['websocket', 'polling']` |
-| الغرفة | `establishment:{establishment_id}` |
-| REST | `GET /api/establishment-orders/{id}` |
+| البند      | القيمة                                |
+| ---------- | ------------------------------------- |
+| URL        | `https://{tenant_id}.mybeesystem.net` |
+| Path       | `/socket.io/`                         |
+| Transports | `['websocket', 'polling']`            |
+| الغرفة     | `establishment:{establishment_id}`    |
+| REST       | `GET /api/establishment-orders/{id}`  |
 
 **الهدف:** تحديث شاشة «طلبات الطاولات» فوراً + **طباعة مطبخ** عند `created` / `updated` (منطق الطباعة في التطبيق).
 
@@ -33,7 +33,7 @@ IO.Socket connectPosTableOrdersSocket({
   int? deviceId,
 }) {
   final socket = IO.io(
-    'https://$tenantId.my-bee.info',
+    'https://$tenantId.mybeesystem.net',
     IO.OptionBuilder()
         .setPath('/socket.io/')
         .setTransports(['websocket', 'polling'])
@@ -60,12 +60,12 @@ IO.Socket connectPosTableOrdersSocket({
 }
 ```
 
-| مصدر الحقل | المفتاح في التطبيق |
-|------------|-------------------|
-| Token | `PreferencesKeys.companyToken` |
-| Tenant | `PreferencesKeys.tenantId` |
-| فرع | `PreferencesKeys.establishmentId` |
-| جهاز | `PreferencesKeys.deviceId` (اختياري) |
+| مصدر الحقل | المفتاح في التطبيق                   |
+| ---------- | ------------------------------------ |
+| Token      | `PreferencesKeys.companyToken`       |
+| Tenant     | `PreferencesKeys.tenantId`           |
+| فرع        | `PreferencesKeys.establishmentId`    |
+| جهاز       | `PreferencesKeys.deviceId` (اختياري) |
 
 **مهم:** لا تضف `/socket.io/` في الـ host — استخدم `.setPath('/socket.io/')`.
 
@@ -73,18 +73,18 @@ IO.Socket connectPosTableOrdersSocket({
 
 السبب **ليس** السيرفر — نفس Socket لكل التطبيقات. الفرق في **كود POS**:
 
-| التطبيق | URL الصحيح |
-|---------|------------|
-| Kitchen / Waiter | `https://test1.my-bee.info` |
-| POS (عندكم الآن) | `http://test1.my-bee.info` ← **غلط غالباً** |
+| التطبيق          | URL الصحيح                                      |
+| ---------------- | ----------------------------------------------- |
+| Kitchen / Waiter | `https://test1.mybeesystem.net`                 |
+| POS (عندكم الآن) | `http://test1.mybeesystem.net` ← **غلط غالباً** |
 
 ```dart
 // ❌ يسبب timeout (كما في اللوج)
-final url = 'http://$tenantId.my-bee.info';
-final url = 'http://$tenantId.my-bee.info:80';
+final url = 'http://$tenantId.mybeesystem.net';
+final url = 'http://$tenantId.mybeesystem.net:80';
 
 // ✅ نفس REST والتطبيقات الأخرى
-final url = 'https://$tenantId.my-bee.info';
+final url = 'https://$tenantId.mybeesystem.net';
 ```
 
 - **لا تفرض `:80`** — `socket_io_client` يبني المسار بنفسه مع `.setPath('/socket.io/')`.
@@ -92,9 +92,9 @@ final url = 'https://$tenantId.my-bee.info';
 
 ```dart
 String socketBaseUrl(String tenantId) {
-  final rest = ApiConstants.baseUrl; // مثلاً https://test1.my-bee.info/api
+  final rest = ApiConstants.baseUrl; // مثلاً https://test1.mybeesystem.net/api
   final uri = Uri.parse(rest);
-  return '${uri.scheme}://${uri.host}'; // https://test1.my-bee.info
+  return '${uri.scheme}://${uri.host}'; // https://test1.mybeesystem.net
 }
 ```
 
@@ -126,9 +126,11 @@ String socketBaseUrl(String tenantId) {
 
 ```json
 {
-  "event": "establishment_orders.sync",
-  "establishment_id": 3,
-  "orders": [ /* نفس GET establishment-orders */ ]
+    "event": "establishment_orders.sync",
+    "establishment_id": 3,
+    "orders": [
+        /* نفس GET establishment-orders */
+    ]
 }
 ```
 
@@ -159,9 +161,11 @@ String socketBaseUrl(String tenantId) {
 
 ```json
 {
-  "event": "establishment_order.updated",
-  "establishment_id": 3,
-  "order": { /* طلب كامل محدّث */ }
+    "event": "establishment_order.updated",
+    "establishment_id": 3,
+    "order": {
+        /* طلب كامل محدّث */
+    }
 }
 ```
 
@@ -176,9 +180,9 @@ String socketBaseUrl(String tenantId) {
 
 ```json
 {
-  "event": "establishment_order.cancelled",
-  "establishment_id": 3,
-  "order_id": 45
+    "event": "establishment_order.cancelled",
+    "establishment_id": 3,
+    "order_id": 45
 }
 ```
 
@@ -192,9 +196,9 @@ String socketBaseUrl(String tenantId) {
 
 ```json
 {
-  "event": "establishment_order.closed",
-  "establishment_id": 3,
-  "order_id": 45
+    "event": "establishment_order.closed",
+    "establishment_id": 3,
+    "order_id": 45
 }
 ```
 
@@ -206,18 +210,18 @@ String socketBaseUrl(String tenantId) {
 
 نفس `GET /api/establishment-orders/{establishment_id}`:
 
-| حقل | ملاحظة |
-|-----|--------|
-| `id` | معرّف الطلب |
-| `table_id` | نص |
-| `table_name` | اسم الطاولة للمطبخ |
-| `order_status` | مثلاً `inpreparation`, `prepared`, `served` |
-| `waiter_name` | اسم النادل |
-| `establishment_id` | الفرع |
-| `items[].id` | معرّف السطر |
-| `items[].line_id` | فريد — `{orderId}-{lineId}-{index}` |
-| `items[].order_item_modifiers` | |
-| `items[].order_item_combos` | |
+| حقل                            | ملاحظة                                      |
+| ------------------------------ | ------------------------------------------- |
+| `id`                           | معرّف الطلب                                 |
+| `table_id`                     | نص                                          |
+| `table_name`                   | اسم الطاولة للمطبخ                          |
+| `order_status`                 | مثلاً `inpreparation`, `prepared`, `served` |
+| `waiter_name`                  | اسم النادل                                  |
+| `establishment_id`             | الفرع                                       |
+| `items[].id`                   | معرّف السطر                                 |
+| `items[].line_id`              | فريد — `{orderId}-{lineId}-{index}`         |
+| `items[].order_item_modifiers` |                                             |
+| `items[].order_item_combos`    |                                             |
 
 **بصمة احتياطية إن لم يوجد `line_id`:**
 
@@ -284,12 +288,12 @@ socket.onReconnect((_) {
 
 ## 7. جدول المحفّزات (الباك إند)
 
-| العملية REST | حدث Socket |
-|--------------|------------|
-| `POST /api/new-order` (جديد) | `establishment_order.created` |
-| `POST /api/new-order` (إضافة لطلب) | `establishment_order.updated` |
-| `POST /api/cancel-order` | `establishment_order.cancelled` |
-| `POST /api/update-orders/{id}` → served/… | `establishment_order.closed` |
+| العملية REST                              | حدث Socket                      |
+| ----------------------------------------- | ------------------------------- |
+| `POST /api/new-order` (جديد)              | `establishment_order.created`   |
+| `POST /api/new-order` (إضافة لطلب)        | `establishment_order.updated`   |
+| `POST /api/cancel-order`                  | `establishment_order.cancelled` |
+| `POST /api/update-orders/{id}` → served/… | `establishment_order.closed`    |
 
 ---
 
@@ -316,14 +320,14 @@ socket.onReconnect((_) {
 
 ```bash
 curl http://127.0.0.1:3001/health
-curl -Ik "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+curl -Ik "https://test1.mybeesystem.net/socket.io/?EIO=4&transport=polling"
 ```
 
-| خطأ | الحل |
-|-----|------|
-| `timeout` + اللوج يقول `http://` | غيّر إلى **https** مثل Kitchen/Waiter — لا `:80` |
-| `timeout` + https | Apache: `ProxyPass /socket.io/` في `laravel.conf` |
-| `INVALID_TOKEN` | token جديد + `pm2 restart` بعد `git pull` |
+| خطأ                              | الحل                                              |
+| -------------------------------- | ------------------------------------------------- |
+| `timeout` + اللوج يقول `http://` | غيّر إلى **https** مثل Kitchen/Waiter — لا `:80`  |
+| `timeout` + https                | Apache: `ProxyPass /socket.io/` في `laravel.conf` |
+| `INVALID_TOKEN`                  | token جديد + `pm2 restart` بعد `git pull`         |
 
 ---
 

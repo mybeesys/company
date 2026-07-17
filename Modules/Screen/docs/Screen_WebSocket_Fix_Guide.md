@@ -8,11 +8,11 @@
 
 تطبيق الشاشة يتصل بـ `wss://{tenant}/ws` ويحصل على **Connection refused** بينما REST يعمل.
 
-| البند | الحالة |
-|--------|--------|
-| REST API | ✅ |
-| Socket.IO (مطبخ / ويتر / POS) | ✅ عادةً عبر `/socket.io/` |
-| WebSocket الشاشات `/ws` | ❌ غالباً Nginx بدون `location /ws` |
+| البند                         | الحالة                              |
+| ----------------------------- | ----------------------------------- |
+| REST API                      | ✅                                  |
+| Socket.IO (مطبخ / ويتر / POS) | ✅ عادةً عبر `/socket.io/`          |
+| WebSocket الشاشات `/ws`       | ❌ غالباً Nginx بدون `location /ws` |
 
 ---
 
@@ -20,10 +20,10 @@
 
 **لا تغيّر** إعداد المطبخ والويتر. كلهم على **نفس** `socket-server` (منفذ `3001`):
 
-| التطبيق | المسار | البروتوكول |
-|---------|--------|------------|
-| مطبخ / ويتر / كاشيير | `/socket.io/` | Socket.IO |
-| Screen Player (QR) | `/ws` | WebSocket JSON خام |
+| التطبيق              | المسار        | البروتوكول         |
+| -------------------- | ------------- | ------------------ |
+| مطبخ / ويتر / كاشيير | `/socket.io/` | Socket.IO          |
+| Screen Player (QR)   | `/ws`         | WebSocket JSON خام |
 
 في الكود: معالج `/ws` **لا يقطع** طلبات `/socket.io/` (لا `socket.destroy()` على مسارات أخرى).
 
@@ -76,10 +76,10 @@ curl -s http://127.0.0.1:3001/health
 
 ```json
 {
-  "ok": true,
-  "socket_io_path": "/socket.io/",
-  "screen_pairing_ws_path": "/ws",
-  "port": 3001
+    "ok": true,
+    "socket_io_path": "/socket.io/",
+    "screen_pairing_ws_path": "/ws",
+    "port": 3001
 }
 ```
 
@@ -103,22 +103,22 @@ curl -i -N \
   -H "Upgrade: websocket" \
   -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
   -H "Sec-WebSocket-Version: 13" \
-  https://test1.my-bee.info/ws
+  https://test1.mybeesystem.net/ws
 ```
 
-| النتيجة | المعنى |
-|---------|--------|
-| `101 Switching Protocols` | ✅ |
-| `404` | أضف `location /ws` |
-| `502` | socket-server متوقف |
-| `Connection refused` | لا listener على 3001 |
+| النتيجة                   | المعنى               |
+| ------------------------- | -------------------- |
+| `101 Switching Protocols` | ✅                   |
+| `404`                     | أضف `location /ws`   |
+| `502`                     | socket-server متوقف  |
+| `Connection refused`      | لا listener على 3001 |
 
 ---
 
 ## 7. Admin pairing (E2E)
 
 ```bash
-POST https://test1.my-bee.info/api/admin/v1/screen/auth/token
+POST https://test1.mybeesystem.net/api/admin/v1/screen/auth/token
 Authorization: Bearer {admin_token}
 
 {
@@ -134,11 +134,11 @@ Authorization: Bearer {admin_token}
 
 ## 8. مراجع
 
-| الملف | الوصف |
-|--------|--------|
+| الملف                                                              | الوصف              |
+| ------------------------------------------------------------------ | ------------------ |
 | [Screen_Pairing_Frontend_API.md](./Screen_Pairing_Frontend_API.md) | مواصفات WS + Admin |
-| [Screen_Player_API.md](./Screen_Player_API.md) | Player REST |
+| [Screen_Player_API.md](./Screen_Player_API.md)                     | Player REST        |
 
 ---
 
-*My Bee — Screen Module*
+_My Bee — Screen Module_
