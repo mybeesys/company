@@ -8,11 +8,11 @@
 
 ## 1. الفرق بين الـ APIs
 
-| API | الاستخدام | ماذا يحدّث |
-|-----|-----------|------------|
-| `POST /api/update-item-status` | تجهيز **صنف واحد** | السطر الرئيسي **+ كل الكومبو والموديفاير التابعين له** → `prepared`؛ الطلب يصبح `prepared` تلقائياً لما يخلصوا الكل |
-| **`POST /api/update-order-status`** | تجهيز **الطلب كامل** | كل الأسطر `inpreparation` + `order_status` → `prepared` **دفعة واحدة** |
-| `POST /api/update-orders/{id}` | **النادل** (مثلاً `served`) | رأس الطلب فقط — **لا يستخدم للمطبخ** |
+| API                                 | الاستخدام                   | ماذا يحدّث                                                                                                          |
+| ----------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/update-item-status`      | تجهيز **صنف واحد**          | السطر الرئيسي **+ كل الكومبو والموديفاير التابعين له** → `prepared`؛ الطلب يصبح `prepared` تلقائياً لما يخلصوا الكل |
+| **`POST /api/update-order-status`** | تجهيز **الطلب كامل**        | كل الأسطر `inpreparation` + `order_status` → `prepared` **دفعة واحدة**                                              |
+| `POST /api/update-orders/{id}`      | **النادل** (مثلاً `served`) | رأس الطلب فقط — **لا يستخدم للمطبخ**                                                                                |
 
 > **تجهيز صنف واحد (`update-item-status`):** عند الضغط على صنف رئيسي، السيرفر يحدّث **نفس المجموعة** المعروضة في المطبخ (الرئيسي + موديفاير + كومبو). الرد يتضمن `updated_line_ids` بكل الأسطر التي أصبحت `prepared`. لا حاجة لاستدعاء API منفصل لكل إضافة.
 
@@ -21,7 +21,7 @@
 ## 2. الطلب
 
 ```http
-POST https://{tenant_id}.my-bee.info/api/update-order-status
+POST https://{tenant_id}.mybeesystem.net/api/update-order-status
 Authorization: Bearer {company-login-token}
 Content-Type: application/json
 Accept: application/json
@@ -31,24 +31,24 @@ Accept: application/json
 
 ```json
 {
-  "order_id": 1001,
-  "order_type": "local",
-  "status": "prepared"
+    "order_id": 1001,
+    "order_type": "local",
+    "status": "prepared"
 }
 ```
 
-| حقل | مطلوب | القيم |
-|-----|--------|-------|
-| `order_id` | نعم | معرّف الطلب (`table_orders.id` أو `transactions.id`) |
-| `order_type` | نعم | `local` = طاولة/ويتر — `pos` = كاشير/سفري |
-| `status` | نعم | حالياً: **`prepared` فقط** |
+| حقل          | مطلوب | القيم                                                |
+| ------------ | ----- | ---------------------------------------------------- |
+| `order_id`   | نعم   | معرّف الطلب (`table_orders.id` أو `transactions.id`) |
+| `order_type` | نعم   | `local` = طاولة/ويتر — `pos` = كاشير/سفري            |
+| `status`     | نعم   | حالياً: **`prepared` فقط**                           |
 
 ### متى تستخدم `order_type`
 
-| المصدر في المطبخ | `order_type` |
-|------------------|--------------|
-| طلب طاولة (فيها `table_id`) | `local` |
-| فاتورة POS / سفري | `pos` |
+| المصدر في المطبخ            | `order_type` |
+| --------------------------- | ------------ |
+| طلب طاولة (فيها `table_id`) | `local`      |
+| فاتورة POS / سفري           | `pos`        |
 
 استخدم `source` / `kitchen_key` من `kitchen:sync` إن وُجد:
 
@@ -62,31 +62,31 @@ final orderType = order['source'] == 'pos' ? 'pos' : 'local';
 
 ```json
 {
-  "status": true,
-  "message": "Order marked as prepared",
-  "order_id": 1001,
-  "order_type": "local",
-  "source": "local",
-  "kitchen_key": "local:1001",
-  "order_status": "prepared",
-  "updated_lines": 5
+    "status": true,
+    "message": "Order marked as prepared",
+    "order_id": 1001,
+    "order_type": "local",
+    "source": "local",
+    "kitchen_key": "local:1001",
+    "order_status": "prepared",
+    "updated_lines": 5
 }
 ```
 
-| حقل | المعنى |
-|-----|--------|
-| `updated_lines` | عدد أسطر الأصناف التي أصبحت `prepared` |
-| `kitchen_key` | المفتاح لحذف الطلب من قائمة المطبخ محلياً |
+| حقل             | المعنى                                    |
+| --------------- | ----------------------------------------- |
+| `updated_lines` | عدد أسطر الأصناف التي أصبحت `prepared`    |
+| `kitchen_key`   | المفتاح لحذف الطلب من قائمة المطبخ محلياً |
 
 ---
 
 ## 4. أخطاء
 
-| HTTP | السبب | الرسالة |
-|------|--------|---------|
-| `404` | طلب غير موجود | `Order not found` |
-| `422` | الطلب ليس `inpreparation` | `Order is not in preparation` |
-| `422` | validation | حقول ناقصة أو `status` غير `prepared` |
+| HTTP  | السبب                     | الرسالة                               |
+| ----- | ------------------------- | ------------------------------------- |
+| `404` | طلب غير موجود             | `Order not found`                     |
+| `422` | الطلب ليس `inpreparation` | `Order is not in preparation`         |
+| `422` | validation                | حقول ناقصة أو `status` غير `prepared` |
 
 ---
 
@@ -96,9 +96,9 @@ final orderType = order['source'] == 'pos' ? 'pos' : 'local';
 2. `order_status` على الطلب → `prepared`
 3. **Socket مطبخ:** `kitchen:order:removed` (السبب: `completed`) — الطلب يخرج من شاشة التحضير
 4. **طلبات طاولة (`local`):**
-   - `order:status_changed` للنادل
-   - `order:updated` لتفاصيل الطاولة
-   - `establishment_order.updated` للكاشير/POS
+    - `order:status_changed` للنادل
+    - `order:updated` لتفاصيل الطاولة
+    - `establishment_order.updated` للكاشير/POS
 
 ---
 
@@ -142,7 +142,7 @@ Future<void> markOrderPrepared({
 ## 7. مثال cURL
 
 ```bash
-curl -X POST "https://test1.my-bee.info/api/update-order-status" \
+curl -X POST "https://test1.mybeesystem.net/api/update-order-status" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -190,9 +190,9 @@ php artisan route:list --path=update-order-status
 
 ## 10. ملف Backend
 
-| ملف | التغيير |
-|-----|---------|
-| `Modules/Reservation/Http/Controllers/Api/OrderController.php` | `updateOrderStatus()` |
-| `Modules/Reservation/routes/Api/order.php` | `POST /update-order-status` |
+| ملف                                                            | التغيير                     |
+| -------------------------------------------------------------- | --------------------------- |
+| `Modules/Reservation/Http/Controllers/Api/OrderController.php` | `updateOrderStatus()`       |
+| `Modules/Reservation/routes/Api/order.php`                     | `POST /update-order-status` |
 
 **مرتبط:** `docs/flutter-kitchen-socket-ar.md`, `docs/flutter-waiter-backend-updates-2026-07-ar.md`

@@ -7,11 +7,11 @@
 
 ## 1. ملخص
 
-| الميزة | الحدث | من يرسل | من يستقبل |
-|--------|-------|---------|-----------|
-| ربط QR (موجود) | `screen.linked` | Admin بعد مسح QR | Player (قناة `screen.pairing.{64hex}`) |
-| تحديث Playlist | `screen.playlist.updated` | Laravel (API + Dashboard) | Player (قناة `screen.device.{id}`) |
-| فصل الشاشة | `screen.unlinked` | Admin API | Player (قناة `screen.device.{id}`) |
+| الميزة         | الحدث                     | من يرسل                   | من يستقبل                              |
+| -------------- | ------------------------- | ------------------------- | -------------------------------------- |
+| ربط QR (موجود) | `screen.linked`           | Admin بعد مسح QR          | Player (قناة `screen.pairing.{64hex}`) |
+| تحديث Playlist | `screen.playlist.updated` | Laravel (API + Dashboard) | Player (قناة `screen.device.{id}`)     |
+| فصل الشاشة     | `screen.unlinked`         | Admin API                 | Player (قناة `screen.device.{id}`)     |
 
 **قاعدة:** بعد الربط الناجح، Player **يبقى متصلاً** على `/ws` ويشترك بقناة الجهاز — لا يقطع WebSocket.
 
@@ -36,24 +36,24 @@
 
 ```json
 {
-  "event": "subscribe",
-  "channel": "screen.device.12",
-  "id": "12"
+    "event": "subscribe",
+    "channel": "screen.device.12",
+    "id": "12"
 }
 ```
 
-| الحقل | القيمة |
-|--------|--------|
+| الحقل     | القيمة                                                                          |
+| --------- | ------------------------------------------------------------------------------- |
 | `channel` | `screen.device.{device_id}` — يأتي أيضاً في `screen.linked` كـ `device_channel` |
-| `id` | نفس `device.id` (رقم موجب) |
+| `id`      | نفس `device.id` (رقم موجب)                                                      |
 
 **رد السيرفر:**
 
 ```json
 {
-  "event": "subscribed",
-  "channel": "screen.device.12",
-  "id": "12"
+    "event": "subscribed",
+    "channel": "screen.device.12",
+    "id": "12"
 }
 ```
 
@@ -61,11 +61,11 @@
 
 ```json
 {
-  "event": "screen.linked",
-  "device_channel": "screen.device.12",
-  "device": { "id": 12, "code": "SCR-001" },
-  "token": "1|...",
-  "api_base_url": "https://test1.my-bee.info"
+    "event": "screen.linked",
+    "device_channel": "screen.device.12",
+    "device": { "id": 12, "code": "SCR-001" },
+    "token": "1|...",
+    "api_base_url": "https://test1.mybeesystem.net"
 }
 ```
 
@@ -77,21 +77,21 @@
 
 ```json
 {
-  "event": "screen.playlist.updated",
-  "channel": "screen.device.12",
-  "device_id": 12,
-  "tenant_id": "test1",
-  "playlist_id": 5,
-  "action": "updated",
-  "timestamp": "2026-06-12T23:30:00+00:00"
+    "event": "screen.playlist.updated",
+    "channel": "screen.device.12",
+    "device_id": 12,
+    "tenant_id": "test1",
+    "playlist_id": 5,
+    "action": "updated",
+    "timestamp": "2026-06-12T23:30:00+00:00"
 }
 ```
 
-| `action` | المعنى |
-|----------|--------|
+| `action`  | المعنى                        |
+| --------- | ----------------------------- |
 | `created` | playlist جديدة مرتبطة بالجهاز |
 | `updated` | تعديل (promos، أوقات، أجهزة…) |
-| `deleted` | حُذفت playlist |
+| `deleted` | حُذفت playlist                |
 
 **إجراء Player (موصى به):**
 
@@ -118,12 +118,12 @@ void onPlaylistUpdated(Map<String, dynamic> msg) {
 
 ```json
 {
-  "event": "screen.unlinked",
-  "channel": "screen.device.12",
-  "device_id": 12,
-  "tenant_id": "test1",
-  "device": { "id": 12, "code": "SCR-001" },
-  "reason": "admin_unlink"
+    "event": "screen.unlinked",
+    "channel": "screen.device.12",
+    "device_id": 12,
+    "tenant_id": "test1",
+    "device": { "id": 12, "code": "SCR-001" },
+    "reason": "admin_unlink"
 }
 ```
 
@@ -146,17 +146,17 @@ void onUnlinked() {
 POST /api/admin/v1/screen/devices/{device_id}/unlink
 ```
 
-| البند | القيمة |
-|--------|--------|
-| **Host** | `https://{tenant}.my-bee.info` |
-| **Auth** | `Authorization: Bearer {company_login_token}` |
-| **Rate limit** | 30 طلب/دقيقة |
+| البند          | القيمة                                        |
+| -------------- | --------------------------------------------- |
+| **Host**       | `https://{tenant}.mybeesystem.net`            |
+| **Auth**       | `Authorization: Bearer {company_login_token}` |
+| **Rate limit** | 30 طلب/دقيقة                                  |
 
 **Body (اختياري):**
 
 ```json
 {
-  "reason": "admin_disconnect"
+    "reason": "admin_disconnect"
 }
 ```
 
@@ -164,9 +164,9 @@ POST /api/admin/v1/screen/devices/{device_id}/unlink
 
 ```json
 {
-  "message": "تم فصل الشاشة بنجاح.",
-  "device": { "id": 12, "code": "SCR-001" },
-  "tokens_revoked": 1
+    "message": "تم فصل الشاشة بنجاح.",
+    "device": { "id": 12, "code": "SCR-001" },
+    "tokens_revoked": 1
 }
 ```
 
@@ -183,23 +183,23 @@ POST /api/admin/v1/screen/devices/{device_id}/unlink
 
 مسارات Admin (نفس `admin.php`):
 
-| Method | Path |
-|--------|------|
-| POST | `/api/admin/v1/screen/auth/token` — ربط QR |
-| POST | `/api/admin/v1/screen/devices/{id}/unlink` — **فصل** |
+| Method   | Path                                                  |
+| -------- | ----------------------------------------------------- |
+| POST     | `/api/admin/v1/screen/auth/token` — ربط QR            |
+| POST     | `/api/admin/v1/screen/devices/{id}/unlink` — **فصل**  |
 | GET/POST | `/api/admin/v1/screen/playlists` — CRUD (+ WS تلقائي) |
-| GET/POST | `/api/admin/v1/screen/devices` |
-| GET/POST | `/api/admin/v1/screen/promos` |
+| GET/POST | `/api/admin/v1/screen/devices`                        |
+| GET/POST | `/api/admin/v1/screen/promos`                         |
 
 ---
 
 ## 8. Player REST (بعد الربط)
 
-| Method | Path |
-|--------|------|
-| GET | `/api/v1/screen/player/playlists` |
-| GET | `/api/v1/screen/player/playlists/{id}` |
-| GET | `/api/v1/screen/player/playlists/{id}/promos` |
+| Method | Path                                          |
+| ------ | --------------------------------------------- |
+| GET    | `/api/v1/screen/player/playlists`             |
+| GET    | `/api/v1/screen/player/playlists/{id}`        |
+| GET    | `/api/v1/screen/player/playlists/{id}/promos` |
 
 **Auth:** `Authorization: Bearer {token من screen.linked}`
 
@@ -304,7 +304,7 @@ php artisan route:list | grep unlink
 # 2) من Admin — عدّل playlist مربوط بالجهاز 12
 # 3) Player يستقبل screen.playlist.updated
 
-curl -X POST "http://test1.my-bee.info/api/admin/v1/screen/devices/12/unlink" \
+curl -X POST "http://test1.mybeesystem.net/api/admin/v1/screen/devices/12/unlink" \
   -H "Authorization: Bearer COMPANY_TOKEN" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \

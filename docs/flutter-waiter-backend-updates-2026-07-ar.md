@@ -7,13 +7,13 @@
 
 ## 1. ملخص التغييرات
 
-| # | الموضوع | التأثير على Flutter |
-|---|---------|---------------------|
-| 1 | **إعادة فتح طلب مخدوم** | `POST /api/new-order` يحدّث نفس `order_id` — لا تنشئ طلباً جديداً محلياً |
-| 2 | **ملاحظات الطلب والأصناف** | أرسل/اقرأ `note` على الطلب وكل صنف |
-| 3 | **مطبخ — مفتاح فريد** | استخدم `kitchen_key` بدل `id` فقط |
-| 4 | **توكن Socket بدون انتهاء** | نفس `company-login` token لعدة تطبيقات؛ لا تعيد login من كل تطبيق |
-| 5 | **كومبو POS** | `option_id` قد يكون `item_id` — السيرفر يحلّه تلقائياً |
+| #   | الموضوع                     | التأثير على Flutter                                                      |
+| --- | --------------------------- | ------------------------------------------------------------------------ |
+| 1   | **إعادة فتح طلب مخدوم**     | `POST /api/new-order` يحدّث نفس `order_id` — لا تنشئ طلباً جديداً محلياً |
+| 2   | **ملاحظات الطلب والأصناف**  | أرسل/اقرأ `note` على الطلب وكل صنف                                       |
+| 3   | **مطبخ — مفتاح فريد**       | استخدم `kitchen_key` بدل `id` فقط                                        |
+| 4   | **توكن Socket بدون انتهاء** | نفس `company-login` token لعدة تطبيقات؛ لا تعيد login من كل تطبيق        |
+| 5   | **كومبو POS**               | `option_id` قد يكون `item_id` — السيرفر يحلّه تلقائياً                   |
 
 ---
 
@@ -48,9 +48,9 @@
 
 ```json
 {
-  "status": true,
-  "order_id": 45,
-  "order_no": "ORD000045"
+    "status": true,
+    "order_id": 45,
+    "order_no": "ORD000045"
 }
 ```
 
@@ -60,13 +60,13 @@
 
 ### حالات `order_status`
 
-| الحالة | المعنى |
-|--------|--------|
-| `inpreparation` | قيد التحضير — يظهر في المطبخ |
-| `prepared` | جاهز — يُعاد فتحه عند إضافة أصناف |
-| `served` | مُخدّم — يُعاد فتحه عند إضافة أصناف |
-| `completed` | مكتمل — يُعاد فتحه عند إضافة أصناف |
-| `canceled` | ملغي — لا يُدمج |
+| الحالة          | المعنى                              |
+| --------------- | ----------------------------------- |
+| `inpreparation` | قيد التحضير — يظهر في المطبخ        |
+| `prepared`      | جاهز — يُعاد فتحه عند إضافة أصناف   |
+| `served`        | مُخدّم — يُعاد فتحه عند إضافة أصناف |
+| `completed`     | مكتمل — يُعاد فتحه عند إضافة أصناف  |
+| `canceled`      | ملغي — لا يُدمج                     |
 
 ---
 
@@ -74,27 +74,27 @@
 
 ### حقول الطلب
 
-| حقل | مطلوب | ملاحظة |
-|-----|--------|--------|
-| `table_id` | نعم | |
-| `items[]` | نعم | قائمة كاملة عند التحديث |
-| `items[].note` | لا | ملاحظة الصنف |
-| `note` | لا | ملاحظة الطلب |
-| `created_by` | نعم | معرّف الموظف |
-| `payments` | لا | إن وُجدت → دفع |
-| `order_type` | لا | افتراضي `1` |
+| حقل            | مطلوب | ملاحظة                  |
+| -------------- | ----- | ----------------------- |
+| `table_id`     | نعم   |                         |
+| `items[]`      | نعم   | قائمة كاملة عند التحديث |
+| `items[].note` | لا    | ملاحظة الصنف            |
+| `note`         | لا    | ملاحظة الطلب            |
+| `created_by`   | نعم   | معرّف الموظف            |
+| `payments`     | لا    | إن وُجدت → دفع          |
+| `order_type`   | لا    | افتراضي `1`             |
 
 ### مثال item
 
 ```json
 {
-  "product_id": 292,
-  "quantity": 2,
-  "price": 18,
-  "price_with_tax": 20.7,
-  "note": "بدون بصل",
-  "order_item_modifiers": [],
-  "order_item_combos": []
+    "product_id": 292,
+    "quantity": 2,
+    "price": 18,
+    "price_with_tax": 20.7,
+    "note": "بدون بصل",
+    "order_item_modifiers": [],
+    "order_item_combos": []
 }
 ```
 
@@ -115,18 +115,18 @@
 
 ```json
 {
-  "id": 42,
-  "source": "local",
-  "kitchen_key": "local:42",
-  "order_type": "محلي",
-  "items": []
+    "id": 42,
+    "source": "local",
+    "kitchen_key": "local:42",
+    "order_type": "محلي",
+    "items": []
 }
 ```
 
-| source | المعنى |
-|--------|--------|
+| source  | المعنى           |
+| ------- | ---------------- |
 | `local` | طلب طاولة (ويتر) |
-| `pos` | فاتورة كاشير |
+| `pos`   | فاتورة كاشير     |
 
 **نفس الرقم `id` قد يوجد في local و pos — لا تدمج بـ `id` وحده.**
 
@@ -138,11 +138,11 @@
 2. **`POST /api/stor-sales-invoice`** يبقى للمحاسبة/الفاتورة — السيرفر **لا يبث** للمطبخ إذا الطلب مربوط بطاولة.
 3. **`order_type` وحده لا يكفي** — هو رقم `TypesOfService` (مثلاً `1` = محلي). لازم أيضاً:
 
-| حقل | على `new-order` | على `stor-sales-invoice` |
-|-----|-----------------|--------------------------|
-| `table_id` | **نعم** | **نعم** (مهم) |
-| `table_order_id` | لا | **نعم** — `order_id` من رد `new-order` |
-| `order_type` | نعم | نعم (نفس الرقم) |
+| حقل              | على `new-order` | على `stor-sales-invoice`               |
+| ---------------- | --------------- | -------------------------------------- |
+| `table_id`       | **نعم**         | **نعم** (مهم)                          |
+| `table_order_id` | لا              | **نعم** — `order_id` من رد `new-order` |
+| `order_type`     | نعم             | نعم (نفس الرقم)                        |
 
 **مطبخ Flutter:** لا فلتر خاص — استخدم `kitchen_key` فقط (`local:42` وليس `id` وحده).
 
@@ -181,10 +181,10 @@ void onOrderRemoved(Map<String, dynamic> raw) {
 
 ```json
 {
-  "order_id": 42,
-  "source": "local",
-  "kitchen_key": "local:42",
-  "reason": "completed"
+    "order_id": 42,
+    "source": "local",
+    "kitchen_key": "local:42",
+    "reason": "completed"
 }
 ```
 
@@ -200,7 +200,7 @@ void onOrderRemoved(Map<String, dynamic> raw) {
 ### الحل
 
 ```http
-POST https://my-bee.info/api/company-login
+POST https://mybeesystem.net/api/company-login
 Content-Type: application/json
 
 {
@@ -212,11 +212,11 @@ Content-Type: application/json
 ```
 
 | client_type | التطبيق |
-|-------------|---------|
-| `waiter` | النادل |
-| `kitchen` | المطبخ |
-| `cashier` | الكاشير |
-| `pos` | POS |
+| ----------- | ------- |
+| `waiter`    | النادل  |
+| `kitchen`   | المطبخ  |
+| `cashier`   | الكاشير |
+| `pos`       | POS     |
 
 **قواعد مهمة:**
 
@@ -240,12 +240,12 @@ Content-Type: application/json
 
 ## 6. Socket — النادل (ملخص أحداث)
 
-| حدث | متى |
-|-----|-----|
-| `table:updated` | تغيير حالة طاولة |
-| `order:updated` | تحديث طلب (بما فيه إعادة فتح مخدوم) |
-| `order:created` | طلب جديد فعلاً على طاولة فارغة |
-| `order:finished` | served / canceled |
+| حدث              | متى                                 |
+| ---------------- | ----------------------------------- |
+| `table:updated`  | تغيير حالة طاولة                    |
+| `order:updated`  | تحديث طلب (بما فيه إعادة فتح مخدوم) |
+| `order:created`  | طلب جديد فعلاً على طاولة فارغة      |
+| `order:finished` | served / canceled                   |
 
 راجع `docs/flutter-waiter-socket-ar.md` للتفاصيل.
 
@@ -253,12 +253,12 @@ Content-Type: application/json
 
 ## 7. POS — طلبات الطاولات
 
-| حدث | متى |
-|-----|-----|
-| `establishment_order.created` | طلب **جديد** (`order_id` جديد) |
-| `establishment_order.updated` | إضافة أصناف أو إعادة فتح مخدوم (**نفس id**) |
-| `establishment_order.closed` | served / canceled / completed |
-| `establishment_order.cancelled` | إلغاء |
+| حدث                             | متى                                         |
+| ------------------------------- | ------------------------------------------- |
+| `establishment_order.created`   | طلب **جديد** (`order_id` جديد)              |
+| `establishment_order.updated`   | إضافة أصناف أو إعادة فتح مخدوم (**نفس id**) |
+| `establishment_order.closed`    | served / canceled / completed               |
+| `establishment_order.cancelled` | إلغاء                                       |
 
 راجع `docs/flutter-pos-table-orders-socket-ar.md`.
 
@@ -317,15 +317,15 @@ pm2 logs mybee-socket --lines 50
 
 ```bash
 # 1) توكن
-curl -s -X POST https://my-bee.info/api/company-login \
+curl -s -X POST https://mybeesystem.net/api/company-login \
   -H "Content-Type: application/json" \
   -d '{"email":"...","password":"...","tenant_id":"test1","client_type":"waiter"}'
 
 # 2) تحقق
-curl -s -H "Authorization: Bearer TOKEN" https://my-bee.info/api/verify-token
+curl -s -H "Authorization: Bearer TOKEN" https://mybeesystem.net/api/verify-token
 
 # 3) Socket polling
-curl -s "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+curl -s "https://test1.mybeesystem.net/socket.io/?EIO=4&transport=polling"
 ```
 
 **سيناريو طاولة مخدومة:**
@@ -350,15 +350,15 @@ curl -s "https://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
 
 ## 10. ملفات Backend المتأثرة
 
-| ملف | التغيير |
-|-----|---------|
-| `Modules/Reservation/Http/Controllers/Api/OrderController.php` | إعادة فتح مخدوم، ملاحظات |
-| `Modules/Reservation/Support/KitchenOrderPayload.php` | `kitchen_key`, `source` |
-| `Modules/Reservation/Services/KitchenBroadcastService.php` | إزالة/تحديث بالمفتاح |
-| `Modules/Reservation/Models/Table.php` | `activeOrder` يشمل المخدوم |
-| `app/Http/Controllers/Api/CompanyAuthController.php` | `company-login` |
-| `app/Services/CompanyTokenService.php` | توكنات دائمة متعددة التطبيقات |
-| `socket-server/index.js` | كاش توكن أطول، rate limit |
+| ملف                                                            | التغيير                       |
+| -------------------------------------------------------------- | ----------------------------- |
+| `Modules/Reservation/Http/Controllers/Api/OrderController.php` | إعادة فتح مخدوم، ملاحظات      |
+| `Modules/Reservation/Support/KitchenOrderPayload.php`          | `kitchen_key`, `source`       |
+| `Modules/Reservation/Services/KitchenBroadcastService.php`     | إزالة/تحديث بالمفتاح          |
+| `Modules/Reservation/Models/Table.php`                         | `activeOrder` يشمل المخدوم    |
+| `app/Http/Controllers/Api/CompanyAuthController.php`           | `company-login`               |
+| `app/Services/CompanyTokenService.php`                         | توكنات دائمة متعددة التطبيقات |
+| `socket-server/index.js`                                       | كاش توكن أطول، rate limit     |
 
 ---
 

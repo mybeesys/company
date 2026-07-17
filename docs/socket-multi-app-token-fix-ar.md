@@ -141,12 +141,12 @@ pm2 restart mybee-socket --update-env
 # 1) company-login للنادل (client_type=waiter) → TOKEN_W
 # 2) company-login للكاشier (client_type=cashier) → TOKEN_C
 # 3) verify كلاهما
-curl -i -H "Authorization: Bearer TOKEN_W" http://my-bee.info/api/verify-token
-curl -i -H "Authorization: Bearer TOKEN_C" http://my-bee.info/api/verify-token
+curl -i -H "Authorization: Bearer TOKEN_W" http://mybeesystem.net/api/verify-token
+curl -i -H "Authorization: Bearer TOKEN_C" http://mybeesystem.net/api/verify-token
 # كلاهما 200
 
 # 4) Socket.IO polling
-curl "http://test1.my-bee.info/socket.io/?EIO=4&transport=polling"
+curl "http://test1.mybeesystem.net/socket.io/?EIO=4&transport=polling"
 ```
 
 - [ ] Waiter + Cashier Socket **معاً** بدون INVALID_TOKEN

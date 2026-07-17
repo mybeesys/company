@@ -15,7 +15,7 @@ return [
 
     /* الاسم القانوني الكامل: APP_NAME (انظر config/branding.php للاسم المختصر في الواجهة) */
     'name' => env('APP_NAME', 'My Bee'),
-    'domain' => env('APP_URL', 'http://my-bee.info/'),
+    'domain' => env('APP_URL', 'http://mybeesystem.net/'),
 
     /*
     |--------------------------------------------------------------------------
