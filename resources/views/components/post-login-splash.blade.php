@@ -15,15 +15,14 @@
     <div class="post-login-splash__content">
         <div class="post-login-splash__logo-wrap">
             <img
-                src="{{ asset('assets/media/logos/1-12.png') }}"
-                alt="@lang('general.post_login_splash_app_name')"
+                src="{{ asset('assets/media/logos/mybee-mark.png') }}"
+                alt=""
                 class="post-login-splash__logo"
             />
         </div>
         <p class="post-login-splash__welcome">
             @lang('general.post_login_splash_welcome')@if ($splashUserName !== '')<span class="post-login-splash__sep">{{ $splashWelcomeSep }}</span><span class="post-login-splash__user-name">{{ $splashUserName }}</span>@endif
         </p>
-        <h1 class="post-login-splash__app-name">@lang('general.post_login_splash_app_name')</h1>
         <p class="post-login-splash__message">@lang('general.post_login_splash_message')</p>
     </div>
 </div>
@@ -62,23 +61,24 @@
         z-index: 1;
         text-align: center;
         padding: 2rem 1.75rem;
-        max-width: 34rem;
+        max-width: 42rem;
         width: 100%;
     }
 
     .post-login-splash__logo-wrap {
         display: flex;
         justify-content: center;
-        margin-bottom: 1.75rem;
+        margin-bottom: 1.5rem;
     }
 
     .post-login-splash__logo {
-        height: clamp(72px, 14vw, 108px);
+        height: clamp(160px, 34vw, 280px);
         width: auto;
+        max-width: min(78vw, 320px);
         object-fit: contain;
         transform-origin: center center;
         will-change: transform, filter, opacity;
-        filter: drop-shadow(0 12px 28px rgba(var(--bs-primary-rgb), .22));
+        filter: drop-shadow(0 18px 40px rgba(var(--bs-primary-rgb), .28));
         animation:
             postLoginSplashLogoIn 1.5s cubic-bezier(0.34, 1.15, 0.48, 1) both,
             postLoginSplashLogoPulse 2.8s ease-in-out 1.5s infinite;
@@ -108,27 +108,13 @@
         color: #f0c94a;
     }
 
-    .post-login-splash__app-name {
-        margin: 0 0 0.85rem;
-        font-size: clamp(1.45rem, 4vw, 1.95rem);
-        font-weight: 800;
-        line-height: 1.25;
-        color: var(--bs-gray-900);
-        letter-spacing: -0.02em;
-        animation: postLoginSplashTextIn 0.9s ease 1.05s both;
-    }
-
-    [data-bs-theme="dark"] .post-login-splash__app-name {
-        color: var(--bs-gray-100);
-    }
-
     .post-login-splash__message {
-        margin: 0 auto;
+        margin: 0.35rem auto 0;
         max-width: 28rem;
         font-size: 0.95rem;
         line-height: 1.65;
         color: var(--bs-gray-600);
-        animation: postLoginSplashTextIn 0.9s ease 1.35s both;
+        animation: postLoginSplashTextIn 0.9s ease 1.05s both;
     }
 
     [data-bs-theme="dark"] .post-login-splash__message {
@@ -175,11 +161,11 @@
     @keyframes postLoginSplashLogoPulse {
         0%, 100% {
             transform: translateX(0) rotate(0deg) scale(1);
-            filter: drop-shadow(0 12px 28px rgba(var(--bs-primary-rgb), .22));
+            filter: drop-shadow(0 18px 40px rgba(var(--bs-primary-rgb), .28));
         }
         50% {
             transform: translateX(0) rotate(0deg) scale(1.06);
-            filter: drop-shadow(0 18px 40px rgba(var(--bs-primary-rgb), .34));
+            filter: drop-shadow(0 24px 52px rgba(var(--bs-primary-rgb), .4));
         }
     }
 
@@ -210,7 +196,6 @@
     @media (prefers-reduced-motion: reduce) {
         .post-login-splash__logo,
         .post-login-splash__welcome,
-        .post-login-splash__app-name,
         .post-login-splash__message {
             animation: none !important;
         }
