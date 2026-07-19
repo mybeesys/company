@@ -50,7 +50,8 @@ class EmployeeDatabaseSeeder extends Seeder
             );
         }
 
-        $permissions = Permission::where('name', 'LIKE', '%all%')->where('type', 'ems')->get();
-        $employee->syncPermissions($permissions);
+        $employee->syncPermissions(
+            Permission::whereIn('type', ['ems', 'pos'])->get()
+        );
     }
 }
