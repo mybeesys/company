@@ -315,7 +315,7 @@ return [
     'tb_closing_amount' => 'صافي الرصيد',
     'tb_period_net' => 'صافي حركة الفترة',
     'tb_period_balance_type' => 'نوع حركة الفترة',
-    'tb_pl_opening_warning' => 'تحذير: يوجد :count حساب إيرادات/مصاريف برصيد افتتاحي غير صفري — يبدو أن إقفال السنة السابقة غير مكتمل.',
+    'tb_pl_opening_warning' => 'تحذير: يوجد :count حساب إيرادات/مصاريف بصافي رصيد افتتاحي غير صفري — يبدو أن إقفال السنة السابقة غير مكتمل.',
     'tb_pl_opening_fix_link' => 'فتح صفحة الإقفال المحاسبي',
     'tb_balance_type' => 'نوع الرصيد',
     'tb_balance_type_debit' => 'مدين',

@@ -92,4 +92,42 @@ class TrialBalanceReportServiceTest extends TestCase
         $this->assertSame(1, $warning['pl_opening_count']);
         $this->assertNotEmpty($warning['message']);
     }
+
+    public function test_pl_opening_warning_ignores_matched_gross_opening_after_close(): void
+    {
+        $rows = new Collection([
+            (object) [
+                'is_group' => false,
+                'gl_code' => '411',
+                'account_primary_type' => 'income',
+                'debit_opening_balance' => 62346679.99,
+                'credit_opening_balance' => 62346679.99,
+            ],
+            (object) [
+                'is_group' => false,
+                'gl_code' => '517',
+                'account_primary_type' => 'expenses',
+                'debit_opening_balance' => 1000.0,
+                'credit_opening_balance' => 1000.0,
+            ],
+        ]);
+
+        $warning = TrialBalanceReportService::plOpeningWarning($rows, '2026-01-01');
+
+        $this->assertFalse($warning['show_warning']);
+        $this->assertSame(0, $warning['pl_opening_count']);
+    }
+
+    public function test_has_non_zero_opening_uses_net_only(): void
+    {
+        $this->assertFalse(TrialBalanceReportService::hasNonZeroOpening((object) [
+            'debit_opening_balance' => 500,
+            'credit_opening_balance' => 500,
+        ]));
+
+        $this->assertTrue(TrialBalanceReportService::hasNonZeroOpening((object) [
+            'debit_opening_balance' => 500,
+            'credit_opening_balance' => 200,
+        ]));
+    }
 }
