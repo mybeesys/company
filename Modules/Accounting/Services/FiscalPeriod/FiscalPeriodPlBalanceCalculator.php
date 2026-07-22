@@ -28,12 +28,9 @@ class FiscalPeriodPlBalanceCalculator
         $start = $year->start_date->copy()->startOfDay()->format('Y-m-d H:i:s');
         $end = $year->end_date->copy()->endOfDay()->format('Y-m-d H:i:s');
 
-        $parentIds = AccountingAccount::query()
-            ->whereNotNull('parent_account_id')
-            ->pluck('parent_account_id')
-            ->unique()
-            ->values();
-
+        // Include any P&L account with direct postings in the year — including parents
+        // that received journal lines (common with imported charts). Leaf-only filtering
+        // left residual expense/income balances unclosed.
         return AccountingAccount::query()
             ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
             ->whereBetween('AAT.operation_date', [$start, $end])
@@ -42,7 +39,6 @@ class FiscalPeriodPlBalanceCalculator
                     ->orWhereIn('accounting_accounts.account_primary_type', ['income', 'expenses', 'expense'])
                     ->orWhereRaw("LEFT(REPLACE(accounting_accounts.gl_code, '.', ''), 1) IN ('4', '5')");
             })
-            ->whereNotIn('accounting_accounts.id', $parentIds)
             ->where('accounting_accounts.status', 'active')
             ->groupBy(
                 'accounting_accounts.id',
