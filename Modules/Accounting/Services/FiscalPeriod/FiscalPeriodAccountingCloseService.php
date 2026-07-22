@@ -253,36 +253,76 @@ class FiscalPeriodAccountingCloseService
                 continue;
             }
 
+            $amount = abs($signed);
+
             if ($account->is_income) {
-                $lines[] = $this->line(
-                    step: 'pl_close',
-                    account: $account,
-                    debit: abs($signed),
-                    credit: 0.0,
-                    description: __('accounting::fiscal_close.line_pl_close'),
-                );
-                $lines[] = $this->line(
-                    step: 'pl_close',
-                    account: $currentResult,
-                    debit: 0.0,
-                    credit: abs($signed),
-                    description: __('accounting::fiscal_close.line_pl_close_counter'),
-                );
+                // Income credit balance (signed > 0): Dr income / Cr result.
+                // Income debit balance e.g. sales returns (signed < 0): Cr income / Dr result.
+                if ($signed > 0) {
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $account,
+                        debit: $amount,
+                        credit: 0.0,
+                        description: __('accounting::fiscal_close.line_pl_close'),
+                    );
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $currentResult,
+                        debit: 0.0,
+                        credit: $amount,
+                        description: __('accounting::fiscal_close.line_pl_close_counter'),
+                    );
+                } else {
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $currentResult,
+                        debit: $amount,
+                        credit: 0.0,
+                        description: __('accounting::fiscal_close.line_pl_close_counter'),
+                    );
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $account,
+                        debit: 0.0,
+                        credit: $amount,
+                        description: __('accounting::fiscal_close.line_pl_close'),
+                    );
+                }
             } else {
-                $lines[] = $this->line(
-                    step: 'pl_close',
-                    account: $currentResult,
-                    debit: abs($signed),
-                    credit: 0.0,
-                    description: __('accounting::fiscal_close.line_pl_close_counter'),
-                );
-                $lines[] = $this->line(
-                    step: 'pl_close',
-                    account: $account,
-                    debit: 0.0,
-                    credit: abs($signed),
-                    description: __('accounting::fiscal_close.line_pl_close'),
-                );
+                // Expense debit balance (signed > 0): Dr result / Cr expense.
+                // Expense credit balance (signed < 0): Dr expense / Cr result.
+                if ($signed > 0) {
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $currentResult,
+                        debit: $amount,
+                        credit: 0.0,
+                        description: __('accounting::fiscal_close.line_pl_close_counter'),
+                    );
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $account,
+                        debit: 0.0,
+                        credit: $amount,
+                        description: __('accounting::fiscal_close.line_pl_close'),
+                    );
+                } else {
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $account,
+                        debit: $amount,
+                        credit: 0.0,
+                        description: __('accounting::fiscal_close.line_pl_close'),
+                    );
+                    $lines[] = $this->line(
+                        step: 'pl_close',
+                        account: $currentResult,
+                        debit: 0.0,
+                        credit: $amount,
+                        description: __('accounting::fiscal_close.line_pl_close_counter'),
+                    );
+                }
             }
         }
 
