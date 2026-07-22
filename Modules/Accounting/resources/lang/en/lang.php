@@ -323,7 +323,7 @@ return [
     'tb_closing_amount' => 'Net balance',
     'tb_period_net' => 'Period net movement',
     'tb_period_balance_type' => 'Period balance type',
-    'tb_pl_opening_warning' => 'Warning: :count income/expense account(s) have a non-zero opening balance — the prior year accounting close may be incomplete.',
+    'tb_pl_opening_warning' => 'Warning: :count income/expense account(s) have a non-zero net opening balance — the prior year accounting close may be incomplete.',
     'tb_pl_opening_fix_link' => 'Open accounting close page',
     'tb_balance_type' => 'Balance type',
     'tb_balance_type_debit' => 'Debit',

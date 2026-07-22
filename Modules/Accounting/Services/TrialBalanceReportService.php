@@ -98,8 +98,12 @@ final class TrialBalanceReportService
 
     public static function hasNonZeroOpening(object $account): bool
     {
-        return abs((float) ($account->debit_opening_balance ?? 0)) > 0.0001
-            || abs((float) ($account->credit_opening_balance ?? 0)) > 0.0001;
+        // Net opening only: after a proper close, P&L accounts often still show large
+        // matched debit+credit gross columns, but net must be ~0.
+        $debit = (float) ($account->debit_opening_balance ?? 0);
+        $credit = (float) ($account->credit_opening_balance ?? 0);
+
+        return abs(round($debit - $credit, 2)) > 0.0001;
     }
 
     /**
