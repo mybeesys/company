@@ -25,8 +25,8 @@ class FiscalPeriodPlBalanceCalculator
      */
     public function accountsWithBalances(FinancialYear $year): Collection
     {
-        $start = $year->start_date->toDateString();
-        $end = $year->end_date->toDateString();
+        $start = $year->start_date->copy()->startOfDay()->format('Y-m-d H:i:s');
+        $end = $year->end_date->copy()->endOfDay()->format('Y-m-d H:i:s');
 
         $parentIds = AccountingAccount::query()
             ->whereNotNull('parent_account_id')
@@ -38,8 +38,9 @@ class FiscalPeriodPlBalanceCalculator
             ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
             ->whereBetween('AAT.operation_date', [$start, $end])
             ->where(function ($query) {
-                $query->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
-                    ->orWhereIn('accounting_accounts.account_primary_type', ['income', 'expenses']);
+                $query->whereIn('accounting_accounts.account_type', ['income', 'expenses', 'expense'])
+                    ->orWhereIn('accounting_accounts.account_primary_type', ['income', 'expenses', 'expense'])
+                    ->orWhereRaw("LEFT(REPLACE(accounting_accounts.gl_code, '.', ''), 1) IN ('4', '5')");
             })
             ->whereNotIn('accounting_accounts.id', $parentIds)
             ->where('accounting_accounts.status', 'active')
@@ -64,8 +65,7 @@ class FiscalPeriodPlBalanceCalculator
             ->orderBy('accounting_accounts.gl_code')
             ->get()
             ->map(function ($account) {
-                $isIncome = $account->account_type === 'income'
-                    || ($account->account_primary_type ?? null) === 'income';
+                $isIncome = $this->isIncomeAccount($account);
 
                 $debit = (float) $account->debit_balance;
                 $credit = (float) $account->credit_balance;
@@ -96,5 +96,30 @@ class FiscalPeriodPlBalanceCalculator
             'net_income' => $netIncome,
             'pl_accounts_count' => $accounts->count(),
         ];
+    }
+
+    public function isIncomeAccount(object $account): bool
+    {
+        $type = strtolower((string) ($account->account_type ?? ''));
+        $primary = strtolower((string) ($account->account_primary_type ?? ''));
+
+        if ($type === 'income' || $primary === 'income') {
+            return true;
+        }
+
+        if (in_array($type, ['expenses', 'expense'], true) || in_array($primary, ['expenses', 'expense'], true)) {
+            return false;
+        }
+
+        $digit = $this->leadingGlDigit((string) ($account->gl_code ?? ''));
+
+        return $digit === '4';
+    }
+
+    public function leadingGlDigit(string $glCode): string
+    {
+        $normalized = preg_replace('/[^0-9]/', '', $glCode) ?? '';
+
+        return $normalized !== '' ? $normalized[0] : '';
     }
 }

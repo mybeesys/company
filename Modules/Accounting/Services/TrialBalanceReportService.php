@@ -7,17 +7,17 @@ namespace Modules\Accounting\Services;
 use App\Helpers\CurrencyHelper;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Schema;
+use Modules\Accounting\Models\FinancialYear;
 
 final class TrialBalanceReportService
 {
-  public const PRIMARY_TYPE_ORDER = [
+    public const PRIMARY_TYPE_ORDER = [
         'asset',
-        'liability',
         'liabilities',
         'equity',
         'income',
         'expenses',
-        'expense',
     ];
 
     /** @var array<string, string> */
@@ -43,6 +43,28 @@ final class TrialBalanceReportService
         ];
     }
 
+    /**
+     * Period movement net only (does NOT include opening).
+     *
+     * @return array{period_net: float, period_debit_net: float, period_credit_net: float, balance_type: string}
+     */
+    public static function periodMovement(object $account): array
+    {
+        $debit = round((float) ($account->debit_balance ?? 0), 2);
+        $credit = round((float) ($account->credit_balance ?? 0), 2);
+        $net = round($debit - $credit, 2);
+
+        return [
+            'period_net' => abs($net),
+            'period_debit_net' => $net > 0.0001 ? abs($net) : 0.0,
+            'period_credit_net' => $net < -0.0001 ? abs($net) : 0.0,
+            'balance_type' => static::balanceTypeLabel(
+                $net > 0.0001 ? abs($net) : 0.0,
+                $net < -0.0001 ? abs($net) : 0.0
+            ),
+        ];
+    }
+
     public static function balanceTypeLabel(float $debit, float $credit): string
     {
         $diff = round($debit - $credit, 2);
@@ -62,9 +84,162 @@ final class TrialBalanceReportService
         return round((float) $c['closing_credit_balance'] - (float) $c['closing_debit_balance'], 2);
     }
 
+    public static function isPlAccount(object $account): bool
+    {
+        $type = static::normalizePrimaryType((string) ($account->account_primary_type ?? ''));
+        if (in_array($type, ['income', 'expenses'], true)) {
+            return true;
+        }
+
+        $gl = preg_replace('/[^0-9]/', '', (string) ($account->gl_code ?? '')) ?? '';
+
+        return $gl !== '' && in_array($gl[0], ['4', '5'], true);
+    }
+
+    public static function hasNonZeroOpening(object $account): bool
+    {
+        return abs((float) ($account->debit_opening_balance ?? 0)) > 0.0001
+            || abs((float) ($account->credit_opening_balance ?? 0)) > 0.0001;
+    }
+
+    /**
+     * Detect P&L opening residuals when the report starts at a fiscal year start.
+     *
+     * @return array{
+     *     show_warning: bool,
+     *     pl_opening_count: int,
+     *     message: string|null,
+     *     close_url: string|null,
+     *     prior_year_id: int|null
+     * }
+     */
+    public static function plOpeningWarning(Collection $rows, string $startDate): array
+    {
+        $empty = [
+            'show_warning' => false,
+            'pl_opening_count' => 0,
+            'message' => null,
+            'close_url' => null,
+            'prior_year_id' => null,
+        ];
+
+        $plWithOpening = $rows->filter(
+            fn ($account) => ! ($account->is_group ?? false)
+                && static::isPlAccount($account)
+                && static::hasNonZeroOpening($account)
+        );
+
+        if ($plWithOpening->isEmpty()) {
+            return $empty;
+        }
+
+        $priorYear = null;
+        if (Schema::hasTable('financial_years')) {
+            $year = FinancialYear::query()
+                ->whereDate('start_date', $startDate)
+                ->first();
+
+            if ($year) {
+                $priorYear = FinancialYear::query()
+                    ->whereDate('end_date', '<', $startDate)
+                    ->orderByDesc('end_date')
+                    ->first();
+            }
+        }
+
+        $closeUrl = null;
+        $priorYearId = null;
+        if ($priorYear) {
+            $priorYearId = (int) $priorYear->id;
+            try {
+                $closeUrl = route('accounting.financial-years.accounting-close.page', $priorYearId);
+            } catch (\Throwable) {
+                $closeUrl = url('accounting/financial-years/'.$priorYearId.'/accounting-close');
+            }
+        }
+
+        return [
+            'show_warning' => true,
+            'pl_opening_count' => $plWithOpening->count(),
+            'message' => __('accounting::lang.tb_pl_opening_warning', [
+                'count' => $plWithOpening->count(),
+            ]),
+            'close_url' => $closeUrl,
+            'prior_year_id' => $priorYearId,
+        ];
+    }
+
+    /**
+     * Insert accordion group header rows before each primary-type block.
+     *
+     * @return Collection<int, object>
+     */
+    public static function withAccordionGroups(Collection $rows): Collection
+    {
+        $sorted = $rows->sortBy(function ($account) {
+            $type = static::normalizePrimaryType((string) ($account->account_primary_type ?? 'other'));
+            $order = array_search($type, self::PRIMARY_TYPE_ORDER, true);
+            $orderKey = $order === false ? 99 : $order;
+
+            return sprintf('%02d-%s', $orderKey, (string) ($account->gl_code ?? ''));
+        })->values();
+
+        $output = collect();
+        $currentType = null;
+        $buffer = collect();
+
+        $flush = function () use (&$output, &$buffer, &$currentType) {
+            if ($buffer->isEmpty()) {
+                return;
+            }
+
+            $type = $currentType ?? 'other';
+            $label = Lang::has('accounting::lang.'.$type)
+                ? __('accounting::lang.'.$type)
+                : $type;
+
+            $group = (object) [
+                'id' => null,
+                'is_group' => true,
+                'group_key' => $type,
+                'gl_code' => '',
+                'name' => $label,
+                'account_primary_type' => $type,
+                'debit_opening_balance' => round($buffer->sum(fn ($a) => (float) ($a->debit_opening_balance ?? 0)), 2),
+                'credit_opening_balance' => round($buffer->sum(fn ($a) => (float) ($a->credit_opening_balance ?? 0)), 2),
+                'debit_balance' => round($buffer->sum(fn ($a) => (float) ($a->debit_balance ?? 0)), 2),
+                'credit_balance' => round($buffer->sum(fn ($a) => (float) ($a->credit_balance ?? 0)), 2),
+                'child_count' => $buffer->count(),
+            ];
+
+            $output->push($group);
+            foreach ($buffer as $row) {
+                $row->is_group = false;
+                $row->group_key = $type;
+                $output->push($row);
+            }
+
+            $buffer = collect();
+        };
+
+        foreach ($sorted as $account) {
+            $type = static::normalizePrimaryType((string) ($account->account_primary_type ?? 'other'));
+            if ($currentType !== null && $type !== $currentType) {
+                $flush();
+            }
+            $currentType = $type;
+            $buffer->push($account);
+        }
+        $flush();
+
+        return $output;
+    }
+
     /** @return array<string, mixed> */
     public static function buildAnalytics(Collection $rows, bool $aggregated = false): array
     {
+        $detailRows = $rows->filter(fn ($a) => ! ($a->is_group ?? false));
+
         $totalDebitOpening = 0.0;
         $totalCreditOpening = 0.0;
         $totalDebitPeriod = 0.0;
@@ -76,7 +251,7 @@ final class TrialBalanceReportService
 
         $typeTotals = [];
 
-        foreach ($rows as $account) {
+        foreach ($detailRows as $account) {
             $dOpen = (float) ($account->debit_opening_balance ?? 0);
             $cOpen = (float) ($account->credit_opening_balance ?? 0);
             $dPeriod = (float) ($account->debit_balance ?? 0);
@@ -127,9 +302,9 @@ final class TrialBalanceReportService
                 'closing_credit' => round($totalClosingCredit, 2),
                 'difference' => round($difference, 2),
                 'is_balanced' => $isBalanced,
-                'account_count' => $rows->count(),
+                'account_count' => $detailRows->count(),
                 'active_accounts' => $activeCount,
-                'inactive_accounts' => max(0, $rows->count() - $activeCount),
+                'inactive_accounts' => max(0, $detailRows->count() - $activeCount),
                 'aggregated' => $aggregated,
             ],
             'chart' => $chart,

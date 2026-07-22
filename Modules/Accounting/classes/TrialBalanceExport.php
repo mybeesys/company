@@ -17,7 +17,17 @@ class TrialBalanceExport implements FromCollection, WithHeadings, WithStyles
 
     public function collection()
     {
-        return $this->rows;
+        return $this->rows->map(fn ($row) => [
+            $row['gl_code'] ?? '',
+            $row['name'] ?? '',
+            $row['debit_opening_balance'] ?? '0.00',
+            $row['credit_opening_balance'] ?? '0.00',
+            $row['debit_balance'] ?? '0.00',
+            $row['credit_balance'] ?? '0.00',
+            $row['period_net'] ?? '0.00',
+            $row['closing_debit_balance'] ?? '0.00',
+            $row['closing_credit_balance'] ?? '0.00',
+        ]);
     }
 
     public function headings(): array
@@ -39,6 +49,7 @@ class TrialBalanceExport implements FromCollection, WithHeadings, WithStyles
                 __('accounting::lang.credit').' ('.__('accounting::lang.opening_balance').')',
                 __('accounting::lang.debit').' ('.__('accounting::lang.accounting_transactions').')',
                 __('accounting::lang.credit').' ('.__('accounting::lang.accounting_transactions').')',
+                __('accounting::lang.tb_period_net'),
                 __('accounting::lang.debit').' ('.__('accounting::lang.closing_balance').')',
                 __('accounting::lang.credit').' ('.__('accounting::lang.closing_balance').')',
             ],

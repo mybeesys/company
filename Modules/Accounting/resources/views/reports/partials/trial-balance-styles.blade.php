@@ -205,11 +205,57 @@
 
     .tb-top-list li:last-child { border-bottom: 0; }
 
+    #kt_accounts_table tr.tb-group-row {
+        background: var(--bs-gray-100);
+        font-weight: 700;
+    }
+
+    #kt_accounts_table tr.tb-group-row td {
+        border-top: 2px solid var(--bs-gray-300);
+        vertical-align: middle;
+    }
+
+    .tb-accordion-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 0;
+        background: transparent;
+        font-weight: 700;
+        color: var(--bs-gray-800);
+        padding: 0.15rem 0.35rem;
+    }
+
+    .tb-accordion-toggle:hover {
+        color: var(--bs-primary);
+    }
+
+    .tb-accordion-icon {
+        transition: transform 0.18s ease;
+        font-size: 0.75rem;
+    }
+
+    .tb-accordion-icon.tb-collapsed {
+        transform: rotate(-90deg);
+    }
+
+    [dir="rtl"] .tb-accordion-icon.tb-collapsed {
+        transform: rotate(90deg);
+    }
+
+    .tb-group-name { font-size: 0.9rem; }
+
+    #kt_accounts_table tr.tb-account-row.d-none {
+        display: none !important;
+    }
+
     @media print {
         @page { size: A4 landscape; margin: 10mm; }
         .no-print { display: none !important; }
         .tb-table-scroll { max-height: none !important; overflow: visible !important; }
         .tb-print-header, .tb-print-footer { display: block !important; }
+        #kt_accounts_table tr.tb-account-row.d-none { display: table-row !important; }
+        .tb-accordion-toggle { pointer-events: none; }
     }
 
     .tb-print-header, .tb-print-footer { display: none; }

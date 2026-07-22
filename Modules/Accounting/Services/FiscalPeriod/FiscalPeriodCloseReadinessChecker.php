@@ -21,6 +21,8 @@ class FiscalPeriodCloseReadinessChecker
      *     all_periods_closed: bool,
      *     open_periods: list<array{id: int, name: string}>,
      *     is_year_end_boundary: bool,
+     *     is_remedial: bool,
+     *     accounting_close_posted: bool,
      *     can_preview: bool,
      *     blocking_messages: list<string>,
      *     warnings: list<string>
@@ -33,6 +35,9 @@ class FiscalPeriodCloseReadinessChecker
         $routingStatus = $this->routing->status();
         $routingErrors = $this->routing->validationErrors();
         $isYearEnd = $this->isYearEndBoundary($year, $closingPeriod);
+        $accountingPosted = $this->hasAccountingClosePosted($year);
+        $yearOpen = $year->isOpen();
+        $isRemedial = ! $yearOpen && ! $accountingPosted;
 
         $openPeriods = $year->periods
             ->filter(function (FiscalPeriod $period) use ($closingPeriod) {
@@ -56,8 +61,10 @@ class FiscalPeriodCloseReadinessChecker
         $blocking = [];
         $warnings = [];
 
-        if (! $year->isOpen()) {
-            $blocking[] = __('accounting::fiscal_close.year_not_open');
+        if ($isRemedial) {
+            $warnings[] = __('accounting::fiscal_close.remedial_mode');
+        } elseif (! $yearOpen && $accountingPosted) {
+            $warnings[] = __('accounting::fiscal_close.year_admin_closed');
         }
 
         if (! $routingStatus['complete']) {
@@ -72,7 +79,7 @@ class FiscalPeriodCloseReadinessChecker
             $warnings[] = __('accounting::fiscal_close.open_periods_remain', ['count' => count($openPeriods)]);
         }
 
-        if ($this->hasAccountingClosePosted($year)) {
+        if ($accountingPosted) {
             $warnings[] = __('accounting::fiscal_close.already_posted');
         }
 
@@ -86,11 +93,12 @@ class FiscalPeriodCloseReadinessChecker
             'routing' => $routingStatus,
             'routing_complete' => $routingStatus['complete'] && $routingErrors === [],
             'routing_errors' => $routingErrors,
-            'year_open' => $year->isOpen(),
+            'year_open' => $yearOpen,
             'all_periods_closed' => $openPeriods === [],
             'open_periods' => $openPeriods,
             'is_year_end_boundary' => $isYearEnd,
-            'accounting_close_posted' => $this->hasAccountingClosePosted($year),
+            'is_remedial' => $isRemedial,
+            'accounting_close_posted' => $accountingPosted,
             'can_preview' => $canPreview,
             'blocking_messages' => array_values(array_unique($blocking)),
             'warnings' => array_values(array_unique($warnings)),

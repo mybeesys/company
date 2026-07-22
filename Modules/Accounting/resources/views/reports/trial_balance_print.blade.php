@@ -24,6 +24,9 @@
     <div class="summary">
         <strong>{{ __('accounting::lang.balance') }}:</strong> {{ $balance_status }}
         | <strong>{{ __('accounting::lang.difference') }}:</strong> {{ number_format((float) $difference, 2) }}
+        @if(!empty($plOpeningWarning['show_warning']))
+            <div style="margin-top:6px;color:#b54708;">{{ $plOpeningWarning['message'] }}</div>
+        @endif
     </div>
 
     <table>
@@ -35,6 +38,7 @@
                 <th class="text-end">{{ __('accounting::lang.credit') }} ({{ __('accounting::lang.opening_balance') }})</th>
                 <th class="text-end">{{ __('accounting::lang.debit') }} ({{ __('accounting::lang.accounting_transactions') }})</th>
                 <th class="text-end">{{ __('accounting::lang.credit') }} ({{ __('accounting::lang.accounting_transactions') }})</th>
+                <th class="text-end">{{ __('accounting::lang.tb_period_net') }}</th>
                 <th class="text-end">{{ __('accounting::lang.debit') }} ({{ __('accounting::lang.closing_balance') }})</th>
                 <th class="text-end">{{ __('accounting::lang.credit') }} ({{ __('accounting::lang.closing_balance') }})</th>
             </tr>
@@ -48,11 +52,12 @@
                     <td class="text-end">{{ $row['credit_opening_balance'] }}</td>
                     <td class="text-end">{{ $row['debit_balance'] }}</td>
                     <td class="text-end">{{ $row['credit_balance'] }}</td>
+                    <td class="text-end">{{ $row['period_net'] ?? '0.00' }}</td>
                     <td class="text-end">{{ $row['closing_debit_balance'] }}</td>
                     <td class="text-end">{{ $row['closing_credit_balance'] }}</td>
                 </tr>
             @empty
-                <tr><td colspan="8">{{ __('messages.no_data_found') }}</td></tr>
+                <tr><td colspan="9">{{ __('messages.no_data_found') }}</td></tr>
             @endforelse
             <tr class="total-row">
                 <th colspan="2">{{ __('accounting::lang.total') }}</th>
@@ -60,6 +65,7 @@
                 <th class="text-end">{{ number_format((float) $totals['credit_opening'], 2) }}</th>
                 <th class="text-end">{{ number_format((float) $totals['debit'], 2) }}</th>
                 <th class="text-end">{{ number_format((float) $totals['credit'], 2) }}</th>
+                <th class="text-end">{{ number_format((float) ($totals['period_net'] ?? 0), 2) }}</th>
                 <th class="text-end">{{ number_format((float) $totals['closing_debit'], 2) }}</th>
                 <th class="text-end">{{ number_format((float) $totals['closing_credit'], 2) }}</th>
             </tr>

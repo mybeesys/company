@@ -492,9 +492,6 @@ class AccountingReportsController extends Controller
 
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
 
-        /** @see Qoyod-style default: grouped by primary classification */
-        $aggregated = (int) $request->input('aggregated', 1);
-
         $choose_accounts_select = $request->input('choose_accounts_select');
         $choose_cost_center_select = $request->input('choose_cost_center_select');
 
@@ -537,36 +534,40 @@ class AccountingReportsController extends Controller
             $level_filter
         );
 
-        $accounts = $aggregated
-            ? collect($this->aggregateTrialBalanceRows($baseRows))
-            : $baseRows;
+        $detailRows = $baseRows->map(function ($account) {
+            $account->account_primary_type = TrialBalanceReportService::normalizePrimaryType(
+                (string) ($account->account_primary_type ?? '')
+            );
+
+            return $account;
+        });
+
+        $accounts = TrialBalanceReportService::withAccordionGroups($detailRows);
 
         if (request()->ajax()) {
             $accountsCollection = $accounts instanceof Collection ? $accounts : collect($accounts);
-            $analytics = TrialBalanceReportService::buildAnalytics($accountsCollection, (bool) $aggregated);
+            $analytics = TrialBalanceReportService::buildAnalytics($accountsCollection, false);
+            $plWarning = TrialBalanceReportService::plOpeningWarning($detailRows, $start_date);
 
             $compareMode = $request->input('compare_mode', 'none');
             $compareAnalytics = null;
             if (in_array($compareMode, ['previous_period', 'previous_year'], true)) {
                 $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compareMode);
-                $compareRows = $aggregated
-                    ? collect($this->aggregateTrialBalanceRows($this->queryTrialBalanceAccountRows(
-                        $comparePeriod['start'],
-                        $comparePeriod['end'],
-                        $with_zero_balances,
-                        $choose_accounts_select,
-                        $costCenterIds,
-                        $level_filter
-                    )))
-                    : $this->queryTrialBalanceAccountRows(
-                        $comparePeriod['start'],
-                        $comparePeriod['end'],
-                        $with_zero_balances,
-                        $choose_accounts_select,
-                        $costCenterIds,
-                        $level_filter
+                $compareRows = $this->queryTrialBalanceAccountRows(
+                    $comparePeriod['start'],
+                    $comparePeriod['end'],
+                    $with_zero_balances,
+                    $choose_accounts_select,
+                    $costCenterIds,
+                    $level_filter
+                )->map(function ($account) {
+                    $account->account_primary_type = TrialBalanceReportService::normalizePrimaryType(
+                        (string) ($account->account_primary_type ?? '')
                     );
-                $compareAnalytics = TrialBalanceReportService::buildAnalytics($compareRows, (bool) $aggregated);
+
+                    return $account;
+                });
+                $compareAnalytics = TrialBalanceReportService::buildAnalytics($compareRows, false);
             }
 
             $totalDebitOpeningBalance = $analytics['kpis']['total_debit_opening'];
@@ -576,32 +577,49 @@ class AccountingReportsController extends Controller
             $totalDebitBalance = $analytics['kpis']['total_debit_period'];
             $totalCreditBalance = $analytics['kpis']['total_credit_period'];
 
-            $localeAr = app()->getLocale() === 'ar';
-
             return DataTables::of($accounts)
                 ->editColumn('gl_code', function ($account) {
+                    if ($account->is_group ?? false) {
+                        return '';
+                    }
+
                     return '<span class="tb-gl-code">'.e($account->gl_code ?? '').'</span>';
                 })
-                ->editColumn('name', function ($account) use ($aggregated) {
+                ->editColumn('name', function ($account) {
+                    if ($account->is_group ?? false) {
+                        $count = (int) ($account->child_count ?? 0);
+                        $key = e((string) ($account->group_key ?? ''));
+
+                        return '<button type="button" class="tb-accordion-toggle btn btn-sm btn-light" data-group="'.$key.'" aria-expanded="true">'
+                            .'<i class="fa-solid fa-chevron-down tb-accordion-icon" aria-hidden="true"></i>'
+                            .'<span class="tb-group-name">'.e($account->name ?? '').'</span>'
+                            .'<span class="badge badge-light-secondary ms-2">'.$count.'</span>'
+                            .'</button>';
+                    }
+
                     $depth = (int) ($account->depth ?? 0);
                     $indent = str_repeat('<span class="tb-indent"></span>', max(0, $depth));
                     $typeKey = TrialBalanceReportService::normalizePrimaryType((string) ($account->account_primary_type ?? ''));
-                    $typeBadge = $aggregated
-                        ? ''
-                        : '<span class="badge badge-light-secondary tb-type-badge ms-1">'.e(
-                            Lang::has('accounting::lang.'.$typeKey)
-                                ? __('accounting::lang.'.$typeKey)
-                                : $typeKey
-                        ).'</span>';
+                    $typeBadge = '<span class="badge badge-light-secondary tb-type-badge ms-1">'.e(
+                        Lang::has('accounting::lang.'.$typeKey)
+                            ? __('accounting::lang.'.$typeKey)
+                            : $typeKey
+                    ).'</span>';
 
                     return '<div class="tb-name-cell">'.$indent
                         .'<span class="tb-account-name">'.e($account->name ?? '').'</span>'
                         .$typeBadge.'</div>';
                 })
-                ->addColumn('period_movement', function ($account) {
-                    return $this->roundMoney(
-                        abs($this->roundMoney((float) ($account->debit_balance ?? 0) - (float) ($account->credit_balance ?? 0)))
-                    );
+                ->addColumn('period_net', function ($account) {
+                    return $this->roundMoney(TrialBalanceReportService::periodMovement($account)['period_net']);
+                })
+                ->addColumn('period_balance_type', function ($account) {
+                    $movement = TrialBalanceReportService::periodMovement($account);
+                    $label = $movement['balance_type'];
+                    $isDebit = str_contains($label, __('accounting::lang.tb_balance_type_debit'));
+                    $class = $isDebit ? 'badge-light-primary' : 'badge-light-warning';
+
+                    return '<span class="badge '.$class.'">'.e($label).'</span>';
                 })
                 ->addColumn('balance_type', function ($account) {
                     $closing = TrialBalanceReportService::closingBalance($account);
@@ -614,9 +632,6 @@ class AccountingReportsController extends Controller
 
                     return '<span class="badge '.$class.'">'.e($label).'</span>';
                 })
-                ->addColumn('closing_balance', function ($account) {
-                    return $this->roundMoney(abs(TrialBalanceReportService::signedClosing($account)));
-                })
                 ->editColumn('debit_balance', function ($account) {
                     return $this->roundMoney($account->debit_balance ?? 0);
                 })
@@ -626,7 +641,6 @@ class AccountingReportsController extends Controller
                 ->editColumn('credit_opening_balance', function ($account) {
                     return $this->roundMoney($account->credit_opening_balance ?? 0);
                 })
-
                 ->editColumn('credit_balance', function ($account) {
                     return $this->roundMoney($account->credit_balance ?? 0);
                 })
@@ -640,18 +654,31 @@ class AccountingReportsController extends Controller
 
                     return $this->roundMoney($closing_balance['closing_credit_balance'] ?? 0);
                 })
-                ->addColumn('action', function ($account) use ($aggregated) {
-                    if (! $aggregated) {
-                        $label = e(__('accounting::lang.account_statement'));
-                        $url = e(route('print-ledger', $account->id));
-
-                        return '<a class="btn btn-sm tb-ledger-btn btn-modal d-inline-flex align-items-center gap-1 text-nowrap" '
-                            .'data-container="#printledger" href="'.$url.'" title="'.$label.'">'
-                            .'<i class="fa-solid fa-file-lines" aria-hidden="true"></i>'
-                            .'<span>'.$label.'</span></a>';
+                ->addColumn('is_group', function ($account) {
+                    return (bool) ($account->is_group ?? false);
+                })
+                ->addColumn('group_key', function ($account) {
+                    return (string) ($account->group_key ?? '');
+                })
+                ->addColumn('action', function ($account) {
+                    if (($account->is_group ?? false) || empty($account->id)) {
+                        return '';
                     }
 
-                    return '';
+                    $label = e(__('accounting::lang.account_statement'));
+                    $url = e(route('print-ledger', $account->id));
+
+                    return '<a class="btn btn-sm tb-ledger-btn btn-modal d-inline-flex align-items-center gap-1 text-nowrap" '
+                        .'data-container="#printledger" href="'.$url.'" title="'.$label.'">'
+                        .'<i class="fa-solid fa-file-lines" aria-hidden="true"></i>'
+                        .'<span>'.$label.'</span></a>';
+                })
+                ->setRowClass(function ($account) {
+                    if ($account->is_group ?? false) {
+                        return 'tb-group-row';
+                    }
+
+                    return 'tb-account-row tb-group-'.preg_replace('/[^a-z0-9_\-]/i', '', (string) ($account->group_key ?? 'other'));
                 })
                 ->with([
                     'totalDebitOpeningBalance' => $this->roundMoney($totalDebitOpeningBalance),
@@ -664,12 +691,12 @@ class AccountingReportsController extends Controller
                     'compareAnalytics' => $compareAnalytics,
                     'difference' => $analytics['kpis']['difference'],
                     'isBalanced' => $analytics['kpis']['is_balanced'],
+                    'plOpeningWarning' => $plWarning,
                 ])
                 ->rawColumns([
                     'action', 'closing_debit_balance', 'closing_credit_balance', 'debit_balance', 'credit_balance',
-                    'name', 'gl_code', 'balance_type', 'period_movement', 'closing_balance',
+                    'name', 'gl_code', 'balance_type', 'period_net', 'period_balance_type',
                 ])
-
                 ->make(true);
         }
 
@@ -696,6 +723,7 @@ class AccountingReportsController extends Controller
             'difference' => $report['difference'],
             'balance_status' => $report['balance_status'],
             'totals' => $report['totals'],
+            'plOpeningWarning' => $report['plOpeningWarning'] ?? ['show_warning' => false],
         ])->render();
 
         $mpdf = new Mpdf([
@@ -735,7 +763,6 @@ class AccountingReportsController extends Controller
     private function getTrialBalanceExportDataset(Request $request): array
     {
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
-        $aggregated = (int) $request->input('aggregated', 1);
         $choose_accounts_select = $request->input('choose_accounts_select');
         $choose_cost_center_select = $request->input('choose_cost_center_select');
         $level_filter = $request->input('level_filter');
@@ -744,8 +771,7 @@ class AccountingReportsController extends Controller
             $start_date = $request->input('start_date');
             $end_date = $request->input('end_date');
         } else {
-            $start_date = now()->startOfYear()->format('Y-m-d');
-            $end_date = now()->format('Y-m-d');
+            [$start_date, $end_date] = AccountingReportDateResolver::range($request);
         }
 
         $costCenterIds = array_values(array_filter((array) ($choose_cost_center_select ?? [])));
@@ -757,11 +783,13 @@ class AccountingReportsController extends Controller
             $choose_accounts_select,
             $costCenterIds,
             $level_filter
-        );
+        )->map(function ($account) {
+            $account->account_primary_type = TrialBalanceReportService::normalizePrimaryType(
+                (string) ($account->account_primary_type ?? '')
+            );
 
-        $accountsCollection = $aggregated
-            ? collect($this->aggregateTrialBalanceRows($baseRows))
-            : $baseRows;
+            return $account;
+        });
 
         $rows = [];
         $totals = [
@@ -769,17 +797,20 @@ class AccountingReportsController extends Controller
             'credit_opening' => 0.0,
             'debit' => 0.0,
             'credit' => 0.0,
+            'period_net' => 0.0,
             'closing_debit' => 0.0,
             'closing_credit' => 0.0,
         ];
 
-        foreach ($accountsCollection as $account) {
-            $closing = $this->calculateClosingBalance($account);
+        foreach ($baseRows as $account) {
+            $closing = TrialBalanceReportService::closingBalance($account);
+            $period = TrialBalanceReportService::periodMovement($account);
 
             $totals['debit_opening'] += (float) ($account->debit_opening_balance ?? 0);
             $totals['credit_opening'] += (float) ($account->credit_opening_balance ?? 0);
             $totals['debit'] += (float) ($account->debit_balance ?? 0);
             $totals['credit'] += (float) ($account->credit_balance ?? 0);
+            $totals['period_net'] += (float) ($period['period_net'] ?? 0);
             $totals['closing_debit'] += (float) ($closing['closing_debit_balance'] ?? 0);
             $totals['closing_credit'] += (float) ($closing['closing_credit_balance'] ?? 0);
 
@@ -790,6 +821,7 @@ class AccountingReportsController extends Controller
                 'credit_opening_balance' => number_format((float) ($account->credit_opening_balance ?? 0), 2, '.', ''),
                 'debit_balance' => number_format((float) ($account->debit_balance ?? 0), 2, '.', ''),
                 'credit_balance' => number_format((float) ($account->credit_balance ?? 0), 2, '.', ''),
+                'period_net' => number_format((float) ($period['period_net'] ?? 0), 2, '.', ''),
                 'closing_debit_balance' => number_format((float) ($closing['closing_debit_balance'] ?? 0), 2, '.', ''),
                 'closing_credit_balance' => number_format((float) ($closing['closing_credit_balance'] ?? 0), 2, '.', ''),
             ];
@@ -804,6 +836,7 @@ class AccountingReportsController extends Controller
             'balance_status' => $difference < 0.005 ? __('accounting::lang.balanced') : __('accounting::lang.unbalanced'),
             'start_date' => $start_date,
             'end_date' => $end_date,
+            'plOpeningWarning' => TrialBalanceReportService::plOpeningWarning($baseRows, $start_date),
         ];
     }
 

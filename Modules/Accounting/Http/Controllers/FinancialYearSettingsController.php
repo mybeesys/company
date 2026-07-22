@@ -140,12 +140,13 @@ class FinancialYearSettingsController extends Controller
         }
     }
 
-    public function closeYear(int $id): JsonResponse
+    public function closeYear(Request $request, int $id): JsonResponse
     {
         $year = FinancialYear::query()->findOrFail($id);
 
         try {
-            $year = $this->lifecycle->closeYear($year);
+            $force = $request->boolean('force_without_accounting_close');
+            $year = $this->lifecycle->closeYear($year, $force);
 
             return response()->json([
                 'message' => __('messages.add_successfully'),
@@ -284,10 +285,14 @@ class FinancialYearSettingsController extends Controller
         try {
             $result = $this->accountingClose->execute($year, $period, (int) auth()->id());
 
+            $message = match (true) {
+                $result['already_posted'] ?? false => __('accounting::fiscal_close.execute_already_posted'),
+                $result['repaired'] ?? false => __('accounting::fiscal_close.repair_success'),
+                default => __('accounting::fiscal_close.execute_success'),
+            };
+
             return response()->json([
-                'message' => $result['already_posted']
-                    ? __('accounting::fiscal_close.execute_already_posted')
-                    : __('accounting::fiscal_close.execute_success'),
+                'message' => $message,
                 ...$result,
             ]);
         } catch (\Throwable $e) {

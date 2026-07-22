@@ -27,8 +27,10 @@ class FiscalPeriodAccountingCloseService
      */
     public function readiness(FinancialYear $year, ?FiscalPeriod $closingPeriod = null): array
     {
+        $readiness = $this->enrichReadiness($this->readinessChecker->check($year, $closingPeriod), $year);
+
         return [
-            'readiness' => $this->readinessChecker->check($year, $closingPeriod),
+            'readiness' => $readiness,
             'year' => $this->presentYear($year),
         ];
     }
@@ -42,7 +44,7 @@ class FiscalPeriodAccountingCloseService
      */
     public function preview(FinancialYear $year, ?FiscalPeriod $closingPeriod = null): array
     {
-        $readiness = $this->readinessChecker->check($year, $closingPeriod);
+        $readiness = $this->enrichReadiness($this->readinessChecker->check($year, $closingPeriod), $year);
 
         if (! $readiness['can_preview']) {
             return [
@@ -54,7 +56,7 @@ class FiscalPeriodAccountingCloseService
 
         return [
             'readiness' => $readiness,
-            'preview' => $this->buildPreview($year),
+            'preview' => $this->buildPreview($year, (bool) ($readiness['is_repair'] ?? false)),
             'year' => $this->presentYear($year),
         ];
     }
@@ -63,6 +65,7 @@ class FiscalPeriodAccountingCloseService
      * @return array{
      *     posted: bool,
      *     already_posted: bool,
+     *     repaired: bool,
      *     journal_id: int|null,
      *     ref_no: string|null,
      *     preview: array,
@@ -78,45 +81,74 @@ class FiscalPeriodAccountingCloseService
 
         $year->refresh();
 
-        if ($this->hasAccountingClosePosted($year)) {
-            return [
-                'posted' => false,
-                'already_posted' => true,
-                'journal_id' => (int) $year->accounting_close_journal_id,
-                'ref_no' => $this->existingCloseRefNo($year),
-                'preview' => $this->buildPreview($year),
-                'year' => $this->presentYear($year->fresh()),
-            ];
-        }
-
-        $readiness = $this->readinessChecker->check($year, $closingPeriod);
+        $readiness = $this->enrichReadiness($this->readinessChecker->check($year, $closingPeriod), $year);
         if (! $readiness['can_preview']) {
             throw new \InvalidArgumentException(
                 implode(' ', $readiness['blocking_messages']) ?: __('accounting::fiscal_close.preview_not_available')
             );
         }
 
-        $preview = $this->buildPreview($year);
+        $isRepair = (bool) ($readiness['is_repair'] ?? false);
+        $isRemedial = (bool) ($readiness['is_remedial'] ?? false);
+        $alreadyPosted = $this->hasAccountingClosePosted($year);
+
+        $preview = $this->buildPreview($year, $isRepair);
         $lines = $preview['lines'] ?? [];
+
+        if ($alreadyPosted && ! $isRepair) {
+            return [
+                'posted' => false,
+                'already_posted' => true,
+                'repaired' => false,
+                'journal_id' => $year->accounting_close_journal_id
+                    ? (int) $year->accounting_close_journal_id
+                    : null,
+                'ref_no' => $this->existingCloseRefNo($year),
+                'preview' => $preview,
+                'year' => $this->presentYear($year->fresh()),
+            ];
+        }
+
+        if ($alreadyPosted && $isRepair && $lines === []) {
+            return [
+                'posted' => false,
+                'already_posted' => true,
+                'repaired' => false,
+                'journal_id' => $year->accounting_close_journal_id
+                    ? (int) $year->accounting_close_journal_id
+                    : null,
+                'ref_no' => $this->existingCloseRefNo($year),
+                'preview' => $preview,
+                'year' => $this->presentYear($year->fresh()),
+            ];
+        }
 
         if ($lines !== [] && ! ($preview['totals']['is_balanced'] ?? false)) {
             throw new \InvalidArgumentException(__('accounting::fiscal_close.execute_unbalanced'));
         }
 
-        FiscalPeriodGatekeeper::assertPostable($preview['journal_date']);
+        if (! $isRemedial && ! $isRepair) {
+            FiscalPeriodGatekeeper::assertPostable($preview['journal_date']);
+        }
 
         $journalId = null;
         $refNo = null;
 
-        DB::transaction(function () use ($year, $userId, $preview, $lines, &$journalId, &$refNo) {
+        DB::transaction(function () use ($year, $userId, $preview, $lines, $isRepair, $alreadyPosted, &$journalId, &$refNo) {
             if ($lines !== []) {
-                $refNo = $this->buildReferenceNumber($year);
+                $refNo = $isRepair
+                    ? $this->buildRepairReferenceNumber($year)
+                    : $this->buildReferenceNumber($year);
                 $operationDateTime = $preview['journal_date'].' 23:59:59';
                 $now = now();
 
+                $note = $isRepair
+                    ? __('accounting::fiscal_close.repair_journal_note', ['name' => $year->name])
+                    : __('accounting::fiscal_close.journal_note', ['name' => $year->name]);
+
                 $mapping = AccountingAccTransMapping::query()->create([
                     'ref_no' => $refNo,
-                    'note' => __('accounting::fiscal_close.journal_note', ['name' => $year->name]),
+                    'note' => $note,
                     'type' => 'journal_entry',
                     'created_by' => $userId,
                     'is_manual' => 0,
@@ -154,12 +186,19 @@ class FiscalPeriodAccountingCloseService
                 $journalId = (int) $mapping->id;
             }
 
-            $this->markAccountingClosePosted($year, $journalId, $userId);
+            if (! $alreadyPosted) {
+                $this->markAccountingClosePosted($year, $journalId, $userId);
+            } elseif ($isRepair && $journalId) {
+                $year->update([
+                    'accounting_close_journal_id' => $journalId,
+                ]);
+            }
         });
 
         return [
             'posted' => true,
             'already_posted' => false,
+            'repaired' => $isRepair,
             'journal_id' => $journalId,
             'ref_no' => $refNo,
             'preview' => $preview,
@@ -167,16 +206,38 @@ class FiscalPeriodAccountingCloseService
         ];
     }
 
-  /**
+    /**
+     * @param  array<string, mixed>  $readiness
+     * @return array<string, mixed>
+     */
+    private function enrichReadiness(array $readiness, FinancialYear $year): array
+    {
+        $hasResiduals = false;
+        if ($this->hasAccountingClosePosted($year) && ($readiness['can_preview'] ?? false)) {
+            $hasResiduals = $this->plCalculator->accountsWithBalances($year)->isNotEmpty();
+            if ($hasResiduals) {
+                $readiness['warnings'][] = __('accounting::fiscal_close.residual_pl_balances');
+                $readiness['warnings'] = array_values(array_unique($readiness['warnings']));
+            }
+        }
+
+        $readiness['has_residual_pl'] = $hasResiduals;
+        $readiness['is_repair'] = $hasResiduals;
+
+        return $readiness;
+    }
+
+    /**
      * @return array{
      *     journal_date: string,
      *     totals: array,
      *     routing: array,
      *     lines: list<array>,
-     *     note: string
+     *     note: string,
+     *     is_repair: bool
      * }
      */
-    private function buildPreview(FinancialYear $year): array
+    private function buildPreview(FinancialYear $year, bool $isRepair = false): array
     {
         $routing = $this->routing->status();
         $currentResult = $this->routing->currentPeriodResultAccount();
@@ -265,6 +326,12 @@ class FiscalPeriodAccountingCloseService
         $totalDebit = round(collect($lines)->sum('debit'), 2);
         $totalCredit = round(collect($lines)->sum('credit'), 2);
 
+        $note = match (true) {
+            $isRepair => __('accounting::fiscal_close.repair_preview_note'),
+            $this->hasAccountingClosePosted($year) => __('accounting::fiscal_close.already_posted_note'),
+            default => __('accounting::fiscal_close.preview_execute_note'),
+        };
+
         return [
             'journal_date' => $year->end_date->toDateString(),
             'totals' => array_merge($totals, [
@@ -274,9 +341,8 @@ class FiscalPeriodAccountingCloseService
             ]),
             'routing' => $routing,
             'lines' => $lines,
-            'note' => $this->hasAccountingClosePosted($year)
-                ? __('accounting::fiscal_close.already_posted_note')
-                : __('accounting::fiscal_close.preview_execute_note'),
+            'note' => $note,
+            'is_repair' => $isRepair,
         ];
     }
 
@@ -313,6 +379,17 @@ class FiscalPeriodAccountingCloseService
         return AccountingUtil::generateReferenceNumber('journal_entry');
     }
 
+    private function buildRepairReferenceNumber(FinancialYear $year): string
+    {
+        $base = 'FY-CLOSE-REPAIR-'.$year->id.'-'.str_replace('-', '', $year->end_date->toDateString());
+
+        if (! AccountingAccTransMapping::query()->where('ref_no', $base)->exists()) {
+            return $base;
+        }
+
+        return AccountingUtil::generateReferenceNumber('journal_entry');
+    }
+
     private function existingCloseRefNo(FinancialYear $year): ?string
     {
         if (empty($year->accounting_close_journal_id)) {
@@ -335,17 +412,17 @@ class FiscalPeriodAccountingCloseService
      *     description: string
      * }
      */
-    private function line(string $step, AccountingAccount $account, float $debit, float $credit, string $description): array
+    private function line(string $step, object $account, float $debit, float $credit, string $description): array
     {
         $name = app()->getLocale() === 'ar'
-            ? ($account->name_ar ?: $account->name_en)
-            : ($account->name_en ?: $account->name_ar);
+            ? (($account->name_ar ?? null) ?: ($account->name_en ?? ''))
+            : (($account->name_en ?? null) ?: ($account->name_ar ?? ''));
 
         return [
             'step' => $step,
             'account_id' => (int) $account->id,
-            'account_label' => trim((string) $account->gl_code.' — '.$name),
-            'gl_code' => (string) $account->gl_code,
+            'account_label' => trim((string) ($account->gl_code ?? '').' — '.$name),
+            'gl_code' => (string) ($account->gl_code ?? ''),
             'debit' => $debit,
             'credit' => $credit,
             'description' => $description,
