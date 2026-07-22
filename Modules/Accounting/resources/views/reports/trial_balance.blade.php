@@ -22,7 +22,8 @@
                 <p class="text-muted small mb-0">@lang('accounting::lang.tb_report_intro')</p>
             </div>
             <div class="d-flex flex-wrap gap-2 flex-shrink-0">
-                <button type="button" class="btn btn-sm btn-light-primary" id="tbShowAllRows">@lang('accounting::lang.tb_show_all')</button>
+                <button type="button" class="btn btn-sm btn-light-primary" id="tbExpandAll">@lang('accounting::lang.tb_expand_all')</button>
+                <button type="button" class="btn btn-sm btn-light-primary" id="tbCollapseAll">@lang('accounting::lang.tb_collapse_all')</button>
                 <button type="button" class="btn btn-sm btn-light-primary" onclick="window.print()">
                     <i class="fa fa-print"></i> @lang('general.print')
                 </button>
@@ -63,13 +64,6 @@
                 </select>
             </div>
             <div class="col-md-6 col-lg-2">
-                <label class="form-label small" for="classification">@lang('accounting::lang.classification')</label>
-                <select id="classification" class="form-select form-select-sm">
-                    <option value="0">@lang('accounting::lang.detailed')</option>
-                    <option value="1" selected>@lang('accounting::lang.aggregated')</option>
-                </select>
-            </div>
-            <div class="col-md-6 col-lg-2">
                 <label class="form-label small" for="compare_mode">@lang('accounting::lang.tb_compare')</label>
                 <select id="compare_mode" class="form-select form-select-sm">
                     <option value="none">@lang('accounting::lang.tb_compare_none')</option>
@@ -102,6 +96,15 @@
                 <button type="button" id="trialBalanceExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                 <button type="button" id="trialBalanceExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
             </div>
+        </div>
+    </div>
+
+    <div id="tbPlOpeningWarning" class="alert alert-warning py-2 mb-3 no-print d-none" role="alert">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span id="tbPlOpeningWarningText"></span>
+            <a id="tbPlOpeningWarningLink" class="btn btn-sm btn-warning d-none" href="#" target="_blank" rel="noopener">
+                @lang('accounting::lang.tb_pl_opening_fix_link')
+            </a>
         </div>
     </div>
 
@@ -166,8 +169,8 @@
                     <tr class="tb-thead-group">
                         <th colspan="2"></th>
                         <th colspan="2">@lang('accounting::lang.opening_balance')</th>
-                        <th colspan="2">@lang('accounting::lang.accounting_transactions')</th>
-                        <th colspan="4">@lang('accounting::lang.closing_balance')</th>
+                        <th colspan="4">@lang('accounting::lang.accounting_transactions')</th>
+                        <th colspan="3">@lang('accounting::lang.closing_balance')</th>
                         <th></th>
                     </tr>
                     <tr id="accounts_headerRow">
@@ -177,7 +180,8 @@
                         <th class="tb-fin">@lang('accounting::lang.credit')</th>
                         <th class="tb-fin">@lang('accounting::lang.debit')</th>
                         <th class="tb-fin">@lang('accounting::lang.credit')</th>
-                        <th class="tb-fin">@lang('accounting::lang.tb_closing_amount')</th>
+                        <th class="tb-fin">@lang('accounting::lang.tb_period_net')</th>
+                        <th class="text-center">@lang('accounting::lang.tb_period_balance_type')</th>
                         <th class="text-center">@lang('accounting::lang.tb_balance_type')</th>
                         <th class="tb-fin">@lang('accounting::lang.debit')</th>
                         <th class="tb-fin">@lang('accounting::lang.credit')</th>
@@ -192,20 +196,10 @@
                         <th id="creditOpeningTotal" class="credit_opening_total tb-fin"></th>
                         <th id="debitTotal" class="debit_total tb-fin"></th>
                         <th id="creditTotal" class="credit_total tb-fin"></th>
+                        <th id="periodNetTotal" class="period_net_total tb-fin"></th>
                         <th colspan="2"></th>
                         <th id="closingDebitTotal" class="closing_debit_total tb-fin"></th>
                         <th id="closingCreditTotal" class="closing_credit_total tb-fin"></th>
-                        <th></th>
-                    </tr>
-                    <tr>
-                        <th colspan="2" class="text-center">@lang('accounting::lang.total_for_all_pages'):</th>
-                        <th id="allpagesdebitOpeningTotal" class="all_pages_debit_opening_total tb-fin"></th>
-                        <th id="allpagescreditOpeningTotal" class="all_pages_credit_opening_total tb-fin"></th>
-                        <th id="allpagesdebitTotal" class="all_pages_debit_total tb-fin"></th>
-                        <th id="allpagescreditTotal" class="all_pages_credit_total tb-fin"></th>
-                        <th colspan="2"></th>
-                        <th id="allpagesclosingDebitTotal" class="all_pages_closing_debit_total tb-fin"></th>
-                        <th id="allpagesclosingCreditTotal" class="all_pages_closing_credit_total tb-fin"></th>
                         <th></th>
                     </tr>
                 </tfoot>
@@ -241,8 +235,9 @@
 
         let dataTable;
         let typeChart;
+        const collapsedGroups = new Set();
 
-        const FIN_COLS = [2, 3, 4, 5, 6, 8, 9];
+        const FIN_COLS = [2, 3, 4, 5, 6, 9, 10];
 
         function formatChartAmount(value) {
             const n = Math.round((Number(value) + Number.EPSILON) * 100) / 100;
@@ -273,8 +268,24 @@
             $('#trial-balance-diff-label').text(
                 @json(__('accounting::lang.difference')) + ': ' + formatTbAmount(diff) + ' ' + currencyLabel
             );
-            $('#allpagesclosingDebitTotal, #allpagesclosingCreditTotal, #closingDebitTotal, #closingCreditTotal')
-                .toggleClass('tb-cell-unbalanced', !isBalanced);
+            $('#closingDebitTotal, #closingCreditTotal').toggleClass('tb-cell-unbalanced', !isBalanced);
+        }
+
+        function renderPlOpeningWarning(warning) {
+            const box = $('#tbPlOpeningWarning');
+            const link = $('#tbPlOpeningWarningLink');
+            if (!warning || !warning.show_warning) {
+                box.addClass('d-none');
+                link.addClass('d-none');
+                return;
+            }
+            $('#tbPlOpeningWarningText').text(warning.message || '');
+            box.removeClass('d-none');
+            if (warning.close_url) {
+                link.attr('href', warning.close_url).removeClass('d-none');
+            } else {
+                link.addClass('d-none');
+            }
         }
 
         function updateKpis(kpis, compareKpis) {
@@ -363,6 +374,21 @@
             }
         }
 
+        function applyAccordionVisibility() {
+            table.find('tbody tr.tb-account-row').each(function() {
+                const classes = (this.className || '').split(/\s+/);
+                const groupClass = classes.find((c) => c.indexOf('tb-group-') === 0 && c !== 'tb-group-row');
+                const key = groupClass ? groupClass.replace('tb-group-', '') : '';
+                $(this).toggleClass('d-none', collapsedGroups.has(key));
+            });
+            table.find('.tb-accordion-toggle').each(function() {
+                const key = $(this).data('group');
+                const expanded = !collapsedGroups.has(String(key));
+                $(this).attr('aria-expanded', expanded ? 'true' : 'false');
+                $(this).find('.tb-accordion-icon').toggleClass('tb-collapsed', !expanded);
+            });
+        }
+
         function readTbStartDate() {
             return $('#start_date_filter').val() || tbInitialStartDate || '';
         }
@@ -377,7 +403,6 @@
             const endDate = readTbEndDate();
             if (startDate) params.append('start_date', startDate);
             if (endDate) params.append('end_date', endDate);
-            params.append('aggregated', $('#classification').val() ?? '1');
             const lvl = $('#level_filter').val();
             if (lvl !== undefined && lvl !== null && lvl !== '') params.append('level_filter', lvl);
             params.append('with_zero_balances', $('#with_zero_balances').val() ?? '0');
@@ -388,11 +413,12 @@
         }
 
         function ajaxData(d) {
+            d.length = -1;
+            d.start = 0;
             const startDate = readTbStartDate();
             const endDate = readTbEndDate();
             if (startDate) d.start_date = startDate;
             if (endDate) d.end_date = endDate;
-            d.aggregated = $('#classification').val() ?? '1';
             const lvl = $('#level_filter').val();
             if (lvl !== undefined && lvl !== null && lvl !== '') d.level_filter = lvl;
             d.with_zero_balances = $('#with_zero_balances').val() ?? '0';
@@ -411,6 +437,9 @@
             dataTable = table.DataTable({
                 processing: true,
                 serverSide: true,
+                paging: false,
+                searching: true,
+                info: true,
                 ajax: {
                     url: dataUrl,
                     data: ajaxData,
@@ -419,15 +448,15 @@
                     },
                 },
                 deferLoading: 0,
-                info: true,
                 columns: [
-                    { data: 'gl_code', name: 'gl_code', orderable: true },
-                    { data: 'name', name: 'name', orderable: true },
+                    { data: 'gl_code', name: 'gl_code', orderable: false },
+                    { data: 'name', name: 'name', orderable: false },
                     { data: 'debit_opening_balance', name: 'debit_opening_balance', searchable: false, className: 'tb-fin' },
                     { data: 'credit_opening_balance', name: 'credit_opening_balance', searchable: false, className: 'tb-fin' },
                     { data: 'debit_balance', name: 'debit_balance', searchable: false, className: 'tb-fin' },
                     { data: 'credit_balance', name: 'credit_balance', searchable: false, className: 'tb-fin' },
-                    { data: 'closing_balance', name: 'closing_balance', searchable: false, orderable: false, className: 'tb-fin' },
+                    { data: 'period_net', name: 'period_net', searchable: false, orderable: false, className: 'tb-fin' },
+                    { data: 'period_balance_type', name: 'period_balance_type', searchable: false, orderable: false, className: 'text-center' },
                     { data: 'balance_type', name: 'balance_type', searchable: false, orderable: false, className: 'text-center' },
                     { data: 'closing_debit_balance', name: 'closing_debit_balance', searchable: false, className: 'tb-fin' },
                     { data: 'closing_credit_balance', name: 'closing_credit_balance', searchable: false, className: 'tb-fin' },
@@ -436,41 +465,42 @@
                 columnDefs: [
                     { targets: FIN_COLS, render: function(data) { return formatTbAmountHtml(data); } },
                 ],
-                order: [[0, 'asc']],
+                order: [],
                 scrollX: true,
-                pageLength: 25,
-                lengthMenu: [[10, 25, 50, 100, 500], [10, 25, 50, 100, 500]],
+                createdRow: function(row, data) {
+                    if (data.is_group) {
+                        $(row).addClass('tb-group-row');
+                        $(row).attr('data-group-key', data.group_key || '');
+                    } else {
+                        $(row).addClass('tb-account-row tb-group-' + String(data.group_key || 'other').replace(/[^a-z0-9_\-]/gi, ''));
+                    }
+                },
                 footerCallback: function() {
                     const api = this.api();
-                    function sumCol(idx) {
-                        return api.column(idx, { page: 'current' }).data().reduce(function(a, b) {
-                            const x = typeof a === 'string' ? parseFloat(String(a).replace(/[(),]/g, '')) : a;
-                            const y = parseFloat(b) || 0;
-                            return (parseFloat(x) || 0) + y;
-                        }, 0);
-                    }
-                    $('.debit_opening_total').html(formatTbAmount(sumCol(2)));
-                    $('.credit_opening_total').html(formatTbAmount(sumCol(3)));
-                    $('.debit_total').html(formatTbAmount(sumCol(4)));
-                    $('.credit_total').html(formatTbAmount(sumCol(5)));
-                    $('.closing_debit_total').html(formatTbAmount(sumCol(8)));
-                    $('.closing_credit_total').html(formatTbAmount(sumCol(9)));
-
                     const json = api.ajax.json() || {};
-                    $('.all_pages_debit_opening_total').html(formatTbAmount(json.totalDebitOpeningBalance));
-                    $('.all_pages_credit_opening_total').html(formatTbAmount(json.totalCreditOpeningBalance));
-                    $('.all_pages_debit_total').html(formatTbAmount(json.totalDebitBalance));
-                    $('.all_pages_credit_total').html(formatTbAmount(json.totalCreditBalance));
-                    $('.all_pages_closing_debit_total').html(formatTbAmount(json.totalClosingDebitBalance));
-                    $('.all_pages_closing_credit_total').html(formatTbAmount(json.totalClosingCreditBalance));
+
+                    function sumDetail(field) {
+                        const rows = (json.data || []).filter((r) => !r.is_group);
+                        return rows.reduce((s, r) => s + (parseFloat(r[field]) || 0), 0);
+                    }
+
+                    $('.debit_opening_total').html(formatTbAmount(sumDetail('debit_opening_balance')));
+                    $('.credit_opening_total').html(formatTbAmount(sumDetail('credit_opening_balance')));
+                    $('.debit_total').html(formatTbAmount(sumDetail('debit_balance')));
+                    $('.credit_total').html(formatTbAmount(sumDetail('credit_balance')));
+                    $('.period_net_total').html(formatTbAmount(sumDetail('period_net')));
+                    $('.closing_debit_total').html(formatTbAmount(json.totalClosingDebitBalance || 0));
+                    $('.closing_credit_total').html(formatTbAmount(json.totalClosingCreditBalance || 0));
 
                     renderBalanceStatus(!!json.isBalanced, json.difference || 0);
+                    renderPlOpeningWarning(json.plOpeningWarning);
                     updateKpis(json.analytics?.kpis, json.compareAnalytics?.kpis);
                     renderTypeChart(json.analytics?.chart);
                     renderTopMovement(json.analytics?.top_movement);
                 },
                 drawCallback: function() {
                     if (typeof KTMenu !== 'undefined') KTMenu.createInstances();
+                    applyAccordionVisibility();
                 },
             });
         }
@@ -485,7 +515,7 @@
                 $('#end_date_filter').val(tbInitialEndDate);
             }
 
-            $('#classification, #with_zero_balances, #level_filter, #choose_cost_center_select, #compare_mode').select2({ width: '100%' });
+            $('#with_zero_balances, #level_filter, #choose_cost_center_select, #compare_mode').select2({ width: '100%' });
             $('#choose_accounts_select').select2({ width: '100%' });
             const allAccountTypes = $('#choose_accounts_select option').map(function() {
                 return this.value;
@@ -505,12 +535,30 @@
             }
 
             $('#tbApplyFilters').on('click', reloadTb);
-            $('#start_date_filter, #end_date_filter, #level_filter, #with_zero_balances, #classification, #compare_mode')
+            $('#start_date_filter, #end_date_filter, #level_filter, #with_zero_balances, #compare_mode')
                 .on('change', reloadTb);
             $('#choose_cost_center_select, #choose_accounts_select').on('change', reloadTb);
 
-            $('#tbShowAllRows').on('click', function() {
-                dataTable.page.len(500).draw();
+            table.on('click', '.tb-accordion-toggle', function(e) {
+                e.preventDefault();
+                const key = String($(this).data('group') || '');
+                if (collapsedGroups.has(key)) {
+                    collapsedGroups.delete(key);
+                } else {
+                    collapsedGroups.add(key);
+                }
+                applyAccordionVisibility();
+            });
+
+            $('#tbExpandAll').on('click', function() {
+                collapsedGroups.clear();
+                applyAccordionVisibility();
+            });
+            $('#tbCollapseAll').on('click', function() {
+                table.find('.tb-accordion-toggle').each(function() {
+                    collapsedGroups.add(String($(this).data('group') || ''));
+                });
+                applyAccordionVisibility();
             });
 
             $('#trialBalanceExportPdf').on('click', function() {

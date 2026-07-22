@@ -216,9 +216,12 @@
                 fiscalCloseWizardExecuting: @json(__('accounting::fiscal_close.wizard_executing')),
                 fiscalCloseExecuteSuccess: @json(__('accounting::fiscal_close.execute_success')),
                 fiscalCloseViewJournal: @json(__('accounting::fiscal_close.wizard_view_journal')),
+                fiscalCloseRemedialBadge: @json(__('accounting::fiscal_close.wizard_remedial_badge')),
+                fiscalCloseRepairBadge: @json(__('accounting::fiscal_close.wizard_repair_badge')),
+                fiscalCloseExecuteRepair: @json(__('accounting::fiscal_close.wizard_execute_repair')),
                 pageAdminCloseSuccess: @json(__('accounting::fiscal_close.page_admin_close_success')),
             },
         };
     </script>
-    <script src="{{ asset('modules/accounting/js/fiscal-period-close-page.js') }}?v=1"></script>
+    <script src="{{ asset('modules/accounting/js/fiscal-period-close-page.js') }}?v=2"></script>
 @endsection

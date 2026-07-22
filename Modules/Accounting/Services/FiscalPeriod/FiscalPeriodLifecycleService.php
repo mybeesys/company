@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Services\FiscalPeriod;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Modules\Accounting\Exceptions\ClosedFinancialYearException;
 use Modules\Accounting\Models\FiscalPeriod;
 use Modules\Accounting\Models\FinancialYear;
@@ -49,8 +50,16 @@ class FiscalPeriodLifecycleService
         return $period->fresh();
     }
 
-    public function closeYear(FinancialYear $year): FinancialYear
+    public function closeYear(FinancialYear $year, bool $forceWithoutAccountingClose = false): FinancialYear
     {
+        if (
+            ! $forceWithoutAccountingClose
+            && Schema::hasColumn($year->getTable(), 'accounting_closed_at')
+            && $year->accounting_closed_at === null
+        ) {
+            throw new \InvalidArgumentException(__('accounting::fiscal_close.admin_close_requires_accounting_close'));
+        }
+
         $year->periods()->update([
             'status' => FiscalPeriod::STATUS_CLOSED,
             'closed_at' => now(),

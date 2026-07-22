@@ -3,9 +3,9 @@
 namespace Tests\Unit;
 
 use Carbon\Carbon;
+use Mockery;
 use Modules\Accounting\Models\FinancialYear;
 use Modules\Accounting\Models\FiscalPeriod;
-use Mockery;
 use Modules\Accounting\Services\FiscalPeriod\FiscalCloseRoutingResolver;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodCloseReadinessChecker;
 use Tests\TestCase;
@@ -130,5 +130,29 @@ class FiscalPeriodCloseReadinessCheckerTest extends TestCase
         $this->assertFalse($result['is_year_end_boundary']);
         $this->assertFalse($result['can_preview']);
         $this->assertNotEmpty($result['warnings']);
+    }
+
+    public function test_remedial_mode_allows_preview_when_year_admin_closed(): void
+    {
+        $checker = $this->checker(routingComplete: true);
+
+        $year = new FinancialYear([
+            'name' => 'FY 2025',
+            'start_date' => Carbon::parse('2025-01-01'),
+            'end_date' => Carbon::parse('2025-12-31'),
+            'status' => FinancialYear::STATUS_CLOSED,
+            'accounting_closed_at' => null,
+        ]);
+        $year->setRelation('periods', collect());
+
+        $result = $checker->check($year);
+
+        $this->assertTrue($result['is_remedial']);
+        $this->assertTrue($result['can_preview']);
+        $this->assertFalse($result['year_open']);
+        $this->assertContains(
+            __('accounting::fiscal_close.remedial_mode'),
+            $result['warnings']
+        );
     }
 }

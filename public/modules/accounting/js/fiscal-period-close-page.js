@@ -69,9 +69,17 @@
         const routingOk = readiness.routing_complete;
         const routingLabel = routingOk ? msg.fiscalCloseRoutingReady : msg.fiscalCloseRoutingMissing;
 
+        let modeBadge = '';
+        if (readiness.is_repair) {
+            modeBadge = `<span class="badge badge-light-warning">${msg.fiscalCloseRepairBadge || ''}</span>`;
+        } else if (readiness.is_remedial) {
+            modeBadge = `<span class="badge badge-light-info">${msg.fiscalCloseRemedialBadge || ''}</span>`;
+        }
+
         container.innerHTML = `
-            <div class="d-flex align-items-center gap-2 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
                 <span class="badge ${routingOk ? 'badge-light-success' : 'badge-light-danger'}">${routingLabel}</span>
+                ${modeBadge}
             </div>
             ${blockers ? `<div class="mb-3"><div class="fw-bold mb-2">${msg.fiscalCloseWizardBlockers}</div><ul class="mb-0 ps-5">${blockers}</ul></div>` : ''}
             ${warnings ? `<div class="mb-0"><div class="fw-bold mb-2">${msg.fiscalCloseWizardWarnings}</div><ul class="mb-0 ps-5">${warnings}</ul></div>` : ''}
@@ -210,6 +218,9 @@
 
         if (currentStep === 3 && readiness.can_preview) {
             btnExecute?.classList.remove('d-none');
+            if (readiness.is_repair && msg.fiscalCloseExecuteRepair) {
+                btnExecute.textContent = msg.fiscalCloseExecuteRepair;
+            }
         }
     }
 
@@ -273,13 +284,17 @@
                 resultBox.classList.remove('d-none');
             }
 
-            const closeUrl = cfg.closeTarget === 'period' ? cfg.api.closePeriod : cfg.api.closeYear;
-            if (!closeUrl) {
-                throw new Error(msg.apiError);
+            // Remedial/repair: year may already be admin-closed — only close if still open.
+            const yearAlreadyClosed = readiness?.year_open === false;
+            if (!yearAlreadyClosed) {
+                const closeUrl = cfg.closeTarget === 'period' ? cfg.api.closePeriod : cfg.api.closeYear;
+                if (!closeUrl) {
+                    throw new Error(msg.apiError);
+                }
+                await apiRequest('POST', closeUrl);
+                toastr?.success(msg.pageAdminCloseSuccess);
             }
 
-            await apiRequest('POST', closeUrl);
-            toastr?.success(msg.pageAdminCloseSuccess);
             window.location.href = cfg.backUrl;
         } catch (error) {
             toastr?.error(error.message);
