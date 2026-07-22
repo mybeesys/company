@@ -636,10 +636,14 @@ class AccountingReportsController extends Controller
                     return $this->roundMoney($account->debit_balance ?? 0);
                 })
                 ->editColumn('debit_opening_balance', function ($account) {
-                    return $this->roundMoney($account->debit_opening_balance ?? 0);
+                    return $this->roundMoney(
+                        TrialBalanceReportService::displayOpeningBalances($account)['debit']
+                    );
                 })
                 ->editColumn('credit_opening_balance', function ($account) {
-                    return $this->roundMoney($account->credit_opening_balance ?? 0);
+                    return $this->roundMoney(
+                        TrialBalanceReportService::displayOpeningBalances($account)['credit']
+                    );
                 })
                 ->editColumn('credit_balance', function ($account) {
                     return $this->roundMoney($account->credit_balance ?? 0);
@@ -805,9 +809,10 @@ class AccountingReportsController extends Controller
         foreach ($baseRows as $account) {
             $closing = TrialBalanceReportService::closingBalance($account);
             $period = TrialBalanceReportService::periodMovement($account);
+            $opening = TrialBalanceReportService::displayOpeningBalances($account);
 
-            $totals['debit_opening'] += (float) ($account->debit_opening_balance ?? 0);
-            $totals['credit_opening'] += (float) ($account->credit_opening_balance ?? 0);
+            $totals['debit_opening'] += (float) ($opening['debit'] ?? 0);
+            $totals['credit_opening'] += (float) ($opening['credit'] ?? 0);
             $totals['debit'] += (float) ($account->debit_balance ?? 0);
             $totals['credit'] += (float) ($account->credit_balance ?? 0);
             $totals['period_net'] += (float) ($period['period_net'] ?? 0);
@@ -817,8 +822,8 @@ class AccountingReportsController extends Controller
             $rows[] = [
                 'gl_code' => $account->gl_code,
                 'name' => $account->name,
-                'debit_opening_balance' => number_format((float) ($account->debit_opening_balance ?? 0), 2, '.', ''),
-                'credit_opening_balance' => number_format((float) ($account->credit_opening_balance ?? 0), 2, '.', ''),
+                'debit_opening_balance' => number_format((float) ($opening['debit'] ?? 0), 2, '.', ''),
+                'credit_opening_balance' => number_format((float) ($opening['credit'] ?? 0), 2, '.', ''),
                 'debit_balance' => number_format((float) ($account->debit_balance ?? 0), 2, '.', ''),
                 'credit_balance' => number_format((float) ($account->credit_balance ?? 0), 2, '.', ''),
                 'period_net' => number_format((float) ($period['period_net'] ?? 0), 2, '.', ''),

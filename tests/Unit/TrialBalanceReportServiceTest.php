@@ -130,4 +130,37 @@ class TrialBalanceReportServiceTest extends TestCase
             'credit_opening_balance' => 200,
         ]));
     }
+
+    public function test_display_opening_balances_zeros_matched_pl_accounts(): void
+    {
+        $closedIncome = TrialBalanceReportService::displayOpeningBalances((object) [
+            'gl_code' => '411',
+            'account_primary_type' => 'income',
+            'debit_opening_balance' => 62346679.99,
+            'credit_opening_balance' => 62346679.99,
+        ]);
+
+        $this->assertSame(0.0, $closedIncome['debit']);
+        $this->assertSame(0.0, $closedIncome['credit']);
+
+        $residualExpense = TrialBalanceReportService::displayOpeningBalances((object) [
+            'gl_code' => '517',
+            'account_primary_type' => 'expenses',
+            'debit_opening_balance' => 1000.0,
+            'credit_opening_balance' => 200.0,
+        ]);
+
+        $this->assertSame(800.0, $residualExpense['debit']);
+        $this->assertSame(0.0, $residualExpense['credit']);
+
+        $asset = TrialBalanceReportService::displayOpeningBalances((object) [
+            'gl_code' => '111',
+            'account_primary_type' => 'asset',
+            'debit_opening_balance' => 500.0,
+            'credit_opening_balance' => 100.0,
+        ]);
+
+        $this->assertSame(500.0, $asset['debit']);
+        $this->assertSame(100.0, $asset['credit']);
+    }
 }
