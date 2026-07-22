@@ -303,7 +303,7 @@ return [
     'total' => 'Total',
     'cost of goods sold' => 'Cost of goods sold (COGS)',
     'trial_balance' => 'Trial balance',
-    'tb_report_intro' => 'Professional trial balance from the general ledger: opening, period activity, and closing balances with balance analytics.',
+    'tb_report_intro' => 'Professional trial balance from the general ledger: opening, period activity, and closing balances with balance analytics. Income and expense openings are shown as net (zero after a proper year close).',
     'tb_show_all' => 'Show all rows',
     'tb_expand_all' => 'Expand all',
     'tb_collapse_all' => 'Collapse all',

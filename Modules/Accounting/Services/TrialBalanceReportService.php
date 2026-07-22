@@ -107,6 +107,32 @@ final class TrialBalanceReportService
     }
 
     /**
+     * Accountant-friendly opening columns for income/expense accounts.
+     * Matched gross history (net ~0) displays as 0/0; residual net shows on one side only.
+     *
+     * @return array{debit: float, credit: float}
+     */
+    public static function displayOpeningBalances(object $account): array
+    {
+        $debit = round((float) ($account->debit_opening_balance ?? 0), 2);
+        $credit = round((float) ($account->credit_opening_balance ?? 0), 2);
+
+        if (! static::isPlAccount($account)) {
+            return ['debit' => $debit, 'credit' => $credit];
+        }
+
+        $net = round($debit - $credit, 2);
+        if (abs($net) < 0.005) {
+            return ['debit' => 0.0, 'credit' => 0.0];
+        }
+
+        return [
+            'debit' => $net > 0 ? abs($net) : 0.0,
+            'credit' => $net < 0 ? abs($net) : 0.0,
+        ];
+    }
+
+    /**
      * Detect P&L opening residuals when the report starts at a fiscal year start.
      *
      * @return array{
@@ -261,9 +287,10 @@ final class TrialBalanceReportService
             $dPeriod = (float) ($account->debit_balance ?? 0);
             $cPeriod = (float) ($account->credit_balance ?? 0);
             $closing = static::closingBalance($account);
+            $displayOpen = static::displayOpeningBalances($account);
 
-            $totalDebitOpening += $dOpen;
-            $totalCreditOpening += $cOpen;
+            $totalDebitOpening += (float) $displayOpen['debit'];
+            $totalCreditOpening += (float) $displayOpen['credit'];
             $totalDebitPeriod += $dPeriod;
             $totalCreditPeriod += $cPeriod;
             $totalClosingDebit += (float) $closing['closing_debit_balance'];
