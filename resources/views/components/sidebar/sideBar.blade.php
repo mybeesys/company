@@ -41,19 +41,7 @@
     : auth()->user()->hasDashboardPermission($permission);
     };
 
-    $hasMenuEntitlement = function (array $item): bool {
-        if (! tenant_menu_entitled($item['name'] ?? null)) {
-            return false;
-        }
-
-        return true;
-    };
-
-    $visibleSubmenuItems = collect($menuItem['subMenu'])->filter(function ($submenuItem) use ($hasMenuEntitlement) {
-    if (! $hasMenuEntitlement($submenuItem)) {
-        return false;
-    }
-
+    $visibleSubmenuItems = collect($menuItem['subMenu'])->filter(function ($submenuItem) {
     $hasMenuPermission = function ($permission) {
     if (!isset($permission) || $permission === '' || $permission === null) {
     return true;
@@ -67,9 +55,7 @@
     if (!array_key_exists('subMenu', $submenuItem)) {
     return $hasMenuPermission($submenuItem['permission'] ?? null);
     } else {
-    return collect($submenuItem['subMenu'])->filter(function ($item) use ($hasMenuEntitlement) {
-        return $hasMenuEntitlement($item);
-    })->contains(function ($item) {
+    return collect($submenuItem['subMenu'])->contains(function ($item) {
     if (!array_key_exists('permission', $item) || $item['permission'] === '' || $item['permission'] === null) {
     return true;
     }
@@ -86,14 +72,14 @@
     );
     @endphp
 
-    @if ($hasMenuEntitlement($menuItem) && ($visibleSubmenuItems->isNotEmpty() || $hasMenuPermission($menuItem['permission'] ?? null)))
+    @if ($visibleSubmenuItems->isNotEmpty() || $hasMenuPermission($menuItem['permission'] ?? null))
         @if ($visibleSubmenuItems->isEmpty())
             <x-sidebar.main-menu-item :url="$menuItem['url']" :icon="$menuItem['icon']" :name="$menuItem['name']" />
         @else
     <x-sidebar.main-menu :isSubmenuActive="$isSubmenuActive">
         <x-sidebar.menu-link :name="$menuItem['name']" :icon="$menuItem['icon']" :subMenuCount="1" />
         <x-sidebar.submenu>
-            @foreach ($visibleSubmenuItems as $submenuItem)
+            @foreach ($menuItem['subMenu'] as $submenuItem)
             @if (!array_key_exists('subMenu', $submenuItem))
             @if (array_key_exists('permission', $submenuItem))
             @php
@@ -133,10 +119,6 @@
             @else
             @php
             $visibleSubsubmenuItems = collect($submenuItem['subMenu'])->filter(function ($item) {
-            if (! tenant_menu_entitled($item['name'] ?? null)) {
-                return false;
-            }
-
             if (!array_key_exists('permission', $item)) {
             return true;
             }
@@ -155,7 +137,7 @@
             <x-sidebar.main-menu :isSubmenuActive="$isSubsubmenuActive">
                 <x-sidebar.menu-link :name="$submenuItem['name']" :subMenuCount="1" />
                 <x-sidebar.submenu>
-                    @foreach ($visibleSubsubmenuItems as $item)
+                    @foreach ($submenuItem['subMenu'] as $item)
                     @if (array_key_exists('permission', $item))
                     @php
                     $hasPermission = (!isset($item['permission']) || $item['permission'] === '' || $item['permission'] === null)

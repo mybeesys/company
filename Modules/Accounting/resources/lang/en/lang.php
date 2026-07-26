@@ -855,7 +855,6 @@ return [
     'css_collapse_all' => 'Collapse all',
     'css_print_footer' => 'Statement generated from accounting system',
 
-    'inventory_routing_tab' => 'Inventory',
     'periodic_inventory_routing_tab' => 'Periodic inventory',
     'periodic_inventory_adjustment_account' => 'Inventory count adjustment (offset account)',
     'periodic_inventory_routing_locked' => 'Configure the inventory policy to «Periodic» in General Settings to enable these routing fields.',

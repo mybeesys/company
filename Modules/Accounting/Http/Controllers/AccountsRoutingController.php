@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountsRoting;
-use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\General\Models\Setting;
 
 class AccountsRoutingController extends Controller
@@ -28,7 +27,7 @@ class AccountsRoutingController extends Controller
     /**
      * Data required for accounts routing settings (standalone or embedded tab).
      *
-     * @return array{accounts: mixed, accountsRoting: mixed, options: array<string, string>, isPeriodicInventoryPolicy: bool, isPerpetualInventoryPolicy: bool, defaultDiscountAccountId: int|string|null, defaultInventoryAccountId: int|string|null, defaultCogsAccountId: int|string|null, hasAccounts: bool}
+     * @return array{accounts: mixed, accountsRoting: mixed, options: array<string, string>, isPeriodicInventoryPolicy: bool, defaultDiscountAccountId: int|string|null, hasAccounts: bool}
      */
     public static function routingSettingsData(): array
     {
@@ -48,10 +47,7 @@ class AccountsRoutingController extends Controller
             'accountsRoting' => AccountsRoting::all(),
             'options' => $options,
             'isPeriodicInventoryPolicy' => Setting::isPeriodicInventory(),
-            'isPerpetualInventoryPolicy' => Setting::isPerpetualInventory(),
             'defaultDiscountAccountId' => $defaultDiscountAccountId,
-            'defaultInventoryAccountId' => PerpetualInventoryAccountResolver::discoverInventoryAssetAccountIdFromChart(),
-            'defaultCogsAccountId' => PerpetualInventoryAccountResolver::discoverCogsAccountIdFromChart(),
             'hasAccounts' => count($accounts) > 0,
         ];
     }
@@ -88,8 +84,6 @@ class AccountsRoutingController extends Controller
             'purchases_purchase' => 'expense',
             'purchases_purchase_return' => 'expense',
             'periodic_inventory_adjustment' => 'expense',
-            'perpetual_inventory_asset' => 'asset',
-            'perpetual_inventory_cogs' => 'expense',
             'fiscal_close_current_period_result' => 'equity',
             'fiscal_close_retained_earnings' => 'equity',
         ];
@@ -107,8 +101,6 @@ class AccountsRoutingController extends Controller
             $section = 'sales';
             if (str_starts_with((string) $key, 'purchases_')) {
                 $section = 'purchases';
-            } elseif (str_starts_with((string) $key, 'perpetual_inventory_')) {
-                $section = 'perpetual_inventory';
             } elseif (str_starts_with((string) $key, 'periodic_inventory_')) {
                 $section = 'periodic_inventory';
             } elseif (str_starts_with((string) $key, 'fiscal_close_')) {
