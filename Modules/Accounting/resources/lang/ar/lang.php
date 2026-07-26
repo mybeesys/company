@@ -809,6 +809,7 @@ return [
     'inventory_policy_perpetual' => 'جرد مستمر',
     'inventory_policy_periodic_report_note' => 'ملاحظة: نتائج القوائم المالية تصبح أكثر دقة بعد اعتماد جرد الفترة وترحيل قيد التسوية.',
     'inventory_policy_perpetual_report_note' => 'ملاحظة: نتائج القوائم المالية تتحدث لحظيًا مع كل حركة بيع/شراء وترحيل القيود الآلية.',
+    'inventory_routing_tab' => 'المخزون',
     'periodic_inventory_routing_tab' => 'جرد دوري',
     'periodic_inventory_adjustment_account' => 'حساب تسوية فرق الجرد (الحساب المقابل للمخزون)',
     'periodic_inventory_routing_locked' => 'فعّل سياسة الجرد «دوري» من الإعدادات العامة لتتمكن من ضبط هذه الحسابات.',

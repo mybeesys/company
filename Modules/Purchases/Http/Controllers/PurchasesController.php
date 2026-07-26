@@ -499,12 +499,9 @@ class PurchasesController extends Controller
             $missing[] = __('accounting::lang.earned_discount');
         }
         if (Setting::isPerpetualInventory()) {
-            $inventoryAccountId = AccountingAccount::query()
-                ->where('gl_code', '1105')
-                ->orWhere('account_category', 'inventory')
-                ->value('id');
+            $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(null);
             if (! $inventoryAccountId && ! $purchasesAccountId) {
-                $missing[] = app()->getLocale() === 'ar' ? 'حساب المخزون' : 'Inventory account';
+                $missing[] = __('accounting::lang.inventory');
             }
         }
 

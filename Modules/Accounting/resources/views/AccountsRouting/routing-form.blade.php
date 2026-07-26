@@ -3,9 +3,9 @@
     <div class="alert alert-light-warning border border-warning border-dashed mb-5">
         <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
         @if (app()->getLocale() === 'ar')
-            عند عدم توفر حساب في تبويب «جرد دوري» أو حسابات بديلة في الشجرة، قد يُستخدم حساب المشتريات/تكلفة المبيعات كملاذ أخير حتى لا تتوقف القيود.
+            بعد استيراد دليل الحسابات، اضبط حساب المخزون وتكلفة البضائع المباعة من تبويب «المخزون». عند عدم توفر حساب تسوية الجرد الدوري، قد يُستخدم حساب المشتريات/تكلفة المبيعات كملاذ أخير حتى لا تتوقف القيود.
         @else
-            If no account is set under the «Periodic inventory» tab (and no fallback exists in the chart), the system may still use Purchases/COGS as a last resort so posting does not fail.
+            After importing a chart of accounts, set Inventory and COGS under the «Inventory» tab. If no periodic inventory adjustment account is set, Purchases/COGS may still be used as a last resort so posting does not fail.
         @endif
     </div>
     <div class="d-flex flex-row-fluid gap-5">
@@ -23,7 +23,7 @@
             </li>
             <li class="nav-item w-md-200px me-0 py-1">
                 <a class="nav-link py-3" data-bs-toggle="tab" href="#accounts-routing-periodic-inventory-tab">
-                    @lang('accounting::lang.periodic_inventory_routing_tab')
+                    @lang('accounting::lang.inventory_routing_tab')
                 </a>
             </li>
             <li class="nav-item w-md-200px me-0 py-1">

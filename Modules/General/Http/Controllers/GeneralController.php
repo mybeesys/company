@@ -113,21 +113,27 @@ class GeneralController extends Controller
 
         $settings = $settings->merge($social_settings);
 
-        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'inventoryCountFrequency', 'unit'));
+        $subscriptionModuleLabels = $this->subscriptionModuleLabels();
+
+        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'inventoryCountFrequency', 'unit', 'subscriptionModuleLabels'));
     }
 
     public function subscription()
     {
-        $company = Company::findOrFail(get_company_id());
-        $current_subscription = $company->subscription;
-        $old_subscriptions = $company->subscription->withoutGlobalScopes()->whereNot('id', $current_subscription->id)->get();
-        $user = FacadesDB::connection('mysql')->table('users')->where('id', $company->user_id)->get(['id', 'email', 'name'])->first();
+        $overview = app(\App\Services\SubscriptionOverviewService::class)->forCompany();
 
-        return view('general::subscription.index', compact('company', 'current_subscription', 'old_subscriptions', 'user'));
+        return view('general::subscription.index', $overview);
     }
 
     public function updateModules(Request $request)
     {
+        $gate = app(\App\Services\EntitlementGate::class);
+        $state = $gate->forCompany();
+
+        if (! $state['legacy']) {
+            return redirect()->back()->with('error', __('general::general.subscription_modules_locked'));
+        }
+
         try {
             $enabledModules = $request->input('modules', []);
 
@@ -140,6 +146,37 @@ class GeneralController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function subscriptionModuleLabels(): array
+    {
+        $localeIsAr = app()->getLocale() === 'ar' || session('locale') === 'ar';
+        $labels = [
+            'platform' => $localeIsAr ? 'المنصة الأساسية' : 'Core platform',
+        ];
+
+        try {
+            if (! \Illuminate\Support\Facades\Schema::connection('mysql')->hasTable('entitlement_products')) {
+                return $labels;
+            }
+
+            $rows = FacadesDB::connection('mysql')
+                ->table('entitlement_products')
+                ->get(['key', 'name_en', 'name_ar']);
+
+            foreach ($rows as $row) {
+                $labels[$row->key] = $localeIsAr
+                    ? ((string) ($row->name_ar ?: $row->name_en))
+                    : ((string) ($row->name_en ?: $row->name_ar));
+            }
+        } catch (\Throwable) {
+            // keep fallbacks
+        }
+
+        return $labels;
     }
 
     public function updateRewardPoints(Request $request)
