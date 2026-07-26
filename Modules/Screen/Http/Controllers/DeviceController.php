@@ -66,12 +66,6 @@ class DeviceController extends Controller
         }
         $validated = $request->validate($rules);
 
-        if (! app(\App\Services\EntitlementGate::class)->canAddScreenDevice()) {
-            return response()->json([
-                'message' => __('responses.screen_devices_quota_reached'),
-            ], 422);
-        }
-
         $payload = ['code' => $validated['code']];
         if ($hasEstablishmentColumn) {
             $payload['establishment_id'] = $validated['establishment_id'];

@@ -5,7 +5,6 @@ use App\Http\Middleware\DetectEmbedRequest;
 use App\Http\Middleware\VerifySocketInternalSecret;
 use App\Http\Middleware\CleanJsonNoiseMiddleware;
 use App\Http\Middleware\EnsureHasSubscription;
-use App\Http\Middleware\EnsureModuleEntitlement;
 use App\Http\Middleware\LocalizationMiddleware;
 use App\Http\Middleware\SetApiLocale;
 use Illuminate\Foundation\Application;
@@ -26,19 +25,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth-central' => CentralAppAuthenticate::class,
             'socket.internal' => VerifySocketInternalSecret::class,
-            'entitled' => EnsureModuleEntitlement::class,
         ]);
         $middleware->web(append: [
             DetectEmbedRequest::class,
             LocalizationMiddleware::class,
             EnsureHasSubscription::class,
-            EnsureModuleEntitlement::class,
             CleanJsonNoiseMiddleware::class,
         ]);
         $middleware->api(append: [
             SetApiLocale::class,
             EnsureHasSubscription::class,
-            EnsureModuleEntitlement::class,
             CleanJsonNoiseMiddleware::class,
         ]);
     })

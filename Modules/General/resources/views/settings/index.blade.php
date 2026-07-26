@@ -159,69 +159,57 @@
                     href="#general_setting_tab">@lang('menuItemLang.general_setting')</a>
             </li>
 
-            @if (tenant_setting_entitled('notifications'))
-                <li class="nav-item">
-                    <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                        href="#notifications_tab">@lang('general::general.notifications_templates')</a>
-                </li>
-            @endif
-            @if (tenant_setting_entitled('mail_settings'))
-                <li class="nav-item">
-                    <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                        href="#mail_settings_tab">@lang('general::general.mail_settings')</a>
-                </li>
-            @endif
-            @if (tenant_setting_entitled('sms_settings'))
-                <li class="nav-item">
-                    <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                        href="#sms_settings_tab">@lang('general::general.sms_settings')</a>
-                </li>
-            @endif
-            @if (tenant_setting_entitled('prefix_settings'))
-                <li class="nav-item">
-                    <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                        href="#prefix_settings_tab">@lang('general::general.Prefix Settings')</a>
-                </li>
-            @endif
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#notifications_tab">@lang('general::general.notifications_templates')</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#mail_settings_tab">@lang('general::general.mail_settings')</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#sms_settings_tab">@lang('general::general.sms_settings')</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#prefix_settings_tab">@lang('general::general.Prefix Settings')</a>
+            </li>
 
-            @if (tenant_setting_entitled('invoice_settings'))
-                <li class="nav-item">
-                    <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                        href="#invoice_settings_tab">@lang('general::general.invoice_settings')</a>
-                </li>
-            @endif
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#invoice_settings_tab">@lang('general::general.invoice_settings')</a>
+            </li>
 
-            @if (tenant_setting_entitled('inventory_costing'))
-                <li class="nav-item">
-                    <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
-                        href="#inventory_costing_tab">@lang('general::general.inventory_costing')</a>
-                </li>
-            @endif
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#inventory_costing_tab">@lang('general::general.inventory_costing')</a>
+            </li>
+
+
+
+
+            {{-- <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                    href="#establishments_tab">@lang('menuItemLang.establishments')</a>
+            </li> --}}
+
+
+
         </ul>
         <div class="tab-content" id="myTabContent">
 
-            @if (tenant_setting_entitled('notifications'))
-                <x-general::notifications.notification-settings-index :employees="$employees" :notifications_settings="$notifications_settings" />
-            @endif
+            <x-general::notifications.notification-settings-index :employees="$employees" :notifications_settings="$notifications_settings" />
 
-            @if (tenant_setting_entitled('mail_settings'))
-                <x-general::mail-settings.mail-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
-            @endif
+            <x-general::mail-settings.mail-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
-            @if (tenant_setting_entitled('sms_settings'))
-                <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
-            @endif
+            <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
 
-            @if (tenant_setting_entitled('prefix_settings'))
-                @include('general::prefix-settings.prefix-settings')
-            @endif
+            @include('general::prefix-settings.prefix-settings')
             @include('general::general-setting.invoice-tab')
-            @if (tenant_setting_entitled('inventory_costing'))
-                @include('general::inventory_costing.inventory_costing')
-            @endif
-            @if (tenant_setting_entitled('invoice_settings'))
-                @include('general::invoice-setting.general-invoice-setting.invoice-tab')
-            @endif
+            {{-- @include('general::establishments.establishments-tab') --}}
+            @include('general::inventory_costing.inventory_costing')
+            @include('general::invoice-setting.general-invoice-setting.invoice-tab')
 
         </div>
 
