@@ -3,6 +3,7 @@
 namespace Modules\Accounting\Utils;
 
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountsRoting;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Setting;
 
@@ -10,13 +11,57 @@ class PerpetualInventoryAccountResolver
 {
     /**
      * Default inventory asset account (when the branch has no dedicated link).
+     * Prefers Accounts Routing, then chart lookup by gl_code / category.
      */
     public static function defaultGlobalInventoryAssetAccountId(): ?int
+    {
+        $routedId = AccountsRoting::query()
+            ->where('type', 'perpetual_inventory_asset')
+            ->where('section', 'perpetual_inventory')
+            ->value('account_id');
+
+        if ($routedId) {
+            return (int) $routedId;
+        }
+
+        return self::discoverInventoryAssetAccountIdFromChart();
+    }
+
+    /**
+     * COGS expense account for perpetual inventory cost posting.
+     * Prefers Accounts Routing, then chart lookup by gl_code / category.
+     */
+    public static function resolveCogsAccountId(): ?int
+    {
+        $routedId = AccountsRoting::query()
+            ->where('type', 'perpetual_inventory_cogs')
+            ->where('section', 'perpetual_inventory')
+            ->value('account_id');
+
+        if ($routedId) {
+            return (int) $routedId;
+        }
+
+        return self::discoverCogsAccountIdFromChart();
+    }
+
+    public static function discoverInventoryAssetAccountIdFromChart(): ?int
     {
         return AccountingAccount::query()
             ->where(function ($q) {
                 $q->where('gl_code', '1105')
                     ->orWhere('account_category', 'inventory');
+            })
+            ->value('id');
+    }
+
+    public static function discoverCogsAccountIdFromChart(): ?int
+    {
+        return AccountingAccount::query()
+            ->where(function ($q) {
+                $q->where('gl_code', '50101')
+                    ->orWhere('account_category', 'COGS')
+                    ->orWhere('account_category', 'cost_of_goods_sold');
             })
             ->value('id');
     }
