@@ -655,19 +655,10 @@ class SellController extends Controller
             $missing[] = __('accounting::lang.sell_return');
         }
         if (Setting::isPerpetualInventory()) {
-            $inventoryAccountId = AccountingAccount::query()
-                ->where('gl_code', '1105')
-                ->orWhere('account_category', 'inventory')
-                ->value('id');
-            $cogsAccountId = AccountingAccount::query()
-                ->where('gl_code', '50101')
-                ->orWhere('account_category', 'COGS')
-                ->orWhere('account_category', 'cost_of_goods_sold')
-                ->value('id');
-            if (! $inventoryAccountId) {
+            if (! PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(null)) {
                 $missing[] = __('accounting::lang.inventory');
             }
-            if (! $cogsAccountId) {
+            if (! PerpetualInventoryAccountResolver::resolveCogsAccountId()) {
                 $missing[] = __('accounting::lang.cost of goods sold');
             }
         }
@@ -1154,18 +1145,13 @@ class SellController extends Controller
         $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
             isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
         );
-
-        $cogsAccountId = AccountingAccount::query()
-            ->where('gl_code', '50101')
-            ->orWhere('account_category', 'COGS')
-            ->orWhere('account_category', 'cost_of_goods_sold')
-            ->value('id');
+        $cogsAccountId = PerpetualInventoryAccountResolver::resolveCogsAccountId();
 
         if (! $inventoryAccountId || ! $cogsAccountId) {
             throw ValidationException::withMessages([
                 'inventory_policy' => app()->getLocale() === 'ar'
-                    ? 'لا يمكن ترحيل أثر الجرد المستمر محاسبياً. يرجى التأكد من وجود حسابي المخزون وتكلفة البضاعة المباعة.'
-                    : 'Perpetual inventory accounting impact cannot be posted. Please configure Inventory and COGS accounts.',
+                    ? 'لا يمكن ترحيل أثر الجرد المستمر محاسبياً. يرجى ضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
+                    : 'Perpetual inventory accounting impact cannot be posted. Please configure Inventory and COGS in Accounts Routing.',
             ]);
         }
 

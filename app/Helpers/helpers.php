@@ -311,3 +311,28 @@ if (! function_exists('menu_hub_is_active')) {
         return false;
     }
 }
+
+if (! function_exists('tenant_entitled')) {
+    /**
+     * Whether the current tenant's subscription includes a commercial module.
+     * Legacy tenants without company_entitlements remain unrestricted.
+     */
+    function tenant_entitled(string|array $moduleKeys): bool
+    {
+        return app(\App\Services\EntitlementGate::class)->allows($moduleKeys);
+    }
+}
+
+if (! function_exists('tenant_menu_entitled')) {
+    function tenant_menu_entitled(?string $menuName): bool
+    {
+        return app(\App\Services\EntitlementGate::class)->menuAllowed($menuName);
+    }
+}
+
+if (! function_exists('tenant_setting_entitled')) {
+    function tenant_setting_entitled(string $section): bool
+    {
+        return app(\App\Services\EntitlementGate::class)->settingAllowed($section);
+    }
+}

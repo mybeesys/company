@@ -345,7 +345,7 @@ class AccountingUtil
                     ? ($inventoryAssetAccountId ?: $purchases_purchase?->account_id)
                     : ($purchases_purchase?->account_id);
                 if (! $purchasesTargetAccountId) {
-                    throw new RuntimeException('Accounting routing missing for purchases. Please configure purchases_purchase route or Inventory account (gl_code 1105).');
+                    throw new RuntimeException('Accounting routing missing for purchases. Please configure purchases_purchase or Inventory (perpetual_inventory_asset) in Accounts Routing.');
                 }
                 if (! $purchases_vat_calculation || ! $purchases_vat_calculation->account_id) {
                     throw new RuntimeException('Accounting routing missing for purchases VAT. Please configure purchases_vat_calculation route.');
@@ -583,10 +583,7 @@ class AccountingUtil
         $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
             isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
         );
-        $cogsAccountId = AccountingAccount::where('gl_code', '50101')
-            ->orWhere('account_category', 'COGS')
-            ->orWhere('account_category', 'cost_of_goods_sold')
-            ->value('id');
+        $cogsAccountId = PerpetualInventoryAccountResolver::resolveCogsAccountId();
 
         if (! $inventoryAccountId || ! $cogsAccountId) {
             return;
@@ -641,6 +638,11 @@ class AccountingUtil
         $periodic_inv_adj = AccountingAccount::where('gl_code', '50105')->first()
             ?? AccountingAccount::where('account_category', 'inventory_adjustment')->first()
             ?? AccountingAccount::where('gl_code', '50101')->first();
+        $inventory_acc = AccountingAccount::where('gl_code', '1105')->first()
+            ?? AccountingAccount::where('account_category', 'inventory')->first();
+        $cogs_acc = AccountingAccount::where('gl_code', '50101')->first()
+            ?? AccountingAccount::where('account_category', 'COGS')->first()
+            ?? AccountingAccount::where('account_category', 'cost_of_goods_sold')->first();
 
         AccountsRoting::truncate();
 
@@ -740,6 +742,24 @@ class AccountingUtil
                 'section' => 'periodic_inventory',
                 'routing_type' => 'expense',
                 'account_id' => $periodic_inv_adj?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'perpetual_inventory_asset',
+                'section' => 'perpetual_inventory',
+                'routing_type' => 'asset',
+                'account_id' => $inventory_acc?->id,
+                'direction' => 'auto_assign',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'type' => 'perpetual_inventory_cogs',
+                'section' => 'perpetual_inventory',
+                'routing_type' => 'expense',
+                'account_id' => $cogs_acc?->id,
                 'direction' => 'auto_assign',
                 'created_at' => now(),
                 'updated_at' => now(),
