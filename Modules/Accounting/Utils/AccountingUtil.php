@@ -98,7 +98,7 @@ class AccountingUtil
         // dd($transactionPayment);
         // $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
         $account_transaction_data = [
-            'amount' => $transactionPayment->amount,
+            'amount' => round((float) $transactionPayment->amount, 2),
             'accounting_account_id' => $transactionPayment->account_id,
             'type' => $type,
             'cost_center_id' => $request->cost_center_id ?? null,
@@ -220,7 +220,9 @@ class AccountingUtil
     {
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
 
-        $netTotalBeforeTax = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax ?? 0);
+        $netTotalBeforeTax = round((float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax ?? 0), 2);
+        $finalTotal = round((float) ($transaction->final_total ?? 0), 2);
+        $taxAmount = round((float) ($transaction->tax_amount ?? 0), 2);
 
         $route_section = match ($transaction->type) {
             'sell' => 'sales',
@@ -257,14 +259,16 @@ class AccountingUtil
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
                 $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
-                $discountAmount = (float) ($transaction->discount_amount ?? 0);
-                $salesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
+                $discountAmount = round(max(0, (float) ($transaction->discount_amount ?? 0)), 2);
+                // Keep invoiced VAT; derive sales so final_total == net + VAT (avoids 0.01 gaps from rounded line totals).
+                $netForJournal = round($finalTotal - $taxAmount, 2);
+                $salesGrossBeforeDiscount = round($netForJournal + $discountAmount, 2);
 
                 if ($transaction->invoice_type == 'cash') {
 
                     if (! $transactionPayment->payment_for) {
                         $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $sales_sales->account_id;
                         $transactionPayment->amount = $salesGrossBeforeDiscount;
@@ -275,12 +279,12 @@ class AccountingUtil
                             $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                        $transactionPayment->amount = $transaction->tax_amount;
+                        $transactionPayment->amount = $taxAmount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     } else {
                         $client = Contact::find($transactionPayment->payment_for);
                         $transactionPayment->account_id = $client->account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $sales_sales->account_id;
@@ -292,15 +296,15 @@ class AccountingUtil
                             $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                        $transactionPayment->amount = $transaction->tax_amount;
+                        $transactionPayment->amount = $taxAmount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $client->account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     }
                 } elseif ($transaction->invoice_type == 'due') {
@@ -312,7 +316,7 @@ class AccountingUtil
                         throw new RuntimeException('Customer account is missing for sell (due). Please link an accounting account to the customer.');
                     }
                     $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
+                    $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                     $transactionPayment->account_id = $sales_sales->account_id;
@@ -324,7 +328,7 @@ class AccountingUtil
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     }
                     $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $transaction->tax_amount;
+                    $transactionPayment->amount = $taxAmount;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 }
 
@@ -431,27 +435,29 @@ class AccountingUtil
                     if (! $client || ! $client->account_id) {
                         throw new RuntimeException('Customer account is missing for sell-return. Please ensure the customer has an accounting account linked.');
                     }
+                    $netForJournal = round($finalTotal - $taxAmount, 2);
                     $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
+                    $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                     $transactionPayment->account_id = $sales_sales->account_id;
-                    $transactionPayment->amount = $netTotalBeforeTax;
+                    $transactionPayment->amount = $netForJournal;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $transaction->tax_amount;
+                    $transactionPayment->amount = $taxAmount;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                     $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
+                    $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                     $transactionPayment->account_id = $sales_sell_return->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
+                    $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 } else {
+                    $netForJournal = round($finalTotal - $taxAmount, 2);
                     $transactionPayment->account_id = $sales_sell_return->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
+                    $transactionPayment->amount = $finalTotal;
 
                     $this->saveAccountRouteTransaction(
                         'credit',
@@ -462,7 +468,7 @@ class AccountingUtil
                     );
 
                     $transactionPayment->account_id = $sales_sales->account_id;
-                    $transactionPayment->amount = $netTotalBeforeTax;
+                    $transactionPayment->amount = $netForJournal;
 
                     $this->saveAccountRouteTransaction(
                         'debit',
@@ -473,7 +479,7 @@ class AccountingUtil
                     );
 
                     $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $transaction->tax_amount;
+                    $transactionPayment->amount = $taxAmount;
 
                     $this->saveAccountRouteTransaction(
                         'debit',
@@ -589,8 +595,8 @@ class AccountingUtil
             return;
         }
 
-        $cogsAmount = app(\Modules\Inventory\Services\InventoryCostingService::class)
-            ->resolveCogsAmountForSell((int) $transaction->id);
+        $cogsAmount = round(app(\Modules\Inventory\Services\InventoryCostingService::class)
+            ->resolveCogsAmountForSell((int) $transaction->id), 2);
 
         if ($cogsAmount <= 0) {
             return;
