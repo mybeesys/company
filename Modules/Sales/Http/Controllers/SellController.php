@@ -958,8 +958,13 @@ class SellController extends Controller
                 $request
             );
 
+            // Derive sales from final − VAT so rounded invoice fields cannot unbalance the journal (e.g. 1.71+0.26≠1.96).
+            $finalTotal = round((float) $transaction->final_total, 2);
+            $taxAmount = round((float) $transaction->tax_amount, 2);
+            $netForJournal = round($finalTotal - $taxAmount, 2);
+
             $transactionPayment->account_id = $sales_sales->account_id;
-            $transactionPayment->amount = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax);
+            $transactionPayment->amount = $netForJournal;
 
             $accountUtil->saveAccountRouteTransaction(
                 'credit',
@@ -970,7 +975,7 @@ class SellController extends Controller
             );
 
             $transactionPayment->account_id = $sales_vat_calculation->account_id;
-            $transactionPayment->amount = $transaction->tax_amount;
+            $transactionPayment->amount = $taxAmount;
 
             $accountUtil->saveAccountRouteTransaction(
                 'credit',
@@ -1084,8 +1089,12 @@ class SellController extends Controller
             $request
         );
 
+        $finalTotal = round((float) $transaction->final_total, 2);
+        $taxAmount = round((float) $transaction->tax_amount, 2);
+        $netForJournal = round($finalTotal - $taxAmount, 2);
+
         $transactionPayment->account_id = $sales_sales->account_id;
-        $transactionPayment->amount = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax);
+        $transactionPayment->amount = $netForJournal;
 
         $accountUtil->saveAccountRouteTransaction(
             'credit',
@@ -1096,7 +1105,7 @@ class SellController extends Controller
         );
 
         $transactionPayment->account_id = $sales_vat_calculation->account_id;
-        $transactionPayment->amount = $transaction->tax_amount;
+        $transactionPayment->amount = $taxAmount;
 
         $accountUtil->saveAccountRouteTransaction(
             'credit',
@@ -1155,8 +1164,8 @@ class SellController extends Controller
             ]);
         }
 
-        $cogsAmount = app(\Modules\Inventory\Services\InventoryCostingService::class)
-            ->resolveCogsAmountForSell((int) $transaction->id);
+        $cogsAmount = round(app(\Modules\Inventory\Services\InventoryCostingService::class)
+            ->resolveCogsAmountForSell((int) $transaction->id), 2);
 
         if ($cogsAmount <= 0) {
             return;
