@@ -1,56 +1,99 @@
 $(document).ready(function () {
+    function contactMissingAccountMessage() {
+        const precheck = window.invoicePrecheckConfig || {};
+        if (precheck.messages && precheck.messages.contactMissingAccount) {
+            return precheck.messages.contactMissingAccount;
+        }
+        return "This customer/supplier has no linked accounting account.";
+    }
+
+    function selectedContactMissingAccount($select) {
+        const $option = $select.find(":selected");
+        if (!$option.length || !$option.val()) {
+            return false;
+        }
+        const hasAccount = String($option.data("has-account") ?? "");
+        const accountId = $option.data("account-id");
+        if (hasAccount === "1" || hasAccount === "true") {
+            return false;
+        }
+        if (accountId !== undefined && accountId !== null && String(accountId).trim() !== "" && Number(accountId) > 0) {
+            return false;
+        }
+        if (hasAccount === "" && (accountId === undefined || accountId === null)) {
+            return false;
+        }
+        return true;
+    }
+
     $("#client_id").on("change", function () {
         var selectedOption = $(this).find(":selected");
 
-        var clientName = selectedOption.data("name") || "--";
-        var mobileNumber = selectedOption.data("mobile_number") || "-";
+        var clientName = selectedOption.data("name") || null;
+        var mobileNumber = selectedOption.data("mobile_number") || null;
         var email = selectedOption.data("email") || "-";
         var taxNumber = selectedOption.data("tax_number") || "-";
-        var billing_address = selectedOption.data("billing_address") || "-";
-        var billing_street_name =
-            selectedOption.data("billing_street_name") || "-";
-        var billing_city = selectedOption.data("billing_city") || "-";
-        // var payment_terms = selectedOption.data("payment_terms") || "-";
+        var billing_address =
+            selectedOption.data("billing_address") || selectedOption.data("billing_street_name") || "-";
         var payment_terms = parseInt(selectedOption.data("payment_terms")) || 0;
 
-        var today = new Date();
-
-        today.setDate(today.getDate() + payment_terms);
-
-        var dueDate = today.toISOString().split("T")[0];
-
-        $("#due_date").val(dueDate);
-
-        console.log(billing_address);
-
-        $("#client_name").text(clientName);
-        if (billing_street_name != "-" || billing_city != "-") {
-            $("#billing_address").text(billing_address);
-            $("#dev-billing_address").show();
-        } else {
-            $("#dev-billing_address").hide();
+        if ($("#due_date").length && payment_terms) {
+            var today = new Date();
+            today.setDate(today.getDate() + payment_terms);
+            $("#due_date").val(today.toISOString().split("T")[0]);
         }
 
-        if (mobileNumber != "-") {
-            $("#mobile_number").text(mobileNumber);
-            $("#dev-mobile_number").show();
-        } else {
-            $("#dev-mobile_number").hide();
+        // Receipts create page no longer shows client detail rows; other screens keep them.
+        if ($("#client_name").length) {
+            $("#client_name").text(clientName || "--");
         }
-
-        if (email != "-") {
+        if ($("#mobile_number").length) {
+            $("#mobile_number").text(mobileNumber || "--");
+        }
+        if ($("#dev-mobile_number").length) {
+            if (mobileNumber) {
+                $("#dev-mobile_number").show();
+            } else {
+                $("#dev-mobile_number").hide();
+            }
+        }
+        if ($("#email").length) {
             $("#email").text(email);
-            $("#dev-email").show();
-        } else {
-            $("#dev-email").hide();
         }
-        if (taxNumber != "-") {
+        if ($("#dev-email").length) {
+            if (email && email !== "-") {
+                $("#dev-email").show();
+            } else {
+                $("#dev-email").hide();
+            }
+        }
+        if ($("#tax_number").length) {
             $("#tax_number").text(taxNumber);
-            $("#dev-tax_number").show();
-        } else {
-            $("#dev-tax_number").hide();
         }
-        // $("#tax_number").text(taxNumber);
+        if ($("#dev-tax_number").length) {
+            if (taxNumber && taxNumber !== "-") {
+                $("#dev-tax_number").show();
+            } else {
+                $("#dev-tax_number").hide();
+            }
+        }
+        if ($("#billing_address").length) {
+            $("#billing_address").text(billing_address);
+        }
+        if ($("#dev-billing_address").length) {
+            if (billing_address && billing_address !== "-") {
+                $("#dev-billing_address").show();
+            } else {
+                $("#dev-billing_address").hide();
+            }
+        }
+
+        if (selectedContactMissingAccount($(this))) {
+            toastr.warning(contactMissingAccountMessage());
+            $(this).addClass("is-invalid");
+        } else {
+            $(this).removeClass("is-invalid");
+        }
     });
 
     $("#addClientForm").on("submit", function (e) {
@@ -67,18 +110,17 @@ $(document).ready(function () {
 
                 $("#addClientForm")[0].reset();
 
+                const hasAccount = response.account_id ? "1" : "0";
                 $("#client_id")
                     .append(
                         `<option value="${response.id}" data-name="${response.name}"
-                data-mobile_number="${response.mobile_number}" data-email="${response.email}"
-                data-tax_number="${response.tax_number}" selected>${response.name}</option>`
+                    data-mobile_number="${response.mobile_number || ""}" data-email="${response.email || ""}"
+                    data-tax_number="${response.tax_number || ""}" data-account-id="${response.account_id || ""}"
+                    data-has-account="${hasAccount}" selected>${response.name}</option>`
                     )
                     .trigger("change");
-
-                // alert("@lang('sales::fields.client_added_success')");
             },
             error: function (xhr) {
-                // alert("@lang('sales::fields.client_add_error')");
                 console.error(xhr.responseText);
             },
         });

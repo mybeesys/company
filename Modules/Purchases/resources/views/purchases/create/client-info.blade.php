@@ -49,7 +49,9 @@
                 data-billing_address="{{ $client->billingAddress?->city . ' - ' . $client->billingAddress?->street_name }}"
                 data-payment_terms="{{ $client->payment_terms }}"
                 data-billing_city="{{ $client->billingAddress?->city }}"
-                data-billing_street_name="{{ $client->billingAddress?->street_name }}">
+                data-billing_street_name="{{ $client->billingAddress?->street_name }}"
+                data-account-id="{{ $client->account_id ?: '' }}"
+                data-has-account="{{ $client->account_id ? '1' : '0' }}">
                 {{ $client->name }}
             </option>
         @endforeach

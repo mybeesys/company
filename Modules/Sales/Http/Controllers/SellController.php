@@ -672,6 +672,7 @@ class SellController extends Controller
                 'missingUnit' => app()->getLocale() === 'ar'
                     ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
                     : 'Please select unit for each product before saving.',
+                'contactMissingAccount' => __('sales::lang.contact_missing_accounting_account'),
             ],
         ];
     }
@@ -690,6 +691,14 @@ class SellController extends Controller
         $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
 
         $transactionUtil = new TransactionUtils;
+
+        $client = Contact::find($request->client_id);
+        if (! $client || ! $client->account_id) {
+            throw ValidationException::withMessages([
+                'client_id' => __('sales::lang.contact_missing_accounting_account'),
+            ]);
+        }
+
         DB::beginTransaction();
 
         if ($request->filled('quotation_id')) {
@@ -939,6 +948,11 @@ class SellController extends Controller
             $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
 
             $client = Contact::find($request->client_id);
+            if (! $client || ! $client->account_id) {
+                throw ValidationException::withMessages([
+                    'client_id' => __('sales::lang.contact_missing_accounting_account'),
+                ]);
+            }
             $transactionPayment = new \stdClass;
 
             $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');

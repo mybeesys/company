@@ -53,6 +53,8 @@ return [
     'max_amount_for_this_invoice' => 'الحد الأعلى المسموح به على الفاتورة (هذا السطر)',
     'cannot_duplicate_no_remaining' => 'لا يمكن التكرار: لا يوجد رصيد متبقٍ على الفاتورة للتحصيل.',
     'cannot_duplicate_missing_contact_account' => 'لا يمكن التكرار: العميل/المورد غير مربوط بحساب محاسبي.',
+    'contact_missing_accounting_account' => 'هذا العميل غير مربوط بحساب محاسبي. اربط الحساب من بطاقة العميل قبل إتمام فاتورة البيع.',
+    'contact_missing_accounting_account_short' => 'العميل غير مربوط بحساب محاسبي',
     'duplicate_receipt_prefill_hint' => 'تم نسخ قيم السند إلى النموذج. اختر طريقة التوزيع والفواتير ثم احفظ.',
     'confirm_delete_receipt_payment' => 'هل تريد حذف هذا السند والقيد المحاسبي المرتبط به؟ لا يمكن التراجع عن هذا الإجراء.',
     'delete_receipt_confirm_title' => 'حذف السند؟',
