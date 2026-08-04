@@ -74,10 +74,29 @@
 
         return \Illuminate\Support\Facades\Lang::has($key) ? __($key) : (string) $role;
     };
+
+    try {
+        $navbarCompanyName = function_exists('company_header_name') ? company_header_name() : null;
+    } catch (\Throwable) {
+        $navbarCompanyName = null;
+    }
+    if (! filled($navbarCompanyName) && $currentLinkedCompany) {
+        $navbarCompanyName = (string) ($currentLinkedCompany->company_name ?? '');
+    }
+    $navbarCompanyName = filled($navbarCompanyName) ? trim((string) $navbarCompanyName) : null;
+    $navbarCompanyDomain = $currentLinkedCompany?->domain ?? (function_exists('tenant') ? tenant('id') : null);
 @endphp
 <div class="app-navbar app-navbar--compact flex-grow-1 d-flex align-items-center min-w-0 pe-lg-8 pe-3" id="kt_app_header_navbar">
-    <div class="app-navbar-meta d-none d-lg-flex align-items-center gap-2 text-gray-600 min-w-0 me-2">
-        <span class="d-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date">
+    <div class="app-navbar-meta d-flex align-items-center gap-2 gap-lg-3 text-gray-600 min-w-0 me-2 me-lg-3">
+        @if ($navbarCompanyName)
+            <div class="navbar-company-chip min-w-0" title="{{ $navbarCompanyName }}{{ $navbarCompanyDomain ? ' · '.$navbarCompanyDomain : '' }}">
+                <i class="ki-outline ki-office-bag navbar-company-chip-icon" aria-hidden="true"></i>
+                <span class="navbar-company-chip-label">{{ __('general.workspace') }}</span>
+                <span class="navbar-company-chip-sep" aria-hidden="true"></span>
+                <span class="navbar-company-chip-name text-truncate">{{ $navbarCompanyName }}</span>
+            </div>
+        @endif
+        <span class="d-none d-xl-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date flex-shrink-0">
             <i class="ki-outline ki-calendar fs-6 text-gray-500"></i>
             <span>{{ $navbarDate }}</span>
         </span>
@@ -468,6 +487,79 @@
 
     .app-navbar--compact .app-navbar-actions {
         align-items: center;
+    }
+
+    .navbar-company-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        max-width: min(48vw, 18rem);
+        min-width: 0;
+        padding: 0.2rem 0.55rem;
+        border-radius: 0.55rem;
+        border: 1px solid rgba(63, 66, 84, 0.08);
+        background: rgba(245, 248, 250, 0.9);
+    }
+
+    .navbar-company-chip-icon {
+        flex-shrink: 0;
+        font-size: 0.85rem;
+        color: #b5b5c3;
+    }
+
+    .navbar-company-chip-label {
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: #a1a5b7;
+        white-space: nowrap;
+    }
+
+    .navbar-company-chip-sep {
+        flex-shrink: 0;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: #c4cada;
+    }
+
+    .navbar-company-chip-name {
+        min-width: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0;
+        color: #5e6278;
+        white-space: nowrap;
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip {
+        border-color: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip-icon,
+    [data-bs-theme="dark"] .navbar-company-chip-label {
+        color: #8e95a9;
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip-sep {
+        background: #6d7385;
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip-name {
+        color: #e4e6ef;
+    }
+
+    @media (max-width: 575.98px) {
+        .navbar-company-chip {
+            max-width: min(44vw, 11rem);
+            padding-inline: 0.4rem;
+        }
+
+        .navbar-company-chip-label,
+        .navbar-company-chip-sep {
+            display: none;
+        }
     }
 
     .user-quick-menu.menu-sub-dropdown {
