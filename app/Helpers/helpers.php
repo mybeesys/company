@@ -77,9 +77,22 @@ if (! function_exists('company_header_name')) {
             "company_header_name:{$companyId}:{$locale}",
             now()->addHours(6),
             function () use ($companyId, $locale) {
-                $row = \Illuminate\Support\Facades\DB::connection('mysql')
+                $connection = (string) config('tenancy.database.central_connection', 'mysql');
+                if ($connection === '' || ! config("database.connections.{$connection}")) {
+                    $connection = 'mysql';
+                }
+
+                $columns = ['name'];
+                if (\Illuminate\Support\Facades\Schema::connection($connection)->hasColumn('companies', 'name_ar')) {
+                    $columns[] = 'name_ar';
+                }
+                if (\Illuminate\Support\Facades\Schema::connection($connection)->hasColumn('companies', 'tax_name')) {
+                    $columns[] = 'tax_name';
+                }
+
+                $row = \Illuminate\Support\Facades\DB::connection($connection)
                     ->table('companies')
-                    ->select('name', 'name_ar')
+                    ->select($columns)
                     ->where('id', $companyId)
                     ->first();
 
@@ -87,9 +100,15 @@ if (! function_exists('company_header_name')) {
                     return null;
                 }
 
-                return $locale === 'ar'
-                    ? ($row->name_ar ?: $row->name)
-                    : ($row->name ?: $row->name_ar);
+                $name = trim((string) ($row->name ?? ''));
+                $nameAr = trim((string) ($row->name_ar ?? ''));
+                $taxName = trim((string) ($row->tax_name ?? ''));
+
+                if ($locale === 'ar') {
+                    return $nameAr !== '' ? $nameAr : ($name !== '' ? $name : ($taxName !== '' ? $taxName : null));
+                }
+
+                return $name !== '' ? $name : ($nameAr !== '' ? $nameAr : ($taxName !== '' ? $taxName : null));
             }
         );
     }

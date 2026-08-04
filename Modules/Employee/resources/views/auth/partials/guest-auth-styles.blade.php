@@ -127,14 +127,18 @@
         align-items: center;
         gap: 0.35rem;
         margin-top: 1rem;
-        padding: 0.25rem 0.75rem;
+        padding: 0.35rem 0.9rem;
         border-radius: 999px;
-        font-size: 0.72rem;
+        font-size: 0.88rem;
         font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        letter-spacing: -0.01em;
+        text-transform: none;
         color: var(--login-accent);
         background: var(--login-accent-soft);
+        max-width: min(100%, 18rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .login-auth-title {
