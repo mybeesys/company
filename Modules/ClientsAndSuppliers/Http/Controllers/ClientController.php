@@ -7,6 +7,7 @@ use Carbon\Exceptions\Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
@@ -83,6 +84,7 @@ class ClientController extends Controller
     {
 
         // return $request;
+        $this->validateRequiredAccountingAccount($request);
 
         try {
             DB::beginTransaction();
@@ -376,6 +378,8 @@ class ClientController extends Controller
     {
         // return $request;
         // dd($request->hasFile('attachment'),$request->file('attachment'));
+        $this->validateRequiredAccountingAccount($request);
+
         try {
             $attachment_name = null;
 
@@ -535,5 +539,15 @@ class ClientController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    protected function validateRequiredAccountingAccount(Request $request): void
+    {
+        $accountId = (int) $request->input('account_id');
+        if ($accountId <= 0 || ! AccountingAccount::query()->whereKey($accountId)->exists()) {
+            throw ValidationException::withMessages([
+                'account_id' => __('clientsandsuppliers::fields.accounting_account_required'),
+            ]);
+        }
     }
 }

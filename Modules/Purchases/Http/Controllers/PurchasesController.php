@@ -514,6 +514,7 @@ class PurchasesController extends Controller
                 'missingUnit' => app()->getLocale() === 'ar'
                     ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
                     : 'Please select unit for each product before saving.',
+                'contactMissingAccount' => __('purchases::lang.contact_missing_accounting_account'),
             ],
         ];
     }
@@ -529,6 +530,14 @@ class PurchasesController extends Controller
 
         // try {
         $transactionUtil = new TransactionUtils;
+
+        $supplier = Contact::find($request->client_id);
+        if (! $supplier || ! $supplier->account_id) {
+            throw ValidationException::withMessages([
+                'client_id' => __('purchases::lang.contact_missing_accounting_account'),
+            ]);
+        }
+
         // return $request;
         DB::beginTransaction();
         $ref_no = SalesUtile::generateReferenceNumber('purchases');
