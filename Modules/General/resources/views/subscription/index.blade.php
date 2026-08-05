@@ -80,13 +80,13 @@
                         <div class="mb-5 d-flex gap-2">
                             <h3 class="text-gray-700 fs-2">@lang('general::general.start_subscription_date'):</h3>
                             <h3 class="text-gray-600 fs-2">
-                                {{ date_format($current_subscription->started_at, 'Y-m-d') }}
+                                {{ $current_subscription->started_at ? date_format($current_subscription->started_at, 'Y-m-d') : '—' }}
                             </h3>
                         </div>
                         <div class="mb-5 d-flex gap-2">
                             <h3 class="text-gray-700 fs-2">@lang('general::general.end_subscription_date'):</h3>
                             <h3 class="text-gray-600 fs-2">
-                                {{ date_format($current_subscription->expired_at, 'Y-m-d') }}
+                                {{ $current_subscription->expired_at ? date_format($current_subscription->expired_at, 'Y-m-d') : '—' }}
                             </h3>
                         </div>
                         <h3 class="text-gray-700 fs-2">@lang('employee::main.features'):</h3>
@@ -128,10 +128,10 @@
                                         </td>
                                         <td class="px-4">
                                             <span
-                                                class="badge badge-light-success">{{ date_format($old_subscription->started_at, 'Y-m-d') }}</span>
+                                                class="badge badge-light-success">{{ $old_subscription->started_at ? date_format($old_subscription->started_at, 'Y-m-d') : '—' }}</span>
                                         </td>
                                         <td class="px-4"><span
-                                                class="badge badge-light-primary">{{ date_format($old_subscription->expired_at, 'Y-m-d') }}</span>
+                                                class="badge badge-light-primary">{{ $old_subscription->expired_at ? date_format($old_subscription->expired_at, 'Y-m-d') : '—' }}</span>
                                         </td>
                                         <td class="px-4">
                                             <span
