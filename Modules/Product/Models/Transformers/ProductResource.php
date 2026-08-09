@@ -105,9 +105,23 @@ class ProductResource extends JsonResource
 
                 $tax_1 = $tax['value'];
             }
+
+            // Prefer stored inclusive price so API matches the product form.
+            // Exclusive↔inclusive rounding (e.g. 33.00 → 28.70 → 33.01) otherwise drifts by 0.01.
+            $storedInclusive = $this->price_with_tax;
+            if ($storedInclusive !== null && $storedInclusive !== '' && (float) $storedInclusive > 0) {
+                $price_withtax = round((float) $storedInclusive, 2);
+                $taxDiff = round($price_withtax - (float) $this->price, 2);
+                if (empty($this->sub_taxes) || (method_exists($this->sub_taxes, 'count') && $this->sub_taxes->count() === 0)) {
+                    $tax['value'] = $taxDiff;
+                    $tax_1 = $taxDiff;
+                    $tax_2 = 0;
+                }
+            }
         }
 
         $extraData = ['withProduct' => 'N', 'parent_id' => $this->id];
+        $price_withtax = round((float) $price_withtax, 2);
 
         return [
             'id' => $this->id,
@@ -123,7 +137,7 @@ class ProductResource extends JsonResource
             'pricewithTax' => $price_withtax,
             'tax_1' => $tax_1,
             'tax_2' => $tax_2,
-            'tax_total' => $tax_1 + $tax_2,
+            'tax_total' => round((float) $tax_1 + (float) $tax_2, 2),
             'tax' => $tax,
             'category' => $category,
             'subcategory' => $subcategory,
