@@ -22,6 +22,11 @@ class TransactionSellLine extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 
+    public function childLines()
+    {
+        return $this->hasMany(self::class, 'parent_id');
+    }
+
     public function modifier()
     {
         return $this->belongsTo(Modifier::class, 'modifier_id');

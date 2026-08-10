@@ -311,6 +311,7 @@ class GeneralController extends Controller
     public function getInvoiceSettings()
     {
         $toggleCouponSetting = Setting::where('key', 'toggleCoupon')->value('value');
+        $toggleSellWithModifiersCombos = Setting::where('key', 'toggleSellWithModifiersCombos')->value('value');
 
         return response()->json([
             'success' => true,
@@ -320,6 +321,8 @@ class GeneralController extends Controller
                 'delegates' => Setting::where('key', 'toggleDelegates')->value('value') == 1,
                 // Default is enabled when setting is not created yet.
                 'coupon' => is_null($toggleCouponSetting) ? true : ((int) $toggleCouponSetting === 1),
+                // Default is disabled when setting is not created yet.
+                'sell_with_modifiers_combos' => (int) $toggleSellWithModifiersCombos === 1,
             ],
         ]);
     }

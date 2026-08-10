@@ -112,33 +112,26 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        {{-- <td>
-                                    <select id="products-{{ $index }}" required
-                                        class="form-select form-select-solid select-2 product-select"
-                                        name="products[{{ $index }}][products_id]">
-                                        <option value="">@lang('sales::lang.select_products')</option>
-                                    </select>
-                                </td> --}}
-
-                                        {{-- <select id="products" required class="form-select form-select-solid select-2 select-2-products-id"
-                                        name="products[{{ $index }}][products_id]" style="padding: 7px">
-                                        <option value="">@lang('sales::lang.select_products')</option>
-                                        @foreach ($products as $product)
-                                            <option value="{{ $product->id }}"
-                                                @if ($line->product_id == $product->id) selected @endif
-                                                data-price="{{ $product->price }}"
-                                                data-units="{{ json_encode($product->unitTransfers) }}">
-                                                @if (app()->getLocale() == 'ar')
-                                                    {{ $product->name_ar }} - <span
-                                                        class="fw-semibold mx-2 text-muted fs-5">{{ $product->SKU }}</span>
-                                                @else
-                                                    {{ $product->name_en }} - <span
-                                                        class="fw-semibold mx-2 text-muted fs-7">{{ $product->SKU }}</span>
-                                                @endif
-                                            </option>
-                                        @endforeach
-                                    </select> --}}
-                                        {{-- <p class="" rows="1" disabled style="@if ($line->line_status != 'completed') display:none @endif "> @lang('general::lang.completed')</ح> --}}
+                                        @if (!empty($sellWithModifiersCombos))
+                                            @php
+                                                $smcPrefill = \Modules\Sales\Services\WebSellModifiersCombosService::serializeChildrenForPrefill(
+                                                    $line->childLines ?? collect()
+                                                );
+                                            @endphp
+                                            <input type="hidden" class="smc-order-item-modifiers"
+                                                name="products[{{ $index }}][order_item_modifiers]"
+                                                value="{{ e(json_encode($smcPrefill['modifiers'])) }}">
+                                            <input type="hidden" class="smc-order-item-combos"
+                                                name="products[{{ $index }}][order_item_combos]"
+                                                value="{{ e(json_encode($smcPrefill['combos'])) }}">
+                                            <input type="hidden" class="smc-extras-before-vat"
+                                                name="products[{{ $index }}][extras_before_vat]"
+                                                value="{{ $smcPrefill['extras_before_vat'] }}">
+                                            <input type="hidden" class="smc-extras-inc-tax"
+                                                name="products[{{ $index }}][extras_inc_tax]"
+                                                value="{{ $smcPrefill['extras_inc_tax'] }}">
+                                            <div class="smc-extras-wrap"></div>
+                                        @endif
 
                                     </td>
                                     <td class="product-description" style=" display:none ">
