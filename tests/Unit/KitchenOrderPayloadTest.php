@@ -33,7 +33,7 @@ class KitchenOrderPayloadTest extends TestCase
     public function test_pos_sell_lines_group_main_modifiers_and_zero_price_combos(): void
     {
         $main = $this->makePosLine(10, 292, 'بيج بيك', 18, 20.7);
-        $modifier = $this->makePosLine(11, 300, 'جبنة إضافية', 2, 2.3);
+        $modifier = $this->makePosLine(11, 300, 'جبنة إضافية', 2, 2.3, modifierId: 300);
         $combo = $this->makePosLine(12, 262, 'برجر دبل', 0, 0);
         $comboDrink = $this->makePosLine(13, 263, 'بيبسي', 0, 0);
 
@@ -61,15 +61,38 @@ class KitchenOrderPayloadTest extends TestCase
         $this->assertSame([], $items[1]['order_item_modifiers']);
     }
 
+    public function test_independent_paid_pos_lines_without_parent_stay_separate_mains(): void
+    {
+        // مثل طلب المستخدم: هريس + متبل + كركدية + ليمون — كلها parent_id/modifier_id فارغة
+        $harees = $this->makePosLine(1, 1, 'هريس', 30.43, 35);
+        $mutabbal = $this->makePosLine(2, 4, 'متبل', 8.7, 10);
+        $karkadeh = $this->makePosLine(3, 79, 'كركدية', 10.43, 12);
+        $lemon = $this->makePosLine(4, 80, 'ليمون نعناع', 13.04, 15);
+
+        $items = KitchenOrderPayload::formatPosSellLines(collect([
+            $harees,
+            $mutabbal,
+            $karkadeh,
+            $lemon,
+        ]));
+
+        $this->assertCount(4, $items);
+        $this->assertSame([1, 4, 79, 80], array_column($items, 'product_id'));
+        foreach ($items as $item) {
+            $this->assertSame([], $item['order_item_modifiers']);
+            $this->assertSame([], $item['order_item_combos']);
+        }
+    }
+
     public function test_legacy_pos_lines_keep_paid_combo_upgrade_out_of_modifiers(): void
     {
         $burgerMain = $this->makePosLine(1645, 262, 'برجر دبل', 6.09, 21);
         $shawarmaMain = $this->makePosLine(1646, 287, 'شاورما عربي', 100, 230);
-        $cheese = $this->makePosLine(1647, 274, 'جبنة شرائح', 1, 2);
-        $lotus = $this->makePosLine(1648, 279, 'كريمة اللوتس', 2, 4);
-        $bigBakeCombo = $this->makePosLine(1649, 292, 'بيج بيك', 18, 20.7);
-        $comboBurger = $this->makePosLine(1650, 262, 'برجر دبل', 0, 0);
-        $comboPepsi = $this->makePosLine(1651, 263, 'بيبسي', 0, 0);
+        $cheese = $this->makePosLine(1647, 274, 'جبنة شرائح', 1, 2, parentId: 1646, modifierId: 274);
+        $lotus = $this->makePosLine(1648, 279, 'كريمة اللوتس', 2, 4, parentId: 1646, modifierId: 279);
+        $bigBakeCombo = $this->makePosLine(1649, 292, 'بيج بيك', 18, 20.7, parentId: 1646, comboId: '292');
+        $comboBurger = $this->makePosLine(1650, 262, 'برجر دبل', 0, 0, parentId: 1646, comboId: '262');
+        $comboPepsi = $this->makePosLine(1651, 263, 'بيبسي', 0, 0, parentId: 1646, comboId: '263');
 
         $items = KitchenOrderPayload::formatPosSellLines(collect([
             $burgerMain,

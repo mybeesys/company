@@ -536,32 +536,17 @@ class KitchenOrderPayload
     }
 
     /**
-     * تخمين إضافة POS قديمة (بدون parent_id) — لا تُطبَّق على منتج مستقل بسعر قريب من الرئيسي.
+     * تخمين إضافة POS قديمة (بدون parent_id).
+     *
+     * لا نعتمد نسبة السعر: منتجات مستقلة رخيصة نسبياً (متبل، مشروب…) كانت
+     * تُلصق خطأً تحت الصنف السابق. الموديفاير الحقيقي يُحفظ بـ modifier_id
+     * (وparent_id في مسار POS الحالي).
      */
     public static function couldBeLegacyPosModifierLine(
         TransactionSellLine $line,
         TransactionSellLine $main,
     ): bool {
-        if (self::isPosModifierLine($line)) {
-            return true;
-        }
-
-        $linePrice = (float) ($line->unit_price ?? 0);
-        $mainPrice = (float) ($main->unit_price ?? 0);
-
-        if ($linePrice <= 0) {
-            return false;
-        }
-
-        if ($mainPrice > 0 && $linePrice <= ($mainPrice * 0.35)) {
-            return true;
-        }
-
-        if ($linePrice < 3.0 && ($mainPrice <= 0 || $linePrice <= ($mainPrice * 0.5))) {
-            return true;
-        }
-
-        return false;
+        return self::isPosModifierLine($line);
     }
 
     public static function appearsInKitchen(?string $orderStatus): bool
