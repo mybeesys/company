@@ -35,7 +35,7 @@ class KitchenItemStatusGrouperTest extends TestCase
     {
         $lines = collect([
             $this->makePosLine(10, 292, 'بيج بيك', 18, 20.7),
-            $this->makePosLine(11, 300, 'جبنة إضافية', 2, 2.3),
+            $this->makePosLine(11, 300, 'جبنة إضافية', 2, 2.3, modifierId: 300),
             $this->makePosLine(12, 262, 'برجر دبل', 0, 0),
             $this->makePosLine(13, 263, 'بيبسي', 0, 0),
             $this->makePosLine(14, 287, 'شاورما عربي', 12, 13.8),
@@ -84,10 +84,12 @@ class KitchenItemStatusGrouperTest extends TestCase
         string $name,
         float $price,
         float $priceWithTax,
+        ?int $modifierId = null,
     ): TransactionSellLine {
         $line = new TransactionSellLine([
             'transaction_id' => 1108,
             'product_id' => $productId,
+            'modifier_id' => $modifierId,
             'qyt' => 1,
             'unit_price' => $price,
             'unit_price_before_discount' => $price,
