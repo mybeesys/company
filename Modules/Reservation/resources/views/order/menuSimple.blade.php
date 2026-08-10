@@ -27,7 +27,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link href="/assets/css/brand-theme.css" rel="stylesheet" type="text/css" />
-    <link href="/assets/css/menu-simple-pro.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/css/menu-simple-pro.css?v=20260810-card-compact" rel="stylesheet" type="text/css" />
 
     <style>
         :root {
@@ -1683,7 +1683,6 @@
         .product-card-desc {
             margin: 0;
             font-weight: 400;
-            min-height: 2.6em;
             line-height: 1.35;
             display: -webkit-box;
             -webkit-box-orient: vertical;
@@ -2831,14 +2830,26 @@
 
             function getDetailModal() {
                 if (!detailModal) {
-                    detailModal = bootstrap.Modal.getOrCreateInstance(detailModalEl);
+                    detailModal = bootstrap.Modal.getOrCreateInstance(detailModalEl, {
+                        backdrop: true,
+                        focus: true,
+                    });
                 }
                 return detailModal;
             }
 
-            function openProductDetail(card) {
+            function resolveDetailTemplate(card) {
                 const tplId = card.getAttribute('data-product-detail-tpl');
-                const tpl = tplId ? document.getElementById(tplId) : null;
+                if (tplId) {
+                    const byId = document.getElementById(tplId);
+                    if (byId && byId.content) return byId;
+                }
+                const wrap = card.closest('.pm-card-wrap');
+                return wrap ? wrap.querySelector('template[id^="product-detail-tpl-"]') : null;
+            }
+
+            function openProductDetail(card) {
+                const tpl = resolveDetailTemplate(card);
                 if (!detailBody || !tpl || !tpl.content) return;
                 detailBody.replaceChildren();
                 detailBody.appendChild(document.importNode(tpl.content, true));
@@ -2847,9 +2858,10 @@
 
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.product-allergen-icon-btn')) return;
+                if (e.target.closest('.modal')) return;
                 const card = e.target.closest('.pm-card.product-card');
                 if (!card || card.classList.contains('hidden')) return;
-                if (!card.hasAttribute('data-product-detail-tpl')) return;
+                e.preventDefault();
                 openProductDetail(card);
             });
 
