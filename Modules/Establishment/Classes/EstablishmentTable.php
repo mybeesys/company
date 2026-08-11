@@ -40,8 +40,8 @@ class EstablishmentTable
             })
             ->editColumn('is_main', function ($row) {
                 return $row->is_main
-                    ? '<div class="badge badge-light-success">True</div>'
-                    : '<div class="badge badge-light-danger">False</div>';
+                    ? '<div class="badge badge-light-success">'.__('establishment::fields.yes').'</div>'
+                    : '<div class="badge badge-light-danger">'.__('establishment::fields.no').'</div>';
             })
             ->addColumn(
                 'actions',

@@ -58,6 +58,36 @@ class StoreEstablishmentRequest extends FormRequest
                     }
                 }),
             ],
+            'internal_consumption_expense_account_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('accounting_accounts', 'id')->where(function ($q) {
+                    $parentIds = AccountingAccount::query()
+                        ->whereNotNull('parent_account_id')
+                        ->pluck('parent_account_id')
+                        ->unique()
+                        ->filter();
+
+                    $q->where(function ($s) {
+                        $s->whereNull('status')->orWhere('status', '')->orWhere('status', 'active');
+                    })->where(function ($t) {
+                        $t->whereRaw('LOWER(account_primary_type) = ?', ['expenses'])
+                            ->orWhereRaw('LOWER(account_primary_type) = ?', ['expense'])
+                            ->orWhereRaw('LOWER(account_type) = ?', ['expenses'])
+                            ->orWhereRaw('LOWER(account_type) = ?', ['expense'])
+                            ->orWhereRaw("LEFT(REPLACE(gl_code, '.', ''), 1) = '5'");
+                    });
+
+                    if ($parentIds->isNotEmpty()) {
+                        $q->whereNotIn('accounting_accounts.id', $parentIds);
+                    }
+                }),
+            ],
+            'cashier_payment_rows' => ['nullable', 'array'],
+            'cashier_payment_rows.*.id' => ['nullable', 'integer', 'exists:est_establishment_payment_accounts,id'],
+            'cashier_payment_rows.*.name_ar' => ['nullable', 'string', 'max:255'],
+            'cashier_payment_rows.*.name_en' => ['nullable', 'string', 'max:255'],
+            'cashier_payment_rows.*.account_id' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
         ];
     }
 

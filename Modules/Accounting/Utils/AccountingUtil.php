@@ -15,6 +15,7 @@ use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
+use Modules\Sales\Support\TransactionPurpose;
 use RuntimeException;
 
 class AccountingUtil
@@ -93,25 +94,120 @@ class AccountingUtil
         return true;
     }
 
-    public function saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id = null, $request = null)
+    public function saveAccountRouteTransaction($type, $transactionPayment, $transaction, $acc_trans_mapping_id = null, $request = null, ?string $subTypeOverride = null)
     {
         // dd($transactionPayment);
         // $sub_type = $transaction->invoice_type == 'cash' ? 'sell_cash' : 'sales_revenue';
         $account_transaction_data = [
-            'amount' => $transactionPayment->amount,
+            'amount' => round((float) $transactionPayment->amount, 2),
             'accounting_account_id' => $transactionPayment->account_id,
             'type' => $type,
             'cost_center_id' => $request->cost_center_id ?? null,
-            'sub_type' => $transaction->type,
+            'sub_type' => $subTypeOverride ?? $transaction->type,
             'operation_date' => $transactionPayment->paid_on,
             'created_by' => $transactionPayment->created_by,
             'transaction_id' => $transactionPayment->transaction_id,
-            'transaction_payment_id' => $transactionPayment->id,
+            'transaction_payment_id' => $transactionPayment->id ?? null,
             'acc_trans_mapping_id' => $acc_trans_mapping_id,
         ];
 
         //    dd($account_transaction_data);
         AccountingAccountsTransaction::create($account_transaction_data);
+
+        return true;
+    }
+
+    /**
+     * Internal consumption (staff meals, etc.): Dr expense + Cr inventory at cost.
+     * No sales revenue / VAT / AR. Posts even when the POS shift is still open.
+     */
+    public function postInternalConsumptionJournal($transaction, $request = null): bool
+    {
+        if (! TransactionPurpose::isInternalConsumption($transaction)) {
+            return false;
+        }
+
+        if (($transaction->status ?? '') === 'draft') {
+            return false;
+        }
+
+        $alreadyPosted = AccountingAccountsTransaction::query()
+            ->where('transaction_id', $transaction->id)
+            ->where('sub_type', TransactionPurpose::JOURNAL_SUB_TYPE)
+            ->exists();
+
+        if ($alreadyPosted) {
+            return true;
+        }
+
+        app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
+
+        $expenseAccountId = InternalConsumptionAccountResolver::resolveExpenseAccountId(
+            isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
+        );
+        if (! $expenseAccountId) {
+            throw new RuntimeException(__('establishment::responses.internal_consumption_expense_account_required'));
+        }
+
+        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
+            isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
+        );
+        if (! $inventoryAccountId) {
+            throw new RuntimeException(__('establishment::responses.internal_consumption_inventory_account_required'));
+        }
+
+        $costAmount = round(
+            app(\Modules\Inventory\Services\InventoryCostingService::class)
+                ->resolveCogsAmountForSell((int) $transaction->id),
+            2
+        );
+        if ($costAmount <= 0) {
+            throw new RuntimeException(__('establishment::responses.internal_consumption_cost_required'));
+        }
+
+        FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
+
+        $acc_trans_mapping = new AccountingAccTransMapping;
+        $acc_trans_mapping->ref_no = $this->generateReferenceNumber('journal_entry');
+        $acc_trans_mapping->note = app()->getLocale() === 'ar' ? 'استهلاك داخلي' : 'Internal consumption';
+        $acc_trans_mapping->type = 'journal_entry';
+        $acc_trans_mapping->created_by = $transaction->created_by;
+        $acc_trans_mapping->is_manual = 0;
+        $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
+        $acc_trans_mapping->save();
+
+        $paymentStub = (object) [
+            'id' => null,
+            'amount' => $costAmount,
+            'account_id' => $expenseAccountId,
+            'paid_on' => Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s'),
+            'created_by' => $transaction->created_by,
+            'transaction_id' => $transaction->id,
+        ];
+
+        $paymentStub->account_id = $expenseAccountId;
+        $paymentStub->amount = $costAmount;
+        $this->saveAccountRouteTransaction(
+            'debit',
+            $paymentStub,
+            $transaction,
+            (int) $acc_trans_mapping->id,
+            $request,
+            TransactionPurpose::JOURNAL_SUB_TYPE
+        );
+
+        $paymentStub->account_id = $inventoryAccountId;
+        $paymentStub->amount = $costAmount;
+        $this->saveAccountRouteTransaction(
+            'credit',
+            $paymentStub,
+            $transaction,
+            (int) $acc_trans_mapping->id,
+            $request,
+            TransactionPurpose::JOURNAL_SUB_TYPE
+        );
+
+        AutoJournalGuard::assertBalanced((int) $acc_trans_mapping->id);
 
         return true;
     }
@@ -218,9 +314,15 @@ class AccountingUtil
 
     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
+        if (TransactionPurpose::isInternalConsumption($transaction)) {
+            return $this->postInternalConsumptionJournal($transaction, $request);
+        }
+
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
 
-        $netTotalBeforeTax = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax ?? 0);
+        $netTotalBeforeTax = round((float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax ?? 0), 2);
+        $finalTotal = round((float) ($transaction->final_total ?? 0), 2);
+        $taxAmount = round((float) ($transaction->tax_amount ?? 0), 2);
 
         $route_section = match ($transaction->type) {
             'sell' => 'sales',
@@ -257,14 +359,26 @@ class AccountingUtil
                 $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
                 $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
-                $discountAmount = (float) ($transaction->discount_amount ?? 0);
-                $salesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
+                $revenue = $this->resolveSellRevenueAmounts($transaction);
+                $discountAmount = $revenue['discount_amount'];
+                $netForJournal = $revenue['net_for_journal'];
+                $salesGrossBeforeDiscount = $revenue['sales_gross_before_discount'];
+                $finalTotal = $revenue['final_total'];
+                $taxAmount = $revenue['tax_amount'];
 
                 if ($transaction->invoice_type == 'cash') {
 
+                    $cashAccountId = (int) $cash_account_id;
+                    if ($cashAccountId <= 0) {
+                        throw new RuntimeException('Cash/bank account is missing for sell (cash). Please select a payment account on the invoice.');
+                    }
+                    if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
+                        throw new RuntimeException('Accounting routing missing for sell (cash). Please configure sales_sales and sales_vat_calculation in Accounts Routing.');
+                    }
+
                     if (! $transactionPayment->payment_for) {
                         $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         $transactionPayment->account_id = $sales_sales->account_id;
                         $transactionPayment->amount = $salesGrossBeforeDiscount;
@@ -275,12 +389,12 @@ class AccountingUtil
                             $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                        $transactionPayment->amount = $transaction->tax_amount;
+                        $transactionPayment->amount = $taxAmount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     } else {
                         $client = Contact::find($transactionPayment->payment_for);
                         $transactionPayment->account_id = $client->account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $sales_sales->account_id;
@@ -292,15 +406,15 @@ class AccountingUtil
                             $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                         }
                         $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                        $transactionPayment->amount = $transaction->tax_amount;
+                        $transactionPayment->amount = $taxAmount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $client->account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                         $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $transaction->final_total;
+                        $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     }
                 } elseif ($transaction->invoice_type == 'due') {
@@ -312,7 +426,7 @@ class AccountingUtil
                         throw new RuntimeException('Customer account is missing for sell (due). Please link an accounting account to the customer.');
                     }
                     $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
+                    $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                     $transactionPayment->account_id = $sales_sales->account_id;
@@ -324,7 +438,7 @@ class AccountingUtil
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     }
                     $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $transaction->tax_amount;
+                    $transactionPayment->amount = $taxAmount;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 }
 
@@ -419,70 +533,59 @@ class AccountingUtil
                 // }
             } elseif ($transaction->type == 'sell-return') {
                 $sales_sell_return = AccountsRoting::where('type', 'sales_sell_return')->first();
-                $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+                $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
 
-                if (! $sales_sell_return || ! $sales_sales || ! $sales_vat_calculation) {
-                    throw new RuntimeException('Accounting routing missing for sell-return. Please configure Accounts Routing: sales_sell_return, sales_sales, sales_vat_calculation.');
+                if (! $sales_sell_return || ! $sales_sell_return->account_id || ! $sales_vat_calculation || ! $sales_vat_calculation->account_id) {
+                    throw new RuntimeException('Accounting routing missing for sell-return. Please configure Accounts Routing: sales_sell_return, sales_vat_calculation.');
                 }
+
+                // Prefer monetary discount from totals (credit note), then stored amount.
+                $revenue = $this->resolveSellRevenueAmounts($transaction);
+                $discountAmount = $revenue['discount_amount'];
+                $netForJournal = $revenue['net_for_journal'];
+                $salesGrossBeforeDiscount = $revenue['sales_gross_before_discount'];
+                $finalTotal = $revenue['final_total'];
+                $taxAmount = $revenue['tax_amount'];
+
+                $client = Contact::find($transactionPayment->payment_for ?: $transaction->contact_id);
+                if (! $client || ! $client->account_id) {
+                    throw new RuntimeException('Customer account is missing for sell-return. Please ensure the customer has an accounting account linked.');
+                }
+
+                // Credit note (Saudi-style reverse of sell):
+                // Dr Sales returns (gross) + Dr VAT  |  Cr Discount allowed (if any) + Cr Customer/Cash
+                $transactionPayment->account_id = $sales_sell_return->account_id;
+                $transactionPayment->amount = $salesGrossBeforeDiscount;
+                $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+
+                if ($discountAmount > 0 && $sales_discount_allowed && $sales_discount_allowed->account_id) {
+                    $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                    $transactionPayment->amount = $discountAmount;
+                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                }
+
+                $transactionPayment->account_id = $sales_vat_calculation->account_id;
+                $transactionPayment->amount = $taxAmount;
+                $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
                 if ($transaction->invoice_type == 'cash') {
-                    $client = Contact::find($transactionPayment->payment_for);
-                    if (! $client || ! $client->account_id) {
-                        throw new RuntimeException('Customer account is missing for sell-return. Please ensure the customer has an accounting account linked.');
+                    // Cash refund: credit cash (or customer clearing then cash if payment_for path used on sell).
+                    $cashTarget = $cash_account_id ?: $client->account_id;
+                    if (! $cashTarget) {
+                        throw new RuntimeException('Cash account is missing for sell-return cash refund.');
                     }
-                    $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
-                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                    $transactionPayment->account_id = $sales_sales->account_id;
-                    $transactionPayment->amount = $netTotalBeforeTax;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                    $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $transaction->tax_amount;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                    $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                    $transactionPayment->account_id = $sales_sell_return->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
+                    $transactionPayment->account_id = $cashTarget;
+                    $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 } else {
-                    $transactionPayment->account_id = $sales_sell_return->account_id;
-                    $transactionPayment->amount = $transaction->final_total;
-
-                    $this->saveAccountRouteTransaction(
-                        'credit',
-                        $transactionPayment,
-                        $transaction,
-                        $acc_trans_mapping_id,
-                        $request
-                    );
-
-                    $transactionPayment->account_id = $sales_sales->account_id;
-                    $transactionPayment->amount = $netTotalBeforeTax;
-
-                    $this->saveAccountRouteTransaction(
-                        'debit',
-                        $transactionPayment,
-                        $transaction,
-                        $acc_trans_mapping_id,
-                        $request
-                    );
-
-                    $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $transaction->tax_amount;
-
-                    $this->saveAccountRouteTransaction(
-                        'debit',
-                        $transactionPayment,
-                        $transaction,
-                        $acc_trans_mapping_id,
-                        $request
-                    );
+                    // Due / credit: reduce customer receivable.
+                    $transactionPayment->account_id = $client->account_id;
+                    $transactionPayment->amount = $finalTotal;
+                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 }
+
+                $this->appendPerpetualCogsEntries($transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             } elseif ($transaction->type == 'purchases-return') {
                 $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
                 $purchases_purchase_return = AccountsRoting::where('type', 'purchases_purchase_return')->first();
@@ -574,9 +677,50 @@ class AccountingUtil
         return true;
     }
 
+    /**
+     * Monetary revenue-side amounts for sell / sell-return journals.
+     * Prefer totals delta (before tax − after discount), then stored amount/percent.
+     *
+     * @return array{final_total: float, tax_amount: float, net_for_journal: float, discount_amount: float, sales_gross_before_discount: float}
+     */
+    public function resolveSellRevenueAmounts($transaction): array
+    {
+        $finalTotal = round((float) ($transaction->final_total ?? 0), 2);
+        $taxAmount = round((float) ($transaction->tax_amount ?? 0), 2);
+        $netForJournal = round($finalTotal - $taxAmount, 2);
+
+        $beforeTax = round((float) ($transaction->total_before_tax ?? 0), 2);
+        $afterDiscount = round((float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $beforeTax), 2);
+        $discountAmount = round(max(0, $beforeTax - $afterDiscount), 2);
+
+        if ($discountAmount <= 0) {
+            $rawDiscount = (float) ($transaction->discount_amount ?? 0);
+            if (($transaction->discount_type ?? '') === 'percent') {
+                $base = $beforeTax > 0 ? $beforeTax : $netForJournal;
+                $discountAmount = round(max(0, $base * ($rawDiscount / 100)), 2);
+            } else {
+                $discountAmount = round(max(0, $rawDiscount), 2);
+            }
+        }
+
+        $salesGrossBeforeDiscount = round($netForJournal + $discountAmount, 2);
+
+        return [
+            'final_total' => $finalTotal,
+            'tax_amount' => $taxAmount,
+            'net_for_journal' => $netForJournal,
+            'discount_amount' => $discountAmount,
+            'sales_gross_before_discount' => $salesGrossBeforeDiscount,
+        ];
+    }
+
     private function appendPerpetualCogsEntries($transactionPayment, $transaction, int $accTransMappingId, $request): void
     {
-        if (! Setting::isPerpetualInventory() || $transaction->type !== 'sell') {
+        if (! Setting::isPerpetualInventory()) {
+            return;
+        }
+
+        if (! in_array($transaction->type, ['sell', 'sell-return'], true)) {
             return;
         }
 
@@ -589,19 +733,36 @@ class AccountingUtil
             return;
         }
 
-        $cogsAmount = app(\Modules\Inventory\Services\InventoryCostingService::class)
-            ->resolveCogsAmountForSell((int) $transaction->id);
+        $costing = app(\Modules\Inventory\Services\InventoryCostingService::class);
+        if ($transaction->type === 'sell') {
+            $cogsAmount = round($costing->resolveCogsAmountForSell((int) $transaction->id), 2);
+            if ($cogsAmount <= 0) {
+                return;
+            }
 
-        if ($cogsAmount <= 0) {
+            $transactionPayment->account_id = $cogsAccountId;
+            $transactionPayment->amount = $cogsAmount;
+            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $accTransMappingId, $request);
+
+            $transactionPayment->account_id = $inventoryAccountId;
+            $transactionPayment->amount = $cogsAmount;
+            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $accTransMappingId, $request);
+
             return;
         }
 
-        $transactionPayment->account_id = $cogsAccountId;
-        $transactionPayment->amount = $cogsAmount;
-        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $accTransMappingId, $request);
+        // sell-return: reverse COGS — put stock back on inventory asset.
+        $inboundCost = round($costing->resolveInboundCostForSellReturn((int) $transaction->id), 2);
+        if ($inboundCost <= 0) {
+            return;
+        }
 
         $transactionPayment->account_id = $inventoryAccountId;
-        $transactionPayment->amount = $cogsAmount;
+        $transactionPayment->amount = $inboundCost;
+        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $accTransMappingId, $request);
+
+        $transactionPayment->account_id = $cogsAccountId;
+        $transactionPayment->amount = $inboundCost;
         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $accTransMappingId, $request);
     }
 

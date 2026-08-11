@@ -128,12 +128,12 @@ class TransactionUtils
         $account_id = null;
 
         if ($transaction->invoice_type == 'cash') {
-            $cash_acc = $get_val('cash_account');
+            $cash_acc = $get_val('cash_account') ?: $get_val('account_id');
             $account_id = $cash_acc;
             $cash_account_id = $cash_acc;
             $payment_method = 'cash';
         } elseif ($transaction->invoice_type == 'due') {
-            $acc_id = $get_val('account_id');
+            $acc_id = $get_val('account_id') ?: $get_val('cash_account');
             $account_id = $acc_id;
             $due_account_id = $acc_id;
             $payment_method = 'due';
@@ -144,9 +144,8 @@ class TransactionUtils
         $payment_method_id = $get_val('payment_method_id');
 
         $shift_id = $get_val('shift_id');
-        if ($shift_id) {
-            $account_id = null;
-        }
+        // Keep a resolved GL account on the payment row even during open shifts
+        // (journals still deferred when shift_id is present).
         $userId = auth()->user() ? auth()->user()->id : $request->created_by;
         $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
@@ -165,8 +164,23 @@ class TransactionUtils
 
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
 
+        if (\Modules\Sales\Support\TransactionPurpose::isInternalConsumption($transaction)) {
+            $accountUtil->postInternalConsumptionJournal($transaction, $request);
+
+            return true;
+        }
+
         if (! $shift_id) {
-            $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
+            // Full invoice/return journals must post once; extra tenders only store payment rows.
+            $alreadyPosted = in_array($transaction->type, ['sell', 'sell-return'], true)
+                && AccountingAccountsTransaction::query()
+                    ->where('transaction_id', $transaction->id)
+                    ->where('sub_type', $transaction->type)
+                    ->exists();
+
+            if (! $alreadyPosted) {
+                $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
+            }
         }
 
         return true;
