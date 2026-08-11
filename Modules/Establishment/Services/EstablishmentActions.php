@@ -27,10 +27,15 @@ class EstablishmentActions
     {
         $logoName = $this->request->has('logo') ? $this->storeImage($this->request['logo']) : null;
 
-        Establishment::create($this->request->merge([
+        $establishment = Establishment::create($this->request->merge([
             'logo' => $logoName,
         ])->all());
 
+        \Modules\Establishment\database\seeders\DefaultEstablishmentPaymentMethodsSeeder::seedForEstablishment(
+            (int) $establishment->id
+        );
+
+        return $establishment;
     }
 
     public function update($establishment)
