@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Utils\InternalConsumptionAccountResolver;
 use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\Establishment\Classes\EstablishmentTable;
 use Modules\Establishment\Http\Requests\StoreEstablishmentRequest;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Services\EstablishmentActions;
+use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
 use Modules\General\Models\Setting;
 
 class EstablishmentController extends Controller
@@ -72,7 +75,7 @@ class EstablishmentController extends Controller
         return DB::transaction(function () use ($request) {
             try {
                 $filteredRequest = $request->safe()->collect()->filter(function ($item, $key) {
-                    if ($key === 'perpetual_inventory_account_id') {
+                    if (in_array($key, ['perpetual_inventory_account_id', 'internal_consumption_expense_account_id'], true)) {
                         return true;
                     }
 
@@ -136,18 +139,24 @@ class EstablishmentController extends Controller
      */
     public function edit(int $id)
     {
-        $establishment = Establishment::with('children')->findOrFail($id);
+        $establishment = Establishment::with(['children', 'paymentAccounts'])->findOrFail($id);
         $establishments = Establishment::where('is_main', true)->active()->whereNot('id', $establishment->id)->whereNotIn('id', $establishment->children->pluck('id'))->get(['id', 'name', 'name_en']);
         $showPerpetualInventoryAccount = Setting::isPerpetualInventory();
         $perpetualInventoryAccounts = $showPerpetualInventoryAccount
             ? PerpetualInventoryAccountResolver::establishmentLinkableAssetAccounts()
             : collect();
+        $accounts = AccountingAccount::query()->orderBy('gl_code')->get();
+        $cashierPaymentRows = EstablishmentPaymentAccountResolver::rowsForEstablishment((int) $establishment->id);
+        $internalConsumptionExpenseAccounts = InternalConsumptionAccountResolver::linkableExpenseAccounts();
 
         return view('establishment::establishment.edit', compact(
             'establishment',
             'establishments',
             'showPerpetualInventoryAccount',
-            'perpetualInventoryAccounts'
+            'perpetualInventoryAccounts',
+            'accounts',
+            'cashierPaymentRows',
+            'internalConsumptionExpenseAccounts'
         ));
     }
 
@@ -159,14 +168,24 @@ class EstablishmentController extends Controller
         return DB::transaction(function () use ($request, $establishment) {
             try {
                 $filteredRequest = $request->safe()->collect()->filter(function ($item, $key) {
-                    if ($key === 'perpetual_inventory_account_id') {
+                    if (in_array($key, [
+                        'perpetual_inventory_account_id',
+                        'internal_consumption_expense_account_id',
+                        'cashier_payment_rows',
+                    ], true)) {
                         return true;
                     }
 
                     return isset($item);
-                });
+                })->except(['cashier_payment_rows']);
+
                 $updateEstablishment = new EstablishmentActions($filteredRequest);
                 $updateEstablishment->update($establishment);
+
+                EstablishmentPaymentAccountResolver::syncForEstablishment(
+                    (int) $establishment->id,
+                    $request->input('cashier_payment_rows', [])
+                );
 
                 return to_route('establishments.index')->with('success', __('establishment::responses.updated_successfully', ['name' => __('establishment::fields.establishment')]));
             } catch (\Throwable $e) {

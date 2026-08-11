@@ -45,4 +45,13 @@ return [
     'deleted' => 'محذوف',
     'perpetual_inventory_account_hint' => 'يظهر عند الجرد المستمر. اختر أي حساب أصول تفصيلي (مثل حساب فرعي أنشأته تحت المخزون أو الأصول المتداولة). عند البيع يُدين تكلفة البضاعة ويُخصم رصيد هذا الحساب؛ وإن تركته فارغاً يُستخدم حساب المخزون الافتراضي.',
     'perpetual_inventory_account_policy_note' => 'لربط حساب مخزون بالفرع، فعّل الجرد المستمر من الإعدادات العامة.',
+    'main_info_tab' => 'المعلومات الرئيسية',
+    'inventory_account_settings_tab' => 'إعدادات حساب المخزون',
+    'inventory_account_settings' => 'إعدادات حساب المخزون',
+    'cashier_payment_methods_tab' => 'طرق الدفع عند الكاشير',
+    'cashier_payment_methods' => 'طرق الدفع عند الكاشير',
+    'add_cashier_payment_method' => 'إضافة طريقة دفع',
+    'internal_consumption_settings_tab' => 'مصروفات الاستهلاك الداخلي للكاشير',
+    'internal_consumption_settings' => 'مصروفات الاستهلاك الداخلي للكاشير',
+    'internal_consumption_expense_account_hint' => 'حساب المصروف الذي يُدان عند استهلاك داخلي من الكاشير (مثل وجبات العاملين). يُنقص المخزون بالتكلفة دون تسجيل إيراد مبيعات. إن تركته فارغاً يُستخدم حساب الفرع الأب إن وُجد.',
 ];

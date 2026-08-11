@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Modules\Employee\Services\DashboardHubService;
 use Modules\General\Models\Transaction;
 use Modules\Reservation\Events\OrderCreated;
+use Modules\Sales\Support\TransactionPurpose;
 
 class DashbordController extends Controller
 {
@@ -55,26 +56,38 @@ class DashbordController extends Controller
         $previousPeriodEnd = $startDate->copy()->subDay()->endOfDay();
 
         $validStatuses = ['approved', 'final'];
+        $canSales = function_exists('tenant_entitled') ? tenant_entitled('sales') : true;
+        $canPurchases = function_exists('tenant_entitled') ? tenant_entitled('purchases') : true;
 
-        $todaySales = Transaction::where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereDate('transaction_date', $today)
-            ->sum('final_total');
+        $todaySales = 0.0;
+        $yesterdaySales = 0.0;
+        $currentMonthSales = 0.0;
+        $lastMonthSales = 0.0;
+        if ($canSales) {
+            $todaySales = (float) Transaction::where('type', 'sell')
+                ->standardSalesPurpose()
+                ->whereIn('status', $validStatuses)
+                ->whereDate('transaction_date', $today)
+                ->sum('final_total');
 
-        $yesterdaySales = Transaction::where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereDate('transaction_date', $yesterday)
-            ->sum('final_total');
+            $yesterdaySales = (float) Transaction::where('type', 'sell')
+                ->standardSalesPurpose()
+                ->whereIn('status', $validStatuses)
+                ->whereDate('transaction_date', $yesterday)
+                ->sum('final_total');
 
-        $currentMonthSales = Transaction::where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$currentMonthStart, $today])
-            ->sum('final_total');
+            $currentMonthSales = (float) Transaction::where('type', 'sell')
+                ->standardSalesPurpose()
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$currentMonthStart, $today])
+                ->sum('final_total');
 
-        $lastMonthSales = Transaction::where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
-            ->sum('final_total');
+            $lastMonthSales = (float) Transaction::where('type', 'sell')
+                ->standardSalesPurpose()
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
+                ->sum('final_total');
+        }
 
         $dailyChangePercent =
             $yesterdaySales != 0 ? round((($todaySales - $yesterdaySales) / $yesterdaySales) * 100, 2) : 0;
@@ -87,25 +100,31 @@ class DashbordController extends Controller
         $formattedTodaySales = number_format($todaySales);
         $formattedCurrentMonthSales = number_format($currentMonthSales);
 
-        $todayPurchases = Transaction::where('type', 'purchases')
-            ->whereIn('status', $validStatuses)
-            ->whereDate('transaction_date', $today)
-            ->sum('final_total');
+        $todayPurchases = 0.0;
+        $yesterdayPurchases = 0.0;
+        $currentMonthPurchases = 0.0;
+        $lastMonthPurchases = 0.0;
+        if ($canPurchases) {
+            $todayPurchases = (float) Transaction::where('type', 'purchases')
+                ->whereIn('status', $validStatuses)
+                ->whereDate('transaction_date', $today)
+                ->sum('final_total');
 
-        $yesterdayPurchases = Transaction::where('type', 'purchases')
-            ->whereIn('status', $validStatuses)
-            ->whereDate('transaction_date', $yesterday)
-            ->sum('final_total');
+            $yesterdayPurchases = (float) Transaction::where('type', 'purchases')
+                ->whereIn('status', $validStatuses)
+                ->whereDate('transaction_date', $yesterday)
+                ->sum('final_total');
 
-        $currentMonthPurchases = Transaction::where('type', 'purchases')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$currentMonthStart, $today])
-            ->sum('final_total');
+            $currentMonthPurchases = (float) Transaction::where('type', 'purchases')
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$currentMonthStart, $today])
+                ->sum('final_total');
 
-        $lastMonthPurchases = Transaction::where('type', 'purchases')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
-            ->sum('final_total');
+            $lastMonthPurchases = (float) Transaction::where('type', 'purchases')
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$lastMonthStart, $lastMonthEnd])
+                ->sum('final_total');
+        }
 
         $dailyChangePercent_purchases =
             $yesterdayPurchases != 0 ? round((($todayPurchases - $yesterdayPurchases) / $yesterdayPurchases) * 100, 2) : 0;
@@ -122,96 +141,125 @@ class DashbordController extends Controller
             ->selectRaw('tp.transaction_id, SUM(IF(tp.is_return = 1, -1 * tp.amount, tp.amount)) as total_paid')
             ->groupBy('tp.transaction_id');
 
-        $customer_balances = DB::table('transactions as t')
-            ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
-                $join->on('t.id', '=', 'tp_sum.transaction_id');
-            })
-            ->where('t.type', 'sell')
-            ->whereIn('t.status', $validStatuses)
-            ->whereNotNull('t.contact_id')
-            ->selectRaw('SUM(t.final_total) as total_invoices, SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments')
-            ->first();
+        $total_due = 0;
+        $formatted_total_due = number_format(0);
+        $total_unpaid_invoices = 0;
+        $customer_balances = (object) ['total_invoices' => 0, 'total_payments' => 0];
+        $customersBalances = collect();
+        if ($canSales) {
+            $customer_balances = DB::table('transactions as t')
+                ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
+                    $join->on('t.id', '=', 'tp_sum.transaction_id');
+                })
+                ->where('t.type', 'sell')
+                ->where(function ($q) {
+                    $q->whereNull('t.purpose')
+                        ->orWhereNotIn('t.purpose', TransactionPurpose::internalAliases());
+                })
+                ->whereIn('t.status', $validStatuses)
+                ->whereNotNull('t.contact_id')
+                ->selectRaw('SUM(t.final_total) as total_invoices, SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments')
+                ->first();
 
-        $total_due = $customer_balances->total_invoices - $customer_balances->total_payments;
-        $formatted_total_due = number_format($total_due);
-        $total_unpaid_invoices = Transaction::where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereIn('payment_status', ['partial', 'due'])
-            ->count();
+            $total_due = ($customer_balances->total_invoices ?? 0) - ($customer_balances->total_payments ?? 0);
+            $formatted_total_due = number_format($total_due);
+            $total_unpaid_invoices = Transaction::where('type', 'sell')
+                ->standardSalesPurpose()
+                ->whereIn('status', $validStatuses)
+                ->whereIn('payment_status', ['partial', 'due'])
+                ->count();
 
-        $supplier_balances = DB::table('transactions as t')
-            ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
-                $join->on('t.id', '=', 'tp_sum.transaction_id');
-            })
-            ->where('t.type', 'purchases')
-            ->whereIn('t.status', $validStatuses)
-            ->whereNotNull('t.contact_id')
-            ->selectRaw('SUM(t.final_total) as total_invoices, SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments')
-            ->first();
+            $customersBalances = DB::table('transactions as t')
+                ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
+                    $join->on('t.id', '=', 'tp_sum.transaction_id');
+                })
+                ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
+                ->where('t.type', 'sell')
+                ->where(function ($q) {
+                    $q->whereNull('t.purpose')
+                        ->orWhereNotIn('t.purpose', TransactionPurpose::internalAliases());
+                })
+                ->whereIn('t.status', $validStatuses)
+                ->where('c.business_type', 'customer')
+                ->select(
+                    'c.name',
+                    'c.phone_number',
+                    'c.id as contact_id',
+                    DB::raw('SUM(t.final_total) as total_invoices'),
+                    DB::raw('SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments'),
+                    DB::raw('SUM(t.final_total) - SUM(IFNULL(tp_sum.total_paid, 0)) as balance'),
+                )
+                ->groupBy('c.id', 'c.name', 'c.phone_number')
+                ->having('balance', '>', 0)
+                ->orderBy('balance', 'desc')
+                ->limit(20)
+                ->get();
+        }
 
-        $total_due_supplier = $supplier_balances->total_invoices - $supplier_balances->total_payments;
-        $formatted_total_due_supplier = number_format($total_due_supplier);
+        $total_due_supplier = 0;
+        $formatted_total_due_supplier = number_format(0);
+        $total_unpaid_purchases_invoices = 0;
+        $supplier_balances = (object) ['total_invoices' => 0, 'total_payments' => 0];
+        $supplierBalances = collect();
+        if ($canPurchases) {
+            $supplier_balances = DB::table('transactions as t')
+                ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
+                    $join->on('t.id', '=', 'tp_sum.transaction_id');
+                })
+                ->where('t.type', 'purchases')
+                ->whereIn('t.status', $validStatuses)
+                ->whereNotNull('t.contact_id')
+                ->selectRaw('SUM(t.final_total) as total_invoices, SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments')
+                ->first();
 
-        $total_unpaid_purchases_invoices = Transaction::where('type', 'purchases')
-            ->whereIn('status', $validStatuses)
-            ->whereIn('payment_status', ['partial', 'due'])
-            ->count();
+            $total_due_supplier = ($supplier_balances->total_invoices ?? 0) - ($supplier_balances->total_payments ?? 0);
+            $formatted_total_due_supplier = number_format($total_due_supplier);
 
-        $customersBalances = DB::table('transactions as t')
-            ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
-                $join->on('t.id', '=', 'tp_sum.transaction_id');
-            })
-            ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
-            ->where('t.type', 'sell')
-            ->whereIn('t.status', $validStatuses)
-            ->where('c.business_type', 'customer')
-            ->select(
-                'c.name',
-                'c.phone_number',
-                'c.id as contact_id',
-                DB::raw('SUM(t.final_total) as total_invoices'),
-                DB::raw('SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments'),
-                DB::raw('SUM(t.final_total) - SUM(IFNULL(tp_sum.total_paid, 0)) as balance'),
-            )
-            ->groupBy('c.id', 'c.name', 'c.phone_number')
-            ->having('balance', '>', 0)
-            ->orderBy('balance', 'desc')
-            ->limit(20)
-            ->get();
+            $total_unpaid_purchases_invoices = Transaction::where('type', 'purchases')
+                ->whereIn('status', $validStatuses)
+                ->whereIn('payment_status', ['partial', 'due'])
+                ->count();
 
-        $supplierBalances = DB::table('transactions as t')
-            ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
-                $join->on('t.id', '=', 'tp_sum.transaction_id');
-            })
-            ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
-            ->where('t.type', 'purchases')
-            ->whereIn('t.status', $validStatuses)
-            ->where('c.business_type', 'supplier')
-            ->select(
-                'c.name',
-                'c.phone_number',
-                'c.id as contact_id',
-                DB::raw('SUM(t.final_total) as total_invoices'),
-                DB::raw('SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments'),
-                DB::raw('SUM(t.final_total) - SUM(IFNULL(tp_sum.total_paid, 0)) as balance'),
-            )
-            ->groupBy('c.id', 'c.name', 'c.phone_number')
-            ->having('balance', '>', 0)
-            ->orderBy('balance', 'desc')
-            ->limit(20)
-            ->get();
+            $supplierBalances = DB::table('transactions as t')
+                ->leftJoinSub($paymentsSub, 'tp_sum', function ($join) {
+                    $join->on('t.id', '=', 'tp_sum.transaction_id');
+                })
+                ->join('cs_contacts as c', 't.contact_id', '=', 'c.id')
+                ->where('t.type', 'purchases')
+                ->whereIn('t.status', $validStatuses)
+                ->where('c.business_type', 'supplier')
+                ->select(
+                    'c.name',
+                    'c.phone_number',
+                    'c.id as contact_id',
+                    DB::raw('SUM(t.final_total) as total_invoices'),
+                    DB::raw('SUM(IFNULL(tp_sum.total_paid, 0)) as total_payments'),
+                    DB::raw('SUM(t.final_total) - SUM(IFNULL(tp_sum.total_paid, 0)) as balance'),
+                )
+                ->groupBy('c.id', 'c.name', 'c.phone_number')
+                ->having('balance', '>', 0)
+                ->orderBy('balance', 'desc')
+                ->limit(20)
+                ->get();
+        }
 
         $months = collect(range(0, 5))->map(function ($i) {
             return Carbon::now()->subMonths($i)->format('Y-m');
         })->reverse()->values();
 
-        $salesData = DB::table('transactions')
-            ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') as month, SUM(final_total) as total")
-            ->where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereIn(DB::raw("DATE_FORMAT(transaction_date, '%Y-%m')"), $months)
-            ->groupBy('month')
-            ->pluck('total', 'month');
+        $salesData = $canSales
+            ? DB::table('transactions')
+                ->selectRaw("DATE_FORMAT(transaction_date, '%Y-%m') as month, SUM(final_total) as total")
+                ->where('type', 'sell')
+                ->where(function ($q) {
+                    $q->whereNull('purpose')
+                        ->orWhereNotIn('purpose', TransactionPurpose::internalAliases());
+                })
+                ->whereIn('status', $validStatuses)
+                ->whereIn(DB::raw("DATE_FORMAT(transaction_date, '%Y-%m')"), $months)
+                ->groupBy('month')
+                ->pluck('total', 'month')
+            : collect();
 
         $expensesData = DB::table('accounting_accounts_transactions')
             ->join('accounting_accounts', 'accounting_accounts_transactions.accounting_account_id', '=', 'accounting_accounts.id')
@@ -295,26 +343,36 @@ class DashbordController extends Controller
 
         $formattedTodayExpenses = number_format($todayExpenses);
         $formattedCurrentMonthExpenses = number_format($currentMonthExpenses);
-        $periodSales = Transaction::where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum('final_total');
-        $previousPeriodSales = Transaction::where('type', 'sell')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$previousPeriodStart, $previousPeriodEnd])
-            ->sum('final_total');
+        $periodSales = 0.0;
+        $previousPeriodSales = 0.0;
+        if ($canSales) {
+            $periodSales = (float) Transaction::where('type', 'sell')
+                ->standardSalesPurpose()
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->sum('final_total');
+            $previousPeriodSales = (float) Transaction::where('type', 'sell')
+                ->standardSalesPurpose()
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$previousPeriodStart, $previousPeriodEnd])
+                ->sum('final_total');
+        }
         $periodSalesChange = $previousPeriodSales > 0
             ? round((($periodSales - $previousPeriodSales) / $previousPeriodSales) * 100, 2)
             : 0;
 
-        $periodPurchases = Transaction::where('type', 'purchases')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum('final_total');
-        $previousPeriodPurchases = Transaction::where('type', 'purchases')
-            ->whereIn('status', $validStatuses)
-            ->whereBetween('transaction_date', [$previousPeriodStart, $previousPeriodEnd])
-            ->sum('final_total');
+        $periodPurchases = 0.0;
+        $previousPeriodPurchases = 0.0;
+        if ($canPurchases) {
+            $periodPurchases = (float) Transaction::where('type', 'purchases')
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$startDate, $endDate])
+                ->sum('final_total');
+            $previousPeriodPurchases = (float) Transaction::where('type', 'purchases')
+                ->whereIn('status', $validStatuses)
+                ->whereBetween('transaction_date', [$previousPeriodStart, $previousPeriodEnd])
+                ->sum('final_total');
+        }
         $periodPurchasesChange = $previousPeriodPurchases > 0
             ? round((($periodPurchases - $previousPeriodPurchases) / $previousPeriodPurchases) * 100, 2)
             : 0;
@@ -346,6 +404,12 @@ class DashbordController extends Controller
             : 0;
         $periodNet = $periodSales - $periodPurchases - $periodExpenses;
 
+        $periodInternalConsumption = (float) DB::table('accounting_accounts_transactions')
+            ->where('sub_type', TransactionPurpose::JOURNAL_SUB_TYPE)
+            ->where('type', 'debit')
+            ->whereBetween('operation_date', [$startDate, $endDate])
+            ->sum('amount');
+
         $linkedCompanies = collect();
         if (auth()->check() && filled(auth()->user()->email)) {
             try {
@@ -359,6 +423,8 @@ class DashbordController extends Controller
         return view('employee::dashboard.hub', compact(
             'dashboardTabs',
             'activeDashboardTab',
+            'canSales',
+            'canPurchases',
             'formattedTodaySales',
             'dailyChangePercent',
             'formattedCurrentMonthSales',
@@ -397,6 +463,7 @@ class DashbordController extends Controller
             'periodPurchasesChange',
             'periodExpenses',
             'periodExpensesChange',
+            'periodInternalConsumption',
             'periodNet',
             'linkedCompanies'
 
