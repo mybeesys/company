@@ -321,22 +321,37 @@ class SellReturnRepairService
     {
         $totalBeforeVat = round(array_sum(array_column($linePlan, 'total_before_vat')), 2);
 
-        $parentBefore = (float) ($parent->total_before_tax ?? 0);
-        $parentAfter = (float) ($parent->totalAfterDiscount ?? $parent->total_after_discount ?? $parentBefore);
-        $parentDiscMoney = round(max(0, $parentBefore - $parentAfter), 2);
-        if ($parentDiscMoney <= 0) {
+        $parentBefore = round((float) ($parent->total_before_tax ?? 0), 2);
+        $parentAfterRaw = $parent->totalAfterDiscount ?? $parent->total_after_discount ?? null;
+        // Empty string must not cast to 0 — that would treat the whole invoice as discounted away.
+        if ($parentAfterRaw === null || $parentAfterRaw === '') {
+            $parentAfter = $parentBefore;
+        } else {
+            $parentAfter = round((float) $parentAfterRaw, 2);
+        }
+
+        $parentDiscFromTotals = round(max(0, $parentBefore - $parentAfter), 2);
+        $parentDiscMoney = 0.0;
+        $parentDiscType = $parent->discount_type ?: null;
+
+        if ($parentDiscFromTotals > 0.009) {
+            // Authoritative: header totals already reflect the real invoice discount money.
+            $parentDiscMoney = $parentDiscFromTotals;
+        } elseif ($parentDiscType === 'percent') {
             $raw = (float) ($parent->discount_amount ?? 0);
-            if (($parent->discount_type ?? '') === 'percent') {
-                $parentDiscMoney = round($parentBefore * ($raw / 100), 2);
-            } else {
-                $parentDiscMoney = round(max(0, $raw), 2);
-            }
+            $parentDiscMoney = round($parentBefore * (max(0, $raw) / 100), 2);
+        } elseif ($parentDiscType === 'fixed') {
+            // Only trust stored fixed amount when type is explicitly fixed.
+            $parentDiscMoney = round(max(0, (float) ($parent->discount_amount ?? 0)), 2);
+            // Never exceed parent before-tax.
+            $parentDiscMoney = min($parentDiscMoney, $parentBefore);
         }
 
         $invoiceDisc = 0.0;
         $invoiceDiscType = null;
         if ($parentDiscMoney > 0 && $parentBefore > 0 && $totalBeforeVat > 0) {
             $invoiceDisc = round($parentDiscMoney * min(1, $totalBeforeVat / $parentBefore), 2);
+            $invoiceDisc = min($invoiceDisc, $totalBeforeVat);
             $invoiceDiscType = 'fixed';
         }
 
@@ -360,6 +375,11 @@ class SellReturnRepairService
             'totalAfterDiscount' => $totalAfterDiscount,
             'tax_amount' => $taxAmount,
             'final_total' => $finalTotal,
+            'parent_total_before_tax' => $parentBefore,
+            'parent_total_after_discount' => $parentAfter,
+            'parent_discount_amount' => $parent->discount_amount,
+            'parent_discount_type' => $parentDiscType,
+            'parent_discount_money_used' => $parentDiscMoney,
         ];
     }
 

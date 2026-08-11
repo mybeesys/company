@@ -94,6 +94,15 @@ class RepairSellReturnsCommand extends Command
                     $this->line('    - '.$change);
                 }
                 $this->line(sprintf(
+                    '    parent sell #%s: before=%s afterDisc=%s disc=%s/%s (money_used=%s)',
+                    $returnTx->parent_id,
+                    $result['after']['parent_total_before_tax'] ?? $result['before']['parent_total_before_tax'] ?? '-',
+                    $result['after']['parent_total_after_discount'] ?? '-',
+                    $result['after']['parent_discount_amount'] ?? '-',
+                    $result['after']['parent_discount_type'] ?? '-',
+                    $result['after']['parent_discount_money_used'] ?? '-'
+                ));
+                $this->line(sprintf(
                     '    totals: before=%s disc=%s afterDisc=%s vat=%s final=%s → final=%s',
                     $result['before']['total_before_tax'] ?? '-',
                     $result['before']['discount_amount'] ?? '-',
@@ -102,6 +111,13 @@ class RepairSellReturnsCommand extends Command
                     $result['before']['final_total'] ?? '-',
                     $result['after']['final_total'] ?? '-'
                 ));
+                if (
+                    isset($result['after']['total_before_tax'], $result['after']['discount_amount'])
+                    && (float) $result['after']['total_before_tax'] > 0
+                    && ((float) $result['after']['discount_amount'] / (float) $result['after']['total_before_tax']) > 0.5
+                ) {
+                    $this->warn('    ⚠ invoice discount share > 50% of return — verify parent sell discount before --execute');
+                }
             }
 
             tenancy()->end();
