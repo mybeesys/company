@@ -6,20 +6,24 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Utils\AccountingUtil;
+use Modules\Accounting\Utils\InternalConsumptionAccountResolver;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
-use Modules\General\Models\PaymentMethod;
+use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Inventory\Services\InventoryCostingService;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductComboItem;
 use Modules\Reservation\Services\KitchenBroadcastService;
 use Modules\Reservation\Support\KitchenOrderPayload;
 use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
+use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
 
 class SellApiController extends Controller
@@ -229,25 +233,65 @@ class SellApiController extends Controller
                 }
             }
 
-            $payments = json_decode(json_encode($request->payments ?? []));
-            foreach ($payments ?? [] as $payment) {
+            if (TransactionPurpose::isInternalConsumption($transaction)) {
+                if (($request->status ?? '') !== 'draft') {
+                    $expenseAccountId = InternalConsumptionAccountResolver::resolveExpenseAccountId((int) $establishment_id);
+                    if (! $expenseAccountId) {
+                        DB::rollBack();
 
-                $find_payment = PaymentMethod::find($payment->method_id);
-                if (! $find_payment) {
-                    return response()->json(['message' => 'Payment method not found id ='.$payment->method_id], 404);
+                        return response()->json([
+                            'message' => __('establishment::responses.internal_consumption_expense_account_required'),
+                            'code' => 'internal_consumption_expense_account_required',
+                        ], 422);
+                    }
+
+                    try {
+                        app(InventoryCostingService::class)->processTransaction($transaction->fresh());
+                        (new AccountingUtil)->postInternalConsumptionJournal($transaction->fresh(), $request);
+                        $transaction->payment_status = 'paid';
+                        $transaction->save();
+                    } catch (\Throwable $e) {
+                        DB::rollBack();
+
+                        return response()->json([
+                            'message' => $e->getMessage(),
+                            'code' => 'internal_consumption_failed',
+                        ], 422);
+                    }
                 }
+            } else {
+                $payments = json_decode(json_encode($request->payments ?? []));
+                foreach ($payments ?? [] as $payment) {
+                    if (! ($payment->amount ?? null)) {
+                        continue;
+                    }
 
-                if ($payment->amount) {
+                    $methodId = (int) ($payment->method_id ?? 0);
+                    if ($methodId === -1) {
+                        $methodId = EstablishmentPaymentAccountResolver::resolveCashMethodId((int) $transaction->establishment_id) ?? 0;
+                    }
+
+                    $resolved = EstablishmentPaymentAccountResolver::resolveForCashierPayment(
+                        (int) $transaction->establishment_id,
+                        $methodId
+                    );
+                    if (! $resolved['ok']) {
+                        DB::rollBack();
+
+                        return response()->json(['message' => $resolved['message']], $resolved['status']);
+                    }
+
                     $request->merge(PosSalesInvoiceMapper::paymentRequestAttributes(
                         $request,
                         $payment,
-                        $find_payment->account_id ? (int) $find_payment->account_id : null
+                        $resolved['account_id'],
+                        $resolved['method_id']
                     ));
 
                     $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
                 }
+                $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
             }
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
             DB::commit();
 

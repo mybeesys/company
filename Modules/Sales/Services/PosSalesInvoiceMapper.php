@@ -135,6 +135,9 @@ final class PosSalesInvoiceMapper
 
         return [
             'type' => 'sell',
+            'purpose' => \Modules\Sales\Support\TransactionPurpose::normalize(
+                $overrides['purpose'] ?? $request->input('purpose')
+            ),
             'local_id' => $request->id,
             'invoice_type' => self::resolveInvoiceType($request),
             'due_date' => null,

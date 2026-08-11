@@ -138,4 +138,14 @@ class Establishment extends Model
     {
         return $this->belongsTo(AccountingAccount::class, 'perpetual_inventory_account_id');
     }
+
+    public function internalConsumptionExpenseAccount()
+    {
+        return $this->belongsTo(AccountingAccount::class, 'internal_consumption_expense_account_id');
+    }
+
+    public function paymentAccounts()
+    {
+        return $this->hasMany(EstablishmentPaymentAccount::class, 'establishment_id');
+    }
 }

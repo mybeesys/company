@@ -6,8 +6,11 @@
         action="{{ route('establishments.store') }}">
         @csrf
         <x-establishment::establishments.form formId="add_establishment_form" :establishments="$establishments"
+            :showButtons="false" />
+        <x-establishment::establishments.inventory-account-settings
             :showPerpetualInventoryAccount="$showPerpetualInventoryAccount ?? false"
             :perpetualInventoryAccounts="$perpetualInventoryAccounts ?? collect()" />
+        <x-form.form-buttons cancelUrl="{{ url('/establishment') }}" id="add_establishment_form" />
     </form>
 @endsection
 
@@ -16,9 +19,12 @@
     <script src="{{ url('modules/establishment/js/create-edit-establishment.js') }}"></script>
     <script>
         $(document).ready(function() {
-            let saveButton = $(`#add_establishment_form_button`);
             establishmentForm('add_establishment_form', "{{ route('establishments.create.validation') }}");
             handleImageInput('imageInput', 'logo');
+            $('#add_establishment_form .select-2').select2({
+                allowClear: true,
+                width: '100%'
+            });
         });
     </script>
 @endsection

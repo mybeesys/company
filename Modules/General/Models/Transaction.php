@@ -6,11 +6,13 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Sales\Support\TransactionPurpose;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\General\Database\Factories\TransactionFactory;
@@ -20,6 +22,17 @@ class Transaction extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
+
+    /**
+     * Sell documents that count toward sales KPIs (excludes cashier internal consumption).
+     */
+    public function scopeStandardSalesPurpose(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->whereNull('purpose')
+                ->orWhereNotIn('purpose', TransactionPurpose::internalAliases());
+        });
+    }
 
     public function getIsFavoriteAttribute()
     {
