@@ -33,6 +33,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Sales\Models\Coupon;
 use Modules\Sales\Services\ApplyCouponService;
+use Modules\Sales\Services\WebSellModifiersCombosService;
 use Modules\Sales\Utils\SalesUtile;
 use Mpdf\Mpdf;
 
@@ -595,8 +596,15 @@ class SellController extends Controller
         $quotationId = (int) $request->input('quotation_id', 0);
 
         $sellLineRelations = [
-            'sell_lines' => fn ($q) => $q->where('is_show', 1)->orderBy('id'),
+            'sell_lines' => fn ($q) => $q->where('is_show', 1)
+                ->where(function ($query) {
+                    $query->whereNull('parent_id')
+                        ->orWhere('parent_id', '')
+                        ->orWhere('parent_id', 0);
+                })
+                ->orderBy('id'),
             'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+            'sell_lines.childLines.product',
         ];
 
         if ($duplicateFrom > 0) {
@@ -636,7 +644,27 @@ class SellController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
-        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate'));
+        $sellWithModifiersCombos = WebSellModifiersCombosService::isEnabled();
+
+        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate', 'sellWithModifiersCombos'));
+    }
+
+    public function productSellExtras(int $id)
+    {
+        if (! WebSellModifiersCombosService::isEnabled()) {
+            return response()->json(['success' => false, 'message' => 'disabled'], 403);
+        }
+
+        $product = Product::query()
+            ->where('id', $id)
+            ->where('active', 1)
+            ->where('for_sell', 1)
+            ->firstOrFail();
+
+        return response()->json([
+            'success' => true,
+            'data' => WebSellModifiersCombosService::buildProductExtras($product),
+        ]);
     }
 
     private function buildSalesInvoicePrecheckConfig(): array
@@ -855,7 +883,7 @@ class SellController extends Controller
                 }
             }
 
-            TransactionSellLine::create([
+            $mainLine = TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->products_id,
                 'qyt' => $product->qty,
@@ -869,6 +897,12 @@ class SellController extends Controller
                 'tax_value' => $product->vat_value,
                 'total_before_vat' => $product->total_before_vat,
             ]);
+
+            WebSellModifiersCombosService::persistChildLines(
+                (int) $transaction->id,
+                (int) $mainLine->id,
+                $product
+            );
 
             // $is_recipe_yield = Product::find($product->products_id)->recipe_yield;
             // if ($is_recipe_yield) {

@@ -125,6 +125,26 @@ class InventoryCostingService
         return $this->legacyCogsAmountForSell($transactionId);
     }
 
+    /**
+     * Inventory cost restored by a sell-return (inbound sell_return movements / legacy product cost).
+     */
+    public function resolveInboundCostForSellReturn(int $transactionId): float
+    {
+        if ($this->isActive()) {
+            $amount = (float) InventoryCostMovement::query()
+                ->where('transaction_id', $transactionId)
+                ->where('movement_type', 'sell_return')
+                ->sum('total_cost');
+
+            return max(0, round($amount, 4));
+        }
+
+        return (float) DB::table('transactione_purchases_lines as tpl')
+            ->join('product_products as p', 'p.id', '=', 'tpl.product_id')
+            ->where('tpl.transaction_id', $transactionId)
+            ->sum(DB::raw('COALESCE(tpl.qyt,0) * COALESCE(p.cost,0)'));
+    }
+
     public function legacyCogsAmountForSell(int $transactionId): float
     {
         return (float) DB::table('transaction_sell_lines as tsl')

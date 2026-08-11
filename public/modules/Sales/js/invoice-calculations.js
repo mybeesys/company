@@ -117,6 +117,28 @@ function updateSalesTotals() {
         totalBeforeVat += totalBeforeDiscount;
         totalVat += vatAmount;
         totalAfterVat += totalRow;
+
+        const extrasBefore =
+            parseFloat($(this).find(".smc-extras-before-vat").val()) ||
+            parseFloat(
+                $(this).find(`[name="products[${index}][extras_before_vat]"]`).val()
+            ) ||
+            0;
+        const extrasInc =
+            parseFloat($(this).find(".smc-extras-inc-tax").val()) ||
+            parseFloat(
+                $(this).find(`[name="products[${index}][extras_inc_tax]"]`).val()
+            ) ||
+            0;
+        if (extrasBefore > 0 || extrasInc > 0) {
+            const extrasVat = Math.max(0, extrasInc - extrasBefore);
+            // Extras are stored as child sell lines — keep parent row fields product-only,
+            // but include extras in invoice-level totals.
+            totalBeforeVat += extrasBefore;
+            totalVat += extrasVat;
+            totalAfterVat += extrasInc;
+            totalBeforeDiscountForVat += extrasBefore;
+        }
     });
 
     const invoiceDiscount = parseFloat($("#invoice_discount").val()) || 0;

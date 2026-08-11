@@ -212,6 +212,7 @@
     </form>
 
     @include('sales::sell.create.add-client')
+    @include('sales::sell.partials.modifiers-combos-modal')
 
 
 
@@ -219,10 +220,18 @@
 @stop
 
 @section('script')
+    <script>
+        window.sellWithModifiersCombos = @json($sellWithModifiersCombos ?? false);
+        window.smcI18n = {
+            edit: @json(__('sales::lang.smc_edit_extras')),
+        };
+        window.invoicePrecheckConfig = @json($invoicePrecheckConfig ?? []);
+    </script>
     <script src="{{ url('/modules/Sales/js/select-2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-type-account-toggle.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/sell-modifiers-combos.js') }}"></script>
     {{-- <script src="{{ asset('Modules/Sales/js/clients.js') }}"></script> --}}
     <script>
         $("#addClientForm").on("submit", function(e) {
@@ -776,6 +785,8 @@ $.ajax({
                 : `${product.SKU} - ${product.name_en}`,
                         price: product.price,
                         units: product.unit_transfers,
+                        has_modifiers: !!product.has_modifiers,
+                        has_combos: !!product.has_combos,
                     })),
                     pagination: {
                         more: response.meta?.next_page_url ? true : false

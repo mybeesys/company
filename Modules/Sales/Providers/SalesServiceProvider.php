@@ -47,7 +47,9 @@ class SalesServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Sales\Console\RepairSellReturnsCommand::class,
+        ]);
     }
 
     /**
