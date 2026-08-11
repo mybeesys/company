@@ -2,16 +2,29 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class EntitlementGate
 {
     /**
+     * Per-request memo (avoid tenant-tagged Redis cache returning stale packages).
+     *
+     * @var array<int|string, array{
+     *     modules: list<string>,
+     *     employees_quota: int|null,
+     *     establishments_quota: int|null,
+     *     screen_devices_quota: int|null,
+     *     legacy: bool
+     * }>
+     */
+    protected array $memo = [];
+
+    /**
      * @return array{
      *     modules: list<string>,
      *     employees_quota: int|null,
      *     establishments_quota: int|null,
+     *     screen_devices_quota: int|null,
      *     legacy: bool
      * }
      */
@@ -20,36 +33,49 @@ class EntitlementGate
         $companyId = $companyId ?: (function_exists('get_company_id') ? get_company_id() : null);
 
         if (! $companyId) {
-            return $this->empty(legacy: true);
+            // Inside a tenant request without company: fail closed (platform only).
+            if (function_exists('tenancy') && tenancy()->initialized) {
+                return $this->empty(legacy: false);
+            }
+
+            // Outside tenancy (CLI/central): keep legacy open only when configured.
+            return $this->empty(legacy: (bool) config('entitlements.legacy_unrestricted', true));
         }
 
-        return Cache::remember(
-            "tenant_entitlements:{$companyId}",
-            now()->addMinutes(10),
-            function () use ($companyId) {
-                $row = DB::connection('mysql')
-                    ->table('company_entitlements')
-                    ->where('company_id', $companyId)
-                    ->first();
+        if (isset($this->memo[$companyId])) {
+            return $this->memo[$companyId];
+        }
 
-                if (! $row) {
-                    return $this->empty(legacy: (bool) config('entitlements.legacy_unrestricted', true));
-                }
+        $connection = $this->centralConnection();
 
-                $modules = json_decode($row->modules ?? '[]', true);
-                if (! is_array($modules)) {
-                    $modules = [];
-                }
+        try {
+            $row = DB::connection($connection)
+                ->table('company_entitlements')
+                ->where('company_id', $companyId)
+                ->first();
+        } catch (\Throwable) {
+            // Fail closed for known tenants — never open every module on DB errors.
+            return $this->memo[$companyId] = $this->empty(legacy: false);
+        }
 
-                return [
-                    'modules' => array_values(array_unique(array_merge(['platform'], $modules))),
-                    'employees_quota' => (int) $row->employees_quota,
-                    'establishments_quota' => (int) $row->establishments_quota,
-                    'screen_devices_quota' => (int) ($row->screen_devices_quota ?? 0),
-                    'legacy' => false,
-                ];
-            }
-        );
+        if (! $row) {
+            return $this->memo[$companyId] = $this->empty(
+                legacy: (bool) config('entitlements.legacy_unrestricted', true)
+            );
+        }
+
+        $modules = json_decode($row->modules ?? '[]', true);
+        if (! is_array($modules)) {
+            $modules = [];
+        }
+
+        return $this->memo[$companyId] = [
+            'modules' => array_values(array_unique(array_merge(['platform'], $modules))),
+            'employees_quota' => (int) $row->employees_quota,
+            'establishments_quota' => (int) $row->establishments_quota,
+            'screen_devices_quota' => (int) ($row->screen_devices_quota ?? 0),
+            'legacy' => false,
+        ];
     }
 
     public function allows(string|array $moduleKeys, ?int $companyId = null): bool
@@ -153,6 +179,74 @@ class EntitlementGate
         return $this->allows($map[$section], $companyId);
     }
 
+    public function prefixTypeAllowed(?string $prefixType, ?int $companyId = null): bool
+    {
+        if ($prefixType === null || $prefixType === '') {
+            return true;
+        }
+
+        $map = config('entitlements.settings_prefix_entitlements', []);
+
+        if (! array_key_exists($prefixType, $map)) {
+            return true;
+        }
+
+        return $this->allows($map[$prefixType], $companyId);
+    }
+
+    public function notificationTypeAllowed(?string $notificationType, ?int $companyId = null): bool
+    {
+        if ($notificationType === null || $notificationType === '') {
+            return true;
+        }
+
+        $map = config('entitlements.settings_notification_entitlements', []);
+
+        if (! array_key_exists($notificationType, $map)) {
+            return $this->settingAllowed('notifications', $companyId);
+        }
+
+        return $this->allows($map[$notificationType], $companyId);
+    }
+
+    /**
+     * Map a shared Transaction.type to the commercial module that may access it.
+     *
+     * @return string|list<string>|null null = no commercial gate (platform/shared)
+     */
+    public function moduleForTransactionType(?string $type): string|array|null
+    {
+        $type = (string) $type;
+
+        return match ($type) {
+            'sell', 'sell-return', 'quotation' => 'sales',
+            'purchases', 'purchases-return', 'purchases-order', 'purchase', 'purchase-order' => 'purchases',
+            default => null,
+        };
+    }
+
+    public function transactionTypeAllowed(?string $type, ?int $companyId = null): bool
+    {
+        $required = $this->moduleForTransactionType($type);
+
+        if ($required === null) {
+            return true;
+        }
+
+        return $this->allows($required, $companyId);
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, object>|iterable<int, object>  $prefixes
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    public function filterPrefixes(iterable $prefixes, ?int $companyId = null)
+    {
+        return collect($prefixes)->filter(
+            fn ($prefix) => $this->prefixTypeAllowed($prefix->type ?? null, $companyId)
+        )->values();
+    }
+
     /**
      * @return list<string>
      */
@@ -171,14 +265,47 @@ class EntitlementGate
     {
         $path = ltrim($path, '/');
         $map = config('entitlements.api_entitlements', []);
+        $required = null;
+        $bestLength = -1;
 
         foreach ($map as $prefix => $module) {
-            if (str_starts_with($path, ltrim($prefix, '/'))) {
-                return $this->allows($module, $companyId);
+            $prefix = ltrim((string) $prefix, '/');
+            if ($prefix !== '' && ($path === $prefix || str_starts_with($path, $prefix))) {
+                $length = strlen($prefix);
+                if ($length > $bestLength) {
+                    $bestLength = $length;
+                    $required = $module;
+                }
             }
         }
 
-        return true;
+        if ($required === null) {
+            return true;
+        }
+
+        return $this->allows($required, $companyId);
+    }
+
+    public function forgetMemo(?int $companyId = null): void
+    {
+        if ($companyId === null) {
+            $this->memo = [];
+
+            return;
+        }
+
+        unset($this->memo[$companyId]);
+    }
+
+    protected function centralConnection(): string
+    {
+        $connection = (string) config('tenancy.database.central_connection', 'central');
+
+        if ($connection !== '' && config("database.connections.{$connection}")) {
+            return $connection;
+        }
+
+        return 'mysql';
     }
 
     /**

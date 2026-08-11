@@ -33,6 +33,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Sales\Models\Coupon;
 use Modules\Sales\Services\ApplyCouponService;
+use Modules\Sales\Services\WebSellModifiersCombosService;
 use Modules\Sales\Utils\SalesUtile;
 use Mpdf\Mpdf;
 
@@ -595,8 +596,15 @@ class SellController extends Controller
         $quotationId = (int) $request->input('quotation_id', 0);
 
         $sellLineRelations = [
-            'sell_lines' => fn ($q) => $q->where('is_show', 1)->orderBy('id'),
+            'sell_lines' => fn ($q) => $q->where('is_show', 1)
+                ->where(function ($query) {
+                    $query->whereNull('parent_id')
+                        ->orWhere('parent_id', '')
+                        ->orWhere('parent_id', 0);
+                })
+                ->orderBy('id'),
             'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+            'sell_lines.childLines.product',
         ];
 
         if ($duplicateFrom > 0) {
@@ -636,7 +644,27 @@ class SellController extends Controller
             $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
         }
 
-        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate'));
+        $sellWithModifiersCombos = WebSellModifiersCombosService::isEnabled();
+
+        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate', 'sellWithModifiersCombos'));
+    }
+
+    public function productSellExtras(int $id)
+    {
+        if (! WebSellModifiersCombosService::isEnabled()) {
+            return response()->json(['success' => false, 'message' => 'disabled'], 403);
+        }
+
+        $product = Product::query()
+            ->where('id', $id)
+            ->where('active', 1)
+            ->where('for_sell', 1)
+            ->firstOrFail();
+
+        return response()->json([
+            'success' => true,
+            'data' => WebSellModifiersCombosService::buildProductExtras($product),
+        ]);
     }
 
     private function buildSalesInvoicePrecheckConfig(): array
@@ -672,6 +700,7 @@ class SellController extends Controller
                 'missingUnit' => app()->getLocale() === 'ar'
                     ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
                     : 'Please select unit for each product before saving.',
+                'contactMissingAccount' => __('sales::lang.contact_missing_accounting_account'),
             ],
         ];
     }
@@ -690,6 +719,14 @@ class SellController extends Controller
         $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
 
         $transactionUtil = new TransactionUtils;
+
+        $client = Contact::find($request->client_id);
+        if (! $client || ! $client->account_id) {
+            throw ValidationException::withMessages([
+                'client_id' => __('sales::lang.contact_missing_accounting_account'),
+            ]);
+        }
+
         DB::beginTransaction();
 
         if ($request->filled('quotation_id')) {
@@ -784,7 +821,10 @@ class SellController extends Controller
 
         $resolvedAccountId = (int) ($request->input('account_id') ?: $request->input('cash_account'));
         if ($resolvedAccountId > 0) {
-            $request->merge(['account_id' => $resolvedAccountId]);
+            $request->merge([
+                'account_id' => $resolvedAccountId,
+                'cash_account' => $resolvedAccountId,
+            ]);
         }
 
         $quotation_id = null;
@@ -846,7 +886,7 @@ class SellController extends Controller
                 }
             }
 
-            TransactionSellLine::create([
+            $mainLine = TransactionSellLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->products_id,
                 'qyt' => $product->qty,
@@ -860,6 +900,12 @@ class SellController extends Controller
                 'tax_value' => $product->vat_value,
                 'total_before_vat' => $product->total_before_vat,
             ]);
+
+            WebSellModifiersCombosService::persistChildLines(
+                (int) $transaction->id,
+                (int) $mainLine->id,
+                $product
+            );
 
             // $is_recipe_yield = Product::find($product->products_id)->recipe_yield;
             // if ($is_recipe_yield) {
@@ -937,19 +983,32 @@ class SellController extends Controller
 
             $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
             $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+            $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
+
+            if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
+                throw ValidationException::withMessages([
+                    'account_id' => 'Accounting routing missing for sell. Please configure sales_sales and sales_vat_calculation.',
+                ]);
+            }
 
             $client = Contact::find($request->client_id);
+            if (! $client || ! $client->account_id) {
+                throw ValidationException::withMessages([
+                    'client_id' => __('sales::lang.contact_missing_accounting_account'),
+                ]);
+            }
             $transactionPayment = new \stdClass;
 
             $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
             $transactionPayment->account_id = $client->account_id;
             $transactionPayment->created_by = Auth::user()->id;
-            $transactionPayment->created_by = Auth::user()->id;
             $transactionPayment->transaction_id = $transaction->id;
             $transactionPayment->id = null;
 
-            $transactionPayment->amount = $transaction->final_total;
+            $revenue = $accountUtil->resolveSellRevenueAmounts($transaction);
 
+            // Dr Customer AR (net payable incl. VAT)
+            $transactionPayment->amount = $revenue['final_total'];
             $accountUtil->saveAccountRouteTransaction(
                 'debit',
                 $transactionPayment,
@@ -958,9 +1017,9 @@ class SellController extends Controller
                 $request
             );
 
+            // Cr Sales (gross before invoice discount)
             $transactionPayment->account_id = $sales_sales->account_id;
-            $transactionPayment->amount = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax);
-
+            $transactionPayment->amount = $revenue['sales_gross_before_discount'];
             $accountUtil->saveAccountRouteTransaction(
                 'credit',
                 $transactionPayment,
@@ -969,9 +1028,22 @@ class SellController extends Controller
                 $request
             );
 
-            $transactionPayment->account_id = $sales_vat_calculation->account_id;
-            $transactionPayment->amount = $transaction->tax_amount;
+            // Dr Discount allowed
+            if ($revenue['discount_amount'] > 0 && $sales_discount_allowed?->account_id) {
+                $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                $transactionPayment->amount = $revenue['discount_amount'];
+                $accountUtil->saveAccountRouteTransaction(
+                    'debit',
+                    $transactionPayment,
+                    $transaction,
+                    $acc_trans_mapping_id,
+                    $request
+                );
+            }
 
+            // Cr Output VAT
+            $transactionPayment->account_id = $sales_vat_calculation->account_id;
+            $transactionPayment->amount = $revenue['tax_amount'];
             $accountUtil->saveAccountRouteTransaction(
                 'credit',
                 $transactionPayment,
@@ -1040,6 +1112,13 @@ class SellController extends Controller
 
         $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
         $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+        $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
+
+        if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
+            throw ValidationException::withMessages([
+                'account_id' => 'Accounting routing missing for sell. Please configure sales_sales and sales_vat_calculation.',
+            ]);
+        }
 
         $payment_method_id = null;
 
@@ -1055,6 +1134,11 @@ class SellController extends Controller
         $payment_ref_no = $transactionUtil->generateReferenceNumber($prefix_type);
 
         $client = Contact::find($request->client_id);
+        if (! $client || ! $client->account_id) {
+            throw ValidationException::withMessages([
+                'client_id' => __('sales::lang.contact_missing_accounting_account'),
+            ]);
+        }
         $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
             'payment_type' => $transaction->invoice_type,
@@ -1069,13 +1153,12 @@ class SellController extends Controller
             'payment_ref_no' => $payment_ref_no,
             'account_id' => $cash_account_id,
         ]);
-        $client = Contact::find($transactionPayment->payment_for);
 
+        $revenue = $accountUtil->resolveSellRevenueAmounts($transaction);
+
+        // Invoice side (same structure as accounts_route due sell)
         $transactionPayment->account_id = $client->account_id;
-
-        $transactionPayment->amount = $transaction->final_total;
-        // $transactionPayment->amount = $transaction->final_total - $request->paid_amount;
-
+        $transactionPayment->amount = $revenue['final_total'];
         $accountUtil->saveAccountRouteTransaction(
             'debit',
             $transactionPayment,
@@ -1085,8 +1168,7 @@ class SellController extends Controller
         );
 
         $transactionPayment->account_id = $sales_sales->account_id;
-        $transactionPayment->amount = (float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $transaction->total_before_tax);
-
+        $transactionPayment->amount = $revenue['sales_gross_before_discount'];
         $accountUtil->saveAccountRouteTransaction(
             'credit',
             $transactionPayment,
@@ -1095,9 +1177,20 @@ class SellController extends Controller
             $request
         );
 
-        $transactionPayment->account_id = $sales_vat_calculation->account_id;
-        $transactionPayment->amount = $transaction->tax_amount;
+        if ($revenue['discount_amount'] > 0 && $sales_discount_allowed?->account_id) {
+            $transactionPayment->account_id = $sales_discount_allowed->account_id;
+            $transactionPayment->amount = $revenue['discount_amount'];
+            $accountUtil->saveAccountRouteTransaction(
+                'debit',
+                $transactionPayment,
+                $transaction,
+                $acc_trans_mapping_id,
+                $request
+            );
+        }
 
+        $transactionPayment->account_id = $sales_vat_calculation->account_id;
+        $transactionPayment->amount = $revenue['tax_amount'];
         $accountUtil->saveAccountRouteTransaction(
             'credit',
             $transactionPayment,
@@ -1109,11 +1202,10 @@ class SellController extends Controller
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
         $this->appendPerpetualInventoryImpactEntries($transaction, (int) $acc_trans_mapping_id, $request);
 
+        // Partial settlement: Cr AR / Dr Cash for paid amount only
+        $paidAmount = round((float) $request->paid_amount, 2);
         $transactionPayment->account_id = $client->account_id;
-
-        // $transactionPayment->amount = $transaction->final_total;
-        $transactionPayment->amount = $request->paid_amount;
-
+        $transactionPayment->amount = $paidAmount;
         $accountUtil->saveAccountRouteTransaction(
             'credit',
             $transactionPayment,
@@ -1123,8 +1215,7 @@ class SellController extends Controller
         );
 
         $transactionPayment->account_id = $cash_account_id;
-        $transactionPayment->amount = $request->paid_amount; // $transaction->total_before_tax;
-
+        $transactionPayment->amount = $paidAmount;
         $accountUtil->saveAccountRouteTransaction(
             'debit',
             $transactionPayment,
@@ -1155,8 +1246,8 @@ class SellController extends Controller
             ]);
         }
 
-        $cogsAmount = app(\Modules\Inventory\Services\InventoryCostingService::class)
-            ->resolveCogsAmountForSell((int) $transaction->id);
+        $cogsAmount = round(app(\Modules\Inventory\Services\InventoryCostingService::class)
+            ->resolveCogsAmountForSell((int) $transaction->id), 2);
 
         if ($cogsAmount <= 0) {
             return;

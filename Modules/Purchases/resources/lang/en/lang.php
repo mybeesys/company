@@ -37,6 +37,8 @@ return [
     'new_product' => 'New Product',
     'purchase_payment_account_select' => 'Select the account paid from',
     'purchase_payment_account_note' => 'The cash or bank account debited when paying the supplier',
+    'contact_missing_accounting_account' => 'This supplier has no linked accounting account. Link an account on the supplier card before completing the purchase invoice.',
+    'contact_missing_accounting_account_short' => 'Supplier has no linked accounting account',
     'payment_info' => 'Payment Information',
     'shipping_info' => 'Shipping Information',
     'Additional notes and attachments' => 'Additional notes and attachments',

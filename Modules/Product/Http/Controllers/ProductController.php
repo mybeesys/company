@@ -1312,6 +1312,7 @@ class ProductController extends Controller
     public function productsForQuotation(Request $request)
     {
         $search = $request->input('search');
+        $includeExtrasFlags = \Modules\Sales\Services\WebSellModifiersCombosService::isEnabled();
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
             ->whereIn('type', ['product', 'variable'])
             ->restrictByFranchise()
@@ -1323,7 +1324,19 @@ class ProductController extends Controller
                 });
             })
             ->with(['unitTransfers' => function ($query) {}])
+            ->when($includeExtrasFlags, function ($query) {
+                $query->withCount(['modifiers', 'combos']);
+            })
             ->get();
+
+        if ($includeExtrasFlags) {
+            $products->transform(function ($product) {
+                $product->has_modifiers = ((int) ($product->modifiers_count ?? 0)) > 0;
+                $product->has_combos = ((int) ($product->combos_count ?? 0)) > 0;
+
+                return $product;
+            });
+        }
 
         return response()->json([
             'success' => true,
@@ -1334,6 +1347,7 @@ class ProductController extends Controller
     public function productsForSale(Request $request)
     {
         $search = $request->input('search');
+        $includeExtrasFlags = \Modules\Sales\Services\WebSellModifiersCombosService::isEnabled();
         $products = Product::where('active', 1)
             ->where('for_sell', 1)
             ->whereIn('type', ['product', 'variable'])
@@ -1346,6 +1360,9 @@ class ProductController extends Controller
                 });
             })
             ->with(['unitTransfers'])
+            ->when($includeExtrasFlags, function ($query) {
+                $query->withCount(['modifiers', 'combos']);
+            })
             ->get();
 
         try {
@@ -1360,8 +1377,12 @@ class ProductController extends Controller
             $inventoryMap = collect();
         }
 
-        $products->transform(function ($product) use ($inventoryMap) {
+        $products->transform(function ($product) use ($inventoryMap, $includeExtrasFlags) {
             $product->inventory_qty = (float) ($inventoryMap[$product->id] ?? 0);
+            if ($includeExtrasFlags) {
+                $product->has_modifiers = ((int) ($product->modifiers_count ?? 0)) > 0;
+                $product->has_combos = ((int) ($product->combos_count ?? 0)) > 0;
+            }
 
             return $product;
         });

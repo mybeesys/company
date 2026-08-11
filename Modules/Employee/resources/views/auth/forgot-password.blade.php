@@ -49,7 +49,17 @@
                         <img src="{{ asset('assets/media/logos/1-11.png') }}" alt="" />
                     </a>
                     @if (tenant('id'))
-                        <span class="login-auth-tenant">{{ ucfirst(tenant('id')) }}</span>
+                        @php
+                            try {
+                                $loginCompanyName = function_exists('company_header_name') ? company_header_name() : null;
+                            } catch (\Throwable) {
+                                $loginCompanyName = null;
+                            }
+                            if (! filled($loginCompanyName)) {
+                                $loginCompanyName = ucfirst((string) tenant('id'));
+                            }
+                        @endphp
+                        <span class="login-auth-tenant">{{ $loginCompanyName }}</span>
                     @endif
                     <h1 class="login-auth-title">@lang('employee::general.forgot_password_brand_title')</h1>
                     <p class="login-auth-sub">@lang('employee::general.forgot_password_brand_sub')</p>

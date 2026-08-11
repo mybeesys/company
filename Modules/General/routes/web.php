@@ -31,6 +31,7 @@ Route::middleware([
     Route::middleware(['auth'])->group(function () {
 
         Route::get('/subscription', [GeneralController::class, 'subscription'])->name('subscription');
+        Route::get('/subscription/manage', [GeneralController::class, 'manageSubscription'])->name('subscription.manage');
 
         Route::post('store-sidebar-status', [GeneralController::class, 'storeSidebarState'])->name('store-sidebar-status');
 

@@ -12,7 +12,6 @@ use Modules\Employee\Models\Employee;
 use Modules\General\Models\Country;
 use Modules\General\Models\NotificationSetting;
 use Modules\General\Models\NotificationSettingParameter;
-use Modules\General\Models\PaymentMethod;
 use Modules\General\Models\PrefixSetting;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Tax;
@@ -39,36 +38,99 @@ class GeneralController extends Controller
 
     public function setting(Request $request)
     {
+        if (! get_company_id()) {
+            return redirect()->back()->with('error', __('establishment::responses.no_company_found'));
+        }
+
+        $gate = app(\App\Services\EntitlementGate::class);
+
         $cards = [
             [
                 'name' => __('menuItemLang.taxes'),
                 'route' => 'taxes',
                 'icon' => 'ki-outline fas fa-percent',
             ],
-            [
-                'name' => __('general::lang.payment_methods'),
-                'route' => 'payment-methods',
-                'icon' => 'fa-solid fa-wallet',
-            ],
         ];
 
-        $taxesColumns = Tax::getsTaxesColumns();
-        $taxes = Tax::where('is_tax_group', 0)->get();
-        $methodColumns = PaymentMethod::getsPaymentMethodsColumns();
-        $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
-        $notifications_settings = NotificationSetting::all();
-        $notifications_settings_parameters = NotificationSettingParameter::all();
-        $prefixes = PrefixSetting::where('table_name', 'transactions')->get();
-        $prefixes_mapp = PrefixSetting::where('table_name', 'transaction_mapp')->get();
-        $prefixes_payments = PrefixSetting::where('table_name', 'transaction_payments')->get();
+        $taxesColumns = [];
+        $taxes = collect();
+        if ($gate->settingAllowed('taxes')) {
+            try {
+                $taxesColumns = Tax::getsTaxesColumns();
+                $taxes = Tax::where('is_tax_group', 0)->get();
+            } catch (\Throwable) {
+                // keep empty
+            }
+        }
+
+        $methodColumns = [];
+
+        $employees = collect();
+        $notifications_settings = collect();
+        if ($gate->settingAllowed('notifications')) {
+            try {
+                $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
+            } catch (\Throwable) {
+                $employees = collect();
+            }
+            try {
+                $notifications_settings = NotificationSetting::all();
+            } catch (\Throwable) {
+                $notifications_settings = collect();
+            }
+        }
+
+        $notifications_settings_parameters = collect();
+        if ($gate->settingAllowed('mail_settings') || $gate->settingAllowed('sms_settings')) {
+            try {
+                $notifications_settings_parameters = NotificationSettingParameter::all();
+            } catch (\Throwable) {
+                $notifications_settings_parameters = collect();
+            }
+        }
+
+        $prefixes = collect();
+        $prefixes_mapp = collect();
+        $prefixes_payments = collect();
+        if ($gate->settingAllowed('prefix_settings')) {
+            try {
+                $prefixes = $gate->filterPrefixes(PrefixSetting::where('table_name', 'transactions')->get());
+                $prefixes_mapp = $gate->filterPrefixes(PrefixSetting::where('table_name', 'transaction_mapp')->get());
+                $prefixes_payments = $gate->filterPrefixes(PrefixSetting::where('table_name', 'transaction_payments')->get());
+            } catch (\Throwable) {
+                $prefixes = collect();
+                $prefixes_mapp = collect();
+                $prefixes_payments = collect();
+            }
+        }
+
         $settings = Setting::getNotesAndTermsConditions();
-        $inventory_costing_method = Setting::getInventoryCostingMethod();
+        $inventory_costing_method = $gate->settingAllowed('inventory_costing')
+            ? Setting::getInventoryCostingMethod()
+            : null;
         $currencies = Country::all();
         $setting_currency = Setting::getCurrency();
 
-        $accounts = AccountingAccount::all();
+        // Chart of accounts is ledger infrastructure (not sellable UI). Load for
+        // payment methods / invoice settings / any entitled commercial poster.
+        $accounts = collect();
+        if (
+            $gate->allows('accounting')
+            || $gate->settingAllowed('payment_methods')
+            || $gate->settingAllowed('invoice_settings')
+            || $gate->allows(['sales', 'purchases', 'expenses', 'cashier_pos', 'inventory'])
+        ) {
+            try {
+                $accounts = AccountingAccount::all();
+            } catch (\Throwable) {
+                $accounts = collect();
+            }
+        }
+
         $enabledModules = json_decode(Setting::where('key', 'enabled_modules')->value('value'), true) ?? [];
-        $reward_points_settings = json_decode(Setting::where('key', 'reward_points_settings')->value('value'), true) ?? [];
+        $reward_points_settings = $gate->settingAllowed('reward_points')
+            ? (json_decode(Setting::where('key', 'reward_points_settings')->value('value'), true) ?? [])
+            : [];
         $modules = [
             'categories' => 'categories',
             'inventory' => 'inventory',
@@ -84,10 +146,6 @@ class GeneralController extends Controller
             'reports' => 'reports',
         ];
 
-        if (! get_company_id()) {
-            return redirect()->back()->with('error', __('establishment::responses.no_company_found'));
-        }
-        // $company = FacadesDB::connection('mysql')->table('companies')->find(get_company_id());
         $company = FacadesDB::connection('mysql')
             ->table('companies')
             ->join('users', 'companies.user_id', '=', 'users.id')
@@ -102,20 +160,58 @@ class GeneralController extends Controller
             ];
         });
 
-        $policy = Setting::getInventoryTrackingPolicy();
+        $policy = 'perpetual';
+        if ($gate->settingAllowed('inventory_policy')) {
+            try {
+                $policy = Setting::getInventoryTrackingPolicy();
+            } catch (\Throwable) {
+                $policy = 'perpetual';
+            }
+        }
         $inventoryCountFrequency = Setting::where('key', 'inventory_count_frequency')->value('value') ?? 'monthly';
-        $unit = UnitTransfer::where('default', 1)->first();
-
-        $settings = Setting::getNotesAndTermsConditions();
+        $unit = null;
+        if ($gate->settingAllowed('default_unit')) {
+            try {
+                $unit = UnitTransfer::where('default', 1)->first();
+            } catch (\Throwable) {
+                $unit = null;
+            }
+        }
 
         $social_keys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x', 'menu_cover_image'];
         $social_settings = Setting::whereIn('key', $social_keys)->get();
-
         $settings = $settings->merge($social_settings);
 
         $subscriptionModuleLabels = $this->subscriptionModuleLabels();
+        $hasPrefixSettings = $prefixes->isNotEmpty() || $prefixes_mapp->isNotEmpty() || $prefixes_payments->isNotEmpty();
 
-        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'inventoryCountFrequency', 'unit', 'subscriptionModuleLabels'));
+        return view('general::settings.index', compact(
+            'cards',
+            'accounts',
+            'reward_points_settings',
+            'modules',
+            'company',
+            'countries',
+            'enabledModules',
+            'currencies',
+            'setting_currency',
+            'inventory_costing_method',
+            'settings',
+            'prefixes',
+            'prefixes_mapp',
+            'prefixes_payments',
+            'hasPrefixSettings',
+            'taxes',
+            'taxesColumns',
+            'methodColumns',
+            'employees',
+            'notifications_settings',
+            'notifications_settings_parameters',
+            'policy',
+            'inventoryCountFrequency',
+            'unit',
+            'subscriptionModuleLabels'
+        ));
     }
 
     public function subscription()
@@ -123,6 +219,29 @@ class GeneralController extends Controller
         $overview = app(\App\Services\SubscriptionOverviewService::class)->forCompany();
 
         return view('general::subscription.index', $overview);
+    }
+
+    public function manageSubscription()
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $companyId = get_company_id();
+        if (! $companyId) {
+            return redirect()
+                ->route('subscription')
+                ->with('error', __('general::general.subscription_manage_unavailable'));
+        }
+
+        $url = app(\App\Services\CentralSubscribeHandoff::class)->createUrl(
+            userId: (int) $user->id,
+            companyId: (int) $companyId,
+            redirectTo: '/subscribe',
+        );
+
+        return redirect()->away($url);
     }
 
     public function updateModules(Request $request)
@@ -181,6 +300,8 @@ class GeneralController extends Controller
 
     public function updateRewardPoints(Request $request)
     {
+        $this->abortUnlessSettingEntitled('reward_points');
+
         $data = $request->except('_token');
 
         Setting::updateOrCreate(
@@ -193,12 +314,16 @@ class GeneralController extends Controller
 
     public function updatePrefix(Request $request)
     {
+        $gate = app(\App\Services\EntitlementGate::class);
 
-        $prefixes = $request->input('prefixes');
-        $prefixes_payments = $request->input('prefixes_payments');
-        $prefixes_mapp = $request->input('prefixes_mapp');
+        $prefixes = $request->input('prefixes', []) ?: [];
+        $prefixes_payments = $request->input('prefixes_payments', []) ?: [];
+        $prefixes_mapp = $request->input('prefixes_mapp', []) ?: [];
 
         foreach ($prefixes as $type => $prefix) {
+            if (! $gate->prefixTypeAllowed((string) $type)) {
+                continue;
+            }
             PrefixSetting::updateOrCreate(
                 ['type' => $type],
                 ['prefix' => $prefix]
@@ -206,12 +331,18 @@ class GeneralController extends Controller
         }
 
         foreach ($prefixes_payments as $type => $prefix) {
+            if (! $gate->prefixTypeAllowed((string) $type)) {
+                continue;
+            }
             PrefixSetting::updateOrCreate(
                 ['type' => $type],
                 ['prefix' => $prefix]
             );
         }
         foreach ($prefixes_mapp as $type => $prefix) {
+            if (! $gate->prefixTypeAllowed((string) $type)) {
+                continue;
+            }
             PrefixSetting::updateOrCreate(
                 ['type' => $type],
                 ['prefix' => $prefix]
@@ -225,6 +356,8 @@ class GeneralController extends Controller
 
     public function saveNotsTerms(Request $request)
     {
+        $this->abortUnlessSettingEntitled('invoice_settings');
+
         try {
             $settings = [
                 ['key' => 'terms_and_conditions_en', 'value' => $request->input('terms_and_conditions_en')],
@@ -253,6 +386,8 @@ class GeneralController extends Controller
 
     public function updateInventoryCostingMethod(Request $request)
     {
+        $this->abortUnlessSettingEntitled('inventory_costing');
+
         try {
             $settings = [
                 ['key' => 'inventory_costing_method', 'value' => $request->input('inventory_costing_method')],
@@ -347,7 +482,10 @@ class GeneralController extends Controller
 
     public function getInvoiceSettings()
     {
+        $this->abortUnlessSettingEntitled('invoice_settings');
+
         $toggleCouponSetting = Setting::where('key', 'toggleCoupon')->value('value');
+        $toggleSellWithModifiersCombos = Setting::where('key', 'toggleSellWithModifiersCombos')->value('value');
 
         return response()->json([
             'success' => true,
@@ -357,12 +495,16 @@ class GeneralController extends Controller
                 'delegates' => Setting::where('key', 'toggleDelegates')->value('value') == 1,
                 // Default is enabled when setting is not created yet.
                 'coupon' => is_null($toggleCouponSetting) ? true : ((int) $toggleCouponSetting === 1),
+                // Default is disabled when setting is not created yet.
+                'sell_with_modifiers_combos' => (int) $toggleSellWithModifiersCombos === 1,
             ],
         ]);
     }
 
     public function updateInvoiceSetting(Request $request)
     {
+        $this->abortUnlessSettingEntitled('invoice_settings');
+
         $request->validate([
             'key' => 'required|string',
             'value' => 'required|boolean',
@@ -378,6 +520,8 @@ class GeneralController extends Controller
 
     public function updateInventorySettings(Request $request)
     {
+        $this->abortUnlessSettingEntitled('inventory_policy');
+
         try {
             $request->validate([
                 'inventory_tracking_policy' => 'required|in:periodic,perpetual',
@@ -409,6 +553,15 @@ class GeneralController extends Controller
     {
         if (! config('app.debug')) {
             abort(404);
+        }
+
+        $this->abortUnlessSettingEntitled('inventory_costing');
+    }
+
+    private function abortUnlessSettingEntitled(string $section): void
+    {
+        if (! tenant_setting_entitled($section)) {
+            abort(403, __('responses.entitlement_forbidden'));
         }
     }
 }

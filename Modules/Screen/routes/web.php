@@ -22,6 +22,7 @@ Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
+    'entitled:digital_screens',
 ])->group(function () {
     Route::get('main', [MainController::class, 'index'])->name('screens.main');
 

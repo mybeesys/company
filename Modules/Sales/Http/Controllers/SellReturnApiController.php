@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
-use Modules\General\Models\PaymentMethod;
+use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Utils\TransactionUtils;
@@ -119,30 +119,33 @@ class SellReturnApiController extends Controller
 
             $payments = json_decode(json_encode($request->payments ?? []));
             foreach ($payments ?? [] as $payment) {
-                $find_payment = null;
-                if ($payment->method_id == -1 || $payment->method_id == '-1') {
-                    $find_payment = PaymentMethod::where('name_en', 'cash')->first();
-                    if (! $find_payment) {
-                        return response()->json(['message' => 'Payment method not found for cash'], 404);
-                    }
-                } else {
-                    $find_payment = PaymentMethod::find($payment->method_id);
-                    if (! $find_payment) {
-                        return response()->json(['message' => 'Payment method not found id ='.$payment->method_id], 404);
-                    }
+                if (! ($payment->amount ?? null)) {
+                    continue;
                 }
 
-                if ($payment->amount) {
-                    $paymentMethodId = PosSalesInvoiceMapper::resolvePaymentMethodId($payment, $find_payment);
-                    $request->merge(PosSalesInvoiceMapper::paymentRequestAttributes(
-                        $request,
-                        $payment,
-                        $find_payment->account_id ? (int) $find_payment->account_id : null,
-                        $paymentMethodId > 0 ? $paymentMethodId : null
-                    ));
-
-                    $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+                $methodId = (int) ($payment->method_id ?? 0);
+                if ($methodId === -1) {
+                    $methodId = EstablishmentPaymentAccountResolver::resolveCashMethodId((int) $transaction->establishment_id) ?? 0;
                 }
+
+                $resolved = EstablishmentPaymentAccountResolver::resolveForCashierPayment(
+                    (int) $transaction->establishment_id,
+                    $methodId
+                );
+                if (! $resolved['ok']) {
+                    DB::rollBack();
+
+                    return response()->json(['message' => $resolved['message']], $resolved['status']);
+                }
+
+                $request->merge(PosSalesInvoiceMapper::paymentRequestAttributes(
+                    $request,
+                    $payment,
+                    $resolved['account_id'],
+                    $resolved['method_id']
+                ));
+
+                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
             }
             $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 

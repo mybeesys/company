@@ -39,6 +39,13 @@ class DashboardHubService
             return true;
         }
 
+        $entitlement = $tab['entitlement'] ?? null;
+        if ($entitlement !== null && $entitlement !== '' && function_exists('tenant_entitled')) {
+            if (! tenant_entitled($entitlement)) {
+                return false;
+            }
+        }
+
         $permission = $tab['permission'] ?? null;
 
         if ($permission === null || $permission === '') {

@@ -26,35 +26,50 @@ if (! function_exists('get_company_id')) {
     /**
      * Company id for the current tenant. Uses loaded tenant data when available
      * to avoid an extra central DB query on every request.
+     *
+     * Important: do not permanently cache a null result before tenancy boots —
+     * that would force entitlement checks into "legacy open" for the whole request.
      */
     function get_company_id(): ?int
     {
         static $companyId = null;
-        static $resolved = false;
+        static $resolvedTenantKey = null;
 
-        if ($resolved) {
+        $tenantKey = null;
+        if (function_exists('tenancy') && tenancy()->initialized) {
+            $id = tenant('id');
+            $tenantKey = $id !== null && $id !== '' ? (string) $id : null;
+        }
+
+        if ($tenantKey === null) {
+            return null;
+        }
+
+        if ($resolvedTenantKey === $tenantKey) {
             return $companyId;
         }
 
-        $resolved = true;
+        $resolvedTenantKey = $tenantKey;
+        $companyId = null;
 
-        if (function_exists('tenancy') && tenancy()->initialized) {
-            $fromTenant = tenant('company_id');
-            if ($fromTenant !== null && $fromTenant !== '') {
-                $companyId = (int) $fromTenant;
+        $fromTenant = tenant('company_id');
+        if ($fromTenant !== null && $fromTenant !== '') {
+            $companyId = (int) $fromTenant;
 
-                return $companyId;
-            }
+            return $companyId;
         }
 
-        $tenantId = tenant('id');
-        if ($tenantId) {
-            $found = \Illuminate\Support\Facades\DB::connection('mysql')
-                ->table('tenants')
-                ->where('id', $tenantId)
-                ->value('company_id');
-            $companyId = $found !== null ? (int) $found : null;
+        $connection = (string) config('tenancy.database.central_connection', 'central');
+        if ($connection === '' || ! config("database.connections.{$connection}")) {
+            $connection = 'mysql';
         }
+
+        $found = \Illuminate\Support\Facades\DB::connection($connection)
+            ->table('tenants')
+            ->where('id', $tenantKey)
+            ->value('company_id');
+
+        $companyId = $found !== null ? (int) $found : null;
 
         return $companyId;
     }
@@ -77,9 +92,22 @@ if (! function_exists('company_header_name')) {
             "company_header_name:{$companyId}:{$locale}",
             now()->addHours(6),
             function () use ($companyId, $locale) {
-                $row = \Illuminate\Support\Facades\DB::connection('mysql')
+                $connection = (string) config('tenancy.database.central_connection', 'mysql');
+                if ($connection === '' || ! config("database.connections.{$connection}")) {
+                    $connection = 'mysql';
+                }
+
+                $columns = ['name'];
+                if (\Illuminate\Support\Facades\Schema::connection($connection)->hasColumn('companies', 'name_ar')) {
+                    $columns[] = 'name_ar';
+                }
+                if (\Illuminate\Support\Facades\Schema::connection($connection)->hasColumn('companies', 'tax_name')) {
+                    $columns[] = 'tax_name';
+                }
+
+                $row = \Illuminate\Support\Facades\DB::connection($connection)
                     ->table('companies')
-                    ->select('name', 'name_ar')
+                    ->select($columns)
                     ->where('id', $companyId)
                     ->first();
 
@@ -87,9 +115,15 @@ if (! function_exists('company_header_name')) {
                     return null;
                 }
 
-                return $locale === 'ar'
-                    ? ($row->name_ar ?: $row->name)
-                    : ($row->name ?: $row->name_ar);
+                $name = trim((string) ($row->name ?? ''));
+                $nameAr = trim((string) ($row->name_ar ?? ''));
+                $taxName = trim((string) ($row->tax_name ?? ''));
+
+                if ($locale === 'ar') {
+                    return $nameAr !== '' ? $nameAr : ($name !== '' ? $name : ($taxName !== '' ? $taxName : null));
+                }
+
+                return $name !== '' ? $name : ($nameAr !== '' ? $nameAr : ($taxName !== '' ? $taxName : null));
             }
         );
     }

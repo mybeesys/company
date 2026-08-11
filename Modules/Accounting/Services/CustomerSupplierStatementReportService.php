@@ -217,8 +217,10 @@ final class CustomerSupplierStatementReportService
   ) {
     return Contact::query()
       ->where('cs_contacts.id', $contactId)
+      ->whereNotNull('cs_contacts.account_id')
       ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
       ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
+      ->whereColumn('aat.accounting_account_id', 'cs_contacts.account_id')
       ->leftJoin('accounting_acc_trans_mappings as atm', 'aat.acc_trans_mapping_id', '=', 'atm.id')
       ->leftJoin('transaction_payments as tp', 'aat.transaction_payment_id', '=', 'tp.id')
       ->leftJoin('emp_employees as u', 'aat.created_by', '=', 'u.id')
@@ -280,8 +282,10 @@ final class CustomerSupplierStatementReportService
     $util = new AccountingUtil;
 
     $query = Contact::where('cs_contacts.id', $contactId)
+      ->whereNotNull('cs_contacts.account_id')
       ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
       ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
+      ->whereColumn('AAT.accounting_account_id', 'cs_contacts.account_id')
       ->leftJoin('accounting_accounts as accounting_accounts', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
       ->whereDate('AAT.operation_date', '<', $beforeDate)
       ->when(! empty($costCenterIds), fn ($q) => $q->whereIn('AAT.cost_center_id', $costCenterIds))
@@ -299,8 +303,10 @@ final class CustomerSupplierStatementReportService
     $util = new AccountingUtil;
 
     $query = Contact::where('cs_contacts.id', $contactId)
+      ->whereNotNull('cs_contacts.account_id')
       ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
       ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
+      ->whereColumn('AAT.accounting_account_id', 'cs_contacts.account_id')
       ->leftJoin('accounting_accounts as accounting_accounts', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
       ->when(! empty($costCenterIds), fn ($q) => $q->whereIn('AAT.cost_center_id', $costCenterIds))
       ->when(! empty($establishmentIds), fn ($q) => $q->whereIn('t.establishment_id', $establishmentIds))
@@ -711,8 +717,10 @@ final class CustomerSupplierStatementReportService
   private static function availableSubTypes(int $contactId, string $startDate, string $endDate): array
   {
     return Contact::where('cs_contacts.id', $contactId)
+      ->whereNotNull('cs_contacts.account_id')
       ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
       ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
+      ->whereColumn('aat.accounting_account_id', 'cs_contacts.account_id')
       ->whereDate('aat.operation_date', '>=', $startDate)
       ->whereDate('aat.operation_date', '<=', $endDate)
       ->distinct()
@@ -727,8 +735,11 @@ final class CustomerSupplierStatementReportService
   {
     return DB::table('accounting_accounts_transactions as aat')
       ->join('transactions as t', 't.id', '=', 'aat.transaction_id')
+      ->join('cs_contacts as c', 'c.id', '=', 't.contact_id')
       ->join('emp_employees as u', 'u.id', '=', 'aat.created_by')
       ->where('t.contact_id', $contactId)
+      ->whereNotNull('c.account_id')
+      ->whereColumn('aat.accounting_account_id', 'c.account_id')
       ->whereDate('aat.operation_date', '>=', $startDate)
       ->whereDate('aat.operation_date', '<=', $endDate)
       ->select('u.id', 'u.name')

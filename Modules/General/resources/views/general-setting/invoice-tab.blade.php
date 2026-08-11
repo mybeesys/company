@@ -25,11 +25,6 @@
                         <a class="nav-link py-3" data-bs-toggle="tab" href="#taxes_tab">@lang('menuItemLang.taxes')</a>
                     </li>
                 @endif
-                @if (tenant_setting_entitled('payment_methods'))
-                    <li class="nav-item w-md-200px me-0 py-1 nav-link-methods">
-                        <a class="nav-link py-3" data-bs-toggle="tab" href="#payemnt_methods_tab">@lang('general::lang.payment_methods')</a>
-                    </li>
-                @endif
                 @if (tenant_setting_entitled('inventory_policy'))
                     <li class="nav-item w-md-200px me-0 py-1 nav-link-methods">
                         <a class="nav-link py-3" data-bs-toggle="tab" href="#inventory_policy_tab">@lang('general::lang.inventory_tracking_policy')</a>
@@ -96,8 +91,20 @@
                                         @lang('sales::lang.toggleCoupon')
                                     </label>
                                 </div>
-                                <div class="text-muted fs-7 mt-2">
+                                <div class="text-muted fs-7 mt-2 mb-6">
                                     @lang('general::general.invoice_settings')
+                                </div>
+
+                                <div class="separator separator-dashed my-5"></div>
+
+                                <div class="form-check form-switch d-flex align-items-center gap-3">
+                                    <input class="form-check-input" type="checkbox" id="toggleSellWithModifiersCombos">
+                                    <label class="form-check-label fw-semibold" for="toggleSellWithModifiersCombos">
+                                        @lang('sales::lang.toggleSellWithModifiersCombos')
+                                    </label>
+                                </div>
+                                <div class="text-muted fs-7 mt-2">
+                                    @lang('sales::lang.toggleSellWithModifiersCombos_hint')
                                 </div>
                             </div>
                         </div>
@@ -134,9 +141,6 @@
                 @if (tenant_setting_entitled('taxes'))
                     <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
                 @endif
-                @if (tenant_setting_entitled('payment_methods'))
-                    <x-general::paymentMethods.payment-method-index :methodColumns=$methodColumns />
-                @endif
             </div>
         </div>
 
@@ -146,17 +150,14 @@
         @include('general::tax.create')
         @include('general::tax.edit')
     @endif
-    @if (tenant_setting_entitled('payment_methods'))
-        @include('general::payment-methods.create')
-        @include('general::payment-methods.edit')
-    @endif
 </div>
 
 @if (tenant_setting_entitled('sales'))
 <script>
     $(document).ready(function() {
         const $toggleCoupon = $('#toggleCouponGeneralSales');
-        if (!$toggleCoupon.length) {
+        const $toggleModsCombos = $('#toggleSellWithModifiersCombos');
+        if (!$toggleCoupon.length && !$toggleModsCombos.length) {
             return;
         }
 
@@ -165,7 +166,12 @@
             type: "GET",
             success: function(response) {
                 if (response.success) {
-                    $toggleCoupon.prop('checked', !!response.data.coupon);
+                    if ($toggleCoupon.length) {
+                        $toggleCoupon.prop('checked', !!response.data.coupon);
+                    }
+                    if ($toggleModsCombos.length) {
+                        $toggleModsCombos.prop('checked', !!response.data.sell_with_modifiers_combos);
+                    }
                 }
             }
         });
@@ -177,6 +183,18 @@
                 data: {
                     _token: "{{ csrf_token() }}",
                     key: "toggleCoupon",
+                    value: $(this).is(':checked') ? 1 : 0
+                }
+            });
+        });
+
+        $toggleModsCombos.on('change', function() {
+            $.ajax({
+                url: "{{ route('invoice-settings-update') }}",
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    key: "toggleSellWithModifiersCombos",
                     value: $(this).is(':checked') ? 1 : 0
                 }
             });

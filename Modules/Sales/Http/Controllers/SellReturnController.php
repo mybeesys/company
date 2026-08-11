@@ -74,7 +74,16 @@ class SellReturnController extends Controller
      */
     public function create($id)
     {
-        $transaction = Transaction::find($id);
+        $transaction = Transaction::with([
+            'sell_lines' => fn ($q) => $q->where('is_show', 1)
+                ->where(function ($query) {
+                    $query->whereNull('parent_id')
+                        ->orWhere('parent_id', '')
+                        ->orWhere('parent_id', 0);
+                })
+                ->orderBy('id'),
+            'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+        ])->findOrFail($id);
         $taxes = Tax::all();
 
         $products = Product::with(['unitTransfers' => function ($query) {
@@ -131,9 +140,6 @@ class SellReturnController extends Controller
         if (! AccountsRoting::where('type', 'sales_sell_return')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب مردود المبيعات' : 'Sales return account';
         }
-        if (! AccountsRoting::where('type', 'sales_sales')->value('account_id')) {
-            $missing[] = app()->getLocale() === 'ar' ? 'حساب المبيعات' : 'Sales account';
-        }
         if (! AccountsRoting::where('type', 'sales_vat_calculation')->value('account_id')) {
             $missing[] = app()->getLocale() === 'ar' ? 'حساب ضريبة المبيعات' : 'Sales VAT account';
         }
@@ -169,19 +175,29 @@ class SellReturnController extends Controller
         $transactionUtil = new TransactionUtils;
         DB::beginTransaction();
         $main_establishment = Establishment::notMain()->active()->first();
-        $establishment_id = $request->storehouse;
-        if ($request->storehouse == $main_establishment->id) {
+
+        // Prefer the parent sell warehouse so inventory lands on the same establishment.
+        $establishment_id = $request->storehouse ?: $sell->establishment_id;
+        if (! $establishment_id && $main_establishment) {
             $establishment_id = $main_establishment->id;
         }
+
+        $invoiceType = $request->invoice_type ?: $sell->invoice_type;
+
+        // Absolute invoice discount (money) for GL; fall back to raw input.
+        $invoiceDiscountMoney = $request->filled('invoiced_discount')
+            ? (float) $request->invoiced_discount
+            : (float) ($request->invoice_discount ?? 0);
+
         $transaction = Transaction::create([
             'type' => 'sell-return',
-            'invoice_type' => $request->invoice_type,
+            'invoice_type' => $invoiceType,
             // 'due_date' => $request->due_date,
             'parent_id' => $sell->id,
             'transaction_date' => now(),
             'contact_id' => $sell->contact_id,
-            'cost_center' => $request->cost_center ?? null,
-            'discount_amount' => $request->invoice_discount,
+            'cost_center' => $request->cost_center ?? $sell->cost_center ?? null,
+            'discount_amount' => $invoiceDiscountMoney,
             'discount_type' => $invoiced_discount_type,
             'total_before_tax' => $request->totalBeforeVat,
             'totalAfterDiscount' => $request->totalAfterDiscount,
@@ -193,26 +209,31 @@ class SellReturnController extends Controller
             'status' => 'approved',
             'notice' => $request->notice,
             'establishment_id' => $establishment_id,
-            'establishment_id' => $establishment_id,
-
         ]);
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
         $products = json_decode(json_encode($request->products));
 
         foreach ($products as $product) {
-            $discount_type = null;
+            $qty = (float) ($product->qty ?? 0);
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $discountType = ! empty($product->discount) ? ($product->discount_type ?? 'fixed') : null;
+            $taxId = $product->tax_id ?? $product->tax_vat ?? null;
+
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->product_id,
-                'qyt' => $product->qty,
+                'qyt' => $qty,
                 'unit_id' => $product->unit ?? 0,
                 'unit_price_before_discount' => $product->unit_price,
                 'unit_price' => $product->unit_price,
-                'discount_type' => $discount_type,
-                'discount_amount' => 0,
+                'discount_type' => $discountType,
+                'discount_amount' => $product->discount ?? 0,
                 'unit_price_inc_tax' => $product->total_after_vat,
-                'tax_id' => $product->tax_vat,
+                'tax_id' => $taxId,
                 'tax_value' => $product->vat_value,
                 'total_before_vat' => $product->total_before_vat,
             ]);
@@ -220,6 +241,10 @@ class SellReturnController extends Controller
 
         if ($transaction) {
             $request['amount'] = $transaction->final_total;
+            // Ensure payment_for resolves to the customer for AR postings.
+            if (! $request->filled('client_id')) {
+                $request->merge(['client_id' => $sell->contact_id]);
+            }
 
             $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
         }
@@ -286,7 +311,6 @@ class SellReturnController extends Controller
         $products = json_decode(json_encode($request->products));
 
         foreach ($products as $product) {
-            $discount_type = null;
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->products_id,
@@ -294,8 +318,8 @@ class SellReturnController extends Controller
                 'unit_id' => $product->unit ?? 0,
                 'unit_price_before_discount' => $product->unit_price,
                 'unit_price' => $product->unit_price,
-                'discount_type' => $discount_type,
-                'discount_amount' => 0,
+                'discount_type' => $product->discount_type ?? null,
+                'discount_amount' => $product->discount_amount ?? 0,
                 'unit_price_inc_tax' => $product->total_after_vat,
                 'tax_id' => $product->tax_vat,
                 'tax_value' => $product->vat_value,
@@ -380,8 +404,10 @@ class SellReturnController extends Controller
 
         $invoiceLines = TransactionSellLine::where('transaction_id', $invoice->id)->get();
 
-        $returnTransaction = Transaction::where('parent_id', $invoice->id)->first();
-        $returnLines = TransactionePurchasesLine::where('transaction_id', $returnTransaction->id)->get();
+        $returnIds = Transaction::where('parent_id', $invoice->id)
+            ->where('type', 'sell-return')
+            ->pluck('id');
+        $returnLines = TransactionePurchasesLine::whereIn('transaction_id', $returnIds)->get();
 
         $productsStatus = [];
         $returnedCount = 0;
@@ -409,7 +435,6 @@ class SellReturnController extends Controller
             } else {
                 $lineStatus = 'completed';
                 $anyReturned = true;
-                $allCompleted = true;
             }
 
             if ($returnedQtyForProduct > 0) {
@@ -431,7 +456,7 @@ class SellReturnController extends Controller
             ];
         }
 
-        if ($allCompleted) {
+        if ($allCompleted && $anyReturned) {
             $overallStatus = 'completed';
         } elseif ($anyReturned) {
             $overallStatus = 'partial';
@@ -439,8 +464,8 @@ class SellReturnController extends Controller
             $overallStatus = 'pending';
         }
 
-        $returnTransaction->po_status = $overallStatus;
-        $returnTransaction->save();
+        $invoice->po_status = $overallStatus;
+        $invoice->save();
 
         return [
             'po_status' => $overallStatus,

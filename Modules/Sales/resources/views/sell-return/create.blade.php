@@ -84,6 +84,9 @@
         @csrf
 
         <input type="hidden" name="transaction_id" value="{{ $transaction->id }}" />
+        <input type="hidden" name="storehouse" value="{{ $transaction->establishment_id }}" />
+        <input type="hidden" name="invoice_type" value="{{ $transaction->invoice_type }}" />
+        <input type="hidden" name="client_id" value="{{ $transaction->contact_id }}" />
         <div class="">
             <div class="row">
                 <div class="col-6">
@@ -744,8 +747,56 @@
                 updateSalesTotals();
             });
 
-            $('#invoice_discount, #invoiced_discount_type').on('input change', function() {
+            function scaleSellReturnLineFixedDiscount($row) {
+                const $disc = $row.find('.discount-field');
+                if (!$disc.length) return;
+                const type = ($disc.data('discount-type') || $row.find('.discount_type').val() || 'fixed');
+                if (type !== 'fixed') return;
+                const origQty = parseFloat($disc.data('original-qty')) || 0;
+                const origDisc = parseFloat($disc.data('original-discount')) || 0;
+                const qty = parseFloat($row.find('.qty-field').val()) || 0;
+                if (origQty <= 0) return;
+                $disc.val((origDisc * (qty / origQty)).toFixed(4));
+            }
+
+            function applyProportionalParentInvoiceDiscount() {
+                const $wrap = $('#sell-return-invoice-discount-wrap');
+                if (!$wrap.length) return;
+                if ($wrap.data('manual-invoice-discount') === 1) return;
+
+                const parentType = String($wrap.data('parent-discount-type') || 'fixed');
+                const parentAmount = parseFloat($wrap.data('parent-discount-amount')) || 0;
+                const parentBefore = parseFloat($wrap.data('parent-total-before-tax')) || 0;
+                if (parentType !== 'fixed' || parentAmount <= 0 || parentBefore <= 0) {
+                    return;
+                }
+
+                let linesBefore = 0;
+                $('#salesTable tbody tr').each(function (index) {
+                    const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
+                    const price = parseFloat($(this).find(`[name="products[${index}][unit_price]"]`).val()) || 0;
+                    const disc = parseFloat($(this).find(`[name="products[${index}][discount]"]`).val()) || 0;
+                    const discType = $(this).find(`[name="products[${index}][discount_type]"]`).val();
+                    const gross = qty * price;
+                    const discAmt = discType === 'percent' ? gross * (disc / 100) : disc;
+                    linesBefore += Math.max(0, gross - discAmt);
+                });
+
+                const share = Math.min(1, linesBefore / parentBefore);
+                $('#invoice_discount').val((parentAmount * share).toFixed(4));
+                if ($('#invoiced_discount_type').val() !== 'fixed') {
+                    $('#invoiced_discount_type').val('fixed');
+                }
+            }
+
+            $('#invoice_discount, #invoiced_discount_type').on('input change', function () {
+                $('#sell-return-invoice-discount-wrap').data('manual-invoice-discount', 1);
                 updateSalesTotals();
+            });
+
+            $(document).on('input change', '#salesTable tbody .qty-field', function () {
+                scaleSellReturnLineFixedDiscount($(this).closest('tr'));
+                applyProportionalParentInvoiceDiscount();
             });
 
             $(document).on('input change', '[name="paid_amount"]', function() {
@@ -775,6 +826,9 @@
             $(document).on('input change', '#salesTable tbody [name^="products"]', function() {
                 updateSalesTotals();
             });
+
+            applyProportionalParentInvoiceDiscount();
+            updateSalesTotals();
 
             $("#payment_type").change(function() {
                 if ($(this).val() === "card") {

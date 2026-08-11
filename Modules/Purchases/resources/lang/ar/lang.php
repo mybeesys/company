@@ -38,6 +38,8 @@ return [
     'new_product' => 'منتج جديد',
     'purchase_payment_account_select' => 'اختر الحساب الذي تم الدفع منه',
     'purchase_payment_account_note' => 'الحساب النقدي أو البنكي الذي تُدفع منه قيمة المشتريات للمورد',
+    'contact_missing_accounting_account' => 'هذا المورد غير مربوط بحساب محاسبي. اربط الحساب من بطاقة المورد قبل إتمام فاتورة الشراء.',
+    'contact_missing_accounting_account_short' => 'المورد غير مربوط بحساب محاسبي',
     'payment_info' => 'معلومات الدفع',
     'shipping_info' => 'معلومات الشحن',
     'Additional notes and attachments' => 'الملاحظات الإضافية والمرفقات',

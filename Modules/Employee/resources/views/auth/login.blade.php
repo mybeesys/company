@@ -48,8 +48,18 @@
                         aria-label="{{ brand_short_name() }}">
                         <img src="{{ asset('assets/media/logos/1-11.png') }}" alt="" />
                     </a>
-                    @if (tenant('id'))
-                        <span class="login-auth-tenant">{{ ucfirst(tenant('id')) }}</span>
+                    @php
+                        try {
+                            $loginCompanyName = function_exists('company_header_name') ? company_header_name() : null;
+                        } catch (\Throwable) {
+                            $loginCompanyName = null;
+                        }
+                        if (! filled($loginCompanyName) && tenant('id')) {
+                            $loginCompanyName = ucfirst((string) tenant('id'));
+                        }
+                    @endphp
+                    @if (filled($loginCompanyName))
+                        <span class="login-auth-tenant">{{ $loginCompanyName }}</span>
                     @endif
                     <h1 class="login-auth-title">@lang('employee::general.login_hero_title')</h1>
                     <p class="login-auth-sub">@lang('employee::general.login_hero_subtitle')</p>

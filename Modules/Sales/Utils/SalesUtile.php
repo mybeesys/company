@@ -28,6 +28,7 @@ class SalesUtile
             'card' => __('sales::lang.payment_methods.card'),
             'bank_check' => __('sales::lang.payment_methods.bank_check'),
             'bank_transfer' => __('sales::lang.payment_methods.bank_transfer'),
+            'delivery_apps' => __('sales::lang.payment_methods.delivery_apps'),
         ];
     }
 

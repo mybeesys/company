@@ -76,7 +76,7 @@ return [
     'date_range' => 'نطاق التاريخ',
     'open_time' => 'وقت الفتح',
     'close_time' => 'وقت الإغلاق',
-    'location' => 'الفرع/المنشأة',
+    'location' => 'الفرع',
     'status' => 'الحالة',
     'total' => 'الإجمالي',
     'action' => 'إجراء',

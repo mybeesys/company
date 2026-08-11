@@ -18,6 +18,12 @@ class EnsureModuleEntitlement
      */
     public function handle(Request $request, Closure $next, string ...$modules): Response
     {
+        // Tenancy middleware is prioritized first; if it did not run, do not
+        // soft-open commercial modules via the legacy fallback.
+        if (function_exists('tenancy') && ! tenancy()->initialized) {
+            return $next($request);
+        }
+
         if ($modules !== []) {
             if ($this->gate->allows($modules)) {
                 return $next($request);
@@ -27,11 +33,12 @@ class EnsureModuleEntitlement
         }
 
         if ($request->is('api/*')) {
-            if ($this->gate->apiPathAllowed($request->path())) {
-                return $next($request);
+            $required = $this->resolveApiRequirement($request->path());
+            if ($required !== null && $this->gate->denies($required)) {
+                return $this->forbidden($request, is_array($required) ? $required : [$required]);
             }
 
-            return $this->forbidden($request, []);
+            return $next($request);
         }
 
         $routeName = $request->route()?->getName();
@@ -61,19 +68,57 @@ class EnsureModuleEntitlement
      */
     protected function resolveWebRequirement(?string $routeName, string $path): string|array|null
     {
-        $map = config('entitlements.route_entitlements', []);
+        return $this->longestMatch(
+            config('entitlements.route_entitlements', []),
+            array_values(array_filter([$routeName, $path], fn ($value) => filled($value)))
+        );
+    }
+
+    /**
+     * @return string|list<string>|null
+     */
+    protected function resolveApiRequirement(string $path): string|array|null
+    {
+        $path = ltrim($path, '/');
+
+        return $this->longestMatch(
+            config('entitlements.api_entitlements', []),
+            [$path]
+        );
+    }
+
+    /**
+     * Pick the longest matching pattern so specific routes win over short prefixes.
+     *
+     * @param  array<string, string|list<string>>  $map
+     * @param  list<string>  $candidates
+     * @return string|list<string>|null
+     */
+    protected function longestMatch(array $map, array $candidates): string|array|null
+    {
+        $bestPattern = null;
+        $bestModule = null;
+        $bestLength = -1;
 
         foreach ($map as $pattern => $module) {
-            if ($routeName && (str_starts_with($routeName, $pattern) || $routeName === $pattern)) {
-                return $module;
+            $pattern = (string) $pattern;
+            if ($pattern === '') {
+                continue;
             }
 
-            if ($path !== '' && (str_starts_with($path, $pattern) || $path === $pattern)) {
-                return $module;
+            foreach ($candidates as $candidate) {
+                if ($candidate === $pattern || str_starts_with($candidate, $pattern)) {
+                    $length = strlen($pattern);
+                    if ($length > $bestLength) {
+                        $bestLength = $length;
+                        $bestPattern = $pattern;
+                        $bestModule = $module;
+                    }
+                }
             }
         }
 
-        return null;
+        return $bestModule;
     }
 
     /**
@@ -83,14 +128,23 @@ class EnsureModuleEntitlement
     {
         $map = config('entitlements.report_source_entitlements', []);
         $haystack = trim(($routeName ?? '').' '.$path);
+        $bestFragment = null;
+        $bestModule = null;
+        $bestLength = -1;
 
         foreach ($map as $fragment => $sourceModule) {
+            $fragment = (string) $fragment;
             if ($fragment !== '' && str_contains($haystack, $fragment)) {
-                return $sourceModule;
+                $length = strlen($fragment);
+                if ($length > $bestLength) {
+                    $bestLength = $length;
+                    $bestFragment = $fragment;
+                    $bestModule = $sourceModule;
+                }
             }
         }
 
-        return null;
+        return $bestModule;
     }
 
     protected function forbidden(Request $request, array $modules): Response

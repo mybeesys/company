@@ -85,6 +85,7 @@ class ReceiptsController extends Controller
         if (! $contact) {
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }
+        $this->abortUnlessContactReceiptEntitled($contact);
 
         try {
             DB::beginTransaction();
@@ -362,7 +363,20 @@ class ReceiptsController extends Controller
             abort(403);
         }
 
+        if (! app(\App\Services\EntitlementGate::class)->transactionTypeAllowed($transaction->type)) {
+            abort(403, __('responses.entitlement_forbidden'));
+        }
+
         return $transaction;
+    }
+
+    private function abortUnlessContactReceiptEntitled(Contact $contact): void
+    {
+        $required = $contact->business_type === 'supplier' ? 'purchases' : 'sales';
+
+        if (! tenant_entitled($required)) {
+            abort(403, __('responses.entitlement_forbidden'));
+        }
     }
 
     /**

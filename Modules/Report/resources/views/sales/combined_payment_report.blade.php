@@ -4,8 +4,14 @@
 
 @section('content')
     @php
-        $reportSections = [
-            [
+        $canSales = tenant_entitled('sales');
+        $canPurchases = tenant_entitled('purchases');
+        $canInventory = tenant_entitled('inventory');
+        $canAccounting = tenant_entitled('accounting');
+        $canPos = tenant_entitled('cashier_pos');
+
+        $reportSections = array_values(array_filter([
+            $canSales ? [
                 'title' => __('report::purchase.sell_reports'),
                 'tone' => 'warning',
                 'icon' => 'bi bi-graph-up-arrow',
@@ -35,8 +41,8 @@
                         'icon' => 'bi bi-calendar-week',
                     ],
                 ],
-            ],
-            [
+            ] : null,
+            $canPurchases ? [
                 'title' => __('report::purchase.purchase_reports'),
                 'tone' => 'primary',
                 'icon' => 'bi bi-cart-check',
@@ -54,8 +60,8 @@
                         'icon' => 'bi bi-box-seam',
                     ],
                 ],
-            ],
-            [
+            ] : null,
+            $canInventory ? [
                 'title' => __('report::purchase.inventory_reports'),
                 'tone' => 'success',
                 'icon' => 'bi bi-boxes',
@@ -72,13 +78,6 @@
                         'hint' => __('report::purchase.product-inventory-summary_details'),
                         'icon' => 'bi bi-bar-chart-line',
                     ],
-                    // Temporarily hidden — use Product-Stock-Report instead
-                    // [
-                    //     'title' => __('menuItemLang.product-movement-report'),
-                    //     'route' => route('product-movement-report'),
-                    //     'hint' => __('report::purchase.product_movement_report_details'),
-                    //     'icon' => 'bi bi-arrow-left-right',
-                    // ],
                     [
                         'title' => __('menuItemLang.product-inventory'),
                         'route' => route('Product-Stock-Report'),
@@ -86,33 +85,33 @@
                         'icon' => 'bi bi-archive',
                     ],
                 ],
-            ],
-            [
+            ] : null,
+            ($canSales || $canPurchases || $canAccounting || $canPos) ? [
                 'title' => __('report::purchase.others_reports'),
                 'tone' => 'info',
                 'icon' => 'bi bi-file-earmark-richtext',
-                'items' => [
-                    [
+                'items' => array_values(array_filter([
+                    ($canSales || $canPurchases || $canAccounting) ? [
                         'title' => __('menuItemLang.Profit-Loss'),
                         'route' => route('Profit-Loss'),
                         'hint' => __('report::purchase.profit-loss_details'),
                         'icon' => 'bi bi-activity',
-                    ],
-                    [
+                    ] : null,
+                    ($canSales && $canPurchases) ? [
                         'title' => __('menuItemLang.purchase-sell'),
                         'route' => route('purchase-sell'),
                         'hint' => __('report::purchase.purchase_sell_details'),
                         'icon' => 'bi bi-arrow-left-right',
-                    ],
-                    [
+                    ] : null,
+                    $canPos ? [
                         'title' => __('report::fields.register_report'),
                         'route' => url('Register-Report'),
                         'hint' => __('report::fields.register_report_details'),
                         'icon' => 'bi bi-receipt-cutoff',
-                    ],
-                ],
-            ],
-        ];
+                    ] : null,
+                ])),
+            ] : null,
+        ]));
         $totalReports = collect($reportSections)->sum(fn($section) => count($section['items']));
     @endphp
 

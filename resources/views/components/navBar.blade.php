@@ -12,50 +12,76 @@
             : auth()->user()->hasDashboardPermission($permission);
     };
 
+    $hasQuickEntitlement = function ($entitlement) {
+        if (!isset($entitlement) || $entitlement === '' || $entitlement === null) {
+            return true;
+        }
+
+        return function_exists('tenant_entitled') ? tenant_entitled($entitlement) : true;
+    };
+
     $quickLinks = collect([
         [
             'url' => '/dashboard',
             'label' => __('general.dashboard'),
             'icon' => 'ki-outline ki-home-2',
             'permission' => null,
+            'entitlement' => null,
         ],
         [
             'url' => '/payment-reports',
             'label' => __('menuItemLang.reports_module'),
             'icon' => 'ki-outline ki-chart-simple',
             'permission' => 'reports_module.all.show',
+            'entitlement' => ['reports', 'sales', 'purchases', 'cashier_pos'],
         ],
         [
             'url' => '/accounting-reports',
             'label' => __('general.accounting_reports'),
             'icon' => 'ki-outline ki-chart-line-up',
             'permission' => 'accountingReports.all.show',
+            'entitlement' => 'accounting',
         ],
         [
             'url' => route('inventory.dashboard'),
             'label' => __('general.inventory_dashboard'),
             'icon' => 'ki-outline ki-package',
             'permission' => 'inventory.dashboard.show',
+            'entitlement' => 'inventory',
         ],
         [
             'url' => route('sales-dashbord'),
             'label' => __('general.sales_dashboard'),
             'icon' => 'ki-outline ki-dollar',
             'permission' => 'sales.all.show',
+            'entitlement' => 'sales',
         ],
         [
             'url' => '/main',
             'label' => __('general.screens'),
             'icon' => 'ki-outline ki-screen',
             'permission' => 'screen_module.all.show',
+            'entitlement' => 'digital_screens',
         ],
         [
             'url' => '/general-setting',
             'label' => __('menuItemLang.general_setting'),
             'icon' => 'ki-outline ki-setting-2',
             'permission' => 'setting.General setting.show',
+            'entitlement' => null,
         ],
-    ])->filter(fn($link) => $hasQuickPermission($link['permission']))->values();
+    ])->filter(function ($link) use ($hasQuickPermission, $hasQuickEntitlement) {
+        // Reports hub needs reports + at least one source module.
+        if (($link['url'] ?? '') === '/payment-reports') {
+            return $hasQuickPermission($link['permission'])
+                && function_exists('tenant_entitled')
+                && tenant_entitled('reports')
+                && tenant_entitled(['sales', 'purchases', 'cashier_pos']);
+        }
+
+        return $hasQuickEntitlement($link['entitlement'] ?? null)
+            && $hasQuickPermission($link['permission']);
+    })->values();
     $unreadCount = auth()->user()->unreadNotifications()->count();
     $linkedCompanies = collect();
     if (auth()->check() && filled(auth()->user()->email)) {
@@ -74,10 +100,29 @@
 
         return \Illuminate\Support\Facades\Lang::has($key) ? __($key) : (string) $role;
     };
+
+    try {
+        $navbarCompanyName = function_exists('company_header_name') ? company_header_name() : null;
+    } catch (\Throwable) {
+        $navbarCompanyName = null;
+    }
+    if (! filled($navbarCompanyName) && $currentLinkedCompany) {
+        $navbarCompanyName = (string) ($currentLinkedCompany->company_name ?? '');
+    }
+    $navbarCompanyName = filled($navbarCompanyName) ? trim((string) $navbarCompanyName) : null;
+    $navbarCompanyDomain = $currentLinkedCompany?->domain ?? (function_exists('tenant') ? tenant('id') : null);
 @endphp
 <div class="app-navbar app-navbar--compact flex-grow-1 d-flex align-items-center min-w-0 pe-lg-8 pe-3" id="kt_app_header_navbar">
-    <div class="app-navbar-meta d-none d-lg-flex align-items-center gap-2 text-gray-600 min-w-0 me-2">
-        <span class="d-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date">
+    <div class="app-navbar-meta d-flex align-items-center gap-2 gap-lg-3 text-gray-600 min-w-0 me-2 me-lg-3">
+        @if ($navbarCompanyName)
+            <div class="navbar-company-chip min-w-0" title="{{ $navbarCompanyName }}{{ $navbarCompanyDomain ? ' · '.$navbarCompanyDomain : '' }}">
+                <i class="ki-outline ki-office-bag navbar-company-chip-icon" aria-hidden="true"></i>
+                <span class="navbar-company-chip-label">{{ __('general.workspace') }}</span>
+                <span class="navbar-company-chip-sep" aria-hidden="true"></span>
+                <span class="navbar-company-chip-name text-truncate">{{ $navbarCompanyName }}</span>
+            </div>
+        @endif
+        <span class="d-none d-xl-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date flex-shrink-0">
             <i class="ki-outline ki-calendar fs-6 text-gray-500"></i>
             <span>{{ $navbarDate }}</span>
         </span>
@@ -275,6 +320,11 @@
                         <div class="fw-bold fs-6 text-truncate">{{ auth()->user()->user_name }}</div>
                         <div class="text-muted fs-8 text-truncate">{{ auth()->user()->email }}</div>
                     </div>
+                    <a href="{{ route('profile.edit') }}" class="user-quick-menu-edit-btn"
+                        title="@lang('employee::general.edit_profile')"
+                        aria-label="@lang('employee::general.edit_profile')">
+                        <i class="ki-outline ki-pencil fs-5"></i>
+                    </a>
                 </div>
             </div>
 
@@ -470,6 +520,79 @@
         align-items: center;
     }
 
+    .navbar-company-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        max-width: min(48vw, 18rem);
+        min-width: 0;
+        padding: 0.2rem 0.55rem;
+        border-radius: 0.55rem;
+        border: 1px solid rgba(63, 66, 84, 0.08);
+        background: rgba(245, 248, 250, 0.9);
+    }
+
+    .navbar-company-chip-icon {
+        flex-shrink: 0;
+        font-size: 0.85rem;
+        color: #b5b5c3;
+    }
+
+    .navbar-company-chip-label {
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: #a1a5b7;
+        white-space: nowrap;
+    }
+
+    .navbar-company-chip-sep {
+        flex-shrink: 0;
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: #c4cada;
+    }
+
+    .navbar-company-chip-name {
+        min-width: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0;
+        color: #5e6278;
+        white-space: nowrap;
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip {
+        border-color: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip-icon,
+    [data-bs-theme="dark"] .navbar-company-chip-label {
+        color: #8e95a9;
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip-sep {
+        background: #6d7385;
+    }
+
+    [data-bs-theme="dark"] .navbar-company-chip-name {
+        color: #e4e6ef;
+    }
+
+    @media (max-width: 575.98px) {
+        .navbar-company-chip {
+            max-width: min(44vw, 11rem);
+            padding-inline: 0.4rem;
+        }
+
+        .navbar-company-chip-label,
+        .navbar-company-chip-sep {
+            display: none;
+        }
+    }
+
     .user-quick-menu.menu-sub-dropdown {
         --uqm-accent: #d4a017;
         --uqm-border: #e4e9f0;
@@ -519,6 +642,28 @@
     .user-quick-menu-profile-text {
         line-height: 1.3;
         min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .user-quick-menu-edit-btn {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--uqm-border);
+        background: #fff;
+        color: var(--uqm-muted);
+        text-decoration: none;
+        transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .user-quick-menu-edit-btn:hover {
+        color: var(--uqm-accent);
+        border-color: rgba(212, 160, 23, 0.45);
+        background: #fffef5;
     }
 
     .user-quick-menu-scroll {
@@ -831,6 +976,18 @@
     [data-bs-theme="dark"] .user-quick-menu-header,
     [data-bs-theme="dark"] .user-quick-menu-footer {
         background: #151521;
+    }
+
+    [data-bs-theme="dark"] .user-quick-menu-edit-btn {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #a1a5b7;
+    }
+
+    [data-bs-theme="dark"] .user-quick-menu-edit-btn:hover {
+        background: rgba(212, 160, 23, 0.12);
+        border-color: rgba(212, 160, 23, 0.35);
+        color: #f5e902;
     }
 
     [data-bs-theme="dark"] .user-company-chip {

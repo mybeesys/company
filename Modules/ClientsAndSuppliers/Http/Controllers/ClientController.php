@@ -7,6 +7,7 @@ use Carbon\Exceptions\Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
@@ -27,6 +28,7 @@ class ClientController extends Controller
         $business_type = Route::currentRouteName();
 
         $businessType = $business_type == 'clients' ? 'customer' : 'supplier';
+        $this->abortUnlessContactTypeEntitled($businessType);
         $create_url = $business_type == 'clients' ? 'client-create' : 'supplier-create';
         if ($request->ajax()) {
             $contacts = Contact::where('business_type', $businessType)->select('id', 'name', 'mobile_number', 'email', 'commercial_register', 'tax_number', 'status');
@@ -44,6 +46,9 @@ class ClientController extends Controller
     public function create()
     {
         // dd(env('DB_CONNECTION')) ;
+        $create_page = Route::currentRouteName();
+        $this->abortUnlessContactTypeEntitled($create_page === 'supplier-create' ? 'supplier' : 'customer');
+
         $countries = Country::all(); // DB::connection('mysql')->table('countries')->get();
         $payment_terms = SalesUtile::paymentTerms();
         $accounts = AccountingAccount::forDropdown();
@@ -51,7 +56,6 @@ class ClientController extends Controller
         $parents_account = AccountingAccount::all();
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
-        $create_page = Route::currentRouteName();
 
         if ($create_page == 'supplier-create') {
             return view('clientsandsuppliers::Client.create.supplier', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
@@ -63,11 +67,15 @@ class ClientController extends Controller
     public function edit($id)
     {
         // $countries = DB::connection('mysql')->table('countries')->get();
+        $contact = Contact::find($id);
+        if (! $contact) {
+            return redirect()->route('clients')->with('error', __('clientsandsuppliers::general.reach-non-existent-customer'));
+        }
+        $this->abortUnlessContactTypeEntitled($contact->business_type);
+
         $countries = Country::all();
         $payment_terms = SalesUtile::paymentTerms();
         $accounts = AccountingAccount::forDropdown();
-
-        $contact = Contact::find($id);
 
         $parents_account = AccountingAccount::all();
         $account_main_types = AccountingUtil::account_type();
@@ -83,6 +91,8 @@ class ClientController extends Controller
     {
 
         // return $request;
+        $this->abortUnlessContactTypeEntitled((string) $request->input('business_type', 'customer'));
+        $this->validateRequiredAccountingAccount($request);
 
         try {
             DB::beginTransaction();
@@ -282,6 +292,7 @@ class ClientController extends Controller
         if (! $contact) {
             return redirect()->route('clients')->with('error', __('clientsandsuppliers::general.reach-non-existent-customer'));
         }
+        $this->abortUnlessContactTypeEntitled($contact->business_type);
 
         $isSupplier = $contact->business_type !== 'customer';
         $invoiceTypes = $isSupplier ? ['purchases', 'purchases-return'] : ['sell', 'sell-return'];
@@ -376,7 +387,15 @@ class ClientController extends Controller
     {
         // return $request;
         // dd($request->hasFile('attachment'),$request->file('attachment'));
+        $this->validateRequiredAccountingAccount($request);
+
         try {
+            $contact = Contact::find($request->id);
+            if (! $contact) {
+                return redirect()->back()->with('error', __('messages.something_went_wrong'));
+            }
+            $this->abortUnlessContactTypeEntitled($contact->business_type);
+
             $attachment_name = null;
 
             if ($request->hasFile('attachment')) {
@@ -384,7 +403,6 @@ class ClientController extends Controller
                 $attachment_name = $attachment->store('customers', 'public');
             }
 
-            $contact = Contact::find($request->id);
             DB::beginTransaction();
             $contact->update([
                 'name' => $request->client_name,
@@ -535,5 +553,31 @@ class ClientController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Customers need sales (or purchases for shared hub create from PO flows).
+     * Suppliers need purchases only.
+     */
+    protected function abortUnlessContactTypeEntitled(?string $businessType): void
+    {
+        $businessType = $businessType === 'supplier' ? 'supplier' : 'customer';
+        $required = $businessType === 'supplier'
+            ? 'purchases'
+            : ['sales', 'purchases'];
+
+        if (! tenant_entitled($required)) {
+            abort(403, __('responses.entitlement_forbidden'));
+        }
+    }
+
+    protected function validateRequiredAccountingAccount(Request $request): void
+    {
+        $accountId = (int) $request->input('account_id');
+        if ($accountId <= 0 || ! AccountingAccount::query()->whereKey($accountId)->exists()) {
+            throw ValidationException::withMessages([
+                'account_id' => __('clientsandsuppliers::fields.accounting_account_required'),
+            ]);
+        }
     }
 }

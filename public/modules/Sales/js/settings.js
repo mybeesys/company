@@ -35,6 +35,7 @@ $(document).ready(function () {
         const $form = $(this);
         const precheck = window.invoicePrecheckConfig || {};
         const missingAccounts = Array.isArray(precheck.missingAccounts) ? precheck.missingAccounts : [];
+        const skipContactAccountCheck = String($form.data("invoice-document-only") || "") === "1";
 
         if (missingAccounts.length > 0) {
             e.preventDefault();
@@ -44,6 +45,33 @@ $(document).ready(function () {
             const list = missingAccounts.map((item) => `- ${item}`).join("<br>");
             toastr.warning(`${header}<br>${list}`);
             return false;
+        }
+
+        if (!skipContactAccountCheck) {
+            const $client = $form.find("#client_id");
+            const $option = $client.find(":selected");
+            const clientId = $option.val();
+            if (clientId) {
+                const hasAccount = String($option.data("has-account") ?? "");
+                const accountId = $option.data("account-id");
+                const linked =
+                    hasAccount === "1" ||
+                    hasAccount === "true" ||
+                    (accountId !== undefined && accountId !== null && String(accountId).trim() !== "" && Number(accountId) > 0);
+                // Only enforce when the option exposes account metadata.
+                const metadataPresent =
+                    hasAccount !== "" ||
+                    (accountId !== undefined && accountId !== null);
+                if (metadataPresent && !linked) {
+                    e.preventDefault();
+                    const msg =
+                        (precheck.messages && precheck.messages.contactMissingAccount) ||
+                        "This customer/supplier has no linked accounting account.";
+                    toastr.warning(msg);
+                    $client.addClass("is-invalid").focus();
+                    return false;
+                }
+            }
         }
 
         let missingUnit = false;

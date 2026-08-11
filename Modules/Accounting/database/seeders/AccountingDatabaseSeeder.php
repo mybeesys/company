@@ -139,6 +139,13 @@ class AccountingDatabaseSeeder extends Seeder
                 'description_ar' => 'مفيد للمعاملات القابلة للتتبع. تأكد من تأكيد التحويل قبل متابعة الطلب.',
                 'active' => 1,
             ],
+            [
+                'name_en' => 'delivery_apps',
+                'name_ar' => 'تطبيقات توصيل',
+                'description_en' => 'Payment collected via delivery applications (Jahez, HungerStation, etc.).',
+                'description_ar' => 'تحصيل عبر تطبيقات التوصيل (جاهز، هنقرستيشن، وغيرها).',
+                'active' => 1,
+            ],
         ];
 
         foreach ($paymentMethods as $method) {

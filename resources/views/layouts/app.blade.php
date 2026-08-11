@@ -143,13 +143,6 @@
     </script>
     <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
         <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
-            @php
-                try {
-                    $appHeaderCompanyName = function_exists('company_header_name') ? company_header_name() : null;
-                } catch (\Throwable $e) {
-                    $appHeaderCompanyName = null;
-                }
-            @endphp
             <div id="kt_app_header" class="app-header app-header--compact d-flex flex-column flex-stack">
                 <!--begin::Header main-->
                 <div class="app-header-main app-header-main--grid flex-grow-1 ps-lg-6 ps-3">
@@ -166,9 +159,6 @@
                         </div>
                     </div>
                     <div class="app-header-brand">
-                        @if (filled($appHeaderCompanyName))
-                            <span class="app-header-company-name text-truncate text-gray-800" title="{{ $appHeaderCompanyName }}">{{ $appHeaderCompanyName }}</span>
-                        @endif
                         <a href="/" class="app-sidebar-logo app-header-logo-link d-inline-flex align-items-center py-1 text-decoration-none flex-shrink-0">
                             <img alt="{{ brand_short_name() }}" src="/assets/media/logos/1-01.png" class="app-header-logo-img" />
                         </a>

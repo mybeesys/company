@@ -12,6 +12,10 @@ class NotificationSettingController extends Controller
 {
     public function storeNotificationsSettings(StoreNotificationRequest $request, string $notificationType)
     {
+        if (! app(\App\Services\EntitlementGate::class)->notificationTypeAllowed($notificationType)) {
+            abort(403, __('responses.entitlement_forbidden'));
+        }
+
         $notificationKeys = [
             'email' => [
                 'fields' => [

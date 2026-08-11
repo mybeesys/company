@@ -123,9 +123,7 @@ class SubscriptionOverviewService
 
     public function manageUrl(): string
     {
-        $base = rtrim((string) config('referrals.central_app_url', config('app.url')), '/');
-
-        return $base.'/subscribe';
+        return url('/subscription/manage');
     }
 
     protected function entitlementRow(int $companyId): ?object

@@ -18,6 +18,7 @@ return [
         'icon' => 'fas fa-chart-line',
         'route' => 'sales-dashbord',
         'permission' => 'sales.all.show',
+        'entitlement' => 'sales',
     ],
     [
         'id' => 'purchases',
@@ -26,6 +27,7 @@ return [
         'icon' => 'fas fa-shopping-cart',
         'route' => 'purchase-dashbord',
         'permission' => 'purchases.all.show',
+        'entitlement' => 'purchases',
     ],
     [
         'id' => 'products',
@@ -34,6 +36,7 @@ return [
         'icon' => 'fas fa-box',
         'route' => 'product.dashboard',
         'permission' => 'products.dashboard.show',
+        'entitlement' => 'platform',
     ],
     [
         'id' => 'inventory',
@@ -42,6 +45,7 @@ return [
         'icon' => 'fas fa-warehouse',
         'route' => 'inventory.dashboard',
         'permission' => 'inventory.dashboard.show',
+        'entitlement' => 'inventory',
     ],
     [
         'id' => 'accounting',
@@ -50,5 +54,6 @@ return [
         'icon' => 'fas fa-calculator',
         'route' => 'accounting-dashboard',
         'permission' => 'accounting.Dashboard.show',
+        'entitlement' => 'accounting',
     ],
 ];

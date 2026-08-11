@@ -3,9 +3,11 @@
 namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\EntitlementGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\General\Models\FavoriteBills;
+use Modules\General\Models\Transaction;
 
 class FavoriteController extends Controller
 {
@@ -13,6 +15,11 @@ class FavoriteController extends Controller
     {
         $transactionId = $request->transaction_id;
         $userId = Auth::user()->id;
+
+        $transaction = Transaction::find($transactionId);
+        if (! $transaction || ! app(EntitlementGate::class)->transactionTypeAllowed($transaction->type)) {
+            abort(403, __('responses.entitlement_forbidden'));
+        }
 
         $favorite = FavoriteBills::where('transaction_id', $transactionId)->where('user_id', $userId)->first();
 

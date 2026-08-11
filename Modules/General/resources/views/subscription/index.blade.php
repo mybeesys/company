@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            <a href="{{ $manage_url }}" target="_blank" rel="noopener" class="btn btn-warning">
+            <a href="{{ $manage_url }}" class="btn btn-warning">
                 <i class="fas fa-sync-alt me-1"></i>
                 @lang('general::general.renew_or_upgrade')
             </a>
@@ -311,7 +311,7 @@
 
                     <div class="separator separator-dashed mb-7"></div>
 
-                    <a href="{{ $manage_url }}" target="_blank" rel="noopener" class="btn btn-warning w-100 mb-3">
+                    <a href="{{ $manage_url }}" class="btn btn-warning w-100 mb-3">
                         @lang('general::general.renew_or_upgrade')
                     </a>
                     <div class="text-muted fs-8 text-center">

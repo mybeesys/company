@@ -159,7 +159,12 @@
                     href="#general_setting_tab">@lang('menuItemLang.general_setting')</a>
             </li>
 
-            @if (tenant_setting_entitled('notifications'))
+            @if (tenant_setting_entitled('notifications') && (
+                tenant_setting_entitled('notifications_general')
+                || tenant_setting_entitled('notifications_clients')
+                || tenant_setting_entitled('notifications_suppliers')
+                || tenant_setting_entitled('notifications_inventory')
+            ))
                 <li class="nav-item">
                     <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                         href="#notifications_tab">@lang('general::general.notifications_templates')</a>
@@ -177,7 +182,7 @@
                         href="#sms_settings_tab">@lang('general::general.sms_settings')</a>
                 </li>
             @endif
-            @if (tenant_setting_entitled('prefix_settings'))
+            @if (tenant_setting_entitled('prefix_settings') && ($hasPrefixSettings ?? false))
                 <li class="nav-item">
                     <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
                         href="#prefix_settings_tab">@lang('general::general.Prefix Settings')</a>
@@ -212,7 +217,7 @@
                 <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
             @endif
 
-            @if (tenant_setting_entitled('prefix_settings'))
+            @if (tenant_setting_entitled('prefix_settings') && ($hasPrefixSettings ?? false))
                 @include('general::prefix-settings.prefix-settings')
             @endif
             @include('general::general-setting.invoice-tab')

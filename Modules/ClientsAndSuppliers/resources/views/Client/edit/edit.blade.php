@@ -306,13 +306,30 @@
 
     </form>
 
-    @include('accounting::journalEntry.create-account')
+    @if (tenant_entitled('accounting'))
+        @include('accounting::journalEntry.create-account')
+    @endif
 
 @stop
 
 @section('script')
     <script>
         $(document).ready(function() {
+            const canManageChartOfAccounts = @json(tenant_entitled('accounting'));
+            const accountRequiredMsg = @json(__('clientsandsuppliers::fields.accounting_account_required'));
+
+            $('#client').on('submit', function(e) {
+                const accountId = $('select[name="account_id"]').val();
+                if (!accountId) {
+                    e.preventDefault();
+                    toastr.warning(accountRequiredMsg);
+                    $('a[href="#financial_information"]').tab('show');
+                    $('.kt_ecommerce_select2_account').addClass('is-invalid').select2('open');
+                    return false;
+                }
+                $('.kt_ecommerce_select2_account').removeClass('is-invalid');
+                return true;
+            });
 
             $('#shipping_country').select2();
             $('#billing_country').select2();
@@ -332,6 +349,9 @@
 
                 language: {
                     noResults: function() {
+                        if (!canManageChartOfAccounts) {
+                            return {{ Illuminate\Support\Js::from(app()->getLocale() === 'ar' ? 'لا نتائج' : 'No results') }};
+                        }
                         var newAccountText = "@lang('accounting::lang.add_account')";
                         var $newAccountButton = $(
                             '<a class="link-underline" data-bs-toggle="modal" data-bs-target="#kt_modal_create_account" id="addNewAccountBtn">' +

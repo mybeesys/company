@@ -43,13 +43,13 @@ class TransactionController extends Controller
      */
     public function show($id)
     {
-
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-
         $transaction = Transaction::find($id);
         if (! $transaction) {
             return redirect()->back();
         }
+        $this->abortUnlessTransactionEntitled($transaction);
+
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
@@ -67,9 +67,6 @@ class TransactionController extends Controller
 
     public function showReceiptsPayments($id)
     {
-
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-
         $transaction = TransactionPayments::with([
             'transaction.sell_lines.product',
             'transaction.purchases_lines.product',
@@ -78,6 +75,9 @@ class TransactionController extends Controller
         if (! $transaction) {
             return redirect()->back();
         }
+        $this->abortUnlessTransactionEntitled($transaction->transaction);
+
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transactionUtil = new TransactionUtils;
         $txDate = $transaction->paid_on ?? now();
         $amount = (float) ($transaction->amount ?? 0);
@@ -100,7 +100,6 @@ class TransactionController extends Controller
 
     public function exportReceiptsPaymentsPDF($id)
     {
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transaction = TransactionPayments::with([
             'transaction.sell_lines.product',
             'transaction.purchases_lines.product',
@@ -109,7 +108,9 @@ class TransactionController extends Controller
         if (! $transaction) {
             return redirect()->back();
         }
+        $this->abortUnlessTransactionEntitled($transaction->transaction);
 
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transactionUtil = new TransactionUtils;
         $txDate = $transaction->paid_on ?? now();
         $amount = (float) ($transaction->amount ?? 0);
@@ -148,8 +149,12 @@ class TransactionController extends Controller
 
     public function print($id)
     {
-
         $transaction = Transaction::find($id);
+        if (! $transaction) {
+            return redirect()->back();
+        }
+        $this->abortUnlessTransactionEntitled($transaction);
+
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
@@ -167,9 +172,13 @@ class TransactionController extends Controller
 
     public function paymentPrint($id)
     {
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-
         $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
+        if (! $transaction) {
+            return redirect()->back();
+        }
+        $this->abortUnlessTransactionEntitled($transaction);
+
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
@@ -186,10 +195,13 @@ class TransactionController extends Controller
 
     public function exportPDF($id)
     {
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-
         $transaction = Transaction::find($id);
+        if (! $transaction) {
+            return redirect()->back();
+        }
+        $this->abortUnlessTransactionEntitled($transaction);
 
+        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
@@ -219,10 +231,13 @@ class TransactionController extends Controller
 
     public function exportTransactionPaymentPDF($id)
     {
+        $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
+        if (! $transaction) {
+            return redirect()->back();
+        }
+        $this->abortUnlessTransactionEntitled($transaction);
 
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-
-        $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
         $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
@@ -252,9 +267,13 @@ class TransactionController extends Controller
 
     public function showPayments($id)
     {
-
         $transactionUtil = new TransactionUtils;
         $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
+        if (! $transaction) {
+            return redirect()->back();
+        }
+        $this->abortUnlessTransactionEntitled($transaction);
+
         $accounts = AccountingAccount::forDropdown();
         $paid_amount = $transactionUtil->getTotalPaid($id);
         $amount = $transaction->final_total - $paid_amount;
@@ -262,7 +281,6 @@ class TransactionController extends Controller
             $amount = 0;
         }
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-        $transactionUtil = new TransactionUtils;
         $qrData = $transactionUtil->generateZatcaQr(
             $company->name,
             $company->tax_number,
@@ -281,17 +299,36 @@ class TransactionController extends Controller
      */
     public function addPayment(Request $request)
     {
-
-        // return $request;
         $transactionUtil = new TransactionUtils;
 
         $transaction = Transaction::find($request->id);
+        if (! $transaction) {
+            return redirect()->back();
+        }
+        $this->abortUnlessTransactionEntitled($transaction);
+
         if ($request->paid_amount) {
             $transactionUtil->addPaymentLines_journalEntry($transaction, $request);
         }
 
-        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+        $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
-        return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
+        $redirectRoute = app(\App\Services\EntitlementGate::class)
+            ->moduleForTransactionType($transaction->type) === 'purchases'
+            ? 'purchase-invoices'
+            : 'invoices';
+
+        return redirect()->route($redirectRoute)->with('success', __('messages.add_successfully'));
+    }
+
+    protected function abortUnlessTransactionEntitled(?Transaction $transaction): void
+    {
+        if (! $transaction) {
+            abort(403, __('responses.entitlement_forbidden'));
+        }
+
+        if (! app(\App\Services\EntitlementGate::class)->transactionTypeAllowed($transaction->type)) {
+            abort(403, __('responses.entitlement_forbidden'));
+        }
     }
 }

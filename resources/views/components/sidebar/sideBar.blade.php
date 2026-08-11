@@ -86,7 +86,7 @@
     );
     @endphp
 
-    @if ($hasMenuEntitlement($menuItem) && ($visibleSubmenuItems->isNotEmpty() || $hasMenuPermission($menuItem['permission'] ?? null)))
+    @if ($hasMenuEntitlement($menuItem) && ($visibleSubmenuItems->isNotEmpty() || (empty($menuItem['subMenu']) && $hasMenuPermission($menuItem['permission'] ?? null))))
         @if ($visibleSubmenuItems->isEmpty())
             <x-sidebar.main-menu-item :url="$menuItem['url']" :icon="$menuItem['icon']" :name="$menuItem['name']" />
         @else

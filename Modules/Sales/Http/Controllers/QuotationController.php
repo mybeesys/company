@@ -18,6 +18,7 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
+use Modules\Sales\Services\WebSellModifiersCombosService;
 use Modules\Sales\Utils\SalesUtile;
 
 class QuotationController extends Controller
@@ -93,8 +94,15 @@ class QuotationController extends Controller
         $duplicateFrom = (int) $request->input('duplicate_from', 0);
         if ($duplicateFrom > 0) {
             $src = Transaction::with([
-                'sell_lines' => fn ($q) => $q->where('is_show', 1)->orderBy('id'),
+                'sell_lines' => fn ($q) => $q->where('is_show', 1)
+                    ->where(function ($query) {
+                        $query->whereNull('parent_id')
+                            ->orWhere('parent_id', '')
+                            ->orWhere('parent_id', 0);
+                    })
+                    ->orderBy('id'),
                 'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+                'sell_lines.childLines.product',
             ])->find($duplicateFrom);
             if ($src && $src->type === 'quotation') {
                 $transaction = $src;
@@ -106,7 +114,11 @@ class QuotationController extends Controller
             $query->whereNull('unit2');
         }])->get();
 
-        return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate'));
+        $sellWithModifiersCombos = WebSellModifiersCombosService::isEnabled();
+        $allowSaleWithoutStock = Auth::user() && Auth::user()->can(\Modules\General\Models\Setting::PERMISSION_ALLOW_SALE_WITHOUT_STOCK);
+        $invoicePrecheckConfig = [];
+
+        return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate', 'sellWithModifiersCombos', 'allowSaleWithoutStock', 'invoicePrecheckConfig'));
     }
 
     /**
@@ -151,7 +163,7 @@ class QuotationController extends Controller
 
             foreach ($products as $product) {
                 $discount_type = $product->discount ? $product->discount_type : null;
-                TransactionSellLine::create([
+                $mainLine = TransactionSellLine::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->products_id,
                     'qyt' => $product->qty,
@@ -165,6 +177,12 @@ class QuotationController extends Controller
                     'tax_value' => $product->vat_value,
                     'total_before_vat' => $product->total_before_vat,
                 ]);
+
+                WebSellModifiersCombosService::persistChildLines(
+                    (int) $transaction->id,
+                    (int) $mainLine->id,
+                    $product
+                );
             }
 
             DB::commit();
