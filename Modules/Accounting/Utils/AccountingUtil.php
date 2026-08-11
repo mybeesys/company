@@ -423,72 +423,67 @@ class AccountingUtil
                 // }
             } elseif ($transaction->type == 'sell-return') {
                 $sales_sell_return = AccountsRoting::where('type', 'sales_sell_return')->first();
-                $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
+                $sales_discount_allowed = AccountsRoting::where('type', 'sales_discount_allowed')->first();
 
-                if (! $sales_sell_return || ! $sales_sales || ! $sales_vat_calculation) {
-                    throw new RuntimeException('Accounting routing missing for sell-return. Please configure Accounts Routing: sales_sell_return, sales_sales, sales_vat_calculation.');
+                if (! $sales_sell_return || ! $sales_sell_return->account_id || ! $sales_vat_calculation || ! $sales_vat_calculation->account_id) {
+                    throw new RuntimeException('Accounting routing missing for sell-return. Please configure Accounts Routing: sales_sell_return, sales_vat_calculation.');
                 }
 
-                if ($transaction->invoice_type == 'cash') {
-                    $client = Contact::find($transactionPayment->payment_for);
-                    if (! $client || ! $client->account_id) {
-                        throw new RuntimeException('Customer account is missing for sell-return. Please ensure the customer has an accounting account linked.');
+                // Prefer monetary discount from totals (credit note), then stored amount.
+                $beforeTax = round((float) ($transaction->total_before_tax ?? 0), 2);
+                $afterDiscount = round((float) ($transaction->totalAfterDiscount ?? $transaction->total_after_discount ?? $beforeTax), 2);
+                $discountAmount = round(max(0, $beforeTax - $afterDiscount), 2);
+                if ($discountAmount <= 0) {
+                    $rawDiscount = (float) ($transaction->discount_amount ?? 0);
+                    if (($transaction->discount_type ?? '') === 'percent') {
+                        $discountAmount = round($beforeTax * ($rawDiscount / 100), 2);
+                    } else {
+                        $discountAmount = round(max(0, $rawDiscount), 2);
                     }
-                    $netForJournal = round($finalTotal - $taxAmount, 2);
-                    $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $finalTotal;
+                }
+
+                $netForJournal = round($finalTotal - $taxAmount, 2);
+                $salesGrossBeforeDiscount = round($netForJournal + $discountAmount, 2);
+
+                $client = Contact::find($transactionPayment->payment_for ?: $transaction->contact_id);
+                if (! $client || ! $client->account_id) {
+                    throw new RuntimeException('Customer account is missing for sell-return. Please ensure the customer has an accounting account linked.');
+                }
+
+                // Credit note (Saudi-style reverse of sell):
+                // Dr Sales returns (gross) + Dr VAT  |  Cr Discount allowed (if any) + Cr Customer/Cash
+                $transactionPayment->account_id = $sales_sell_return->account_id;
+                $transactionPayment->amount = $salesGrossBeforeDiscount;
+                $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+
+                if ($discountAmount > 0 && $sales_discount_allowed && $sales_discount_allowed->account_id) {
+                    $transactionPayment->account_id = $sales_discount_allowed->account_id;
+                    $transactionPayment->amount = $discountAmount;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                }
 
-                    $transactionPayment->account_id = $sales_sales->account_id;
-                    $transactionPayment->amount = $netForJournal;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                    $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $taxAmount;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                $transactionPayment->account_id = $sales_vat_calculation->account_id;
+                $transactionPayment->amount = $taxAmount;
+                $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
-                    $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $finalTotal;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                    $transactionPayment->account_id = $sales_sell_return->account_id;
+                if ($transaction->invoice_type == 'cash') {
+                    // Cash refund: credit cash (or customer clearing then cash if payment_for path used on sell).
+                    $cashTarget = $cash_account_id ?: $client->account_id;
+                    if (! $cashTarget) {
+                        throw new RuntimeException('Cash account is missing for sell-return cash refund.');
+                    }
+                    $transactionPayment->account_id = $cashTarget;
                     $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 } else {
-                    $netForJournal = round($finalTotal - $taxAmount, 2);
-                    $transactionPayment->account_id = $sales_sell_return->account_id;
+                    // Due / credit: reduce customer receivable.
+                    $transactionPayment->account_id = $client->account_id;
                     $transactionPayment->amount = $finalTotal;
-
-                    $this->saveAccountRouteTransaction(
-                        'credit',
-                        $transactionPayment,
-                        $transaction,
-                        $acc_trans_mapping_id,
-                        $request
-                    );
-
-                    $transactionPayment->account_id = $sales_sales->account_id;
-                    $transactionPayment->amount = $netForJournal;
-
-                    $this->saveAccountRouteTransaction(
-                        'debit',
-                        $transactionPayment,
-                        $transaction,
-                        $acc_trans_mapping_id,
-                        $request
-                    );
-
-                    $transactionPayment->account_id = $sales_vat_calculation->account_id;
-                    $transactionPayment->amount = $taxAmount;
-
-                    $this->saveAccountRouteTransaction(
-                        'debit',
-                        $transactionPayment,
-                        $transaction,
-                        $acc_trans_mapping_id,
-                        $request
-                    );
+                    $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                 }
+
+                $this->appendPerpetualCogsEntries($transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             } elseif ($transaction->type == 'purchases-return') {
                 $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
                 $purchases_purchase_return = AccountsRoting::where('type', 'purchases_purchase_return')->first();
@@ -582,7 +577,11 @@ class AccountingUtil
 
     private function appendPerpetualCogsEntries($transactionPayment, $transaction, int $accTransMappingId, $request): void
     {
-        if (! Setting::isPerpetualInventory() || $transaction->type !== 'sell') {
+        if (! Setting::isPerpetualInventory()) {
+            return;
+        }
+
+        if (! in_array($transaction->type, ['sell', 'sell-return'], true)) {
             return;
         }
 
@@ -595,19 +594,36 @@ class AccountingUtil
             return;
         }
 
-        $cogsAmount = round(app(\Modules\Inventory\Services\InventoryCostingService::class)
-            ->resolveCogsAmountForSell((int) $transaction->id), 2);
+        $costing = app(\Modules\Inventory\Services\InventoryCostingService::class);
+        if ($transaction->type === 'sell') {
+            $cogsAmount = round($costing->resolveCogsAmountForSell((int) $transaction->id), 2);
+            if ($cogsAmount <= 0) {
+                return;
+            }
 
-        if ($cogsAmount <= 0) {
+            $transactionPayment->account_id = $cogsAccountId;
+            $transactionPayment->amount = $cogsAmount;
+            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $accTransMappingId, $request);
+
+            $transactionPayment->account_id = $inventoryAccountId;
+            $transactionPayment->amount = $cogsAmount;
+            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $accTransMappingId, $request);
+
             return;
         }
 
-        $transactionPayment->account_id = $cogsAccountId;
-        $transactionPayment->amount = $cogsAmount;
-        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $accTransMappingId, $request);
+        // sell-return: reverse COGS — put stock back on inventory asset.
+        $inboundCost = round($costing->resolveInboundCostForSellReturn((int) $transaction->id), 2);
+        if ($inboundCost <= 0) {
+            return;
+        }
 
         $transactionPayment->account_id = $inventoryAccountId;
-        $transactionPayment->amount = $cogsAmount;
+        $transactionPayment->amount = $inboundCost;
+        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $accTransMappingId, $request);
+
+        $transactionPayment->account_id = $cogsAccountId;
+        $transactionPayment->amount = $inboundCost;
         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $accTransMappingId, $request);
     }
 

@@ -26,7 +26,7 @@
                         <th class="min-w-80px">@lang('sales::lang.qty') / @lang('sales::lang.unit')</th>
                         {{-- <th class="min-w-80px">@lang('sales::lang.unit_transfers')</th> --}}
                         <th class="min-w-190px">@lang('sales::lang.unit_price')</th>
-                        {{-- <th class="min-w-200px">@lang('sales::lang.discount')</th> --}}
+                        <th class="min-w-200px">@lang('sales::lang.discount')</th>
                         <th class="min-w-125px">@lang('sales::lang.total_before_vat')</th>
                         {{-- <th class="min-w-10px">@lang('sales::lang.inclusive')</th> --}}
 
@@ -112,14 +112,52 @@
                                             style="width: 100px;-moz-appearance: textfield !important">
                                     </td>
 
+                                    @php
+                                        $soldQty = (float) ($line->qyt ?: 0);
+                                        $returnQtyDefault =
+                                            $line->line_status == 'partial'
+                                                ? (float) ($line->remaining_qty ?? $soldQty)
+                                                : $soldQty;
+                                        $lineDiscType = $line->discount_type ?: 'fixed';
+                                        $lineDiscAmount = (float) ($line->discount_amount ?? 0);
+                                        if ($lineDiscType === 'fixed' && $soldQty > 0 && $returnQtyDefault > 0) {
+                                            $prefillLineDisc = round($lineDiscAmount * ($returnQtyDefault / $soldQty), 4);
+                                        } else {
+                                            $prefillLineDisc = $lineDiscAmount;
+                                        }
+                                        $taxRateRaw = \Modules\General\Support\TransactionLineTaxRate::displayPercent(
+                                            $line->tax_id !== null ? (string) $line->tax_id : null
+                                        );
+                                        $taxRate = is_numeric($taxRateRaw) ? $taxRateRaw : 0;
+                                    @endphp
+
+                                    <td style="white-space: nowrap;">
+                                        <input type="number" step="any"
+                                            class="form-control discount-field no-spin d-inline-block discount"
+                                            name="products[{{ $index }}][discount]"
+                                            placeholder="0.0" value="{{ $prefillLineDisc }}"
+                                            data-original-qty="{{ $soldQty }}"
+                                            data-original-discount="{{ $lineDiscAmount }}"
+                                            data-discount-type="{{ $lineDiscType }}"
+                                            style="width: 70px; display: inline-block;">
+                                        <select id="discount_type-{{ $index }}"
+                                            class="form-select form-select-solid select-2 d-inline-block discount_type"
+                                            name="products[{{ $index }}][discount_type]"
+                                            style="width: 100px; display: inline-block;">
+                                            <option value="fixed" @selected($lineDiscType === 'fixed')>@get_format_currency()</option>
+                                            <option value="percent" @selected($lineDiscType === 'percent')>%</option>
+                                        </select>
+                                    </td>
 
                                     <td><input type="number" step="any" readonly
                                             class="form-control total_before_vat-field"
                                             name="products[{{ $index }}][total_before_vat]" placeholder="0.00"
                                             style="width: 115px;border: 0;">
 
-                                        <input type="hidden" name="products[{{ $index }}][tax_vat]"
+                                        <input type="hidden" name="products[{{ $index }}][tax_id]"
                                             value="{{ $line->tax_id }}">
+                                        <input type="hidden" name="products[{{ $index }}][tax_vat]"
+                                            value="{{ $taxRate }}">
 
                                     </td>
 
@@ -268,15 +306,26 @@
     {{-- invoice ditales --}}
 
     <div class="card-body p-0 mt-5 d-flex flex-column">
-        <div class="d-flex align-items-center mb-5 mx-10">
+        @php
+            $parentDiscountType = $transaction->discount_type ?: 'fixed';
+            $parentDiscountAmount = (float) ($transaction->discount_amount ?? 0);
+            // If parent stored percent, keep percent. If fixed, start at 0 and JS scales by returned share.
+            $prefillInvoiceDiscount =
+                $parentDiscountType === 'percent' ? $parentDiscountAmount : 0;
+        @endphp
+        <div class="d-flex align-items-center mb-5 mx-10"
+            data-parent-discount-type="{{ $parentDiscountType }}"
+            data-parent-discount-amount="{{ $parentDiscountAmount }}"
+            data-parent-total-before-tax="{{ (float) ($transaction->total_before_tax ?? 0) }}"
+            id="sell-return-invoice-discount-wrap">
             <label class="fs-6 fw-semibold mb-2 me-3 " style="width: 100px;">@lang('sales::lang.invoice_discount')</label>
             <input class="form-control form-control-solid  no-spin" style="width: 150px;" name="invoice_discount"
-                value="" placeholder="0.00" id="invoice_discount" type="number">
+                value="{{ $prefillInvoiceDiscount }}" placeholder="0.00" id="invoice_discount" type="number">
             <select id="invoiced_discount_type" required
                 class="form-select form-select-solid select-2 d-inline-block invoiced_discount_type mx-3"
                 name="invoiced_discount_type" style="width: 100px; display: inline-block;">
-                <option value="fixed">@get_format_currency()</option>
-                <option value="percent">%</option>
+                <option value="fixed" @selected($parentDiscountType === 'fixed')>@get_format_currency()</option>
+                <option value="percent" @selected($parentDiscountType === 'percent')>%</option>
             </select>
         </div>
         <div class="card-p pt-0 bg-body flex-grow-1">
