@@ -12,7 +12,6 @@ class EstablishmentDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Establishment::firstOrCreate(['name' => 'es1']);
-        // Establishment::firstOrCreate(['name' => 'es2']);
+        $this->call(DefaultEstablishmentPaymentMethodsSeeder::class);
     }
 }
