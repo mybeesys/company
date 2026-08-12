@@ -624,7 +624,8 @@ class TreeAccountsController extends Controller
         $previous = AccountingAccount::where('id', '<', $account_id)->orderBy('id', 'desc')->first();
         $next = AccountingAccount::where('id', '>', $account_id)->orderBy('id', 'asc')->first();
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
-        $accountingAccount = AccountingAccount::forDropdown();
+        // Include control/parent accounts (e.g. العملاء 12041) so AR linked to the parent is selectable.
+        $accountingAccount = AccountingAccount::forDropdown('', true);
         $ledger_visible_columns = $this->parseLedgerVisibleColumns($request);
         $ledger_export_base_params = $this->ledgerExportBaseParams($request, $start_date, $end_date);
 
@@ -851,6 +852,7 @@ class TreeAccountsController extends Controller
         if (request()->ajax()) {
             $q = request()->input('q', '');
 
+            // Keep leaf-only for journal/client pickers; ledger page loads parents via forDropdown('', true).
             $accounts = AccountingAccount::forDropdown($q);
             $accounts_array = [];
             foreach ($accounts as $account) {

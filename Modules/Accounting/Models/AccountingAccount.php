@@ -43,17 +43,34 @@ class AccountingAccount extends Model
         return $this->belongsTo(AccountingAccountTypes::class, 'detail_type_id');
     }
 
-    public static function forDropdown($q = '')
+    /**
+     * @param  bool  $includeParents  When true, control accounts (e.g. العملاء 12041) appear too.
+     *                                Journal posting UIs keep leaf-only; ledger may include parents.
+     */
+    public static function forDropdown($q = '', bool $includeParents = false)
     {
-        $parent_account_ids = AccountingAccount::where('parent_account_id', '<>', null)->get()->pluck('parent_account_id');
-        $query = AccountingAccount::
-        // where('accounting_accounts.parent_account_id', '<>', null)
-        where('status', 'active')->whereNotIn('accounting_accounts.id', $parent_account_ids);
+        $query = AccountingAccount::query()->where('status', 'active');
 
-        if (! empty($q)) {
-            $query->where('accounting_accounts.name_ar', 'like', "%{$q}%")->orWhere('accounting_accounts.name_en', 'like', "%{$q}%")->orWhere('accounting_accounts.gl_code', 'like', "%{$q}%");
+        if (! $includeParents) {
+            $parentAccountIds = AccountingAccount::query()
+                ->whereNotNull('parent_account_id')
+                ->pluck('parent_account_id')
+                ->unique()
+                ->filter();
+
+            if ($parentAccountIds->isNotEmpty()) {
+                $query->whereNotIn('accounting_accounts.id', $parentAccountIds);
+            }
         }
 
-        return $query->get();
+        if (! empty($q)) {
+            $query->where(function ($inner) use ($q) {
+                $inner->where('accounting_accounts.name_ar', 'like', "%{$q}%")
+                    ->orWhere('accounting_accounts.name_en', 'like', "%{$q}%")
+                    ->orWhere('accounting_accounts.gl_code', 'like', "%{$q}%");
+            });
+        }
+
+        return $query->orderBy('gl_code')->get();
     }
 }
