@@ -12,6 +12,7 @@ use Modules\Employee\Http\Controllers\PayrollController;
 use Modules\Employee\Http\Controllers\PayrollGroupController;
 use Modules\Employee\Http\Controllers\PermissionController;
 use Modules\Employee\Http\Controllers\PosRoleController;
+use Modules\Employee\Http\Controllers\ProfileController;
 use Modules\Employee\Http\Controllers\ShiftController;
 use Modules\Employee\Http\Controllers\TimeCardController;
 use Modules\Employee\Http\Controllers\TimeSheetRuleController;
@@ -54,6 +55,9 @@ Route::middleware([
 
         Route::get('/my-companies', [MyCompaniesController::class, 'index'])->name('my-companies.index');
         Route::get('/my-companies/{tenantId}/switch', [MyCompaniesController::class, 'switchUrl'])->name('my-companies.switch');
+
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
         Route::get('/referrals', [ReferralController::class, 'index'])->name('referrals.index');
         Route::post('/referrals/copy', [ReferralController::class, 'recordCopy'])->name('referrals.copy');
