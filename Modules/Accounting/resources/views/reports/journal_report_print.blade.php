@@ -92,10 +92,16 @@
             if ($subs->contains('payment_voucher')) {
                 return __('accounting::lang.journal_source_payment_voucher');
             }
-            if ($subs->intersect(collect(['sell', 'sell-return', 'sell_cash', 'sales_revenue']))->isNotEmpty()) {
+            if ($subs->contains('sell-return')) {
+                return __('accounting::lang.journal_source_sell_return');
+            }
+            if ($subs->contains('purchases-return')) {
+                return __('accounting::lang.journal_source_purchase_return');
+            }
+            if ($subs->intersect(collect(['sell', 'sell_cash', 'sales_revenue']))->isNotEmpty()) {
                 return __('accounting::lang.journal_source_sales');
             }
-            if ($subs->intersect(collect(['purchases', 'purchases-return']))->isNotEmpty()) {
+            if ($subs->contains('purchases')) {
                 return __('accounting::lang.journal_source_purchases');
             }
             if ($subs->contains('expense')) {
