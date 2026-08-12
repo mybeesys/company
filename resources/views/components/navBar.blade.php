@@ -294,6 +294,11 @@
                         <div class="fw-bold fs-6 text-truncate">{{ auth()->user()->user_name }}</div>
                         <div class="text-muted fs-8 text-truncate">{{ auth()->user()->email }}</div>
                     </div>
+                    <a href="{{ route('profile.edit') }}" class="user-quick-menu-edit-btn"
+                        title="@lang('employee::general.edit_profile')"
+                        aria-label="@lang('employee::general.edit_profile')">
+                        <i class="ki-outline ki-pencil fs-5"></i>
+                    </a>
                 </div>
             </div>
 
@@ -611,6 +616,27 @@
     .user-quick-menu-profile-text {
         line-height: 1.3;
         min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .user-quick-menu-edit-btn {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--uqm-border);
+        color: var(--uqm-muted);
+        text-decoration: none;
+        transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .user-quick-menu-edit-btn:hover {
+        color: var(--uqm-accent);
+        border-color: rgba(212, 160, 23, 0.45);
+        background: #fffef5;
     }
 
     .user-quick-menu-scroll {
@@ -923,6 +949,18 @@
     [data-bs-theme="dark"] .user-quick-menu-header,
     [data-bs-theme="dark"] .user-quick-menu-footer {
         background: #151521;
+    }
+
+    [data-bs-theme="dark"] .user-quick-menu-edit-btn {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #a1a5b7;
+    }
+
+    [data-bs-theme="dark"] .user-quick-menu-edit-btn:hover {
+        background: rgba(212, 160, 23, 0.12);
+        border-color: rgba(212, 160, 23, 0.35);
+        color: #f5e902;
     }
 
     [data-bs-theme="dark"] .user-company-chip {
