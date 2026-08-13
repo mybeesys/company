@@ -21,6 +21,211 @@ use Modules\Sales\Http\Controllers\SellReturnController;
 class SellReturnRepairService
 {
     /**
+     * Authoritative credit-note totals when returning against a parent sell invoice.
+     * Invoice-level discount is always the parent's monetary discount × (return base ÷ parent base).
+     *
+     * @param  list<array{
+     *   product_id:int|string,
+     *   qty:float|int|string,
+     *   unit_price:float|int|string,
+     *   discount_type?:?string,
+     *   discount_amount?:float|int|string|null,
+     *   tax_id?:mixed,
+     *   unit_id?:mixed
+     * }>  $inputLines
+     * @return array{
+     *   header: array{
+     *     total_before_tax: float,
+     *     discount_amount: float,
+     *     discount_type: ?string,
+     *     totalAfterDiscount: float,
+     *     tax_amount: float,
+     *     final_total: float
+     *   },
+     *   lines: list<array{
+     *     product_id: int,
+     *     qty: float,
+     *     unit_id: mixed,
+     *     unit_price: float,
+     *     discount_type: ?string,
+     *     discount_amount: float,
+     *     tax_id: mixed,
+     *     tax_value: float,
+     *     total_before_vat: float,
+     *     unit_price_inc_tax: float
+     *   }>
+     * }
+     */
+    public static function computeCreditNoteFromParent(Transaction $parent, array $inputLines): array
+    {
+        $linePlan = [];
+        foreach ($inputLines as $input) {
+            $qty = (float) ($input['qty'] ?? 0);
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $unitPrice = round((float) ($input['unit_price'] ?? 0), 4);
+            $discountType = $input['discount_type'] ?? null;
+            $discountAmount = (float) ($input['discount_amount'] ?? 0);
+            $taxId = $input['tax_id'] ?? null;
+            $taxRate = self::taxRatePercentStatic($taxId);
+
+            $lineGross = round($qty * $unitPrice, 4);
+            if ($discountType === 'percent') {
+                $discMoney = round($lineGross * (max(0, $discountAmount) / 100), 4);
+            } else {
+                $discMoney = round(max(0, $discountAmount), 4);
+                $discountType = $discMoney > 0 ? 'fixed' : null;
+                $discountAmount = $discMoney;
+            }
+
+            $totalBeforeVat = max(0, round($lineGross - $discMoney, 4));
+
+            $linePlan[] = [
+                'product_id' => (int) ($input['product_id'] ?? 0),
+                'qty' => $qty,
+                'unit_id' => $input['unit_id'] ?? 0,
+                'unit_price' => $unitPrice,
+                'discount_type' => $discountType,
+                'discount_amount' => $discountAmount,
+                'tax_id' => $taxId,
+                'tax_rate' => $taxRate,
+                'total_before_vat' => $totalBeforeVat,
+            ];
+        }
+
+        $header = self::computeHeaderTotalsFromParent($linePlan, $parent);
+
+        $lines = [];
+        $totalBeforeVat = $header['total_before_tax'];
+        $invoiceDisc = $header['discount_amount'];
+        foreach ($linePlan as $row) {
+            $share = $totalBeforeVat > 0
+                ? ((float) $row['total_before_vat'] / $totalBeforeVat) * $invoiceDisc
+                : 0.0;
+            $adjustedNet = max(0, (float) $row['total_before_vat'] - $share);
+            $taxValue = round($adjustedNet * (((float) $row['tax_rate']) / 100), 4);
+            $totalAfterVat = round($adjustedNet + $taxValue, 4);
+
+            $lines[] = [
+                'product_id' => (int) $row['product_id'],
+                'qty' => (float) $row['qty'],
+                'unit_id' => $row['unit_id'],
+                'unit_price' => (float) $row['unit_price'],
+                'discount_type' => $row['discount_type'],
+                'discount_amount' => (float) $row['discount_amount'],
+                'tax_id' => $row['tax_id'],
+                'tax_value' => $taxValue,
+                'total_before_vat' => (float) $row['total_before_vat'],
+                'unit_price_inc_tax' => $totalAfterVat,
+            ];
+        }
+
+        return [
+            'header' => [
+                'total_before_tax' => $header['total_before_tax'],
+                'discount_amount' => $header['discount_amount'],
+                'discount_type' => $header['discount_type'],
+                'totalAfterDiscount' => $header['totalAfterDiscount'],
+                'tax_amount' => $header['tax_amount'],
+                'final_total' => $header['final_total'],
+            ],
+            'lines' => $lines,
+        ];
+    }
+
+    /**
+     * @param  list<array{total_before_vat: float|int, tax_rate?: float|int}>  $linePlan
+     * @return array{
+     *   total_before_tax: float,
+     *   discount_amount: float,
+     *   discount_type: ?string,
+     *   totalAfterDiscount: float,
+     *   tax_amount: float,
+     *   final_total: float,
+     *   parent_total_before_tax: float,
+     *   parent_total_after_discount: float,
+     *   parent_discount_amount: mixed,
+     *   parent_discount_type: ?string,
+     *   parent_discount_money_used: float
+     * }
+     */
+    public static function computeHeaderTotalsFromParent(array $linePlan, Transaction $parent): array
+    {
+        $totalBeforeVat = round(array_sum(array_map(
+            fn ($row) => (float) ($row['total_before_vat'] ?? 0),
+            $linePlan
+        )), 2);
+
+        $parentBefore = round((float) ($parent->total_before_tax ?? 0), 2);
+        $parentAfterRaw = $parent->totalAfterDiscount ?? $parent->total_after_discount ?? null;
+        if ($parentAfterRaw === null || $parentAfterRaw === '') {
+            $parentAfter = $parentBefore;
+        } else {
+            $parentAfter = round((float) $parentAfterRaw, 2);
+        }
+
+        $parentDiscFromTotals = round(max(0, $parentBefore - $parentAfter), 2);
+        $parentDiscMoney = 0.0;
+        $parentDiscType = $parent->discount_type ?: null;
+
+        if ($parentDiscFromTotals > 0.009) {
+            $parentDiscMoney = $parentDiscFromTotals;
+        } elseif ($parentDiscType === 'percent') {
+            $raw = (float) ($parent->discount_amount ?? 0);
+            $parentDiscMoney = round($parentBefore * (max(0, $raw) / 100), 2);
+        } elseif ($parentDiscType === 'fixed') {
+            $parentDiscMoney = round(max(0, (float) ($parent->discount_amount ?? 0)), 2);
+            $parentDiscMoney = min($parentDiscMoney, $parentBefore);
+        }
+
+        $invoiceDisc = 0.0;
+        $invoiceDiscType = null;
+        if ($parentDiscMoney > 0 && $parentBefore > 0 && $totalBeforeVat > 0) {
+            $invoiceDisc = round($parentDiscMoney * min(1, $totalBeforeVat / $parentBefore), 2);
+            $invoiceDisc = min($invoiceDisc, $totalBeforeVat);
+            $invoiceDiscType = 'fixed';
+        }
+
+        $totalAfterDiscount = round(max(0, $totalBeforeVat - $invoiceDisc), 2);
+
+        $taxAmount = 0.0;
+        foreach ($linePlan as $row) {
+            $share = $totalBeforeVat > 0
+                ? ((float) ($row['total_before_vat'] ?? 0) / $totalBeforeVat) * $invoiceDisc
+                : 0.0;
+            $adjustedNet = max(0, (float) ($row['total_before_vat'] ?? 0) - $share);
+            $taxAmount += $adjustedNet * (((float) ($row['tax_rate'] ?? 0)) / 100);
+        }
+        $taxAmount = round($taxAmount, 2);
+        $finalTotal = round($totalAfterDiscount + $taxAmount, 2);
+
+        return [
+            'total_before_tax' => $totalBeforeVat,
+            'discount_amount' => $invoiceDisc,
+            'discount_type' => $invoiceDiscType,
+            'totalAfterDiscount' => $totalAfterDiscount,
+            'tax_amount' => $taxAmount,
+            'final_total' => $finalTotal,
+            'parent_total_before_tax' => $parentBefore,
+            'parent_total_after_discount' => $parentAfter,
+            'parent_discount_amount' => $parent->discount_amount,
+            'parent_discount_type' => $parentDiscType,
+            'parent_discount_money_used' => $parentDiscMoney,
+        ];
+    }
+
+    private static function taxRatePercentStatic(mixed $taxId): float
+    {
+        $raw = TransactionLineTaxRate::displayPercent($taxId !== null ? (string) $taxId : null);
+        if ($raw === '--' || ! is_numeric($raw)) {
+            return 0.0;
+        }
+
+        return (float) $raw;
+    }
+    /**
      * @return array{
      *   id:int,
      *   ref_no:?string,
@@ -319,78 +524,12 @@ class SellReturnRepairService
      */
     private function rebuildHeaderTotals(array $linePlan, Transaction $parent): array
     {
-        $totalBeforeVat = round(array_sum(array_column($linePlan, 'total_before_vat')), 2);
-
-        $parentBefore = round((float) ($parent->total_before_tax ?? 0), 2);
-        $parentAfterRaw = $parent->totalAfterDiscount ?? $parent->total_after_discount ?? null;
-        // Empty string must not cast to 0 — that would treat the whole invoice as discounted away.
-        if ($parentAfterRaw === null || $parentAfterRaw === '') {
-            $parentAfter = $parentBefore;
-        } else {
-            $parentAfter = round((float) $parentAfterRaw, 2);
-        }
-
-        $parentDiscFromTotals = round(max(0, $parentBefore - $parentAfter), 2);
-        $parentDiscMoney = 0.0;
-        $parentDiscType = $parent->discount_type ?: null;
-
-        if ($parentDiscFromTotals > 0.009) {
-            // Authoritative: header totals already reflect the real invoice discount money.
-            $parentDiscMoney = $parentDiscFromTotals;
-        } elseif ($parentDiscType === 'percent') {
-            $raw = (float) ($parent->discount_amount ?? 0);
-            $parentDiscMoney = round($parentBefore * (max(0, $raw) / 100), 2);
-        } elseif ($parentDiscType === 'fixed') {
-            // Only trust stored fixed amount when type is explicitly fixed.
-            $parentDiscMoney = round(max(0, (float) ($parent->discount_amount ?? 0)), 2);
-            // Never exceed parent before-tax.
-            $parentDiscMoney = min($parentDiscMoney, $parentBefore);
-        }
-
-        $invoiceDisc = 0.0;
-        $invoiceDiscType = null;
-        if ($parentDiscMoney > 0 && $parentBefore > 0 && $totalBeforeVat > 0) {
-            $invoiceDisc = round($parentDiscMoney * min(1, $totalBeforeVat / $parentBefore), 2);
-            $invoiceDisc = min($invoiceDisc, $totalBeforeVat);
-            $invoiceDiscType = 'fixed';
-        }
-
-        $totalAfterDiscount = round(max(0, $totalBeforeVat - $invoiceDisc), 2);
-
-        $taxAmount = 0.0;
-        foreach ($linePlan as $row) {
-            $share = $totalBeforeVat > 0
-                ? ((float) $row['total_before_vat'] / $totalBeforeVat) * $invoiceDisc
-                : 0.0;
-            $adjustedNet = max(0, (float) $row['total_before_vat'] - $share);
-            $taxAmount += $adjustedNet * (((float) $row['tax_rate']) / 100);
-        }
-        $taxAmount = round($taxAmount, 2);
-        $finalTotal = round($totalAfterDiscount + $taxAmount, 2);
-
-        return [
-            'total_before_tax' => $totalBeforeVat,
-            'discount_amount' => $invoiceDisc,
-            'discount_type' => $invoiceDiscType,
-            'totalAfterDiscount' => $totalAfterDiscount,
-            'tax_amount' => $taxAmount,
-            'final_total' => $finalTotal,
-            'parent_total_before_tax' => $parentBefore,
-            'parent_total_after_discount' => $parentAfter,
-            'parent_discount_amount' => $parent->discount_amount,
-            'parent_discount_type' => $parentDiscType,
-            'parent_discount_money_used' => $parentDiscMoney,
-        ];
+        return self::computeHeaderTotalsFromParent($linePlan, $parent);
     }
 
     private function taxRatePercent(mixed $taxId): float
     {
-        $raw = TransactionLineTaxRate::displayPercent($taxId !== null ? (string) $taxId : null);
-        if ($raw === '--' || ! is_numeric($raw)) {
-            return 0.0;
-        }
-
-        return (float) $raw;
+        return self::taxRatePercentStatic($taxId);
     }
 
     private function purgeAutoAccounting(Transaction $returnTx): void

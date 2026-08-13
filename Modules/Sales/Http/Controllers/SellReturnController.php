@@ -22,6 +22,7 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
+use Modules\Sales\Services\SellReturnRepairService;
 use Modules\Sales\Utils\SalesUtile;
 
 class SellReturnController extends Controller
@@ -171,7 +172,6 @@ class SellReturnController extends Controller
         }
 
         $ref_no = SalesUtile::generateReferenceNumber('sell-return');
-        $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
         $transactionUtil = new TransactionUtils;
         DB::beginTransaction();
         $main_establishment = Establishment::notMain()->active()->first();
@@ -184,10 +184,32 @@ class SellReturnController extends Controller
 
         $invoiceType = $request->invoice_type ?: $sell->invoice_type;
 
-        // Absolute invoice discount (money) for GL; fall back to raw input.
-        $invoiceDiscountMoney = $request->filled('invoiced_discount')
-            ? (float) $request->invoiced_discount
-            : (float) ($request->invoice_discount ?? 0);
+        $products = json_decode(json_encode($request->products ?? []));
+        $inputLines = [];
+        foreach ($products ?? [] as $product) {
+            $qty = (float) ($product->qty ?? 0);
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $inputLines[] = [
+                'product_id' => $product->product_id ?? $product->products_id ?? 0,
+                'qty' => $qty,
+                'unit_id' => $product->unit ?? 0,
+                'unit_price' => $product->unit_price ?? 0,
+                'discount_type' => ! empty($product->discount) ? ($product->discount_type ?? 'fixed') : null,
+                'discount_amount' => $product->discount ?? 0,
+                'tax_id' => $product->tax_id ?? $product->tax_vat ?? null,
+            ];
+        }
+
+        if ($inputLines === []) {
+            return redirect()->back()->withInput()->with('error', __('messages.something_went_wrong'));
+        }
+
+        // Server-owned math: proportional share of parent invoice discount (never trust browser totals).
+        $computed = SellReturnRepairService::computeCreditNoteFromParent($sell, $inputLines);
+        $header = $computed['header'];
 
         $transaction = Transaction::create([
             'type' => 'sell-return',
@@ -197,12 +219,12 @@ class SellReturnController extends Controller
             'transaction_date' => now(),
             'contact_id' => $sell->contact_id,
             'cost_center' => $request->cost_center ?? $sell->cost_center ?? null,
-            'discount_amount' => $invoiceDiscountMoney,
-            'discount_type' => $invoiced_discount_type,
-            'total_before_tax' => $request->totalBeforeVat,
-            'totalAfterDiscount' => $request->totalAfterDiscount,
-            'tax_amount' => $request->totalVat,
-            'final_total' => $request->totalAfterVat,
+            'discount_amount' => $header['discount_amount'],
+            'discount_type' => $header['discount_type'],
+            'total_before_tax' => $header['total_before_tax'],
+            'totalAfterDiscount' => $header['totalAfterDiscount'],
+            'tax_amount' => $header['tax_amount'],
+            'final_total' => $header['final_total'],
             'created_by' => Auth::user()->id,
             'description' => $request->invoice_note,
             'ref_no' => $ref_no,
@@ -212,30 +234,21 @@ class SellReturnController extends Controller
         ]);
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-        $products = json_decode(json_encode($request->products));
 
-        foreach ($products as $product) {
-            $qty = (float) ($product->qty ?? 0);
-            if ($qty <= 0) {
-                continue;
-            }
-
-            $discountType = ! empty($product->discount) ? ($product->discount_type ?? 'fixed') : null;
-            $taxId = $product->tax_id ?? $product->tax_vat ?? null;
-
+        foreach ($computed['lines'] as $line) {
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
-                'product_id' => $product->product_id,
-                'qyt' => $qty,
-                'unit_id' => $product->unit ?? 0,
-                'unit_price_before_discount' => $product->unit_price,
-                'unit_price' => $product->unit_price,
-                'discount_type' => $discountType,
-                'discount_amount' => $product->discount ?? 0,
-                'unit_price_inc_tax' => $product->total_after_vat,
-                'tax_id' => $taxId,
-                'tax_value' => $product->vat_value,
-                'total_before_vat' => $product->total_before_vat,
+                'product_id' => $line['product_id'],
+                'qyt' => $line['qty'],
+                'unit_id' => $line['unit_id'] ?? 0,
+                'unit_price_before_discount' => $line['unit_price'],
+                'unit_price' => $line['unit_price'],
+                'discount_type' => $line['discount_type'],
+                'discount_amount' => $line['discount_amount'],
+                'unit_price_inc_tax' => $line['unit_price_inc_tax'],
+                'tax_id' => $line['tax_id'],
+                'tax_value' => $line['tax_value'],
+                'total_before_vat' => $line['total_before_vat'],
             ]);
         }
 
