@@ -1379,6 +1379,7 @@ class ProductController extends Controller
 
         $products->transform(function ($product) use ($inventoryMap, $includeExtrasFlags) {
             $product->inventory_qty = (float) ($inventoryMap[$product->id] ?? 0);
+            $product->cost = round((float) ($product->cost ?? 0), 4);
             if ($includeExtrasFlags) {
                 $product->has_modifiers = ((int) ($product->modifiers_count ?? 0)) > 0;
                 $product->has_combos = ((int) ($product->combos_count ?? 0)) > 0;

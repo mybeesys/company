@@ -11,7 +11,7 @@ return [
     'chart_of_accounts' => 'شجرة الحسابات',
 
     'employees_management_module' => 'إدارة الموظفين',
-    'establishments_module' => 'المنشآت',
+    'establishments_module' => 'الأفرع',
     'users' => 'المستخدمون',
     'branches_mgmt' => 'إدارة فروع الفرنشايز',
     'franchise_product_mgmt' => 'إدارة منتجات الفرنشايز',
@@ -25,7 +25,7 @@ return [
     'products' => 'المنتجات',
     'inventory' => 'المخزن',
     'accounting' => 'المحاسبة',
-    'establishments' => 'المنشآت',
+    'establishments' => 'الأفرع',
     'reports' => 'التقارير',
     'schedules' => 'الجدولة',
     'accounting_dashboard' => 'لوحة التحكم المحاسبية',

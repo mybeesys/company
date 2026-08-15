@@ -2,6 +2,56 @@
 
 @section('title', __('menuItemLang.establishments'))
 
+@section('css')
+<style>
+    #est_tree .fa-folder:before {
+        color: var(--bs-primary) !important;
+    }
+
+    #est_tree .jstree-default .jstree-themeicon {
+        color: var(--bs-primary) !important;
+    }
+
+    #est_tree .jstree-default .jstree-anchor {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        height: auto;
+        min-height: 28px;
+        line-height: 1.4;
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+    #est_tree li[role="treeitem"] > .est-tree-settings-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-inline-start: 0.5rem;
+        padding: 0.35rem;
+        border-radius: 0.475rem;
+        background-color: var(--bs-primary-light, #f1faff);
+        color: var(--bs-primary);
+        text-decoration: none;
+        vertical-align: middle;
+    }
+
+    #est_tree li[role="treeitem"] > .est-tree-settings-link:hover {
+        background-color: var(--bs-primary);
+        color: #fff;
+    }
+
+    #est_tree li[role="treeitem"] > .est-tree-settings-link:hover i {
+        color: #fff !important;
+    }
+
+    #est_tree li[role="treeitem"] > .est-tree-settings-link i {
+        color: var(--bs-primary) !important;
+        font-size: 0.95rem;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="d-flex flex-column flex-row-fluid gap-5">
     <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
@@ -144,6 +194,52 @@
                 dataTableEstablishments.ajax.reload();
             }
         });
+        function appendEstTreeSettingsLinks() {
+            const branchSettingsLabel = @json(__('establishment::general.branch_settings'));
+            const tree = $('#est_tree').jstree(true);
+
+            const nodes = tree
+                ? tree.get_json('#', { flat: true })
+                : [];
+
+            const nodeIds = nodes.length
+                ? nodes.map((node) => node.id).filter((id) => id && id.indexOf('est_') === 0)
+                : $('#est_tree').find('li[id^="est_"]').map(function () {
+                    return this.id;
+                }).get();
+
+            nodeIds.forEach(function (nodeId) {
+                const branchId = String(nodeId).replace('est_', '');
+                const $item = $('#est_tree').find('#' + $.escapeSelector(nodeId));
+
+                if (! $item.length || $item.children('.est-tree-settings-link').length) {
+                    return;
+                }
+
+                const $anchor = $item.children('a.jstree-anchor');
+                if (! $anchor.length) {
+                    return;
+                }
+
+                $anchor.after(
+                    `<a href="/establishment/${branchId}/edit"`
+                    + ` class="est-tree-settings-link"`
+                    + ` title="${branchSettingsLabel}"`
+                    + ` data-bs-toggle="tooltip"`
+                    + ` data-bs-placement="top"`
+                    + ` onclick="event.stopPropagation();">`
+                    + `<i class="ki-outline ki-setting-2"></i>`
+                    + `</a>`
+                );
+            });
+
+            document.querySelectorAll('#est_tree .est-tree-settings-link[data-bs-toggle="tooltip"]').forEach(function (el) {
+                if (! bootstrap.Tooltip.getInstance(el)) {
+                    new bootstrap.Tooltip(el);
+                }
+            });
+        }
+
         $('#est_tree').jstree({
 
             "core": {
@@ -165,14 +261,14 @@
                 },
 
                 "file": {
-                    "icon": "fa fa-file"
+                    "icon": "fa fa-file text-primary"
                 }
 
             },
 
             "plugins": ["types", "search"]
 
-        });
+        }).on('ready.jstree open_node.jstree refresh.jstree', appendEstTreeSettingsLinks);
         // Add Device Modal
         $('#addDeviceBtn').on('click', function() {
             $('#addDeviceModal').modal('show');

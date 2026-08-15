@@ -11,7 +11,7 @@ return [
     'chart_of_accounts' => 'Tree of accounts',
 
     'employees_management_module' => 'Employee management',
-    'establishments_module' => 'Establishments',
+    'establishments_module' => 'Branches',
     'users' => 'Users',
     'franchise' => 'Franchise',
 
@@ -21,7 +21,7 @@ return [
     'products' => 'Stock Product',
     'inventory' => 'Inventory',
     'accounting' => 'Accounting',
-    'establishments' => 'Establishments',
+    'establishments' => 'Branches',
     'reports' => 'Reports',
     'schedules' => 'Schedules',
     'branches_mgmt' => 'Franchise Branches Management',

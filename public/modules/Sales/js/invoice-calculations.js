@@ -202,6 +202,39 @@ function updateSalesTotals() {
 
     adjustedVat = adjustedVat > 0 ? adjustedVat : 0;
 
+    let serviceFeeAmount = 0;
+    let serviceFeeTax = 0;
+    if (window.InvoiceServiceFees && typeof window.InvoiceServiceFees.applyToTotals === "function") {
+        const serviceFees = window.InvoiceServiceFees.applyToTotals({
+            lines: (function () {
+                const rows = [];
+                $("#salesTable tbody tr").each(function (index) {
+                    const net = parseFloat($(this).find(".total_before_vat-field").val()) || 0;
+                    const vat = parseFloat($(this).find(".vat_value-field").val()) || 0;
+                    let taxRate = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
+                    if (taxRate <= 0 && net > 0 && vat > 0) {
+                        taxRate = (vat / net) * 100;
+                    }
+                    rows.push({
+                        qty: parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0,
+                        net: net,
+                        vat: vat,
+                        gross: parseFloat($(this).find(".total_after_vat-field").val()) || 0,
+                        tax_rate: taxRate,
+                    });
+                });
+                return rows;
+            })(),
+            subtotalAfterDiscount: totalAfterDiscount,
+            productVat: adjustedVat,
+            productTotal: finalTotalAfterVat,
+        });
+        serviceFeeAmount = serviceFees.feeAmount || 0;
+        serviceFeeTax = serviceFees.feeTax || 0;
+        adjustedVat += serviceFeeTax;
+        finalTotalAfterVat += serviceFeeAmount + serviceFeeTax;
+    }
+
     $("#totalBeforeVat").text(totalBeforeVat.toFixed(2));
     $("#input-totalBeforeVat").val(totalBeforeVat.toFixed(2));
     $("#_invoiced_discount").text(totalDiscountAmount.toFixed(2));

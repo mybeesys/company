@@ -7,10 +7,10 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Utils\AccountingUtil;
-use Modules\Accounting\Utils\InternalConsumptionAccountResolver;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
+use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
 use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
@@ -235,14 +235,22 @@ class SellApiController extends Controller
 
             if (TransactionPurpose::isInternalConsumption($transaction)) {
                 if (($request->status ?? '') !== 'draft') {
-                    $expenseAccountId = InternalConsumptionAccountResolver::resolveExpenseAccountId((int) $establishment_id);
-                    if (! $expenseAccountId) {
+                    $resolved = EstablishmentInternalConsumptionTypeResolver::resolveForCashier(
+                        (int) $establishment_id,
+                        $transaction->internal_consumption_type_id ? (int) $transaction->internal_consumption_type_id : null
+                    );
+                    if (! $resolved['ok']) {
                         DB::rollBack();
 
                         return response()->json([
-                            'message' => __('establishment::responses.internal_consumption_expense_account_required'),
-                            'code' => 'internal_consumption_expense_account_required',
-                        ], 422);
+                            'message' => $resolved['message'],
+                            'code' => $resolved['code'],
+                        ], $resolved['status']);
+                    }
+
+                    if ($resolved['type']->id > 0) {
+                        $transaction->internal_consumption_type_id = (int) $resolved['type']->id;
+                        $transaction->save();
                     }
 
                     try {

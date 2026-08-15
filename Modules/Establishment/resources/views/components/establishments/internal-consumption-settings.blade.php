@@ -1,32 +1,74 @@
 @props([
-    'establishment' => null,
-    'internalConsumptionExpenseAccounts' => null,
+    'accounts' => null,
+    'internalConsumptionRows' => [],
 ])
-<div class="establishment-internal-consumption d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
-    <x-form.form-card bodyClass="d-flex gap-5" :title="__('establishment::general.internal_consumption_settings')">
+@php
+    $locale = app()->getLocale();
+    $rows = old('internal_consumption_rows', $internalConsumptionRows ?? []);
+    if (! is_array($rows) || $rows === []) {
+        $rows = [[
+            'id' => null,
+            'name_ar' => '',
+            'name_en' => '',
+            'value_type' => 'cost',
+            'value' => null,
+            'account_id' => null,
+            'is_active' => true,
+        ]];
+    }
+@endphp
+<div class="establishment-internal-consumption d-flex flex-column flex-row-fluid gap-7 gap-lg-10" id="internal_consumption_types_root">
+    <x-form.form-card bodyClass="d-flex flex-column gap-5" :title="__('establishment::general.internal_consumption_settings')">
+        <p class="text-muted mb-0">@lang('establishment::general.internal_consumption_types_hint')</p>
+        <x-form.field-hint :hint="__('establishment::general.internal_consumption_row_hint')" />
+
         <div class="w-100">
-            <div class="row g-4 g-lg-5 mb-0">
-                <div class="col-md-6 col-lg-5">
-                    <div class="fv-row w-100">
-                        <label class="form-label fw-semibold mb-2" for="internal_consumption_expense_account_id">
-                            @lang('establishment::fields.internal_consumption_expense_account')
-                        </label>
-                        <select name="internal_consumption_expense_account_id" id="internal_consumption_expense_account_id"
-                            class="form-select form-select-solid select-2 w-100" data-placeholder="@lang('messages.select')">
-                            <option value=""></option>
-                            @foreach ($internalConsumptionExpenseAccounts ?? [] as $acc)
-                                <option value="{{ $acc->id }}"
-                                    @selected((string) old('internal_consumption_expense_account_id', $establishment?->internal_consumption_expense_account_id) === (string) $acc->id)>
-                                    {{ app()->getLocale() === 'ar'
-                                        ? trim(($acc->gl_code ? $acc->gl_code.' — ' : '').$acc->name_ar.($acc->account_category ? ' ('.$acc->account_category.')' : ''))
-                                        : trim(($acc->gl_code ? $acc->gl_code.' — ' : '').$acc->name_en.($acc->account_category ? ' ('.$acc->account_category.')' : '')) }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <x-form.field-hint :hint="__('establishment::general.internal_consumption_expense_account_hint')" />
-                    </div>
+            <div class="d-flex justify-content-end mb-4">
+                <button type="button" class="btn btn-sm btn-light-primary" id="internal_consumption_add_row">
+                    <i class="ki-outline ki-plus fs-4"></i>
+                    @lang('establishment::general.add_internal_consumption_type')
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <div class="row g-3 align-items-center text-muted fw-semibold fs-7 text-uppercase d-none d-lg-flex px-2 mb-1">
+                    <div class="col-lg-2">@lang('establishment::fields.name')</div>
+                    <div class="col-lg-2">@lang('establishment::fields.name_en')</div>
+                    <div class="col-lg-2">@lang('establishment::fields.internal_consumption_value_type')</div>
+                    <div class="col-lg-1">@lang('establishment::fields.internal_consumption_value')</div>
+                    <div class="col-lg-3">@lang('establishment::fields.internal_consumption_collection_account')</div>
+                    <div class="col-lg-1 text-center">@lang('establishment::fields.active')</div>
+                    <div class="col-lg-1 text-center">@lang('messages.delete')</div>
+                </div>
+
+                <div class="d-flex flex-column gap-3" id="internal_consumption_rows">
+                    @foreach ($rows as $index => $row)
+                        @include('establishment::components.establishments.partials.internal-consumption-row', [
+                            'index' => $index,
+                            'row' => $row,
+                            'accounts' => $accounts,
+                            'locale' => $locale,
+                        ])
+                    @endforeach
                 </div>
             </div>
         </div>
     </x-form.form-card>
 </div>
+
+<template id="internal_consumption_row_template">
+    @include('establishment::components.establishments.partials.internal-consumption-row', [
+        'index' => '__INDEX__',
+        'row' => [
+            'id' => null,
+            'name_ar' => '',
+            'name_en' => '',
+            'value_type' => 'cost',
+            'value' => null,
+            'account_id' => null,
+            'is_active' => true,
+        ],
+        'accounts' => $accounts,
+        'locale' => $locale,
+    ])
+</template>

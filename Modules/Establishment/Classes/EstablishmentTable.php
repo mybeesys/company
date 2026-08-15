@@ -46,13 +46,17 @@ class EstablishmentTable
             ->addColumn(
                 'actions',
                 function ($row) {
-                    $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
-                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">';
-                    $row->deleted_at ?? $actions .= '<div class="menu-item px-3">
-                        <a href="'.url("/establishment/{$row->id}/edit").'" class="menu-link px-3">'.__('establishment::fields.edit').'</a>
-                    </div></div>';
+                    if ($row->deleted_at) {
+                        return '';
+                    }
 
-                    return $actions;
+                    $editUrl = url("/establishment/{$row->id}/edit");
+                    $label = e(__('establishment::general.branch_settings'));
+
+                    return '<a href="'.$editUrl.'" class="btn btn-sm btn-light-primary btn-flex btn-center">'
+                        .'<i class="ki-outline ki-setting-2 fs-5 text-primary me-1"></i>'
+                        .'<span class="text-primary">'.$label.'</span>'
+                        .'</a>';
                 }
             )
             ->editColumn('is_active', function ($row) {

@@ -7,15 +7,17 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\Accounting\Models\AccountingAccount;
-use Modules\Accounting\Utils\InternalConsumptionAccountResolver;
 use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\Establishment\Classes\EstablishmentTable;
 use Modules\Establishment\Http\Requests\StoreEstablishmentRequest;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Services\EstablishmentActions;
+use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
 use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
+use Modules\Establishment\Services\EstablishmentServiceFeeResolver;
 use Modules\General\Models\Setting;
+use Modules\Product\Models\DiningType;
 
 class EstablishmentController extends Controller
 {
@@ -115,23 +117,11 @@ class EstablishmentController extends Controller
 
     public function getEstablishment()
     {
-        $establishments = Establishment::with('children')->whereNull('parent_id')->get();
-        $allWithChildren = [];
-
-        foreach ($establishments as $establishment) {
-            $establishment->makeHidden(['name_en', 'city', 'address', 'id']);
-
-            $allWithChildren = array_merge($allWithChildren, [
-                $establishment,
-                ...$establishment->getAllDescendants()
-                    ->whereNull('parent_id')
-                    ->each(function ($descendant) {
-                        $descendant->makeHidden(['name_en', 'city', 'address', 'id']);
-                    }),
-            ]);
-        }
-
-        return $allWithChildren;
+        return Establishment::query()
+            ->select('id', 'name', 'name_en', 'parent_id', 'is_main', 'is_active')
+            ->whereNull('parent_id')
+            ->with('childrenTree')
+            ->get();
     }
 
     /**
@@ -147,7 +137,13 @@ class EstablishmentController extends Controller
             : collect();
         $accounts = AccountingAccount::query()->orderBy('gl_code')->get();
         $cashierPaymentRows = EstablishmentPaymentAccountResolver::rowsForEstablishment((int) $establishment->id);
-        $internalConsumptionExpenseAccounts = InternalConsumptionAccountResolver::linkableExpenseAccounts();
+        $internalConsumptionRows = EstablishmentInternalConsumptionTypeResolver::rowsForEstablishment((int) $establishment->id);
+        $diningTypes = DiningType::query()->orderBy('name_ar')->get(['id', 'name_ar', 'name_en']);
+        try {
+            $serviceFeeRows = EstablishmentServiceFeeResolver::rowsForEstablishment((int) $establishment->id);
+        } catch (\Throwable $e) {
+            $serviceFeeRows = [];
+        }
 
         return view('establishment::establishment.edit', compact(
             'establishment',
@@ -156,7 +152,9 @@ class EstablishmentController extends Controller
             'perpetualInventoryAccounts',
             'accounts',
             'cashierPaymentRows',
-            'internalConsumptionExpenseAccounts'
+            'internalConsumptionRows',
+            'diningTypes',
+            'serviceFeeRows'
         ));
     }
 
@@ -170,14 +168,15 @@ class EstablishmentController extends Controller
                 $filteredRequest = $request->safe()->collect()->filter(function ($item, $key) {
                     if (in_array($key, [
                         'perpetual_inventory_account_id',
-                        'internal_consumption_expense_account_id',
                         'cashier_payment_rows',
+                        'internal_consumption_rows',
+                        'service_fee_rows',
                     ], true)) {
                         return true;
                     }
 
                     return isset($item);
-                })->except(['cashier_payment_rows']);
+                })->except(['cashier_payment_rows', 'internal_consumption_rows', 'service_fee_rows']);
 
                 $updateEstablishment = new EstablishmentActions($filteredRequest);
                 $updateEstablishment->update($establishment);
@@ -185,6 +184,16 @@ class EstablishmentController extends Controller
                 EstablishmentPaymentAccountResolver::syncForEstablishment(
                     (int) $establishment->id,
                     $request->input('cashier_payment_rows', [])
+                );
+
+                EstablishmentInternalConsumptionTypeResolver::syncForEstablishment(
+                    (int) $establishment->id,
+                    $request->input('internal_consumption_rows', [])
+                );
+
+                EstablishmentServiceFeeResolver::syncForEstablishment(
+                    (int) $establishment->id,
+                    $request->input('service_fee_rows', [])
                 );
 
                 return to_route('establishments.index')->with('success', __('establishment::responses.updated_successfully', ['name' => __('establishment::fields.establishment')]));

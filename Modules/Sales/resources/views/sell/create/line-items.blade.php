@@ -101,6 +101,7 @@
                                                 <option value="{{ $product->id }}"
                                                     @if ($line->product_id == $product->id) selected @endif
                                                     data-price="{{ $product->price }}"
+                                                    data-cost="{{ $product->cost ?? 0 }}"
                                                     data-units="{{ json_encode($product->unitTransfers) }}">
                                                     @if (app()->getLocale() == 'ar')
                                                         {{ $product->name_ar }} - <span
@@ -285,6 +286,16 @@
                 <option value="percent">%</option>
             </select>
         </div>
+
+
+        <div class="mx-10 mb-5 d-none" id="invoice-service-fees-wrap">
+            <input type="hidden" name="service_fees_ready" id="input-service_fees_ready" value="0">
+            <input type="hidden" name="service_fee_amount" id="input-service_fee_amount" value="0">
+            <input type="hidden" name="service_fee_tax" id="input-service_fee_tax" value="0">
+            <label class="fs-6 fw-semibold mb-2 d-block">@lang('sales::lang.service_fees')</label>
+            <div id="invoice-service-fees" class="d-flex flex-column gap-2"></div>
+        </div>
+
         <div class="card-p pt-0 bg-body flex-grow-1">
 
             <div class="d-flex flex-column flex-grow-1 ">
@@ -334,6 +345,18 @@
                         </div>
 
                         <div class="fw-semibold fs-4 text-gray-900">@lang('sales::lang.totalAfterDiscount')</div>
+
+                    </div>
+
+
+                    <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3 d-none" id="service-fee-summary-card">
+
+                        <div class="d-flex align-items-center">
+                            <div class="fs-2 fw-bold counted" id="totalServiceFees">0.00</div>
+                            <span class="fw-semibold mx-2 text-muted fs-7">@get_format_currency()</span>
+                        </div>
+
+                        <div class="fw-semibold fs-4 text-gray-900">@lang('sales::lang.service_fees')</div>
 
                     </div>
 

@@ -23,6 +23,12 @@ class Transaction extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'service_fees_payload' => 'array',
+        'service_fee_amount' => 'float',
+        'service_fee_tax' => 'float',
+    ];
+
     /**
      * Sell documents that count toward sales KPIs (excludes cashier internal consumption).
      */

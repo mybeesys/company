@@ -309,6 +309,9 @@
                 <p class="fs-5 ">@lang('sales::lang.total_before_vat'): {{ $transaction->total_before_tax }}</p>
                 <p class="fs-5 ">@lang('sales::lang.invoice_discount'): (-) {{ $transaction->discount_amount ?? ' 0.00 ' }}</p>
                 <p class="fs-5 ">@lang('sales::lang.totalAfterDiscount'): {{ $transaction->totalAfterDiscount }}</p>
+                @if ((float) ($transaction->service_fee_amount ?? 0) > 0)
+                    <p class="fs-5 ">@lang('sales::lang.service_fees'): (+) {{ number_format((float) $transaction->service_fee_amount, 2) }}</p>
+                @endif
                 <p class="fs-5 ">@lang('sales::lang.vat_value'): (+) {{ $transaction->tax_amount }}</p>
                 <p class="fs-5 ">@lang('sales::lang.total_with_tax'): {{ $transaction->final_total }}</p>
 

@@ -38,6 +38,7 @@ Route::middleware([
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
         Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
+        Route::get('internal-consumption-types', [\Modules\General\Http\Controllers\InternalConsumptionTypesApiController::class, 'index'])->name('web.internal-consumption-types');
         Route::get('products-for-quotation', [ProductController::class, 'productsForQuotation'])->name('products-for-quotation');
         Route::get('products-for-client', [ProductController::class, 'productsForClient'])->name('products-for-client');
         Route::get('product-sell-extras/{id}', [SellController::class, 'productSellExtras'])->name('product-sell-extras');

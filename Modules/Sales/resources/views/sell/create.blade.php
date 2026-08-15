@@ -100,7 +100,10 @@
 
                     </div>
                 </div>
-                @include('general::invoice-setting.setting')
+                @include('general::invoice-setting.setting', [
+                    'showInvoiceServiceFeeToggle' => true,
+                    'invoiceServiceFeesEnabled' => $invoiceServiceFeesEnabled ?? true,
+                ])
             </div>
         </div>
         <div class="separator d-flex flex-center my-3">
@@ -280,8 +283,19 @@
 
 @section('script')
     <script>
+        @php
+            $zeroTax = $taxes->first(fn ($tax) => (float) ($tax->amount ?? -1) === 0.0);
+            $defaultEstablishment = $establishments->first();
+        @endphp
         window.invoicePrecheckConfig = @json($invoicePrecheckConfig ?? []);
         window.sellWithModifiersCombos = @json($sellWithModifiersCombos ?? false);
+        window.internalConsumptionInvoiceConfig = {
+            typesUrl: @json(route('web.internal-consumption-types')),
+            selectPlaceholder: @json(__('sales::lang.select_internal_consumption_type')),
+            typeRequiredMessage: @json(__('sales::lang.internal_consumption_type_required')),
+            zeroTaxValue: @json($zeroTax?->amount ?? '0'),
+            defaultEstablishmentId: {{ (int) ($defaultEstablishment?->id ?? 0) }},
+        };
         window.smcI18n = {
             edit: @json(__('sales::lang.smc_edit_extras')),
         };
@@ -291,13 +305,21 @@
     <script src="{{ url('/modules/Sales/js/invoice-type-account-toggle.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/internal-consumption-invoice.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/invoice-service-fees.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/sell-modifiers-combos.js') }}"></script>
 
 
     <script>
         let salesRowIndex = 1;
         const allowSaleWithoutStock = @json($allowSaleWithoutStock ?? false);
+        window.invoiceServiceFeesConfig = {
+            fees: @json($invoiceServiceFees ?? []),
+            defaultEstablishmentId: @json($defaultEstablishmentId ?? 0),
+            locale: @json(app()->getLocale()),
+            enabled: @json($invoiceServiceFeesEnabled ?? true),
+        };
 
       $("#addSalesRow").on("click", function() {
     salesRowIndex++;
@@ -402,6 +424,7 @@
                 ? `${product.SKU} - ${product.name_ar}`
                 : `${product.SKU} - ${product.name_en}`,
                  price: product.price,
+                        cost: product.cost,
                         units: product.unit_transfers,
                         inventory_qty:product.inventory_qty,
                         has_modifiers: !!product.has_modifiers,
@@ -418,7 +441,14 @@
     const selectedData = e.params.data;
     const $row = $(this).closest('tr');
 
-    $row.find('.unit_price-field').val(selectedData.price);
+    $row.find('.unit_price-field').val(
+        typeof resolveInvoiceProductUnitPrice === 'function'
+            ? resolveInvoiceProductUnitPrice(selectedData)
+            : (selectedData.price || 0)
+    );
+    if (typeof window.reapplyInternalConsumptionPricing === 'function' && typeof isInternalConsumptionInvoiceMode === 'function' && isInternalConsumptionInvoiceMode()) {
+        window.reapplyInternalConsumptionPricing();
+    }
 
     const $unitSelect = $row.find('.unit');
     $unitSelect.empty().append('<option value="">@lang('sales::lang.unit')</option>');
@@ -565,6 +595,13 @@ if( selectedData.units.length > 0){
 
 
         $(document).ready(function() {
+    if (window.InvoiceServiceFees) {
+        window.InvoiceServiceFees.bind();
+        window.InvoiceServiceFees.renderList();
+        if (typeof updateSalesTotals === "function") {
+            updateSalesTotals();
+        }
+    }
     let draggedRow = null;
     let isRowDragging = false;
 
@@ -850,7 +887,11 @@ $.ajax({
             $('#salesTable').on('change', '[name$="[products_id]"]', function() {
                 const selectedOption = $(this).find('option:selected');
                 const selectedProductId = selectedOption.val();
-                const price = parseFloat(selectedOption.data('price')) || 0;
+                const productPrice = parseFloat(selectedOption.data('price')) || 0;
+                const productCost = parseFloat(selectedOption.data('cost')) || 0;
+                const price = typeof resolveInvoiceProductUnitPrice === 'function'
+                    ? resolveInvoiceProductUnitPrice({ price: productPrice, cost: productCost })
+                    : productPrice;
                 let units = selectedOption.data('units') || [];
                 if (typeof units === 'string') {
                     try {
@@ -1009,6 +1050,9 @@ $.ajax({
 
             if (typeof window.initPrefilledSalesLineSelect2 === 'function') {
                 window.initPrefilledSalesLineSelect2();
+            }
+            if (typeof window.initInternalConsumptionInvoice === 'function') {
+                window.initInternalConsumptionInvoice();
             }
             ensureAtLeastOneSalesLineRow();
 

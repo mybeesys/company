@@ -20,6 +20,9 @@ use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
+use Modules\Establishment\Services\EstablishmentServiceFeeResolver;
+use Modules\Sales\Services\InvoiceServiceFeeCalculator;
 use Modules\General\Models\Actions;
 use Modules\General\Models\Country;
 use Modules\General\Models\Setting;
@@ -29,11 +32,13 @@ use Modules\General\Models\TransactionPayments;
 use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Inventory\Services\InventoryCostingService;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Sales\Models\Coupon;
 use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\WebSellModifiersCombosService;
+use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
 use Mpdf\Mpdf;
 
@@ -645,8 +650,41 @@ class SellController extends Controller
         }
 
         $sellWithModifiersCombos = WebSellModifiersCombosService::isEnabled();
+        try {
+            $invoiceServiceFees = EstablishmentServiceFeeResolver::invoiceCatalog();
+        } catch (\Throwable $e) {
+            $invoiceServiceFees = [];
+        }
+        $defaultEstablishmentId = (int) (Establishment::notMain()->active()->value('id') ?? 0);
+        $invoiceServiceFeesSetting = Setting::where('key', 'toggleServiceFees')->value('value');
+        $invoiceServiceFeesEnabled = $invoiceServiceFeesSetting === null
+            ? true
+            : ((int) $invoiceServiceFeesSetting === 1);
 
-        return view('sales::sell.create', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'allowSaleWithoutStock', 'invoicePrecheckConfig', 'isDuplicate', 'sellWithModifiersCombos'));
+        return view('sales::sell.create', compact(
+            'clients',
+            'settings',
+            'Latest_event',
+            'transaction',
+            'quotation',
+            'isQuotationForm',
+            'taxes',
+            'establishments',
+            'countries',
+            'payment_terms',
+            'orderStatuses',
+            'products',
+            'paymentMethods',
+            'accounts',
+            'cost_centers',
+            'allowSaleWithoutStock',
+            'invoicePrecheckConfig',
+            'isDuplicate',
+            'sellWithModifiersCombos',
+            'invoiceServiceFees',
+            'defaultEstablishmentId',
+            'invoiceServiceFeesEnabled'
+        ));
     }
 
     public function productSellExtras(int $id)
@@ -720,11 +758,35 @@ class SellController extends Controller
 
         $transactionUtil = new TransactionUtils;
 
-        $client = Contact::find($request->client_id);
-        if (! $client || ! $client->account_id) {
-            throw ValidationException::withMessages([
-                'client_id' => __('sales::lang.contact_missing_accounting_account'),
+        $toggleCostCenter = Setting::where('key', 'toggleCost_center')->value('value') == 1;
+        $toggleStorehouse = Setting::where('key', 'toggleStorehouse')->value('value') == 1;
+        $toggleDelegates = Setting::where('key', 'toggleDelegates')->value('value') == 1;
+        $toggleInternalConsumption = Setting::where('key', 'toggleInternalConsumption')->value('value') == 1;
+
+        $purpose = TransactionPurpose::STANDARD;
+        $isInternalConsumption = false;
+        if ($toggleInternalConsumption && $toggleStorehouse) {
+            $purpose = TransactionPurpose::normalize($request->input('purpose'));
+            $isInternalConsumption = $purpose === TransactionPurpose::INTERNAL_CONSUMPTION;
+            if ($isInternalConsumption && ! $request->filled('internal_consumption_type_id')) {
+                throw ValidationException::withMessages([
+                    'internal_consumption_type_id' => __('sales::lang.internal_consumption_type_required'),
+                ]);
+            }
+        } else {
+            $request->merge([
+                'purpose' => TransactionPurpose::STANDARD,
+                'internal_consumption_type_id' => null,
             ]);
+        }
+
+        if (! $isInternalConsumption) {
+            $client = Contact::find($request->client_id);
+            if (! $client || ! $client->account_id) {
+                throw ValidationException::withMessages([
+                    'client_id' => __('sales::lang.contact_missing_accounting_account'),
+                ]);
+            }
         }
 
         DB::beginTransaction();
@@ -744,9 +806,6 @@ class SellController extends Controller
         $ref_no = SalesUtile::generateReferenceNumber('sell');
 
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
-        $toggleCostCenter = Setting::where('key', 'toggleCost_center')->value('value') == 1;
-        $toggleStorehouse = Setting::where('key', 'toggleStorehouse')->value('value') == 1;
-        $toggleDelegates = Setting::where('key', 'toggleDelegates')->value('value') == 1;
 
         if (! $toggleCostCenter) {
             $request->merge(['cost_center' => null]);
@@ -786,9 +845,21 @@ class SellController extends Controller
         }
 
         $products = json_decode(json_encode($request->products ?? []));
+
+        // Browser totals include selected service fees. Strip them first so coupon
+        // and VAT math stay on product amounts only; fees are re-applied after.
+        if (! $isInternalConsumption) {
+            $clientFeeAmount = (float) $request->input('service_fee_amount', 0);
+            $clientFeeTax = (float) $request->input('service_fee_tax', 0);
+            $request->merge([
+                'totalVat' => round(max(0, (float) ($request->totalVat ?? 0) - $clientFeeTax), 2),
+                'totalAfterVat' => round(max(0, (float) ($request->totalAfterVat ?? 0) - $clientFeeAmount - $clientFeeTax), 2),
+            ]);
+        }
+
         $couponUsage = null;
         $couponCode = trim((string) $request->input('coupon_code', ''));
-        if ($couponCode !== '') {
+        if ($couponCode !== '' && ! $isInternalConsumption) {
             try {
                 $couponService = app(ApplyCouponService::class);
                 $taxableBefore = (float) ($request->totalAfterDiscount ?? $request->totalBeforeVat ?? 0);
@@ -819,6 +890,104 @@ class SellController extends Controller
             }
         }
 
+        if ($isInternalConsumption) {
+            $productIds = collect($products)->pluck('products_id')->filter()->unique()->values();
+            $costsById = Product::query()
+                ->whereIn('id', $productIds)
+                ->pluck('cost', 'id');
+            $lineTotal = 0.0;
+            foreach ($products as $product) {
+                $cost = round((float) ($costsById[$product->products_id] ?? 0), 4);
+                $qty = (float) ($product->qty ?? 0);
+                $lineBeforeVat = round($cost * $qty, 4);
+                $product->unit_price = $cost;
+                $product->discount = 0;
+                $product->discount_type = null;
+                $product->vat_value = 0;
+                $product->total_before_vat = $lineBeforeVat;
+                $product->total_after_vat = $lineBeforeVat;
+                $lineTotal += $lineBeforeVat;
+            }
+            $lineTotal = round($lineTotal, 4);
+            $request->merge([
+                'totalBeforeVat' => $lineTotal,
+                'totalAfterDiscount' => $lineTotal,
+                'totalVat' => 0,
+                'totalAfterVat' => $lineTotal,
+                'invoice_discount' => 0,
+                'invoiced_discount_type' => null,
+                'paid_amount' => null,
+            ]);
+            $invoiced_discount_type = null;
+        }
+
+        $serviceFeeResult = [
+            'fee_amount' => 0.0,
+            'fee_tax' => 0.0,
+            'lines' => [],
+            'applied_ids' => [],
+        ];
+
+        $serviceFeesSetting = Setting::where('key', 'toggleServiceFees')->value('value');
+        $serviceFeesEnabled = $serviceFeesSetting === null
+            ? true
+            : ((int) $serviceFeesSetting === 1);
+
+        if (! $isInternalConsumption && $serviceFeesEnabled) {
+            $feeLines = [];
+            foreach ($products as $product) {
+                $qty = (float) ($product->qty ?? 0);
+                $net = (float) ($product->total_before_vat ?? 0);
+                $vat = (float) ($product->vat_value ?? 0);
+                $gross = (float) ($product->total_after_vat ?? ($net + $vat));
+                $feeLines[] = [
+                    'qty' => $qty,
+                    'net' => $net,
+                    'vat' => $vat,
+                    'gross' => $gross,
+                    'tax_rate' => (float) ($product->tax_vat ?? 0),
+                ];
+            }
+
+            $appliedIds = $request->boolean('service_fees_ready')
+                ? array_values(array_unique(array_filter(array_map('intval', (array) $request->input('applied_service_fee_ids', [])))))
+                : null;
+
+            $cashAccountId = (int) ($request->input('cash_account') ?: $request->input('account_id') ?: 0);
+
+            $productVat = round((float) ($request->totalVat ?? 0), 2);
+            $productTotal = round((float) ($request->totalAfterVat ?? 0), 2);
+
+            try {
+                $serviceFeeResult = InvoiceServiceFeeCalculator::forInvoice(
+                    $establishment_id,
+                    $feeLines,
+                    (float) ($request->totalBeforeVat ?? 0),
+                    (float) ($request->invoiced_discount ?? $request->invoice_discount ?? 0),
+                    (float) ($request->totalAfterDiscount ?? 0),
+                    $productVat,
+                    $productTotal,
+                    $appliedIds,
+                    $cashAccountId > 0 ? $cashAccountId : null,
+                    $request->input('transaction_date')
+                );
+
+                $request->merge([
+                    'totalVat' => round($productVat + $serviceFeeResult['fee_tax'], 2),
+                    'totalAfterVat' => round($productTotal + $serviceFeeResult['fee_amount'] + $serviceFeeResult['fee_tax'], 2),
+                ]);
+            } catch (\Throwable $e) {
+                \Log::warning('Invoice service fee calculation skipped', [
+                    'error' => $e->getMessage(),
+                    'establishment_id' => $establishment_id,
+                ]);
+            }
+
+            if (($request->invoice_type ?? 'cash') === 'cash') {
+                $request->merge(['paid_amount' => $request->totalAfterVat]);
+            }
+        }
+
         $resolvedAccountId = (int) ($request->input('account_id') ?: $request->input('cash_account'));
         if ($resolvedAccountId > 0) {
             $request->merge(['account_id' => $resolvedAccountId]);
@@ -830,6 +999,10 @@ class SellController extends Controller
         }
         $transaction = Transaction::create([
             'type' => 'sell',
+            'purpose' => $purpose,
+            'internal_consumption_type_id' => $isInternalConsumption
+                ? (int) $request->internal_consumption_type_id
+                : null,
             'invoice_type' => $request->invoice_type,
             'due_date' => $request->due_date,
             'transaction_date' => $request->transaction_date,
@@ -840,6 +1013,9 @@ class SellController extends Controller
             'total_before_tax' => $request->totalBeforeVat,
             'totalAfterDiscount' => $request->totalAfterDiscount,
             'tax_amount' => $request->totalVat,
+            'service_fee_amount' => $serviceFeeResult['fee_amount'],
+            'service_fee_tax' => $serviceFeeResult['fee_tax'],
+            'service_fees_payload' => $serviceFeeResult['lines'] ?: null,
             'final_total' => $request->totalAfterVat,
             'created_by' => Auth::user()->id,
             'description' => $request->invoice_note,
@@ -957,14 +1133,40 @@ class SellController extends Controller
             );
         }
         // return [$request->paid_amount,$transaction->final_total == $request->paid_amount,$transaction->final_total];
-        if ($request->paid_amount) {
+        if ($isInternalConsumption && $transaction->status !== 'draft') {
+            $resolved = EstablishmentInternalConsumptionTypeResolver::resolveForCashier(
+                (int) $establishment_id,
+                (int) $request->internal_consumption_type_id
+            );
+            if (! $resolved['ok']) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', $resolved['message']);
+            }
+
+            if ($resolved['type']->id > 0) {
+                $transaction->internal_consumption_type_id = (int) $resolved['type']->id;
+                $transaction->save();
+            }
+
+            try {
+                app(InventoryCostingService::class)->processTransaction($transaction->fresh());
+                $accountUtil->postInternalConsumptionJournal($transaction->fresh(), $request);
+                $transaction->payment_status = 'paid';
+                $transaction->save();
+            } catch (\Throwable $e) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', $e->getMessage());
+            }
+        } elseif (! $isInternalConsumption && $request->paid_amount) {
             if ($transaction->final_total == $request->paid_amount) {
                 $request['amount'] = $request->paid_amount;
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
             } else {
                 $this->createPaymentLines($transaction, $request);
             }
-        } else {
+        } elseif (! $isInternalConsumption) {
             FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
 
             $acc_trans_mapping = new AccountingAccTransMapping;

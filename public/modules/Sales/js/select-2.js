@@ -23,6 +23,11 @@ $("#storehouse").select2({
     width: "resolve",
 });
 
+$("#internal_consumption_type_id").select2({
+    width: "resolve",
+    allowClear: true,
+});
+
 // Line-item #unit / #tax_vat removed: duplicate ids per row break Select2; use initPrefilledSalesLineSelect2 (line-items-select2.js).
 
 // $('#products').select2();
