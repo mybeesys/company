@@ -15,6 +15,7 @@ use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionSellLine;
+use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
 use Modules\Sales\Support\TransactionPurpose;
 use RuntimeException;
 
@@ -118,7 +119,8 @@ class AccountingUtil
     }
 
     /**
-     * Internal consumption (staff meals, etc.): Dr expense + Cr inventory at cost.
+     * Internal consumption (staff meals, etc.): Dr collection account + Cr inventory at cost.
+     * When charge differs from COGS, the difference is balanced on the same collection account.
      * No sales revenue / VAT / AR. Posts even when the POS shift is still open.
      */
     public function postInternalConsumptionJournal($transaction, $request = null): bool
@@ -142,34 +144,47 @@ class AccountingUtil
 
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
 
-        $expenseAccountId = InternalConsumptionAccountResolver::resolveExpenseAccountId(
-            isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
-        );
-        if (! $expenseAccountId) {
-            throw new RuntimeException(__('establishment::responses.internal_consumption_expense_account_required'));
+        $establishmentId = isset($transaction->establishment_id) ? (int) $transaction->establishment_id : 0;
+        $typeId = ! empty($transaction->internal_consumption_type_id)
+            ? (int) $transaction->internal_consumption_type_id
+            : null;
+
+        $resolved = EstablishmentInternalConsumptionTypeResolver::resolveForCashier($establishmentId, $typeId);
+        if (! $resolved['ok']) {
+            throw new RuntimeException($resolved['message']);
         }
 
-        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
-            isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
-        );
+        $type = $resolved['type'];
+        $chargeAccountId = (int) $resolved['account_id'];
+
+        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId($establishmentId);
         if (! $inventoryAccountId) {
             throw new RuntimeException(__('establishment::responses.internal_consumption_inventory_account_required'));
         }
 
-        $costAmount = round(
+        $cogsAmount = round(
             app(\Modules\Inventory\Services\InventoryCostingService::class)
                 ->resolveCogsAmountForSell((int) $transaction->id),
             2
         );
-        if ($costAmount <= 0) {
+        if ($cogsAmount <= 0) {
             throw new RuntimeException(__('establishment::responses.internal_consumption_cost_required'));
         }
+
+        $chargeAmount = EstablishmentInternalConsumptionTypeResolver::calculateChargeAmount($type, $transaction, $cogsAmount);
+        if ($chargeAmount <= 0) {
+            throw new RuntimeException(__('establishment::responses.internal_consumption_charge_required'));
+        }
+
+        $variance = round($chargeAmount - $cogsAmount, 2);
 
         FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
 
         $acc_trans_mapping = new AccountingAccTransMapping;
         $acc_trans_mapping->ref_no = $this->generateReferenceNumber('journal_entry');
-        $acc_trans_mapping->note = app()->getLocale() === 'ar' ? 'استهلاك داخلي' : 'Internal consumption';
+        $acc_trans_mapping->note = app()->getLocale() === 'ar'
+            ? 'استهلاك داخلي — '.$type->displayName()
+            : 'Internal consumption — '.$type->displayName();
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = $transaction->created_by;
         $acc_trans_mapping->is_manual = 0;
@@ -178,15 +193,13 @@ class AccountingUtil
 
         $paymentStub = (object) [
             'id' => null,
-            'amount' => $costAmount,
-            'account_id' => $expenseAccountId,
+            'amount' => $chargeAmount,
+            'account_id' => $chargeAccountId,
             'paid_on' => Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s'),
             'created_by' => $transaction->created_by,
             'transaction_id' => $transaction->id,
         ];
 
-        $paymentStub->account_id = $expenseAccountId;
-        $paymentStub->amount = $costAmount;
         $this->saveAccountRouteTransaction(
             'debit',
             $paymentStub,
@@ -197,7 +210,7 @@ class AccountingUtil
         );
 
         $paymentStub->account_id = $inventoryAccountId;
-        $paymentStub->amount = $costAmount;
+        $paymentStub->amount = $cogsAmount;
         $this->saveAccountRouteTransaction(
             'credit',
             $paymentStub,
@@ -206,6 +219,19 @@ class AccountingUtil
             $request,
             TransactionPurpose::JOURNAL_SUB_TYPE
         );
+
+        if ($variance !== 0.0) {
+            $paymentStub->account_id = $chargeAccountId;
+            $paymentStub->amount = abs($variance);
+            $this->saveAccountRouteTransaction(
+                $variance > 0 ? 'credit' : 'debit',
+                $paymentStub,
+                $transaction,
+                (int) $acc_trans_mapping->id,
+                $request,
+                TransactionPurpose::JOURNAL_SUB_TYPE
+            );
+        }
 
         AutoJournalGuard::assertBalanced((int) $acc_trans_mapping->id);
 

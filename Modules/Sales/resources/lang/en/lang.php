@@ -99,6 +99,13 @@ return [
     'Payment vouchers' => 'Payment vouchers',
     'toggleDelegates' => 'Enable Delegates',
     'toggleStorehouse' => 'Enable Storehouse',
+    'toggleInternalConsumption' => 'Enable Internal Expenses',
+    'toggleServiceFees' => 'Enable service fees',
+    'internal_consumption_type' => 'Internal expense type',
+    'select_internal_consumption_type' => 'Select internal expense type',
+    'internal_consumption_type_required' => 'Please select an internal expense type.',
+    'internal_consumption_requires_storehouse' => 'Warehouses must be enabled to use internal expenses.',
+    'internal_consumption_cost_price_hint' => 'Line prices use inventory cost with no profit or VAT.',
     'toggleCoupon' => 'Enable Coupon',
     'toggleSellWithModifiersCombos' => 'Modifiers & combos on web invoices',
     'toggleSellWithModifiersCombos_hint' => 'Allows adding modifiers and combo options when creating a sales invoice or quotation on the web.',
@@ -186,5 +193,8 @@ return [
 
     'move_line_up' => 'Move line up',
     'move_line_down' => 'Move line down',
+    'service_fees' => 'Service fees',
+    'service_fees_hint' => 'Order % is based on the invoice net after discount. Item % uses each line net (or gross if after tax). Item fixed amount is value × qty. VAT is added only when the fee is taxable.',
+    'service_fees_empty' => 'No active service fees for this branch.',
 
 ];

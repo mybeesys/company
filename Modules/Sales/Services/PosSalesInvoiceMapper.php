@@ -161,6 +161,9 @@ final class PosSalesInvoiceMapper
             'order_type' => $request->input('order_type'),
             'table_id' => $request->input('table_id'),
             'table_order_id' => $request->input('table_order_id'),
+            'internal_consumption_type_id' => self::nullablePositiveInt(
+                $overrides['internal_consumption_type_id'] ?? $request->input('internal_consumption_type_id')
+            ),
         ];
     }
 
@@ -400,5 +403,16 @@ final class PosSalesInvoiceMapper
             'cash_account' => $accountId,
             'account_id' => $accountId,
         ];
+    }
+
+    private static function nullablePositiveInt(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $int = (int) $value;
+
+        return $int > 0 ? $int : null;
     }
 }

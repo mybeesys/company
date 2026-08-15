@@ -15,4 +15,8 @@ return [
     'internal_consumption_expense_account_required' => 'No internal consumption expense account is configured for this branch. Set it from the «Cashier internal consumption expenses» tab on the branch edit page.',
     'internal_consumption_inventory_account_required' => 'Could not resolve an inventory account for the internal consumption journal. Check perpetual inventory and branch inventory account settings.',
     'internal_consumption_cost_required' => 'Could not calculate item cost for the internal consumption journal.',
+    'internal_consumption_type_required' => 'No internal consumption type is configured for this branch. Add one from the «Cashier internal consumption expenses» tab.',
+    'internal_consumption_type_account_required' => 'Internal consumption type «:type» has no linked collection account. Configure it on the branch edit page.',
+    'internal_consumption_charge_required' => 'Could not calculate the internal consumption charge amount.',
+    'internal_consumption_variance_account_required' => 'The charge amount differs from inventory COGS and no branch variance expense account is configured. Set the legacy internal consumption expense account or use the «Inventory cost» value type.',
 ];

@@ -49,6 +49,11 @@ class Establishment extends Model
         return $this->hasMany(Establishment::class, 'parent_id')->withTrashed();
     }
 
+    public function childrenTree()
+    {
+        return $this->children()->with('childrenTree');
+    }
+
     public function getAllDescendants()
     {
         return $this->children->flatMap(function ($child) {
@@ -144,8 +149,18 @@ class Establishment extends Model
         return $this->belongsTo(AccountingAccount::class, 'internal_consumption_expense_account_id');
     }
 
+    public function internalConsumptionTypes()
+    {
+        return $this->hasMany(EstablishmentInternalConsumptionType::class, 'establishment_id');
+    }
+
     public function paymentAccounts()
     {
         return $this->hasMany(EstablishmentPaymentAccount::class, 'establishment_id');
+    }
+
+    public function serviceFees()
+    {
+        return $this->hasMany(EstablishmentServiceFee::class, 'establishment_id');
     }
 }

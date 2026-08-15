@@ -312,15 +312,18 @@ class GeneralController extends Controller
     {
         $toggleCouponSetting = Setting::where('key', 'toggleCoupon')->value('value');
         $toggleSellWithModifiersCombos = Setting::where('key', 'toggleSellWithModifiersCombos')->value('value');
+        $toggleServiceFees = Setting::where('key', 'toggleServiceFees')->value('value');
 
         return response()->json([
             'success' => true,
             'data' => [
                 'cost_center' => Setting::where('key', 'toggleCost_center')->value('value') == 1,
                 'storehouse' => Setting::where('key', 'toggleStorehouse')->value('value') == 1,
+                'internal_consumption' => Setting::where('key', 'toggleInternalConsumption')->value('value') == 1,
                 'delegates' => Setting::where('key', 'toggleDelegates')->value('value') == 1,
                 // Default is enabled when setting is not created yet.
                 'coupon' => is_null($toggleCouponSetting) ? true : ((int) $toggleCouponSetting === 1),
+                'service_fees' => is_null($toggleServiceFees) ? true : ((int) $toggleServiceFees === 1),
                 // Default is disabled when setting is not created yet.
                 'sell_with_modifiers_combos' => (int) $toggleSellWithModifiersCombos === 1,
             ],

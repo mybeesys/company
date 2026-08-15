@@ -11,6 +11,19 @@
 
 </div>
 
+<input type="hidden" name="purpose" id="transaction_purpose" value="standard">
+
+<div class="d-flex align-items-center mb-5 d-none" id="div-internal-consumption">
+    <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('sales::lang.internal_consumption_type')</label>
+    <select id="internal_consumption_type_id" name="internal_consumption_type_id"
+        class="form-select select-2 form-select-solid"
+        style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important"
+        data-placeholder="@lang('sales::lang.select_internal_consumption_type')">
+        <option value="">@lang('sales::lang.select_internal_consumption_type')</option>
+    </select>
+</div>
+<p class="text-muted fs-7 mb-5 d-none" id="internal-consumption-hint">@lang('sales::lang.internal_consumption_cost_price_hint')</p>
+
 
 @if (!($isQuotationForm ?? false))
 @php

@@ -98,6 +98,13 @@ return [
     'Payment vouchers' => 'سندات الدفع',
     'toggleDelegates' => 'تفعيل المندوبين',
     'toggleStorehouse' => 'تفعيل المستودعات',
+    'toggleInternalConsumption' => 'تفعيل المصاريف الداخلية',
+    'toggleServiceFees' => 'تفعيل رسوم الخدمات',
+    'internal_consumption_type' => 'نوع المصروف الداخلي',
+    'select_internal_consumption_type' => 'اختر نوع المصروف الداخلي',
+    'internal_consumption_type_required' => 'يرجى اختيار نوع المصروف الداخلي.',
+    'internal_consumption_requires_storehouse' => 'يجب تفعيل المستودعات لاستخدام المصاريف الداخلية.',
+    'internal_consumption_cost_price_hint' => 'يتم احتساب أسعار الأصناف بتكلفة المخزون دون ربح أو ضريبة.',
     'toggleCoupon' => 'تفعيل الكوبون',
     'toggleSellWithModifiersCombos' => 'اختيار الإضافات والتجميعات في فواتير الويب',
     'toggleSellWithModifiersCombos_hint' => 'يسمح بإضافة الإضافات وخيارات التجميع (كومبو) عند إنشاء فاتورة مبيعات أو عرض سعر من الويب.',
@@ -186,5 +193,8 @@ return [
 
     'move_line_up' => 'نقل السطر لأعلى',
     'move_line_down' => 'نقل السطر لأسفل',
+    'service_fees' => 'رسوم الخدمات',
+    'service_fees_hint' => 'النسبة على إجمالي الطلب تُحسب بعد خصم الفاتورة. النسبة على المنتج من صافي السطر (أو إجمالي السطر بعد الضريبة). المبلغ الثابت على المنتج = القيمة × الكمية. ضريبة الرسم تُضاف فقط إذا كان خاضعاً لضريبة القيمة المضافة.',
+    'service_fees_empty' => 'لا توجد رسوم خدمات مفعّلة لهذا الفرع.',
 
 ];

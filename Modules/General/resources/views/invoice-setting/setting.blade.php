@@ -26,6 +26,24 @@
                 </div>
             </li>
 
+            <li id="toggleInternalConsumptionItem" class="d-none">
+                <div class="form-check form-switch mt-5"
+                    style="display: flex; justify-content: space-between; gap: 37px;">
+                    <input class="form-check-input" type="checkbox" id="toggleInternalConsumption">
+                    <label class="form-check-label ml-4" for="toggleInternalConsumption">@lang('sales::lang.toggleInternalConsumption')</label>
+                </div>
+            </li>
+
+            @if ($showInvoiceServiceFeeToggle ?? false)
+            <li>
+                <div class="form-check form-switch mt-5"
+                    style="display: flex; justify-content: space-between; gap: 37px;">
+                    <input class="form-check-input" type="checkbox" id="toggleServiceFees"
+                        @checked($invoiceServiceFeesEnabled ?? true)>
+                    <label class="form-check-label ml-4" for="toggleServiceFees">@lang('sales::lang.toggleServiceFees')</label>
+                </div>
+            </li>
+            @endif
             <li>
                 <div class="form-check form-switch mt-5"
                     style="display: flex; justify-content: space-between; gap: 37px;">
@@ -54,18 +72,29 @@
             if (response.success) {
                 $('#toggleCost_center').prop('checked', response.data.cost_center);
                 $('#toggleStorehouse').prop('checked', response.data.storehouse);
+                $('#toggleInternalConsumption').prop('checked', response.data.internal_consumption);
                 $('#toggleDelegates').prop('checked', response.data.delegates);
                 $('#toggleCoupon').prop('checked', response.data.coupon);
+                $('#toggleServiceFees').prop('checked', response.data.service_fees);
 
                 toggleVisibility("#toggleCost_center", "#dev-costCenter");
                 toggleVisibility("#toggleStorehouse", "#div-storehouse");
                 toggleVisibility("#toggleDelegates", "#div-Delegates");
                 toggleVisibility("#toggleCoupon", "#div-coupon");
+                if (typeof window.syncInternalConsumptionSettingsUi === 'function') {
+                    window.syncInternalConsumptionSettingsUi();
+                }
+                if (typeof window.InvoiceServiceFees !== 'undefined') {
+                    window.InvoiceServiceFees.renderList();
+                    if (typeof updateSalesTotals === 'function') {
+                        updateSalesTotals();
+                    }
+                }
             }
         }
     });
 
-    $(".form-check-input").on("change", function () {
+    $(".btn-group.dropend .form-check-input").on("change", function () {
         let key = $(this).attr("id");
         let value = $(this).prop("checked") ? 1 : 0;
 
@@ -85,6 +114,16 @@
         });
 
         toggleVisibility("#" + key, getTargetDiv(key));
+        if (typeof window.syncInternalConsumptionSettingsUi === 'function') {
+            window.syncInternalConsumptionSettingsUi();
+        }
+        if (key === 'toggleServiceFees' && typeof window.InvoiceServiceFees !== 'undefined') {
+            window.InvoiceServiceFees.resetTouched();
+            window.InvoiceServiceFees.renderList();
+            if (typeof updateSalesTotals === 'function') {
+                updateSalesTotals();
+            }
+        }
     });
 
     function toggleVisibility(checkbox, targetDiv) {

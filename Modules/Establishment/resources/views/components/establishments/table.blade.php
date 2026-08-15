@@ -12,6 +12,7 @@
     </x-cards.card-header>
 
     <x-cards.card-body class="table-responsive">
-        <x-tables.table :columns=$columns model="establishment" module="establishment" />
+        <x-tables.table :columns=$columns model="establishment" module="establishment"
+            :actionColumnLabel="__('establishment::general.branch_settings')" />
     </x-cards.card-body>
 </x-cards.card>
