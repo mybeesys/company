@@ -19,7 +19,7 @@ class InternalConsumptionTypesApiController extends Controller
         }
 
         $types = EstablishmentInternalConsumptionType::query()
-            ->where('establishment_id', $establishmentId)
+            ->forEstablishment($establishmentId)
             ->where('is_active', true)
             ->whereNotNull('account_id')
             ->orderBy('sort_order')

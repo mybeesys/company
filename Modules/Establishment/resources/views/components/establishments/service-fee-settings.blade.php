@@ -2,6 +2,7 @@
     'serviceFeeRows' => [],
     'diningTypes' => null,
     'cashierPaymentRows' => [],
+    'branchOptions' => null,
 ])
 @php
     $locale = app()->getLocale();
@@ -23,14 +24,12 @@
             'credit_type' => null,
             'from_date' => null,
             'to_date' => null,
+            'establishment_ids' => [],
         ]];
     }
 @endphp
 <div class="establishment-service-fees d-flex flex-column flex-row-fluid gap-7 gap-lg-10" id="service_fees_root">
     <x-form.form-card bodyClass="d-flex flex-column gap-5" :title="__('establishment::general.service_fee_settings')">
-        <p class="text-muted mb-0">@lang('establishment::general.service_fee_settings_hint')</p>
-        <x-form.field-hint :hint="__('establishment::general.service_fee_row_hint')" />
-
         <div class="w-100">
             <div class="d-flex justify-content-end mb-4">
                 <button type="button" class="btn btn-sm btn-light-primary" id="service_fee_add_row">
@@ -47,6 +46,7 @@
                         'diningTypes' => $diningTypes,
                         'cashierPaymentRows' => $cashierPaymentRows,
                         'locale' => $locale,
+                        'branchOptions' => $branchOptions,
                     ])
                 @endforeach
             </div>
@@ -73,9 +73,11 @@
             'credit_type' => null,
             'from_date' => null,
             'to_date' => null,
+            'establishment_ids' => [],
         ],
         'diningTypes' => $diningTypes,
         'cashierPaymentRows' => $cashierPaymentRows,
         'locale' => $locale,
+        'branchOptions' => $branchOptions,
     ])
 </template>

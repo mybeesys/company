@@ -579,6 +579,31 @@ class SellController extends Controller
     /**
      * Show the form for creating a new resource.
      */
+    public function invoiceInventoryCosts(Request $request)
+    {
+        $validated = $request->validate([
+            'establishment_id' => 'required|integer|min:1',
+            'lines' => 'required|array',
+            'lines.*.product_id' => 'nullable|integer',
+            'lines.*.qty' => 'nullable|numeric',
+            'lines.*.unit_id' => 'nullable|integer',
+        ]);
+
+        $lines = [];
+        foreach ($validated['lines'] as $line) {
+            $lines[] = [
+                'product_id' => (int) ($line['product_id'] ?? 0),
+                'qty' => (float) ($line['qty'] ?? 0),
+                'unit_id' => ! empty($line['unit_id']) ? (int) $line['unit_id'] : null,
+            ];
+        }
+
+        return response()->json([
+            'data' => app(InventoryCostingService::class)
+                ->previewOutboundCosts((int) $validated['establishment_id'], $lines),
+        ]);
+    }
+
     public function create(Request $request)
     {
         $actionUtil = new ActionUtil;
@@ -739,6 +764,11 @@ class SellController extends Controller
                     ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
                     : 'Please select unit for each product before saving.',
                 'contactMissingAccount' => __('sales::lang.contact_missing_accounting_account'),
+                'requiredFields' => __('messages.required_fields_warning'),
+                'missingProductLine' => app()->getLocale() === 'ar'
+                    ? 'أضف صنفاً واحداً على الأقل.'
+                    : 'Add at least one product line.',
+                'internalConsumptionTypeRequired' => __('sales::lang.internal_consumption_type_required'),
             ],
         ];
     }
@@ -747,6 +777,107 @@ class SellController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
+    {
+        try {
+            return $this->persistSellInvoice($request);
+        } catch (ValidationException $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            $message = collect($e->errors())->flatten()->first() ?: $e->getMessage();
+
+            return $this->respondSellInvoiceStoreError($request, $message, $e->errors());
+        } catch (\Throwable $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            \Log::error('Sell invoice store failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->respondSellInvoiceStoreError(
+                $request,
+                $e->getMessage() ?: __('messages.something_went_wrong')
+            );
+        }
+    }
+
+    private function wantsSellInvoiceJson(Request $request): bool
+    {
+        return $request->ajax() || $request->expectsJson();
+    }
+
+    private function respondSellInvoiceStoreError(Request $request, string $message, array $errors = [], ?array $action = null)
+    {
+        $action ??= $this->resolveSellInvoiceErrorAction($message, $request);
+
+        if ($this->wantsSellInvoiceJson($request)) {
+            return response()->json([
+                'message' => $message,
+                'errors' => $errors,
+                'action' => $action,
+            ], 422);
+        }
+
+        $redirect = redirect()
+            ->route('create-invoice')
+            ->withInput()
+            ->withErrors($errors)
+            ->with('error', $message);
+
+        if ($action) {
+            $redirect->with('error_action', $action);
+        }
+
+        return $redirect;
+    }
+
+    private function resolveSellInvoiceErrorAction(string $message, Request $request): ?array
+    {
+        if ($message === __('establishment::responses.internal_consumption_inventory_account_required')) {
+            return [
+                'url' => route('accounts-routing').'#accounts-routing-periodic-inventory-tab',
+                'label' => __('menuItemLang.accounts-routing'),
+            ];
+        }
+
+        if ($message === __('establishment::responses.internal_consumption_variance_account_required')) {
+            $establishmentId = (int) $request->input('storehouse');
+            if ($establishmentId > 0) {
+                return [
+                    'url' => route('establishments.edit', $establishmentId),
+                    'label' => app()->getLocale() === 'ar'
+                        ? 'إعدادات الفرع'
+                        : 'Branch settings',
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    private function respondSellInvoiceStoreSuccess(
+        Request $request,
+        string $routeName,
+        string $message,
+        string $status = 'success',
+        mixed $routeParameters = []
+    ) {
+        if ($this->wantsSellInvoiceJson($request)) {
+            return response()->json([
+                'redirect' => route($routeName, $routeParameters),
+                'message' => $message,
+                'status' => $status,
+            ]);
+        }
+
+        return redirect()->route($routeName, $routeParameters)->with($status, $message);
+    }
+
+    private function persistSellInvoice(Request $request)
     {
         // return $request;
 
@@ -767,6 +898,9 @@ class SellController extends Controller
         $isInternalConsumption = false;
         if ($toggleInternalConsumption && $toggleStorehouse) {
             $purpose = TransactionPurpose::normalize($request->input('purpose'));
+            if ($request->filled('internal_consumption_type_id')) {
+                $purpose = TransactionPurpose::INTERNAL_CONSUMPTION;
+            }
             $isInternalConsumption = $purpose === TransactionPurpose::INTERNAL_CONSUMPTION;
             if ($isInternalConsumption && ! $request->filled('internal_consumption_type_id')) {
                 throw ValidationException::withMessages([
@@ -774,6 +908,12 @@ class SellController extends Controller
                 ]);
             }
         } else {
+            $requestedPurpose = TransactionPurpose::normalize($request->input('purpose'));
+            if ($requestedPurpose === TransactionPurpose::INTERNAL_CONSUMPTION) {
+                throw ValidationException::withMessages([
+                    'internal_consumption_type_id' => __('sales::lang.internal_consumption_requires_storehouse'),
+                ]);
+            }
             $request->merge([
                 'purpose' => TransactionPurpose::STANDARD,
                 'internal_consumption_type_id' => null,
@@ -796,10 +936,13 @@ class SellController extends Controller
             if ($sourceQuotation && $sourceQuotation->type === 'quotation' && $sourceQuotation->isQuotationExpired()) {
                 DB::rollBack();
 
-                return redirect()->back()->withInput()->with('error', __('sales::lang.quotation_expired_convert_blocked', [
-                    'ref' => $sourceQuotation->ref_no,
-                    'date' => $sourceQuotation->due_date,
-                ]));
+                return $this->respondSellInvoiceStoreError(
+                    $request,
+                    __('sales::lang.quotation_expired_convert_blocked', [
+                        'ref' => $sourceQuotation->ref_no,
+                        'date' => $sourceQuotation->due_date,
+                    ])
+                );
             }
         }
 
@@ -886,20 +1029,27 @@ class SellController extends Controller
             } catch (\Throwable $e) {
                 DB::rollBack();
 
-                return redirect()->back()->withInput()->with('error', $e->getMessage());
+                return $this->respondSellInvoiceStoreError($request, $e->getMessage());
             }
         }
 
         if ($isInternalConsumption) {
-            $productIds = collect($products)->pluck('products_id')->filter()->unique()->values();
-            $costsById = Product::query()
-                ->whereIn('id', $productIds)
-                ->pluck('cost', 'id');
-            $lineTotal = 0.0;
+            $previewLines = [];
             foreach ($products as $product) {
-                $cost = round((float) ($costsById[$product->products_id] ?? 0), 4);
+                $previewLines[] = [
+                    'product_id' => (int) ($product->products_id ?? 0),
+                    'qty' => (float) ($product->qty ?? 0),
+                    'unit_id' => ! empty($product->unit) ? (int) $product->unit : null,
+                ];
+            }
+            $previewed = app(InventoryCostingService::class)
+                ->previewOutboundCosts((int) $establishment_id, $previewLines);
+            $lineTotal = 0.0;
+            foreach ($products as $index => $product) {
                 $qty = (float) ($product->qty ?? 0);
-                $lineBeforeVat = round($cost * $qty, 4);
+                $preview = $previewed[$index] ?? [];
+                $cost = round((float) ($preview['unit_cost'] ?? 0), 4);
+                $lineBeforeVat = round((float) ($preview['total_cost'] ?? ($cost * $qty)), 4);
                 $product->unit_price = $cost;
                 $product->discount = 0;
                 $product->discount_type = null;
@@ -1055,7 +1205,7 @@ class SellController extends Controller
                         ? "لا يمكن إتمام البيع لأن الكمية غير كافية للصنف: {$productName}"
                         : "Sale cannot be completed due to insufficient stock for product: {$productName}";
 
-                    return redirect()->back()->withInput()->with('error', $message);
+                    return $this->respondSellInvoiceStoreError($request, $message);
                 }
             }
 
@@ -1122,7 +1272,7 @@ class SellController extends Controller
             } catch (\Throwable $e) {
                 DB::rollBack();
 
-                return redirect()->back()->withInput()->with('error', $e->getMessage());
+                return $this->respondSellInvoiceStoreError($request, $e->getMessage());
             }
         }
 
@@ -1141,7 +1291,7 @@ class SellController extends Controller
             if (! $resolved['ok']) {
                 DB::rollBack();
 
-                return redirect()->back()->withInput()->with('error', $resolved['message']);
+                return $this->respondSellInvoiceStoreError($request, $resolved['message']);
             }
 
             if ($resolved['type']->id > 0) {
@@ -1157,7 +1307,7 @@ class SellController extends Controller
             } catch (\Throwable $e) {
                 DB::rollBack();
 
-                return redirect()->back()->withInput()->with('error', $e->getMessage());
+                return $this->respondSellInvoiceStoreError($request, $e->getMessage());
             }
         } elseif (! $isInternalConsumption && $request->paid_amount) {
             if ($transaction->final_total == $request->paid_amount) {
@@ -1257,11 +1407,17 @@ class SellController extends Controller
 
         DB::commit();
         if ($request->action == 'save_print') {
-            return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
+            return $this->respondSellInvoiceStoreSuccess(
+                $request,
+                'transaction-print',
+                $msg,
+                $status,
+                $transaction->id
+            );
         } elseif ($request->action == 'save_add') {
-            return redirect()->route('create-invoice')->with($status, $msg);
+            return $this->respondSellInvoiceStoreSuccess($request, 'create-invoice', $msg, $status);
         } else {
-            return redirect()->route('invoices')->with($status, $msg);
+            return $this->respondSellInvoiceStoreSuccess($request, 'invoices', $msg, $status);
         }
         // } catch (Exception $e) {
         //     DB::rollBack();

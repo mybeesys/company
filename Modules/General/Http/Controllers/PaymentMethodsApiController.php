@@ -22,10 +22,12 @@ class PaymentMethodsApiController extends Controller
         }
 
         $methods = EstablishmentPaymentAccount::query()
-            ->where('establishment_id', $establishmentId)
-            ->whereNotNull('account_id')
+            ->forEstablishment($establishmentId)
+            ->with('assignedEstablishments:id')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->filter(fn (EstablishmentPaymentAccount $row) => (bool) $row->accountIdForEstablishment($establishmentId))
+            ->values();
 
         return PaymentMethodsResource::collection($methods);
     }

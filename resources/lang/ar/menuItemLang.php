@@ -82,6 +82,9 @@ return [
     'purchases_favorites' => 'مفضلة المشتريات',
     'general_setting' => 'الإعدادات العامة',
     'setting' => 'إعدادات',
+    'cashier_payment_methods' => 'طرق الدفع',
+    'internal_consumption_types' => 'مصروف الاستهلاك الداخلي للكاشير',
+    'cashier_service_fees' => 'رسوم الخدمات',
     'taxes' => 'الضرائب',
 
     'quotations' => 'عروض الأسعار',

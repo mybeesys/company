@@ -5,10 +5,13 @@ namespace Modules\Establishment\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Establishment\Models\Concerns\HasEstablishmentAssignments;
 use Modules\General\Models\Transaction;
 
 class EstablishmentInternalConsumptionType extends Model
 {
+    use HasEstablishmentAssignments;
+
     public const VALUE_TYPE_COST = 'cost';
 
     public const VALUE_TYPE_PERCENT = 'percent';
@@ -18,6 +21,16 @@ class EstablishmentInternalConsumptionType extends Model
     protected $table = 'est_establishment_internal_consumption_types';
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected function assignmentPivotTable(): string
+    {
+        return 'est_internal_consumption_type_establishment';
+    }
+
+    protected function assignmentForeignPivotKey(): string
+    {
+        return 'internal_consumption_type_id';
+    }
 
     protected $casts = [
         'value' => 'float',

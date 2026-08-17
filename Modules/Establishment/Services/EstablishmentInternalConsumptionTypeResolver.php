@@ -35,7 +35,7 @@ final class EstablishmentInternalConsumptionTypeResolver
             }
 
             $payload = [
-                'type_key' => self::uniqueKeyForEstablishment($establishmentId, $nameEn, $rowId),
+                'type_key' => self::uniqueKey($nameEn, $rowId),
                 'name_ar' => $nameAr,
                 'name_en' => $nameEn,
                 'value_type' => $valueType,
@@ -89,7 +89,8 @@ final class EstablishmentInternalConsumptionTypeResolver
     public static function rowsForEstablishment(int $establishmentId): array
     {
         return EstablishmentInternalConsumptionType::query()
-            ->where('establishment_id', $establishmentId)
+            ->with('assignedEstablishments:id')
+            ->forEstablishment($establishmentId)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
@@ -102,6 +103,7 @@ final class EstablishmentInternalConsumptionTypeResolver
                 'account_id' => $row->account_id ? (int) $row->account_id : null,
                 'type_key' => (string) $row->type_key,
                 'is_active' => (bool) $row->is_active,
+                'establishment_ids' => $row->assignedEstablishmentIds(),
             ])
             ->all();
     }
@@ -124,13 +126,13 @@ final class EstablishmentInternalConsumptionTypeResolver
 
         if ($typeId && $typeId > 0) {
             $type = EstablishmentInternalConsumptionType::query()
-                ->where('establishment_id', $establishmentId)
+                ->forEstablishment($establishmentId)
                 ->where('id', $typeId)
                 ->where('is_active', true)
                 ->first();
         } else {
             $type = EstablishmentInternalConsumptionType::query()
-                ->where('establishment_id', $establishmentId)
+                ->forEstablishment($establishmentId)
                 ->where('is_active', true)
                 ->whereNotNull('account_id')
                 ->orderBy('sort_order')
@@ -219,7 +221,92 @@ final class EstablishmentInternalConsumptionTypeResolver
         return $type;
     }
 
-    private static function uniqueKeyForEstablishment(int $establishmentId, string $nameEn, ?int $ignoreId = null): string
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function catalogRows(): array
+    {
+        return EstablishmentInternalConsumptionType::query()
+            ->with('assignedEstablishments:id')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (EstablishmentInternalConsumptionType $row) => [
+                'id' => (int) $row->id,
+                'name_ar' => (string) ($row->name_ar ?? ''),
+                'name_en' => (string) ($row->name_en ?? ''),
+                'value_type' => (string) ($row->value_type ?? self::VALUE_TYPE_COST),
+                'value' => $row->value !== null ? (float) $row->value : null,
+                'account_id' => $row->account_id ? (int) $row->account_id : null,
+                'type_key' => (string) $row->type_key,
+                'is_active' => (bool) $row->is_active,
+                'establishment_ids' => $row->assignedEstablishmentIds(),
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    public static function syncCatalog(array $rows): void
+    {
+        $keptIds = [];
+        $sort = 0;
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $accountId = self::nullableInt($row['account_id'] ?? null);
+            $nameAr = trim((string) ($row['name_ar'] ?? ''));
+            $nameEn = trim((string) ($row['name_en'] ?? ''));
+            $valueType = self::normalizeValueType($row['value_type'] ?? self::VALUE_TYPE_COST);
+            $value = self::normalizeValue($valueType, $row['value'] ?? null);
+            $rowId = self::nullableInt($row['id'] ?? null);
+            $assignedIds = array_values(array_filter(array_map('intval', (array) ($row['establishment_ids'] ?? []))));
+
+            if ($accountId === null || $nameAr === '' || $nameEn === '') {
+                continue;
+            }
+
+            $existing = $rowId
+                ? EstablishmentInternalConsumptionType::query()->where('id', $rowId)->first()
+                : null;
+
+            $payload = [
+                'type_key' => $existing?->type_key ?: self::uniqueKey($nameEn, $rowId),
+                'name_ar' => $nameAr,
+                'name_en' => $nameEn,
+                'value_type' => $valueType,
+                'value' => $value,
+                'account_id' => $accountId,
+                'is_active' => filter_var($row['is_active'] ?? false, FILTER_VALIDATE_BOOL),
+                'sort_order' => $sort++,
+                'establishment_id' => $assignedIds[0] ?? null,
+            ];
+
+            if ($existing) {
+                $existing->update($payload);
+                $existing->syncAssignedEstablishments($assignedIds);
+                $keptIds[] = (int) $existing->id;
+
+                continue;
+            }
+
+            $created = EstablishmentInternalConsumptionType::query()->create($payload);
+            $created->syncAssignedEstablishments($assignedIds);
+            $keptIds[] = (int) $created->id;
+        }
+
+        if ($keptIds === []) {
+            return;
+        }
+
+        EstablishmentInternalConsumptionType::query()->whereNotIn('id', $keptIds)->delete();
+    }
+
+    private static function uniqueKey(string $nameEn, ?int $ignoreId = null): string
     {
         $baseKey = Str::slug($nameEn, '_');
         if ($baseKey === '') {
@@ -230,7 +317,6 @@ final class EstablishmentInternalConsumptionTypeResolver
         $i = 1;
         while (
             EstablishmentInternalConsumptionType::query()
-                ->where('establishment_id', $establishmentId)
                 ->where('type_key', $key)
                 ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
                 ->exists()

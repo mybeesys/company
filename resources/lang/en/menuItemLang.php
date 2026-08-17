@@ -85,6 +85,9 @@ return [
     'purchases_favorites' => 'Purchases Favorites',
     'general_setting' => 'General Settings',
     'setting' => 'Settings',
+    'cashier_payment_methods' => 'Payment methods',
+    'internal_consumption_types' => 'Cashier internal consumption',
+    'cashier_service_fees' => 'Service fees',
     'taxes' => 'Taxes',
 
     'quotations' => 'Quotations',

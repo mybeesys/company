@@ -11,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Exceptions\FiscalPeriodException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -39,6 +40,24 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (ValidationException $e, $request) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            if ($request->expectsJson()) {
+                return null;
+            }
+
+            $message = collect($e->errors())->flatten()->first() ?: $e->getMessage();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors(), $e->errorBag)
+                ->with('error', $message);
+        });
+
         $exceptions->render(function (FiscalPeriodException $e, $request) {
             while (DB::transactionLevel() > 0) {
                 DB::rollBack();

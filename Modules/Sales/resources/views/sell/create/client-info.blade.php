@@ -11,7 +11,7 @@
 
 </div>
 
-<input type="hidden" name="purpose" id="transaction_purpose" value="standard">
+<input type="hidden" name="purpose" id="transaction_purpose" value="{{ old('purpose', 'standard') }}">
 
 <div class="d-flex align-items-center mb-5 d-none" id="div-internal-consumption">
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('sales::lang.internal_consumption_type')</label>

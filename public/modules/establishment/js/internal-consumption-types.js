@@ -77,6 +77,10 @@ function initInternalConsumptionTypes() {
         reindexRows();
         toggleValueField($newRow);
         initSelect2($newRow);
+        if (typeof window.initBranchAssignmentSelects === 'function') {
+            window.initBranchAssignmentSelects($newRow);
+            $newRow.find('.branch-assign-all').trigger('click');
+        }
     });
 
     $(rowsContainer).on('click', '.internal-consumption-remove-row', function () {

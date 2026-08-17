@@ -10,7 +10,14 @@
     }
 
     function isModeActive() {
-        return prerequisitesMet() && settingEnabled() && !!$('#internal_consumption_type_id').val();
+        const typeSelected = !!$('#internal_consumption_type_id').val();
+        const icToggleOn = settingEnabled();
+
+        if (icToggleOn && typeSelected) {
+            return true;
+        }
+
+        return prerequisitesMet() && icToggleOn && typeSelected;
     }
 
     function getEstablishmentId() {
@@ -85,8 +92,9 @@
                     $select.append(`<option value="${type.id}">${label}</option>`);
                 });
 
-                if (current && $select.find(`option[value="${current}"]`).length) {
-                    $select.val(current);
+                const restoreId = current || String(config.initialTypeId || '');
+                if (restoreId && $select.find(`option[value="${restoreId}"]`).length) {
+                    $select.val(restoreId).trigger('change');
                 } else if (current) {
                     $select.val('');
                     clearMode();
@@ -100,22 +108,113 @@
             });
     }
 
+    function csrfToken() {
+        return $('meta[name="csrf-token"]').attr('content') || '';
+    }
+
     function resolveRowCost($row) {
+        const stored = parseFloat($row.data('inventory-cost'));
+        if (!Number.isNaN(stored)) {
+            return stored;
+        }
+
         const $productSelect = $row.find('[name$="[products_id]"]');
         const selectedOption = $productSelect.find('option:selected');
+        const inventoryCost = parseFloat(selectedOption.data('inventory-cost'));
+        if (!Number.isNaN(inventoryCost)) {
+            return inventoryCost;
+        }
         const optionCost = parseFloat(selectedOption.data('cost'));
         if (!Number.isNaN(optionCost)) {
             return optionCost;
         }
 
-        const select2Data = $productSelect.data('select2')
-            ? $productSelect.select2('data')[0]
-            : null;
-        if (select2Data && select2Data.cost !== undefined) {
-            return parseFloat(select2Data.cost) || 0;
+        return parseFloat($row.find('.unit_price-field').val()) || 0;
+    }
+
+    let costRequest = null;
+    let costTimer = null;
+
+    function collectCostLines() {
+        const lines = [];
+        $('#salesTable tbody tr.sales-line-row').each(function () {
+            lines.push({
+                product_id: parseInt($(this).find('[name$="[products_id]"]').val(), 10) || 0,
+                qty: parseFloat($(this).find('.qty-field').val()) || 0,
+                unit_id: parseInt($(this).find('.unit').val(), 10) || 0,
+            });
+        });
+        return lines;
+    }
+
+    function applyCostToRows(costs) {
+        $('#salesTable tbody tr.sales-line-row').each(function (index) {
+            const $row = $(this);
+            const hasProduct = !!$row.find('[name$="[products_id]"]').val();
+            if (!hasProduct) {
+                return;
+            }
+            const $price = $row.find('.unit_price-field');
+            if ($price.data('sale-price') === undefined) {
+                $price.data('sale-price', parseFloat($price.val()) || 0);
+            }
+            const rowCost = costs && costs[index] ? parseFloat(costs[index].unit_cost) : NaN;
+            const cost = !Number.isNaN(rowCost) ? rowCost : resolveRowCost($row);
+            $row.data('inventory-cost', cost);
+            $price.val(cost > 0 ? cost.toFixed(4) : '0').prop('readonly', true);
+            setRowZeroTax($row);
+            $row.find('[name*="[discount]"]').prop('readonly', true);
+        });
+    }
+
+    function refreshInventoryCosts() {
+        if (!isModeActive()) {
+            return;
         }
 
-        return parseFloat($row.find('.unit_price-field').val()) || 0;
+        const estId = getEstablishmentId();
+        if (!config.costsUrl || estId <= 0) {
+            applyCostToRows(null);
+            if (typeof updateSalesTotals === 'function') {
+                updateSalesTotals();
+            }
+            return;
+        }
+
+        if (costRequest && typeof costRequest.abort === 'function') {
+            costRequest.abort();
+        }
+
+        costRequest = $.ajax({
+            url: config.costsUrl,
+            method: 'POST',
+            data: {
+                _token: csrfToken(),
+                establishment_id: estId,
+                lines: collectCostLines(),
+            },
+        }).done(function (response) {
+            applyCostToRows(Array.isArray(response.data) ? response.data : null);
+            if (typeof updateSalesTotals === 'function') {
+                updateSalesTotals();
+            }
+        }).fail(function (xhr) {
+            if (xhr && xhr.statusText === 'abort') {
+                return;
+            }
+            applyCostToRows(null);
+            if (typeof updateSalesTotals === 'function') {
+                updateSalesTotals();
+            }
+        });
+    }
+
+    function scheduleInventoryCostRefresh() {
+        if (!isModeActive()) {
+            return;
+        }
+        clearTimeout(costTimer);
+        costTimer = setTimeout(refreshInventoryCosts, 200);
     }
 
     function setRowZeroTax($row) {
@@ -131,39 +230,25 @@
 
     function applyInternalConsumptionPricing() {
         $('#transaction_purpose').val('internal_consumption');
-
-        $('#salesTable tbody tr').each(function () {
-            const $row = $(this);
-            const $price = $row.find('.unit_price-field');
-            const hasProduct = !!$row.find('[name$="[products_id]"]').val();
-
-            if (!hasProduct) {
-                return;
-            }
-
-            if ($price.data('sale-price') === undefined) {
-                $price.data('sale-price', parseFloat($price.val()) || 0);
-            }
-
-            const cost = resolveRowCost($row);
-            $price.val(cost > 0 ? cost.toFixed(4) : '0').prop('readonly', true);
-            setRowZeroTax($row);
-            $row.find('[name*="[discount]"]').prop('readonly', true);
-        });
+        applyCostToRows(null);
 
         $('#invoice_discount, #invoiced_discount_type').prop('readonly', true);
-        $('#div-cash_account').addClass('d-none');
-        $('#cash_account').prop('required', false);
-        $('#client_id').prop('required', false);
+        $('#div-cash_account').addClass('d-none').hide();
+        $('#cash_account').prop('required', false).removeAttr('required');
+        $('#client_id').prop('required', false).removeAttr('required');
         $('#client_l_id').removeClass('required');
+        $('#internal_consumption_type_id').prop('required', true).attr('required', 'required');
 
         if (typeof updateSalesTotals === 'function') {
             updateSalesTotals();
         }
+
+        scheduleInventoryCostRefresh();
     }
 
     function clearMode() {
         $('#transaction_purpose').val('standard');
+        $('#internal_consumption_type_id').prop('required', false).removeAttr('required').removeClass('is-invalid');
 
         $('#salesTable tbody tr').each(function () {
             const $row = $(this);
@@ -176,6 +261,7 @@
 
             $price.prop('readonly', false);
             $row.find('[name*="[discount]"]').prop('readonly', false);
+            $row.removeData('inventory-cost');
         });
 
         $('#invoice_discount, #invoiced_discount_type').prop('readonly', false);
@@ -199,6 +285,10 @@
 
     window.resolveInvoiceProductUnitPrice = function (productData) {
         if (isModeActive()) {
+            const inventoryCost = parseFloat(productData.inventory_cost);
+            if (!Number.isNaN(inventoryCost)) {
+                return inventoryCost;
+            }
             const cost = parseFloat(productData.cost);
             if (!Number.isNaN(cost)) {
                 return cost;
@@ -233,7 +323,21 @@
             }
         });
 
-        $(document).on('submit', '#sell_save', function (e) {
+        $(document).on(
+            'input change',
+            '#salesTable .qty-field, #salesTable .unit',
+            function () {
+                if (isModeActive()) {
+                    scheduleInventoryCostRefresh();
+                }
+            }
+        );
+
+        $(document).on('submit', '#sell_save', function () {
+            if (window.__sellInvoiceNativeSubmit || typeof window.validateSellInvoiceForm === 'function') {
+                return true;
+            }
+
             if (!settingEnabled() || !prerequisitesMet()) {
                 $('#transaction_purpose').val('standard');
                 return true;
@@ -246,9 +350,10 @@
             }
 
             if ($('#transaction_purpose').val() === 'internal_consumption') {
-                e.preventDefault();
                 const msg = config.typeRequiredMessage || 'Please select an internal expense type.';
-                if (typeof toastr !== 'undefined') {
+                if (typeof window.showSellInvoiceFeedback === 'function') {
+                    window.showSellInvoiceFeedback('warning', msg);
+                } else if (typeof toastr !== 'undefined') {
                     toastr.warning(msg);
                 }
                 $('#internal_consumption_type_id').addClass('is-invalid').focus();
@@ -260,5 +365,11 @@
 
         syncSettingsMenuItem();
         syncFieldSection();
+
+        if (config.initialTypeId && settingEnabled() && prerequisitesMet()) {
+            loadTypes();
+        } else if (isModeActive()) {
+            applyInternalConsumptionPricing();
+        }
     };
 })();

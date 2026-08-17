@@ -6,18 +6,13 @@ use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\Establishment\Classes\EstablishmentTable;
 use Modules\Establishment\Http\Requests\StoreEstablishmentRequest;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
 use Modules\Establishment\Services\EstablishmentActions;
-use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
-use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
-use Modules\Establishment\Services\EstablishmentServiceFeeResolver;
 use Modules\General\Models\Setting;
-use Modules\Product\Models\DiningType;
 
 class EstablishmentController extends Controller
 {
@@ -129,32 +124,18 @@ class EstablishmentController extends Controller
      */
     public function edit(int $id)
     {
-        $establishment = Establishment::with(['children', 'paymentAccounts'])->findOrFail($id);
+        $establishment = Establishment::with(['children'])->findOrFail($id);
         $establishments = Establishment::where('is_main', true)->active()->whereNot('id', $establishment->id)->whereNotIn('id', $establishment->children->pluck('id'))->get(['id', 'name', 'name_en']);
         $showPerpetualInventoryAccount = Setting::isPerpetualInventory();
         $perpetualInventoryAccounts = $showPerpetualInventoryAccount
             ? PerpetualInventoryAccountResolver::establishmentLinkableAssetAccounts()
             : collect();
-        $accounts = AccountingAccount::query()->orderBy('gl_code')->get();
-        $cashierPaymentRows = EstablishmentPaymentAccountResolver::rowsForEstablishment((int) $establishment->id);
-        $internalConsumptionRows = EstablishmentInternalConsumptionTypeResolver::rowsForEstablishment((int) $establishment->id);
-        $diningTypes = DiningType::query()->orderBy('name_ar')->get(['id', 'name_ar', 'name_en']);
-        try {
-            $serviceFeeRows = EstablishmentServiceFeeResolver::rowsForEstablishment((int) $establishment->id);
-        } catch (\Throwable $e) {
-            $serviceFeeRows = [];
-        }
 
         return view('establishment::establishment.edit', compact(
             'establishment',
             'establishments',
             'showPerpetualInventoryAccount',
-            'perpetualInventoryAccounts',
-            'accounts',
-            'cashierPaymentRows',
-            'internalConsumptionRows',
-            'diningTypes',
-            'serviceFeeRows'
+            'perpetualInventoryAccounts'
         ));
     }
 
@@ -166,35 +147,15 @@ class EstablishmentController extends Controller
         return DB::transaction(function () use ($request, $establishment) {
             try {
                 $filteredRequest = $request->safe()->collect()->filter(function ($item, $key) {
-                    if (in_array($key, [
-                        'perpetual_inventory_account_id',
-                        'cashier_payment_rows',
-                        'internal_consumption_rows',
-                        'service_fee_rows',
-                    ], true)) {
+                    if ($key === 'perpetual_inventory_account_id') {
                         return true;
                     }
 
                     return isset($item);
-                })->except(['cashier_payment_rows', 'internal_consumption_rows', 'service_fee_rows']);
+                });
 
                 $updateEstablishment = new EstablishmentActions($filteredRequest);
                 $updateEstablishment->update($establishment);
-
-                EstablishmentPaymentAccountResolver::syncForEstablishment(
-                    (int) $establishment->id,
-                    $request->input('cashier_payment_rows', [])
-                );
-
-                EstablishmentInternalConsumptionTypeResolver::syncForEstablishment(
-                    (int) $establishment->id,
-                    $request->input('internal_consumption_rows', [])
-                );
-
-                EstablishmentServiceFeeResolver::syncForEstablishment(
-                    (int) $establishment->id,
-                    $request->input('service_fee_rows', [])
-                );
 
                 return to_route('establishments.index')->with('success', __('establishment::responses.updated_successfully', ['name' => __('establishment::fields.establishment')]));
             } catch (\Throwable $e) {

@@ -54,6 +54,12 @@ window.InvoiceServiceFees = (function () {
         $("#input-service_fee_tax").val("0.00");
         $("#totalServiceFees").text("0.00");
         $("#input-service_fees_ready").val("0");
+        try {
+            hideLineFeeMarks();
+            $(".invoice-service-fee-lines").addClass("d-none").empty();
+        } catch (e) {
+            /* never block invoice totals */
+        }
     }
 
     function syncVisibility() {
@@ -64,9 +70,18 @@ window.InvoiceServiceFees = (function () {
     }
 
     function feesForEstablishment() {
-        const establishmentId = currentEstablishmentId();
+        const establishmentId = String(currentEstablishmentId());
         return (config().fees || []).filter(function (fee) {
-            return String(fee.establishment_id) === establishmentId && (fee.is_active || fee.active);
+            if (!(fee.is_active || fee.active)) {
+                return false;
+            }
+            const assigned = Array.isArray(fee.establishment_ids)
+                ? fee.establishment_ids.map(String).filter(Boolean)
+                : [];
+            if (assigned.length) {
+                return assigned.indexOf(establishmentId) !== -1;
+            }
+            return String(fee.establishment_id || "") === establishmentId;
         });
     }
 
@@ -106,20 +121,114 @@ window.InvoiceServiceFees = (function () {
         return false;
     }
 
-    function lineContext() {
+    function readSalesLine($row) {
+        const qty = parseFloat($row.find(".qty-field").val()) || 0;
+        const net = parseFloat($row.find(".total_before_vat-field").val()) || 0;
+        const vat = parseFloat($row.find(".vat_value-field").val()) || 0;
+        const gross = parseFloat($row.find(".total_after_vat-field").val()) || 0;
+        let taxRate = parseFloat($row.find(".qty-field").closest("tr").find('[name$="[tax_vat]"]').first().val()) || 0;
+        if (!taxRate) {
+            taxRate = parseFloat($row.find("select[name*='[tax_vat]']").val()) || 0;
+        }
+        if (taxRate <= 0 && net > 0 && vat > 0) {
+            taxRate = (vat / net) * 100;
+        }
+
+        return {
+            qty: qty,
+            net: net,
+            vat: vat,
+            gross: gross,
+            tax_rate: taxRate,
+        };
+    }
+
+    function collectLines() {
         const lines = [];
-        $("#salesTable tbody tr").each(function (index) {
-            const qty = parseFloat($(this).find(`[name="products[${index}][qty]"]`).val()) || 0;
-            const net = parseFloat($(this).find(".total_before_vat-field").val()) || 0;
-            const vat = parseFloat($(this).find(".vat_value-field").val()) || 0;
-            const gross = parseFloat($(this).find(".total_after_vat-field").val()) || 0;
-            let taxRate = parseFloat($(this).find(`[name="products[${index}][tax_vat]"]`).val()) || 0;
-            if (taxRate <= 0 && net > 0 && vat > 0) {
-                taxRate = (vat / net) * 100;
-            }
-            lines.push({ qty: qty, net: net, vat: vat, gross: gross, tax_rate: taxRate });
-        });
+        try {
+            $("#salesTable tbody tr.sales-line-row").each(function () {
+                try {
+                    lines.push(readSalesLine($(this)));
+                } catch (e) {
+                    lines.push({ qty: 0, net: 0, vat: 0, gross: 0, tax_rate: 0 });
+                }
+            });
+        } catch (e) {
+            return lines;
+        }
         return lines;
+    }
+
+    function lineLabel(index) {
+        const template = (config().i18n && config().i18n.lineN) || (config().locale === "ar" ? "سطر :n" : "Line :n");
+        return String(template).replace(":n", String(index + 1));
+    }
+
+    function lineFeePrefix() {
+        return (config().i18n && config().i18n.onLine) || (config().locale === "ar" ? "رسوم السطر" : "Line fee");
+    }
+
+    function formatMoney(feeAmount, taxAmount) {
+        const fee = round2(feeAmount);
+        const tax = round2(taxAmount);
+        if (tax > 0) {
+            const vatTpl = (config().i18n && config().i18n.plusVat) || (config().locale === "ar" ? " + ضريبة :n" : " + VAT :n");
+            return fee.toFixed(2) + String(vatTpl).replace(":n", tax.toFixed(2));
+        }
+        return fee.toFixed(2);
+    }
+
+    function hideLineFeeMarks() {
+        const $rows = $("#salesTable tbody tr.sales-line-row");
+        $rows.find("[data-line-fee]").addClass("d-none");
+        $rows.find("[data-line-fee-text]").text("");
+    }
+
+    function paintLineFeeMarks(lineTotals) {
+        $("#salesTable tbody tr.sales-line-row").each(function (index) {
+            const $mark = $(this).find("[data-line-fee]").first();
+            if (!$mark.length) {
+                return;
+            }
+            const row = lineTotals[index] || { fee: 0, tax: 0 };
+            const fee = round2(row.fee);
+            const $text = $mark.find("[data-line-fee-text]").first();
+            if (fee <= 0) {
+                $mark.addClass("d-none");
+                $text.text("");
+                return;
+            }
+            $text.text(lineFeePrefix() + ": " + formatMoney(fee, row.tax));
+            $mark.removeClass("d-none");
+        });
+    }
+
+    function paintFeeLineBreakdown(feeId, computed) {
+        const $box = $('.invoice-service-fee-lines[data-fee-id="' + feeId + '"]');
+        if (!$box.length) {
+            return;
+        }
+        if (String(computed.application_type) !== APPLY_ITEM) {
+            $box.addClass("d-none").empty();
+            return;
+        }
+        $box.empty();
+        let shown = 0;
+        (computed.line_amounts || []).forEach(function (line, index) {
+            if (!line || round2(line.fee_amount) <= 0) {
+                return;
+            }
+            shown += 1;
+            const $row = $("<div/>", { class: "d-flex justify-content-between gap-3 fs-8 text-gray-700" });
+            $row.append($("<span/>").text(lineLabel(index)));
+            $row.append($("<span/>", { class: "fw-semibold" }).text(formatMoney(line.fee_amount, line.tax_amount)));
+            $box.append($row);
+        });
+        $box.toggleClass("d-none", shown === 0);
+    }
+
+    function lineContext() {
+        return collectLines();
     }
 
     function computeFee(fee, context) {
@@ -131,9 +240,13 @@ window.InvoiceServiceFees = (function () {
         let feeAmount = 0;
         let taxAmount = 0;
 
+        const lineAmounts = [];
+        const lines = Array.isArray(context.lines) ? context.lines : [];
+
         if (isItem) {
-            context.lines.forEach(function (line) {
+            lines.forEach(function (line) {
                 if (line.qty <= 0) {
+                    lineAmounts.push({ fee_amount: 0, tax_amount: 0 });
                     return;
                 }
                 let lineFee = 0;
@@ -144,10 +257,13 @@ window.InvoiceServiceFees = (function () {
                     lineFee = rateOrAmount * line.qty;
                 }
                 lineFee = Math.max(0, round2(lineFee));
+                const lineTax = taxable ? round2(lineFee * ((line.tax_rate || 0) / 100)) : 0;
                 feeAmount += lineFee;
-                if (taxable) {
-                    taxAmount += round2(lineFee * (line.tax_rate / 100));
-                }
+                taxAmount += lineTax;
+                lineAmounts.push({
+                    fee_amount: lineFee,
+                    tax_amount: lineTax,
+                });
             });
         } else if (isPercent) {
             const base = afterTax ? context.productTotal : context.subtotalAfterDiscount;
@@ -172,6 +288,8 @@ window.InvoiceServiceFees = (function () {
             id: fee.id,
             fee_amount: round2(feeAmount),
             tax_amount: round2(taxAmount),
+            application_type: String(fee.application_type || ""),
+            line_amounts: lineAmounts,
         };
     }
 
@@ -183,8 +301,8 @@ window.InvoiceServiceFees = (function () {
         const locale = config().locale === "ar";
         if (isPercent && isItem) {
             return locale
-                ? `${amount}% على كل منتج ${afterTax ? "بعد الضريبة" : "قبل الضريبة"}`
-                : `${amount}% per item ${afterTax ? "after tax" : "before tax"}`;
+                ? `${amount}% على كل سطر منتج ${afterTax ? "بعد الضريبة" : "قبل الضريبة"}`
+                : `${amount}% on each product line ${afterTax ? "after tax" : "before tax"}`;
         }
         if (isPercent) {
             return locale
@@ -192,7 +310,7 @@ window.InvoiceServiceFees = (function () {
                 : `${amount}% on order ${afterTax ? "after tax" : "before tax"}`;
         }
         if (isItem) {
-            return locale ? `${amount} × الكمية لكل منتج` : `${amount} × qty per item`;
+            return locale ? `${amount} × الكمية على كل سطر منتج` : `${amount} × qty on each product line`;
         }
         return locale ? `مبلغ ثابت على الطلب` : `Fixed amount on order`;
     }
@@ -231,60 +349,115 @@ window.InvoiceServiceFees = (function () {
                 checked = previousChecked[id];
             }
 
-            const row = $(`
-                <label class="d-flex align-items-center justify-content-between gap-3 border border-gray-300 rounded px-3 py-2 mb-0">
-                    <span class="d-flex align-items-center gap-2">
-                        <input type="checkbox" class="form-check-input invoice-service-fee-check" name="applied_service_fee_ids[]" value="${id}" ${checked ? "checked" : ""}>
-                        <span>
-                            <span class="fw-semibold">${feeLabel(fee)}</span>
-                            <span class="text-muted fs-8 d-block">${feeFormula(fee)}</span>
-                        </span>
-                    </span>
-                    <span class="fw-bold invoice-service-fee-amount" data-fee-id="${id}">0.00</span>
-                </label>
-            `);
+            const row = $(
+                '<div class="border border-gray-300 rounded px-3 py-2">' +
+                    '<label class="d-flex align-items-center justify-content-between gap-3 mb-0">' +
+                        '<span class="d-flex align-items-center gap-2">' +
+                            '<input type="checkbox" class="form-check-input invoice-service-fee-check" name="applied_service_fee_ids[]" value="' + id + '"' + (checked ? " checked" : "") + ">" +
+                            "<span>" +
+                                '<span class="fw-semibold"></span>' +
+                                '<span class="text-muted fs-8 d-block"></span>' +
+                            "</span>" +
+                        "</span>" +
+                        '<span class="fw-bold invoice-service-fee-amount" data-fee-id="' + id + '">0.00</span>' +
+                    "</label>" +
+                    '<div class="invoice-service-fee-lines d-none" data-fee-id="' + id + '"></div>' +
+                "</div>"
+            );
+            row.find(".fw-semibold").first().text(feeLabel(fee) || "");
+            row.find(".text-muted").first().text(feeFormula(fee) || "");
             $list.append(row);
         });
     }
 
     function applyToTotals(productContext) {
-        if (!syncVisibility()) {
-            clearAmounts();
+        try {
+            if (!syncVisibility()) {
+                clearAmounts();
+                return { feeAmount: 0, feeTax: 0 };
+            }
+
+            const context = Object.assign({}, productContext || {});
+            if (!Array.isArray(context.lines)) {
+                context.lines = collectLines();
+            }
+
+            const fees = feesForEstablishment();
+            const checkedIds = $("#invoice-service-fees .invoice-service-fee-check:checked")
+                .map(function () {
+                    return String($(this).val());
+                })
+                .get();
+
+            let feeAmount = 0;
+            let feeTax = 0;
+            const lineTotals = context.lines.map(function () {
+                return { fee: 0, tax: 0 };
+            });
+            let hasItemFee = false;
+
+            fees.forEach(function (fee) {
+                const feeId = String(fee.id);
+                if (checkedIds.indexOf(feeId) === -1) {
+                    $('.invoice-service-fee-amount[data-fee-id="' + feeId + '"]').text("0.00");
+                    try {
+                        paintFeeLineBreakdown(feeId, { application_type: fee.application_type, line_amounts: [] });
+                    } catch (e) {
+                        /* ignore paint errors */
+                    }
+                    return;
+                }
+                const computed = computeFee(fee, context);
+                feeAmount += computed.fee_amount;
+                feeTax += computed.tax_amount;
+                $('.invoice-service-fee-amount[data-fee-id="' + feeId + '"]').text(
+                    formatMoney(computed.fee_amount, computed.tax_amount)
+                );
+                try {
+                    paintFeeLineBreakdown(feeId, computed);
+                } catch (e) {
+                    /* ignore paint errors */
+                }
+                if (String(computed.application_type) === APPLY_ITEM) {
+                    hasItemFee = true;
+                    (computed.line_amounts || []).forEach(function (line, index) {
+                        if (!lineTotals[index]) {
+                            lineTotals[index] = { fee: 0, tax: 0 };
+                        }
+                        lineTotals[index].fee += line.fee_amount || 0;
+                        lineTotals[index].tax += line.tax_amount || 0;
+                    });
+                }
+            });
+
+            feeAmount = round2(feeAmount);
+            feeTax = round2(feeTax);
+
+            $("#input-service_fee_amount").val(feeAmount.toFixed(2));
+            $("#input-service_fee_tax").val(feeTax.toFixed(2));
+            $("#totalServiceFees").text((feeAmount + feeTax).toFixed(2));
+
+            window.requestAnimationFrame(function () {
+                try {
+                    if (hasItemFee) {
+                        paintLineFeeMarks(lineTotals);
+                    } else {
+                        hideLineFeeMarks();
+                    }
+                } catch (e) {
+                    /* never touch Select2 / never abort product selection */
+                }
+            });
+
+            return { feeAmount: feeAmount, feeTax: feeTax };
+        } catch (e) {
+            try {
+                clearAmounts();
+            } catch (e2) {
+                /* ignore */
+            }
             return { feeAmount: 0, feeTax: 0 };
         }
-
-        const fees = feesForEstablishment();
-        const checkedIds = $("#invoice-service-fees .invoice-service-fee-check:checked")
-            .map(function () {
-                return String($(this).val());
-            })
-            .get();
-
-        let feeAmount = 0;
-        let feeTax = 0;
-
-        fees.forEach(function (fee) {
-            if (checkedIds.indexOf(String(fee.id)) === -1) {
-                $(`.invoice-service-fee-amount[data-fee-id="${fee.id}"]`).text("0.00");
-                return;
-            }
-            const computed = computeFee(fee, productContext);
-            feeAmount += computed.fee_amount;
-            feeTax += computed.tax_amount;
-            const label = computed.tax_amount > 0
-                ? `${computed.fee_amount.toFixed(2)} + VAT ${computed.tax_amount.toFixed(2)}`
-                : computed.fee_amount.toFixed(2);
-            $(`.invoice-service-fee-amount[data-fee-id="${fee.id}"]`).text(label);
-        });
-
-        feeAmount = round2(feeAmount);
-        feeTax = round2(feeTax);
-
-        $("#input-service_fee_amount").val(feeAmount.toFixed(2));
-        $("#input-service_fee_tax").val(feeTax.toFixed(2));
-        $("#totalServiceFees").text((feeAmount + feeTax).toFixed(2));
-
-        return { feeAmount: feeAmount, feeTax: feeTax };
     }
 
     function bind() {
@@ -320,6 +493,7 @@ window.InvoiceServiceFees = (function () {
     return {
         renderList: renderList,
         applyToTotals: applyToTotals,
+        collectLines: collectLines,
         bind: bind,
         resetTouched: function () {
             userTouched = {};

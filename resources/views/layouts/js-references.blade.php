@@ -68,28 +68,44 @@
         }
     });
     toastr.options = {
-        "closeButton": false,
+        "closeButton": true,
         "debug": false,
         "newestOnTop": true,
-        "progressBar": false,
-        "positionClass": "toastr-top-right",
+        "progressBar": true,
+        "positionClass": document.documentElement.getAttribute('dir') === 'rtl'
+            ? 'toastr-top-left-nav-margin'
+            : 'toastr-top-right-nav-margin',
         "preventDuplicates": true,
         "onclick": null,
         "showDuration": "300",
         "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
+        "timeOut": "8000",
+        "extendedTimeOut": "3000",
         "showEasing": "swing",
         "hideEasing": "linear",
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-    if ("{{ session('success') }}") {
-        toastr.success("{{ session('success') }}");
-    }
-    if ("{{ session('error') }}") {
-        toastr.error("{{ session('error') }}");
-    }
+
+    (function showFlashedToasts() {
+        if (window.__appToastsShown || typeof toastr === 'undefined') {
+            return;
+        }
+        window.__appToastsShown = true;
+
+        const successMessages = @json(array_values(array_filter([session('success')])));
+        const errorMessages = @json(array_values(array_unique(array_filter(array_merge(
+            session('error') ? [session('error')] : [],
+            $errors->any() ? $errors->all() : []
+        )))));
+
+        successMessages.forEach(function (msg) {
+            toastr.success(msg);
+        });
+        errorMessages.forEach(function (msg) {
+            toastr.error(msg);
+        });
+    })();
 
     $('#kt_app_sidebar_toggle').on('click', function() {
         $(this).data('kt-app-sidebar-minimize');

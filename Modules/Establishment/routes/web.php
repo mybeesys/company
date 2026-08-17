@@ -2,6 +2,7 @@
 
 use App\Models\Company;
 use Illuminate\Support\Facades\Route;
+use Modules\Establishment\Http\Controllers\CashierCatalogSettingsController;
 use Modules\Establishment\Http\Controllers\CompanyController;
 use Modules\Establishment\Http\Controllers\DeviceController;
 use Modules\Establishment\Http\Controllers\EstablishmentController;
@@ -25,6 +26,17 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
+
+    Route::middleware('auth')->group(function () {
+        Route::controller(CashierCatalogSettingsController::class)->prefix('settings')->name('cashier-settings.')->group(function () {
+            Route::get('/cashier-payment-methods', 'paymentMethods')->name('payment-methods')->can('update', Establishment::class);
+            Route::patch('/cashier-payment-methods', 'updatePaymentMethods')->name('payment-methods.update')->can('update', Establishment::class);
+            Route::get('/internal-consumption-types', 'internalConsumption')->name('internal-consumption')->can('update', Establishment::class);
+            Route::patch('/internal-consumption-types', 'updateInternalConsumption')->name('internal-consumption.update')->can('update', Establishment::class);
+            Route::get('/service-fees', 'serviceFees')->name('service-fees')->can('update', Establishment::class);
+            Route::patch('/service-fees', 'updateServiceFees')->name('service-fees.update')->can('update', Establishment::class);
+        });
+    });
 
     Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments.')->group(function () {
         Route::get('', 'index')->name('index')->can('viewAny', Establishment::class);

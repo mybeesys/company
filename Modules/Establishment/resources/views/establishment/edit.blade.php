@@ -16,18 +16,6 @@
                 <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab" href="#establishment_inventory_account_tab"
                     role="tab">@lang('establishment::general.inventory_account_settings_tab')</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab" href="#establishment_cashier_payments_tab"
-                    role="tab">@lang('establishment::general.cashier_payment_methods_tab')</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab" href="#establishment_internal_consumption_tab"
-                    role="tab">@lang('establishment::general.internal_consumption_settings_tab')</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-active-primary pb-4" data-bs-toggle="tab" href="#establishment_service_fees_tab"
-                    role="tab">@lang('establishment::general.service_fee_settings_tab')</a>
-            </li>
         </ul>
 
         <div class="tab-content pt-5">
@@ -40,21 +28,6 @@
                     :showPerpetualInventoryAccount="$showPerpetualInventoryAccount ?? false"
                     :perpetualInventoryAccounts="$perpetualInventoryAccounts ?? collect()" />
             </div>
-            <div class="tab-pane fade" id="establishment_cashier_payments_tab" role="tabpanel">
-                <x-establishment::establishments.cashier-payment-methods :accounts="$accounts ?? collect()"
-                    :cashierPaymentRows="$cashierPaymentRows ?? []" />
-            </div>
-            <div class="tab-pane fade" id="establishment_internal_consumption_tab" role="tabpanel">
-                <x-establishment::establishments.internal-consumption-settings
-                    :accounts="$accounts ?? collect()"
-                    :internalConsumptionRows="$internalConsumptionRows ?? []" />
-            </div>
-            <div class="tab-pane fade" id="establishment_service_fees_tab" role="tabpanel">
-                <x-establishment::establishments.service-fee-settings
-                    :serviceFeeRows="$serviceFeeRows ?? []"
-                    :diningTypes="$diningTypes ?? collect()"
-                    :cashierPaymentRows="$cashierPaymentRows ?? []" />
-            </div>
         </div>
 
         <x-form.form-buttons cancelUrl="{{ url('/establishment') }}" id="edit_establishment_form" />
@@ -64,9 +37,6 @@
 @section('script')
     @parent
     <script src="{{ url('modules/establishment/js/create-edit-establishment.js') }}"></script>
-    <script src="{{ url('modules/establishment/js/cashier-payment-methods.js') }}"></script>
-    <script src="{{ url('modules/establishment/js/internal-consumption-types.js') }}"></script>
-    <script src="{{ url('modules/establishment/js/service-fees.js') }}"></script>
     <script>
         $(document).ready(function() {
             establishmentForm('edit_establishment_form', "{{ route('establishments.create.validation') }}");
@@ -75,9 +45,6 @@
                 allowClear: true,
                 width: '100%'
             });
-            initCashierPaymentMethods();
-            initInternalConsumptionTypes();
-            initEstablishmentServiceFees();
         });
     </script>
 @endsection
