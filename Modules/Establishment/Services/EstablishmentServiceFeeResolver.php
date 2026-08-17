@@ -50,7 +50,6 @@ final class EstablishmentServiceFeeResolver
 
             if ($payload['cashier_payment_method_id']) {
                 $belongs = EstablishmentPaymentAccount::query()
-                    ->where('establishment_id', $establishmentId)
                     ->where('id', $payload['cashier_payment_method_id'])
                     ->exists();
                 if (! $belongs) {
@@ -91,7 +90,8 @@ final class EstablishmentServiceFeeResolver
     public static function rowsForEstablishment(int $establishmentId): array
     {
         return EstablishmentServiceFee::query()
-            ->where('establishment_id', $establishmentId)
+            ->with('assignedEstablishments:id')
+            ->forEstablishment($establishmentId)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
@@ -107,13 +107,13 @@ final class EstablishmentServiceFeeResolver
     public static function invoiceCatalog(?int $establishmentId = null): array
     {
         $query = EstablishmentServiceFee::query()
-            ->with('cashierPaymentMethod:id,account_id,establishment_id')
+            ->with(['cashierPaymentMethod:id,account_id,establishment_id', 'assignedEstablishments:id'])
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id');
 
         if ($establishmentId) {
-            $query->where('establishment_id', $establishmentId);
+            $query->forEstablishment($establishmentId);
         }
 
         return $query->get()->map(fn (EstablishmentServiceFee $row) => array_merge(self::toRow($row), [
@@ -130,7 +130,8 @@ final class EstablishmentServiceFeeResolver
     {
         return [
             'id' => (int) $row->id,
-            'establishment_id' => (int) $row->establishment_id,
+            'establishment_id' => $row->establishment_id ? (int) $row->establishment_id : null,
+            'establishment_ids' => $row->assignedEstablishmentIds(),
             'name_ar' => (string) $row->name_ar,
             'name_en' => (string) $row->name_en,
             'amount' => (float) $row->amount,
@@ -166,6 +167,87 @@ final class EstablishmentServiceFeeResolver
         $flag = (string) $value;
 
         return in_array($flag, ['0', '1', '2', '3'], true) ? $flag : null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function catalogRows(): array
+    {
+        return EstablishmentServiceFee::query()
+            ->with('assignedEstablishments:id')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (EstablishmentServiceFee $row) => self::toRow($row))
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    public static function syncCatalog(array $rows): void
+    {
+        $keptIds = [];
+        $sort = 0;
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $nameAr = trim((string) ($row['name_ar'] ?? ''));
+            $nameEn = trim((string) ($row['name_en'] ?? ''));
+            if ($nameAr === '' || $nameEn === '') {
+                continue;
+            }
+
+            $rowId = self::nullableInt($row['id'] ?? null);
+            $assignedIds = array_values(array_filter(array_map('intval', (array) ($row['establishment_ids'] ?? []))));
+            $payload = [
+                'name_ar' => $nameAr,
+                'name_en' => $nameEn,
+                'amount' => round((float) ($row['amount'] ?? 0), 4),
+                'service_fee_type' => self::normalizeFlag($row['service_fee_type'] ?? EstablishmentServiceFee::TYPE_AMOUNT),
+                'application_type' => self::normalizeFlag($row['application_type'] ?? EstablishmentServiceFee::APPLY_ORDER),
+                'calculation_method' => self::normalizeFlag($row['calculation_method'] ?? EstablishmentServiceFee::CALC_BEFORE_TAX),
+                'taxable' => filter_var($row['taxable'] ?? false, FILTER_VALIDATE_BOOL),
+                'is_active' => filter_var($row['active'] ?? $row['is_active'] ?? false, FILTER_VALIDATE_BOOL),
+                'auto_apply_type' => self::nullableFlag($row['auto_apply_type'] ?? null),
+                'dining_type_ids' => array_values(array_filter(array_map('intval', (array) ($row['dining_type_ids'] ?? [])))),
+                'guest_count' => self::nullableInt($row['guestCount'] ?? $row['guest_count'] ?? null),
+                'cashier_payment_method_id' => self::nullableInt($row['credit_type'] ?? $row['cashier_payment_method_id'] ?? null),
+                'from_date' => self::nullableDate($row['from_date'] ?? null),
+                'to_date' => self::nullableDate($row['to_date'] ?? null),
+                'sort_order' => $sort++,
+                'establishment_id' => $assignedIds[0] ?? null,
+            ];
+
+            if ($payload['cashier_payment_method_id'] && ! EstablishmentPaymentAccount::query()->where('id', $payload['cashier_payment_method_id'])->exists()) {
+                $payload['cashier_payment_method_id'] = null;
+            }
+
+            if ($rowId) {
+                $existing = EstablishmentServiceFee::query()->where('id', $rowId)->first();
+                if ($existing) {
+                    $existing->update($payload);
+                    $existing->syncAssignedEstablishments($assignedIds);
+                    $keptIds[] = (int) $existing->id;
+
+                    continue;
+                }
+            }
+
+            $created = EstablishmentServiceFee::query()->create($payload);
+            $created->syncAssignedEstablishments($assignedIds);
+            $keptIds[] = (int) $created->id;
+        }
+
+        if ($keptIds === []) {
+            return;
+        }
+
+        EstablishmentServiceFee::query()->whereNotIn('id', $keptIds)->delete();
     }
 
     private static function nullableInt(mixed $value): ?int

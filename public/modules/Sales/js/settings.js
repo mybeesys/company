@@ -32,12 +32,18 @@ $(document).ready(function () {
     });
 
     $(document).on("submit", "#sell_save", function (e) {
+        if (window.__sellInvoiceNativeSubmit || typeof window.validateSellInvoiceForm === 'function') {
+            return true;
+        }
+
         const $form = $(this);
         const precheck = window.invoicePrecheckConfig || {};
         const missingAccounts = Array.isArray(precheck.missingAccounts) ? precheck.missingAccounts : [];
         const skipContactAccountCheck = String($form.data("invoice-document-only") || "") === "1";
+        const internalConsumptionMode = typeof window.isInternalConsumptionInvoiceMode === "function"
+            && window.isInternalConsumptionInvoiceMode();
 
-        if (missingAccounts.length > 0) {
+        if (!internalConsumptionMode && missingAccounts.length > 0) {
             e.preventDefault();
             const header = (precheck.messages && precheck.messages.missingAccountsHeader)
                 ? precheck.messages.missingAccountsHeader
@@ -47,7 +53,7 @@ $(document).ready(function () {
             return false;
         }
 
-        if (!skipContactAccountCheck) {
+        if (!skipContactAccountCheck && !internalConsumptionMode) {
             const $client = $form.find("#client_id");
             const $option = $client.find(":selected");
             const clientId = $option.val();

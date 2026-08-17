@@ -59,6 +59,9 @@ function initEstablishmentServiceFees() {
 
     function refreshBranchPaymentSelects(scope) {
         const methods = getBranchPaymentMethods();
+        if (methods.length === 0) {
+            return;
+        }
         const $scope = scope ? $(scope) : $(rowsContainer);
 
         $scope.find('.service-fee-branch-payment').each(function () {
@@ -131,6 +134,10 @@ function initEstablishmentServiceFees() {
         reindexRows();
         toggleAutoApply($newRow);
         initSelect2($newRow);
+        if (typeof window.initBranchAssignmentSelects === 'function') {
+            window.initBranchAssignmentSelects($newRow);
+            $newRow.find('.branch-assign-all').trigger('click');
+        }
     });
 
     $(rowsContainer).on('click', '.service-fee-remove-row', function () {

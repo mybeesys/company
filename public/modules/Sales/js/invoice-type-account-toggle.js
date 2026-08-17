@@ -22,12 +22,27 @@
         $('#account_id').prop('required', false).removeAttr('required');
     }
 
+    function isInternalConsumptionMode() {
+        return typeof window.isInternalConsumptionInvoiceMode === 'function'
+            && window.isInternalConsumptionInvoiceMode();
+    }
+
     function applyInvoiceTypeAccountUi(invoiceType) {
         const isDeferred = isDeferredInvoiceType(invoiceType);
         const $cashWrap = $('#div-cash_account');
         const $cash = $('#cash_account');
 
         if (!$cashWrap.length) {
+            return;
+        }
+
+        if (isInternalConsumptionMode()) {
+            $cashWrap.addClass('d-none').hide();
+            $cash.prop('required', false).removeAttr('required');
+            $('#li-payment_info, #tab-content-payment_info').hide();
+            $('#lable-account_id, #client_l_id').removeClass('required');
+            $('#account_id, #client_id').prop('required', false).removeAttr('required');
+
             return;
         }
 
@@ -89,4 +104,7 @@
     window.applyInvoiceTypeAccountUi = applyInvoiceTypeAccountUi;
     window.applyDocumentOnlyFormUi = applyDocumentOnlyFormUi;
     window.bindInvoiceTypeAccountToggle = bindInvoiceTypeAccountToggle;
+    window.refreshInvoiceTypeAccountVisibility = function () {
+        applyInvoiceTypeAccountUi($('#invoice_type').val());
+    };
 })(jQuery);

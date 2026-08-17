@@ -1,12 +1,13 @@
 @props([
     'accounts' => null,
     'cashierPaymentRows' => [],
+    'branchOptions' => null,
 ])
 @php
     $locale = app()->getLocale();
     $rows = old('cashier_payment_rows', $cashierPaymentRows ?? []);
     if (! is_array($rows) || $rows === []) {
-        $rows = [['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null]];
+        $rows = [['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'establishment_ids' => [], 'branch_accounts' => []]];
     }
 @endphp
 <div class="establishment-cashier-payments d-flex flex-column flex-row-fluid gap-7 gap-lg-10" id="cashier_payment_methods_root">
@@ -26,6 +27,7 @@
                         'row' => $row,
                         'accounts' => $accounts,
                         'locale' => $locale,
+                        'branchOptions' => $branchOptions,
                     ])
                 @endforeach
             </div>
@@ -33,11 +35,24 @@
     </x-form.form-card>
 </div>
 
+<template id="cashier_branch_account_row_template">
+    @include('establishment::components.establishments.partials.branch-account-row', [
+        'index' => '__INDEX__',
+        'estId' => '__EST_ID__',
+        'namePrefix' => 'cashier_payment_rows',
+        'accounts' => $accounts,
+        'accountId' => null,
+        'branchName' => '__BRANCH_NAME__',
+        'locale' => $locale,
+    ])
+</template>
+
 <template id="cashier_payment_row_template">
     @include('establishment::components.establishments.partials.cashier-payment-row', [
         'index' => '__INDEX__',
-        'row' => ['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null],
+        'row' => ['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'establishment_ids' => [], 'branch_accounts' => []],
         'accounts' => $accounts,
         'locale' => $locale,
+        'branchOptions' => $branchOptions,
     ])
 </template>

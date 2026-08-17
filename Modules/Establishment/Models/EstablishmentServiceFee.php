@@ -4,9 +4,12 @@ namespace Modules\Establishment\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Establishment\Models\Concerns\HasEstablishmentAssignments;
 
 class EstablishmentServiceFee extends Model
 {
+    use HasEstablishmentAssignments;
+
     public const TYPE_AMOUNT = '0';
 
     public const TYPE_PERCENT = '1';
@@ -30,6 +33,16 @@ class EstablishmentServiceFee extends Model
     protected $table = 'est_establishment_service_fees';
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected function assignmentPivotTable(): string
+    {
+        return 'est_service_fee_establishment';
+    }
+
+    protected function assignmentForeignPivotKey(): string
+    {
+        return 'service_fee_id';
+    }
 
     protected $casts = [
         'amount' => 'float',

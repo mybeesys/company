@@ -20,6 +20,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
+    #toast-container {
+        z-index: 200000 !important;
+        position: fixed !important;
+        pointer-events: none;
+    }
+
+    #toast-container > div {
+        opacity: 1 !important;
+        pointer-events: auto;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
+    }
+
     .page-loader {
         position: fixed;
         top: 0;

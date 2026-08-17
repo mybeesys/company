@@ -17,13 +17,12 @@ class EstablishmentPaymentAccountResolver
             return null;
         }
 
-        $accountId = EstablishmentPaymentAccount::query()
-            ->where('establishment_id', $establishmentId)
+        $method = EstablishmentPaymentAccount::query()
+            ->forEstablishment($establishmentId)
             ->where('id', $branchPaymentMethodId)
-            ->whereNotNull('account_id')
-            ->value('account_id');
+            ->first();
 
-        return $accountId ? (int) $accountId : null;
+        return $method?->accountIdForEstablishment($establishmentId);
     }
 
     /**
@@ -32,10 +31,11 @@ class EstablishmentPaymentAccountResolver
     public static function resolveCashMethodId(int $establishmentId): ?int
     {
         $id = EstablishmentPaymentAccount::query()
-            ->where('establishment_id', $establishmentId)
+            ->forEstablishment($establishmentId)
             ->where('payment_method_key', 'cash')
-            ->whereNotNull('account_id')
-            ->value('id');
+            ->get()
+            ->first(fn (EstablishmentPaymentAccount $row) => $row->accountIdForEstablishment($establishmentId))
+            ?->id;
 
         return $id ? (int) $id : null;
     }
@@ -64,7 +64,7 @@ class EstablishmentPaymentAccountResolver
                 continue;
             }
 
-            $key = self::uniqueKeyForEstablishment($establishmentId, $nameEn, $rowId);
+            $key = self::uniqueKey($nameEn, $rowId);
 
             if ($rowId) {
                 $existing = EstablishmentPaymentAccount::query()
@@ -111,14 +111,15 @@ class EstablishmentPaymentAccountResolver
     public static function rowsForEstablishment(int $establishmentId): array
     {
         return EstablishmentPaymentAccount::query()
-            ->where('establishment_id', $establishmentId)
+            ->forEstablishment($establishmentId)
+            ->with('assignedEstablishments:id')
             ->orderBy('id')
             ->get(['id', 'name_ar', 'name_en', 'account_id', 'payment_method_key'])
             ->map(fn (EstablishmentPaymentAccount $row) => [
                 'id' => (int) $row->id,
                 'name_ar' => (string) ($row->name_ar ?? ''),
                 'name_en' => (string) ($row->name_en ?? $row->payment_method_key ?? ''),
-                'account_id' => $row->account_id ? (int) $row->account_id : null,
+                'account_id' => $row->accountIdForEstablishment($establishmentId),
                 'payment_method_key' => (string) $row->payment_method_key,
             ])
             ->all();
@@ -130,11 +131,12 @@ class EstablishmentPaymentAccountResolver
     public static function resolveForCashierPayment(int $establishmentId, int $branchPaymentMethodId): array
     {
         $method = EstablishmentPaymentAccount::query()
-            ->where('establishment_id', $establishmentId)
+            ->forEstablishment($establishmentId)
             ->where('id', $branchPaymentMethodId)
             ->first();
 
-        if (! $method || ! $method->account_id) {
+        $accountId = $method?->accountIdForEstablishment($establishmentId);
+        if (! $method || ! $accountId) {
             return [
                 'ok' => false,
                 'status' => 422,
@@ -148,29 +150,171 @@ class EstablishmentPaymentAccountResolver
 
         return [
             'ok' => true,
-            'account_id' => (int) $method->account_id,
+            'account_id' => $accountId,
             'method_id' => (int) $method->id,
             'method' => $method,
         ];
     }
 
-    private static function uniqueKeyForEstablishment(int $establishmentId, string $nameEn, ?int $ignoreId = null): string
+    /**
+     * @return list<array{id: int, name_ar: string, name_en: string, account_id: int|null, payment_method_key: string, establishment_ids: list<int>, branch_accounts: array<int, int|null>}>
+     */
+    public static function catalogRows(): array
     {
-        $baseKey = Str::slug($nameEn, '_');
-        if ($baseKey === '') {
-            $baseKey = 'method_'.Str::lower(Str::random(6));
+        return EstablishmentPaymentAccount::query()
+            ->with('assignedEstablishments:id')
+            ->orderBy('id')
+            ->get()
+            ->map(function (EstablishmentPaymentAccount $row) {
+                $establishmentIds = $row->assignedEstablishmentIds();
+                $fromPivot = [];
+                foreach ($row->assignedEstablishments as $establishment) {
+                    $fromPivot[(int) $establishment->id] = (int) ($establishment->pivot->account_id ?: $row->account_id ?: 0) ?: null;
+                }
+
+                $branchAccounts = [];
+                foreach ($establishmentIds as $establishmentId) {
+                    $branchAccounts[$establishmentId] = $fromPivot[$establishmentId]
+                        ?? ($row->account_id ? (int) $row->account_id : null);
+                }
+
+                return [
+                    'id' => (int) $row->id,
+                    'name_ar' => (string) ($row->name_ar ?? ''),
+                    'name_en' => (string) ($row->name_en ?? $row->payment_method_key ?? ''),
+                    'account_id' => $row->account_id ? (int) $row->account_id : null,
+                    'payment_method_key' => (string) $row->payment_method_key,
+                    'establishment_ids' => $establishmentIds,
+                    'branch_accounts' => $branchAccounts,
+                ];
+            })
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    public static function syncCatalog(array $rows): void
+    {
+        $keptIds = [];
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $accountId = self::nullableInt($row['account_id'] ?? null);
+            $nameAr = trim((string) ($row['name_ar'] ?? ''));
+            $nameEn = trim((string) ($row['name_en'] ?? ''));
+            $rowId = self::nullableInt($row['id'] ?? null);
+            $assignedIds = array_values(array_filter(array_map('intval', (array) ($row['establishment_ids'] ?? []))));
+            $branchAccounts = self::normalizeBranchAccounts($row['branch_accounts'] ?? [], $assignedIds, $accountId);
+
+            if ($nameAr === '' || $nameEn === '') {
+                continue;
+            }
+
+            $existing = $rowId
+                ? EstablishmentPaymentAccount::query()->where('id', $rowId)->first()
+                : null;
+            $key = $existing?->payment_method_key
+                ?: self::uniqueKey($nameEn, $rowId, (string) ($row['payment_method_key'] ?? ''));
+            $firstAccountId = $branchAccounts !== [] ? (int) reset($branchAccounts) : $accountId;
+            $payload = [
+                'payment_method_key' => $key,
+                'name_ar' => $nameAr,
+                'name_en' => $nameEn,
+                'account_id' => $firstAccountId,
+                'establishment_id' => $assignedIds[0] ?? (array_key_first($branchAccounts) ?: null),
+            ];
+
+            if ($existing) {
+                $existing->update($payload);
+                $existing->syncBranchAccounts($branchAccounts);
+                $keptIds[] = (int) $existing->id;
+
+                continue;
+            }
+
+            $created = EstablishmentPaymentAccount::query()->create($payload);
+            $created->syncBranchAccounts($branchAccounts);
+            $keptIds[] = (int) $created->id;
         }
 
-        // Keep classic cash key stable when labeled cash
-        if (Str::lower(trim($nameEn)) === 'cash' || $baseKey === 'cash') {
+        if ($keptIds === []) {
+            return;
+        }
+
+        EstablishmentPaymentAccount::query()->whereNotIn('id', $keptIds)->delete();
+    }
+
+    public static function defaultCatalogRows(): array
+    {
+        return [
+            ['id' => null, 'name_ar' => 'نقداً', 'name_en' => 'Cash', 'account_id' => null, 'payment_method_key' => 'cash', 'establishment_ids' => [], 'branch_accounts' => []],
+            ['id' => null, 'name_ar' => 'بطاقة', 'name_en' => 'Card', 'account_id' => null, 'payment_method_key' => 'card', 'establishment_ids' => [], 'branch_accounts' => []],
+            ['id' => null, 'name_ar' => 'طلبات توصيل', 'name_en' => 'Delivery orders', 'account_id' => null, 'payment_method_key' => 'delivery_apps', 'establishment_ids' => [], 'branch_accounts' => []],
+        ];
+    }
+
+    /**
+     * @param  mixed  $raw
+     * @param  list<int>  $assignedIds
+     * @return array<int, int>
+     */
+    private static function normalizeBranchAccounts(mixed $raw, array $assignedIds, ?int $fallbackAccountId): array
+    {
+        $map = [];
+        if (is_array($raw)) {
+            foreach ($raw as $establishmentId => $accountId) {
+                $estId = (int) $establishmentId;
+                $accId = self::nullableInt($accountId);
+                if ($estId > 0 && $accId) {
+                    $map[$estId] = $accId;
+                }
+            }
+        }
+
+        if ($assignedIds === []) {
+            return $map;
+        }
+
+        $filtered = [];
+        foreach ($assignedIds as $estId) {
+            if (isset($map[$estId])) {
+                $filtered[$estId] = $map[$estId];
+            } elseif ($fallbackAccountId) {
+                $filtered[$estId] = $fallbackAccountId;
+            }
+        }
+
+        return $filtered;
+    }
+
+    private static function uniqueKey(string $nameEn, ?int $ignoreId = null, ?string $preferredKey = null): string
+    {
+        $preferred = strtolower(trim((string) $preferredKey));
+        $normalized = strtolower(trim($nameEn));
+
+        if (in_array($preferred, ['cash', 'card', 'delivery_apps'], true)) {
+            $baseKey = $preferred;
+        } elseif (in_array($normalized, ['cash'], true)) {
             $baseKey = 'cash';
+        } elseif (in_array($normalized, ['card'], true)) {
+            $baseKey = 'card';
+        } elseif (in_array($normalized, ['delivery_apps', 'delivery orders', 'delivery_orders'], true)) {
+            $baseKey = 'delivery_apps';
+        } else {
+            $baseKey = Str::slug($nameEn, '_');
+            if ($baseKey === '') {
+                $baseKey = 'method_'.Str::lower(Str::random(6));
+            }
         }
 
         $key = $baseKey;
         $i = 1;
         while (
             EstablishmentPaymentAccount::query()
-                ->where('establishment_id', $establishmentId)
                 ->where('payment_method_key', $key)
                 ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
                 ->exists()

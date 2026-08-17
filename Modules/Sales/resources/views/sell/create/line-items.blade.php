@@ -233,10 +233,15 @@
                                             class="form-control vat_value-field"
                                             name="products[{{ $index }}][vat_value]" placeholder="0.00"
                                             style="width: 80px;"></td>
-                                    <td><input type="number" step="any" readonly {{-- @if ($line->line_status == 'completed') disabled @endif --}}
+                                    <td>
+                                        <input type="number" step="any" readonly {{-- @if ($line->line_status == 'completed') disabled @endif --}}
                                             class="form-control total_after_vat-field"
                                             name="products[{{ $index }}][total_after_vat]" placeholder="0.00"
-                                            style="width: 107px;"></td>
+                                            style="width: 107px;">
+                                        <div class="sales-line-item-fee d-none" data-line-fee>
+                                            <span data-line-fee-text></span>
+                                        </div>
+                                    </td>
                                     <td>
                                         <button type="button" class="btn btn-icon btn-danger delete-sales-row">
                                             <i class="ki-outline ki-trash fs-2"></i>

@@ -159,8 +159,38 @@ class Establishment extends Model
         return $this->hasMany(EstablishmentPaymentAccount::class, 'establishment_id');
     }
 
+    public function assignedPaymentAccounts()
+    {
+        return $this->belongsToMany(
+            EstablishmentPaymentAccount::class,
+            'est_payment_account_establishment',
+            'establishment_id',
+            'payment_account_id'
+        );
+    }
+
     public function serviceFees()
     {
         return $this->hasMany(EstablishmentServiceFee::class, 'establishment_id');
+    }
+
+    public function assignedServiceFees()
+    {
+        return $this->belongsToMany(
+            EstablishmentServiceFee::class,
+            'est_service_fee_establishment',
+            'establishment_id',
+            'service_fee_id'
+        );
+    }
+
+    public function assignedInternalConsumptionTypes()
+    {
+        return $this->belongsToMany(
+            EstablishmentInternalConsumptionType::class,
+            'est_internal_consumption_type_establishment',
+            'establishment_id',
+            'internal_consumption_type_id'
+        );
     }
 }

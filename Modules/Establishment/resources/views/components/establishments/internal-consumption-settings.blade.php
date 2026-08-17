@@ -1,6 +1,7 @@
 @props([
     'accounts' => null,
     'internalConsumptionRows' => [],
+    'branchOptions' => null,
 ])
 @php
     $locale = app()->getLocale();
@@ -14,14 +15,12 @@
             'value' => null,
             'account_id' => null,
             'is_active' => true,
+            'establishment_ids' => [],
         ]];
     }
 @endphp
 <div class="establishment-internal-consumption d-flex flex-column flex-row-fluid gap-7 gap-lg-10" id="internal_consumption_types_root">
     <x-form.form-card bodyClass="d-flex flex-column gap-5" :title="__('establishment::general.internal_consumption_settings')">
-        <p class="text-muted mb-0">@lang('establishment::general.internal_consumption_types_hint')</p>
-        <x-form.field-hint :hint="__('establishment::general.internal_consumption_row_hint')" />
-
         <div class="w-100">
             <div class="d-flex justify-content-end mb-4">
                 <button type="button" class="btn btn-sm btn-light-primary" id="internal_consumption_add_row">
@@ -31,15 +30,17 @@
             </div>
 
             <div class="table-responsive">
-                <div class="row g-3 align-items-center text-muted fw-semibold fs-7 text-uppercase d-none d-lg-flex px-2 mb-1">
-                    <div class="col-lg-2">@lang('establishment::fields.name')</div>
-                    <div class="col-lg-2">@lang('establishment::fields.name_en')</div>
-                    <div class="col-lg-2">@lang('establishment::fields.internal_consumption_value_type')</div>
-                    <div class="col-lg-1">@lang('establishment::fields.internal_consumption_value')</div>
-                    <div class="col-lg-3">@lang('establishment::fields.internal_consumption_collection_account')</div>
-                    <div class="col-lg-1 text-center">@lang('establishment::fields.active')</div>
-                    <div class="col-lg-1 text-center">@lang('messages.delete')</div>
-                </div>
+                @unless (isset($branchOptions))
+                    <div class="row g-3 align-items-center text-muted fw-semibold fs-7 text-uppercase d-none d-lg-flex px-2 mb-1">
+                        <div class="col-lg-2">@lang('establishment::fields.name')</div>
+                        <div class="col-lg-2">@lang('establishment::fields.name_en')</div>
+                        <div class="col-lg-2">@lang('establishment::fields.internal_consumption_value_type')</div>
+                        <div class="col-lg-1">@lang('establishment::fields.internal_consumption_value')</div>
+                        <div class="col-lg-3">@lang('establishment::fields.internal_consumption_collection_account')</div>
+                        <div class="col-lg-1 text-center">@lang('establishment::fields.active')</div>
+                        <div class="col-lg-1 text-center">@lang('messages.delete')</div>
+                    </div>
+                @endunless
 
                 <div class="d-flex flex-column gap-3" id="internal_consumption_rows">
                     @foreach ($rows as $index => $row)
@@ -48,6 +49,7 @@
                             'row' => $row,
                             'accounts' => $accounts,
                             'locale' => $locale,
+                            'branchOptions' => $branchOptions,
                         ])
                     @endforeach
                 </div>
@@ -67,8 +69,10 @@
             'value' => null,
             'account_id' => null,
             'is_active' => true,
+            'establishment_ids' => [],
         ],
         'accounts' => $accounts,
         'locale' => $locale,
+        'branchOptions' => $branchOptions,
     ])
 </template>

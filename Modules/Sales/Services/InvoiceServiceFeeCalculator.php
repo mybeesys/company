@@ -130,12 +130,19 @@ final class InvoiceServiceFeeCalculator
 
         $feeAmount = 0.0;
         $taxAmount = 0.0;
+        $lineBreakdown = [];
         $lines = is_array($context['lines'] ?? null) ? $context['lines'] : [];
 
         if ($isItem) {
-            foreach ($lines as $line) {
+            foreach ($lines as $index => $line) {
                 $qty = (float) ($line['qty'] ?? 0);
                 if ($qty <= 0) {
+                    $lineBreakdown[] = [
+                        'index' => (int) $index,
+                        'fee_amount' => 0.0,
+                        'tax_amount' => 0.0,
+                    ];
+
                     continue;
                 }
 
@@ -151,11 +158,18 @@ final class InvoiceServiceFeeCalculator
                 }
 
                 $lineFee = max(0, round($lineFee, 2));
-                $feeAmount += $lineFee;
-
+                $lineTax = 0.0;
                 if ($taxable) {
-                    $taxAmount += round($lineFee * ($lineRate / 100), 2);
+                    $lineTax = round($lineFee * ($lineRate / 100), 2);
                 }
+
+                $feeAmount += $lineFee;
+                $taxAmount += $lineTax;
+                $lineBreakdown[] = [
+                    'index' => (int) $index,
+                    'fee_amount' => $lineFee,
+                    'tax_amount' => $lineTax,
+                ];
             }
         } else {
             if ($isPercent) {
@@ -190,6 +204,7 @@ final class InvoiceServiceFeeCalculator
             'service_fee_type' => (string) ($fee['service_fee_type'] ?? '0'),
             'application_type' => (string) ($fee['application_type'] ?? '1'),
             'calculation_method' => (string) ($fee['calculation_method'] ?? '0'),
+            'line_breakdown' => $lineBreakdown,
         ];
     }
 

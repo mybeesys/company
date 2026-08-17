@@ -7,17 +7,17 @@
     $isTaxable = filter_var($row['taxable'] ?? false, FILTER_VALIDATE_BOOL);
     $isActive = filter_var($row['active'] ?? true, FILTER_VALIDATE_BOOL);
     $locale = $locale ?? app()->getLocale();
+    $showAssignment = isset($branchOptions);
+    $detailsTabId = 'sf-details-'.$index;
+    $assignTabId = 'sf-assign-'.$index;
 @endphp
-<div class="border rounded p-4 service-fee-row bg-body" data-service-fee-row>
+<div class="border rounded p-4 service-fee-row bg-body" data-service-fee-row data-catalog-item>
     @if (! empty($row['id']))
         <input type="hidden" name="service_fee_rows[{{ $index }}][id]" value="{{ $row['id'] }}">
     @endif
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-        <div>
-            <h4 class="fs-6 fw-bold mb-1">@lang('establishment::general.service_fee_item_title')</h4>
-            <span class="text-muted fs-8">@lang('establishment::general.service_fee_item_subtitle')</span>
-        </div>
+        <h4 class="fs-6 fw-bold mb-0">@lang('establishment::general.service_fee_item_title')</h4>
         <div class="d-flex align-items-center gap-4">
             <div class="form-check form-switch form-check-custom form-check-solid">
                 <input type="hidden" name="service_fee_rows[{{ $index }}][active]" value="0">
@@ -31,6 +31,16 @@
             </button>
         </div>
     </div>
+
+    @if ($showAssignment)
+        @include('establishment::components.establishments.partials.catalog-item-tabs', [
+            'detailsTabId' => $detailsTabId,
+            'assignTabId' => $assignTabId,
+            'row' => $row,
+        ])
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="{{ $detailsTabId }}">
+    @endif
 
     <div class="row g-4">
         <div class="col-md-6">
@@ -172,4 +182,17 @@
                 value="{{ $row['to_date'] ?? '' }}">
         </div>
     </div>
+    @if ($showAssignment)
+            </div>
+            <div class="tab-pane fade" id="{{ $assignTabId }}">
+                @include('establishment::components.establishments.partials.branch-assignment-fields', [
+                    'index' => $index,
+                    'row' => $row,
+                    'namePrefix' => 'service_fee_rows',
+                    'branchOptions' => $branchOptions,
+                    'locale' => $locale,
+                ])
+            </div>
+        </div>
+    @endif
 </div>

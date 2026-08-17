@@ -311,6 +311,77 @@ class InventoryCostingService
             ->first();
     }
 
+    /**
+     * Read-only outbound cost for invoice lines (does not persist layers).
+     * FIFO/LIFO is sequential across the given lines for the same product.
+     *
+     * @param  list<array{product_id?:int, qty?:float|int|string, unit_id?:int|null}>  $lines
+     * @return list<array{product_id:int, qty:float, qty_base:float, unit_cost:float, total_cost:float}>
+     */
+    public function previewOutboundCosts(int $establishmentId, array $lines): array
+    {
+        $result = [];
+        $layerCache = [];
+        $avgCache = [];
+        $cardCache = [];
+        $engineOn = $this->isActive();
+        $method = $this->getMethod();
+
+        foreach ($lines as $line) {
+            $productId = (int) ($line['product_id'] ?? 0);
+            $qty = $this->numericQty($line['qty'] ?? 0);
+            $unitId = (int) ($line['unit_id'] ?? 0);
+            $unitId = $unitId > 0 ? $unitId : null;
+            $qtyBase = ($productId > 0 && $qty > 0)
+                ? abs($this->convertToBaseQty($productId, $unitId, $qty))
+                : 0.0;
+
+            if ($productId <= 0 || $qty <= 0) {
+                $result[] = [
+                    'product_id' => $productId,
+                    'qty' => $qty,
+                    'qty_base' => $qtyBase,
+                    'unit_cost' => 0.0,
+                    'total_cost' => 0.0,
+                ];
+                continue;
+            }
+
+            if (! $engineOn) {
+                $card = $this->cachedCardCost($productId, $cardCache);
+                $total = round($qty * $card, 4);
+                $result[] = [
+                    'product_id' => $productId,
+                    'qty' => $qty,
+                    'qty_base' => $qtyBase,
+                    'unit_cost' => round($card, 4),
+                    'total_cost' => $total,
+                ];
+                continue;
+            }
+
+            [$totalCost, $avgUsed] = $this->peekOutboundForQty(
+                $productId,
+                $establishmentId,
+                $qtyBase,
+                $method,
+                $layerCache,
+                $avgCache,
+                $cardCache
+            );
+            $unitCost = $qty > 0 ? ($totalCost / $qty) : $avgUsed;
+            $result[] = [
+                'product_id' => $productId,
+                'qty' => $qty,
+                'qty_base' => $qtyBase,
+                'unit_cost' => round($unitCost, 4),
+                'total_cost' => round($totalCost, 4),
+            ];
+        }
+
+        return $result;
+    }
+
     private function assertValidPreviewToken(?string $previewToken): void
     {
         $session = session('inventory_costing_preview');
@@ -973,6 +1044,94 @@ class InventoryCostingService
         }
 
         return max(0, (float) Product::query()->where('id', $productId)->value('cost'));
+    }
+
+    /**
+     * @param  array<string, list<array{qty_remaining: float, unit_cost: float}>>  $layerCache
+     * @param  array<string, float>  $avgCache
+     * @param  array<int, float>  $cardCache
+     * @return array{0: float, 1: float}
+     */
+    private function peekOutboundForQty(
+        int $productId,
+        int $establishmentId,
+        float $qtyBase,
+        string $method,
+        array &$layerCache,
+        array &$avgCache,
+        array &$cardCache
+    ): array {
+        $key = $productId.':'.$establishmentId;
+
+        if ($method === 'fifo' || $method === 'lifo') {
+            if (! isset($layerCache[$key])) {
+                $layerCache[$key] = $this->snapshotOutboundLayers($productId, $establishmentId, $method);
+            }
+
+            $remaining = $qtyBase;
+            $totalCost = 0.0;
+            foreach ($layerCache[$key] as $idx => $layer) {
+                if ($remaining <= 0.0000001) {
+                    break;
+                }
+                $take = min($remaining, (float) $layer['qty_remaining']);
+                $totalCost += $take * (float) $layer['unit_cost'];
+                $layerCache[$key][$idx]['qty_remaining'] = round((float) $layer['qty_remaining'] - $take, 6);
+                $remaining -= $take;
+            }
+            if ($remaining > 0.0000001) {
+                $state = $establishmentId > 0 ? $this->getCostState($productId, $establishmentId) : null;
+                $totalCost += $remaining * $this->fallbackUnitCost($productId, $state);
+            }
+            $avgUsed = $qtyBase > 0 ? ($totalCost / $qtyBase) : 0.0;
+
+            return [round($totalCost, 6), round($avgUsed, 6)];
+        }
+
+        if (! isset($avgCache[$key])) {
+            $state = $establishmentId > 0 ? $this->getCostState($productId, $establishmentId) : null;
+            $avg = $state && (float) $state->average_cost > 0
+                ? (float) $state->average_cost
+                : $this->cachedCardCost($productId, $cardCache);
+            $avgCache[$key] = $avg;
+        }
+        $avgUsed = $avgCache[$key];
+
+        return [round($qtyBase * $avgUsed, 6), round($avgUsed, 6)];
+    }
+
+    /**
+     * @return list<array{qty_remaining: float, unit_cost: float}>
+     */
+    private function snapshotOutboundLayers(int $productId, int $establishmentId, string $method): array
+    {
+        $query = InventoryCostLayer::query()
+            ->where('product_id', $productId)
+            ->where('establishment_id', $establishmentId)
+            ->where('qty_remaining', '>', 0);
+
+        if ($method === 'lifo') {
+            $query->orderByDesc('layer_date')->orderByDesc('id');
+        } else {
+            $query->orderBy('layer_date')->orderBy('id');
+        }
+
+        return $query->get(['qty_remaining', 'unit_cost'])->map(static fn ($layer) => [
+            'qty_remaining' => (float) $layer->qty_remaining,
+            'unit_cost' => (float) $layer->unit_cost,
+        ])->all();
+    }
+
+    /**
+     * @param  array<int, float>  $cardCache
+     */
+    private function cachedCardCost(int $productId, array &$cardCache): float
+    {
+        if (! array_key_exists($productId, $cardCache)) {
+            $cardCache[$productId] = max(0, (float) Product::query()->where('id', $productId)->value('cost'));
+        }
+
+        return $cardCache[$productId];
     }
 
     private function numericQty($qty): float

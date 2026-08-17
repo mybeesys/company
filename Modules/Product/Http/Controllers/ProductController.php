@@ -1377,9 +1377,27 @@ class ProductController extends Controller
             $inventoryMap = collect();
         }
 
-        $products->transform(function ($product) use ($inventoryMap, $includeExtrasFlags) {
+        $establishmentId = (int) $request->input('establishment_id');
+        $inventoryCosts = [];
+        if ($establishmentId > 0 && $products->isNotEmpty()) {
+            $preview = app(\Modules\Inventory\Services\InventoryCostingService::class)
+                ->previewOutboundCosts($establishmentId, $products->map(fn ($product) => [
+                    'product_id' => (int) $product->id,
+                    'qty' => 1,
+                    'unit_id' => null,
+                ])->all());
+            foreach ($preview as $row) {
+                $inventoryCosts[(int) $row['product_id']] = (float) $row['unit_cost'];
+            }
+        }
+
+        $products->transform(function ($product) use ($inventoryMap, $includeExtrasFlags, $inventoryCosts) {
             $product->inventory_qty = (float) ($inventoryMap[$product->id] ?? 0);
             $product->cost = round((float) ($product->cost ?? 0), 4);
+            $product->inventory_cost = round(
+                (float) ($inventoryCosts[$product->id] ?? $product->cost ?? 0),
+                4
+            );
             if ($includeExtrasFlags) {
                 $product->has_modifiers = ((int) ($product->modifiers_count ?? 0)) > 0;
                 $product->has_combos = ((int) ($product->combos_count ?? 0)) > 0;

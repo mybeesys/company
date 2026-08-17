@@ -35,6 +35,28 @@
             padding-left: 2px;
         }
 
+        .sales-line-item-fee {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1b84ff;
+            background: #f1f6ff;
+            border: 1px solid #dbe8ff;
+            border-radius: 6px;
+            line-height: 1.2;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+
+        .invoice-service-fee-lines {
+            border-top: 1px dashed var(--bs-gray-300);
+            padding-top: 6px;
+            margin-top: 6px;
+        }
+
         #discount_type+.select2-container {
             width: max-content !important;
         }
@@ -79,7 +101,7 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-invoice') }}">
+    <form id="sell_save" method="POST" action="{{ route('store-invoice') }}" novalidate>
         @csrf
         <input type="hidden" name="quotation_id" id="quotation_id" value="">
 
@@ -109,6 +131,30 @@
         <div class="separator d-flex flex-center my-3">
             <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
         </div>
+
+        @if (session('error') || $errors->any())
+            <div class="container mb-4">
+                <div class="alert alert-danger d-flex flex-column flex-sm-row align-items-start gap-3">
+                    <div class="flex-grow-1">
+                        @if (session('error'))
+                            <div>{{ session('error') }}</div>
+                        @endif
+                        @foreach ($errors->all() as $error)
+                            @if ($error !== session('error'))
+                                <div>{{ $error }}</div>
+                            @endif
+                        @endforeach
+                    </div>
+                    @if (!empty(session('error_action.url')))
+                        <div class="mt-2 mt-sm-0 flex-shrink-0">
+                            <a href="{{ session('error_action.url') }}" class="btn btn-sm btn-dark">
+                                {{ session('error_action.label') ?? __('menuItemLang.accounts-routing') }}
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         @if (!empty($invoicePrecheckConfig['missingAccounts']))
             <div class="container mb-4">
@@ -167,18 +213,17 @@
 
                     <div class="btn-group">
                         @if ($Latest_event->action == 'save')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save" data-status="final">@lang('messages.save')
-                            </a>
+                            <button type="button" class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px"
+                                data-action="save" data-status="final">@lang('messages.save')
+                            </button>
                         @elseif ($Latest_event->action == 'save_add')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_add" data-status="final">@lang('messages.save&add')
-                            </a>
+                            <button type="button" class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px"
+                                data-action="save_add" data-status="final">@lang('messages.save&add')
+                            </button>
                         @else
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_print"
-                                data-status="final">@lang('messages.save&print')
-                            </a>
+                            <button type="button" class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px"
+                                data-action="save_print" data-status="final">@lang('messages.save&print')
+                            </button>
                         @endif
 
 
@@ -189,20 +234,20 @@
 
                         <ul class="dropdown-menu p-5">
                             <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save"
+                                <button type="button" class="dropdown-item" data-action="save"
                                     data-status="final">@lang('messages.save')
-                                </a>
+                                </button>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save_add"
+                                <button type="button" class="dropdown-item" data-action="save_add"
                                     data-status="final">@lang('messages.save&add')
-                                </a>
+                                </button>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="#" data-action="save_print"
-                                    data-status="final">@lang('messages.save&print')</a>
+                                <button type="button" class="dropdown-item" data-action="save_print"
+                                    data-status="final">@lang('messages.save&print')</button>
 
                             </li>
                         </ul>
@@ -291,10 +336,20 @@
         window.sellWithModifiersCombos = @json($sellWithModifiersCombos ?? false);
         window.internalConsumptionInvoiceConfig = {
             typesUrl: @json(route('web.internal-consumption-types')),
+            costsUrl: @json(route('web.invoice-inventory-costs')),
             selectPlaceholder: @json(__('sales::lang.select_internal_consumption_type')),
             typeRequiredMessage: @json(__('sales::lang.internal_consumption_type_required')),
             zeroTaxValue: @json($zeroTax?->amount ?? '0'),
             defaultEstablishmentId: {{ (int) ($defaultEstablishment?->id ?? 0) }},
+            initialTypeId: @json(old('internal_consumption_type_id')),
+            initialPurpose: @json(old('purpose', 'standard')),
+        };
+        window.sellInvoicePageFlash = {
+            success: @json(array_values(array_filter([session('success')]))),
+            errors: @json(array_values(array_unique(array_filter(array_merge(
+                session('error') ? [session('error')] : [],
+                $errors->any() ? $errors->all() : []
+            ))))),
         };
         window.smcI18n = {
             edit: @json(__('sales::lang.smc_edit_extras')),
@@ -305,10 +360,11 @@
     <script src="{{ url('/modules/Sales/js/invoice-type-account-toggle.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
-    <script src="{{ url('/modules/Sales/js/internal-consumption-invoice.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/internal-consumption-invoice.js') }}?v={{ @filemtime(public_path('modules/Sales/js/internal-consumption-invoice.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
-    <script src="{{ url('/modules/Sales/js/invoice-service-fees.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/invoice-service-fees.js') }}?v={{ @filemtime(public_path('modules/Sales/js/invoice-service-fees.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/sell-modifiers-combos.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/sell-invoice-submit.js') }}?v={{ @filemtime(public_path('modules/Sales/js/sell-invoice-submit.js')) ?: time() }}"></script>
 
 
     <script>
@@ -319,6 +375,11 @@
             defaultEstablishmentId: @json($defaultEstablishmentId ?? 0),
             locale: @json(app()->getLocale()),
             enabled: @json($invoiceServiceFeesEnabled ?? true),
+            i18n: {
+                onLine: @json(__('sales::lang.service_fee_on_line')),
+                lineN: @json(__('sales::lang.service_fee_line_n')),
+                plusVat: @json(__('sales::lang.service_fee_plus_vat')),
+            },
         };
 
       $("#addSalesRow").on("click", function() {
@@ -393,7 +454,12 @@
             <input type="hidden" class="sub-taxes" name="products[${salesRowIndex}][sub_taxes]">
             <input type="hidden" class="minimum-limits" name="products[${salesRowIndex}][minimum_limits]">
         </td>                       <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
-            <td><input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;"></td>
+            <td>
+                <input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;">
+                <div class="sales-line-item-fee d-none" data-line-fee>
+                    <span data-line-fee-text></span>
+                </div>
+            </td>
             <td>
                 <button type="button" class="btn btn-icon btn-danger delete-sales-row">
                     <i class="ki-outline ki-trash fs-2"></i>
@@ -412,7 +478,8 @@
             data: function(params) {
                 return {
                     search: params.term,
-                    page: params.page || 1
+                    page: params.page || 1,
+                    establishment_id: $("#storehouse").val() || 0
                 };
             },
             processResults: function(response, params) {
@@ -425,6 +492,7 @@
                 : `${product.SKU} - ${product.name_en}`,
                  price: product.price,
                         cost: product.cost,
+                        inventory_cost: product.inventory_cost != null ? product.inventory_cost : product.cost,
                         units: product.unit_transfers,
                         inventory_qty:product.inventory_qty,
                         has_modifiers: !!product.has_modifiers,
@@ -446,6 +514,9 @@
             ? resolveInvoiceProductUnitPrice(selectedData)
             : (selectedData.price || 0)
     );
+    if (selectedData.inventory_cost !== undefined || selectedData.cost !== undefined) {
+        $row.data('inventory-cost', selectedData.inventory_cost != null ? selectedData.inventory_cost : selectedData.cost);
+    }
     if (typeof window.reapplyInternalConsumptionPricing === 'function' && typeof isInternalConsumptionInvoiceMode === 'function' && isInternalConsumptionInvoiceMode()) {
         window.reapplyInternalConsumptionPricing();
     }
@@ -546,54 +617,6 @@ if( selectedData.units.length > 0){
     row.find('.minimum-limits').val(typeof minimumLimits === 'string' ? minimumLimits : JSON.stringify(minimumLimits));
     updateSalesTotals();
 });
-        $(document).on('click', '.dropdown-item', function(e) {
-            e.preventDefault();
-            let action = $(this).data('action');
-            let isValid = true;
-            let requiredFields = $('#sell_save').find('[required]');
-            console.log(requiredFields);
-
-            requiredFields.each(function() {
-                if (!$(this).val()) {
-                    isValid = false;
-                    $(this).addClass('is-invalid');
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
-            });
-            if (!isValid) {
-                const message = "@lang('messages.required_fields_warning')";
-                toastr.warning(message);
-               return;
-            }
-            if (action === 'save_add') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save_add'
-                }).appendTo('#sell_save');
-            } else if (action === 'save_print') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save_print'
-                }).appendTo('#sell_save');
-            } else if (action === 'save') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save'
-                }).appendTo('#sell_save');
-            }
-            $('<input>').attr({
-                type: 'hidden',
-                name: 'status',
-                value: 'approved'
-            }).appendTo('#sell_save');
-            $('#sell_save').submit();
-        });
-
-
         $(document).ready(function() {
     if (window.InvoiceServiceFees) {
         window.InvoiceServiceFees.bind();

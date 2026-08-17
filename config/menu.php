@@ -446,6 +446,21 @@ return [
                 'url' => 'establishment',
                 'permission' => 'establishments.establishments.show',
             ],
+            [
+                'name' => 'cashier_payment_methods',
+                'url' => 'settings/cashier-payment-methods',
+                'permission' => 'establishments.establishment.update',
+            ],
+            [
+                'name' => 'internal_consumption_types',
+                'url' => 'settings/internal-consumption-types',
+                'permission' => 'establishments.establishment.update',
+            ],
+            [
+                'name' => 'cashier_service_fees',
+                'url' => 'settings/service-fees',
+                'permission' => 'establishments.establishment.update',
+            ],
             /*      [
                 'name' => 'devices',
                 'url' => 'devices',
