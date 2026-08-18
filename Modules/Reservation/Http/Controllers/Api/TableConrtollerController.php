@@ -10,6 +10,7 @@ use Modules\Reservation\Models\Reservation;
 use Modules\Reservation\Models\Table;
 use Modules\Reservation\Models\TableOrders;
 use Modules\Reservation\Services\RealtimeBroadcastService;
+use Modules\Reservation\Support\OrderLineParent;
 use Modules\Reservation\Transformers\TableResource;
 
 class TableConrtollerController extends Controller
@@ -97,7 +98,7 @@ class TableConrtollerController extends Controller
         if ($order && $order->sell_lines) {
             $allLines = $order->sell_lines;
             $parentItems = $allLines->filter(function ($line) {
-                return empty($line->parent_id) || $line->parent_id == 0;
+                return OrderLineParent::isRoot($line);
             });
 
             $items = $parentItems->map(function ($mainItem) use ($allLines) {

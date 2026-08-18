@@ -28,6 +28,7 @@ use Modules\Reservation\Services\RealtimeBroadcastService;
 use Modules\Reservation\Support\EstablishmentOrderPayload;
 use Modules\Reservation\Support\KitchenItemStatusGrouper;
 use Modules\Reservation\Support\KitchenOrderPayload;
+use Modules\Reservation\Support\OrderLineParent;
 
 class OrderController extends Controller
 {
@@ -172,9 +173,10 @@ class OrderController extends Controller
                 $this->kitchen->orderCreated($transaction, 'local');
                 $this->posOrders->orderUpdated($transaction);
             } elseif ($this->isTerminalOrderStatus($transaction->order_status)) {
+                $notifyWaiterId = $this->tableAssignedWaiterId($table->id);
                 $this->finalizeTableOrderIfTerminal($transaction);
                 $table->refresh();
-                $this->realtime->orderFinished($transaction);
+                $this->realtime->orderFinished($transaction, $notifyWaiterId);
             } elseif ($isNewRequestPaid) {
                 $this->realtime->tableUpdated($table);
                 $this->realtime->orderUpdated($table->id);
@@ -220,6 +222,7 @@ class OrderController extends Controller
 
             // تصفير الطاولة
             $table = Table::find($order->table_id);
+            $notifyWaiterId = $this->tableAssignedWaiterId($table?->id);
             if ($table) {
                 $table->update(['table_status' => 0, 'assigned_waiter_id' => null]);
             }
@@ -233,7 +236,7 @@ class OrderController extends Controller
 
             if ($table) {
                 $table->refresh();
-                $this->realtime->orderFinished($order);
+                $this->realtime->orderFinished($order, $notifyWaiterId);
             }
             if ($establishmentId = KitchenOrderPayload::establishmentIdFromOrder($order)) {
                 $this->kitchen->orderRemoved($order->id, $establishmentId, 'cancelled', $order);
@@ -351,7 +354,7 @@ class OrderController extends Controller
                 ->first();
 
             $allLines = $order->sell_lines;
-            $parentItems = $allLines->where('parent_id', null);
+            $parentItems = $allLines->filter(fn ($line) => OrderLineParent::isRoot($line));
 
             $service = TypesOfService::find($order->order_type);
 
@@ -429,6 +432,8 @@ class OrderController extends Controller
             return response()->json(['message' => 'status or order_status is required'], 422);
         }
 
+        $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
+
         $order->update([
             'order_status' => $newStatus,
         ]);
@@ -437,13 +442,13 @@ class OrderController extends Controller
         $this->finalizeTableOrderIfTerminal($order);
 
         if ($this->isTerminalOrderStatus($order->order_status)) {
-            $this->realtime->orderFinished($order);
+            $this->realtime->orderFinished($order, $notifyWaiterId);
             $this->kitchen->orderUpdated($order, 'local');
             $this->posOrders->orderClosed($order);
         } else {
             $this->posOrders->orderUpdated($order);
-            $this->realtime->orderStatusChanged($order);
-            $this->realtime->orderUpdated($order->table_id);
+            $this->realtime->orderStatusChanged($order, $notifyWaiterId);
+            $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
             $order->load(['sell_lines.product']);
             $this->kitchen->orderUpdated($order, 'local');
         }
@@ -456,6 +461,17 @@ class OrderController extends Controller
     private function isTerminalOrderStatus(?string $status): bool
     {
         return in_array($status, ['served', 'canceled', 'completed'], true);
+    }
+
+    private function tableAssignedWaiterId(int|string|null $tableId): ?int
+    {
+        if (! $tableId) {
+            return null;
+        }
+
+        $waiterId = Table::whereKey($tableId)->value('assigned_waiter_id');
+
+        return $waiterId ? (int) $waiterId : null;
     }
 
     private function isReopenableOrderStatus(?string $status): bool
@@ -684,10 +700,11 @@ class OrderController extends Controller
             $this->kitchen->itemStatusChanged($order, (int) $item->id, 'prepared', $orderType);
 
             if ($orderType === 'local' && $order->table_id) {
+                $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
                 if ($allOrderPrepared) {
-                    $this->realtime->orderStatusChanged($order);
+                    $this->realtime->orderStatusChanged($order, $notifyWaiterId);
                 }
-                $this->realtime->orderUpdated($order->table_id);
+                $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
             }
         }
 
@@ -761,8 +778,9 @@ class OrderController extends Controller
         $this->kitchen->orderUpdated($order, $kitchenSource);
 
         if ($orderType === 'local' && $order instanceof TableOrders && $order->table_id) {
-            $this->realtime->orderStatusChanged($order);
-            $this->realtime->orderUpdated($order->table_id);
+            $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
+            $this->realtime->orderStatusChanged($order, $notifyWaiterId);
+            $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
             $this->posOrders->orderUpdated($order);
         }
 

@@ -296,7 +296,7 @@ class KitchenOrderPayload
      */
     public static function formatTableOrderItems(Collection $allLines, array $categoryIds = []): array
     {
-        $parentItems = $allLines->filter(fn ($line) => $line->parent_id === null || $line->parent_id === '');
+        $parentItems = $allLines->filter(fn ($line) => OrderLineParent::isRoot($line));
 
         return $parentItems
             ->map(function ($mainItem) use ($allLines, $categoryIds) {

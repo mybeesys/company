@@ -35,27 +35,6 @@
             padding-left: 2px;
         }
 
-        .sales-line-item-fee {
-            display: inline-flex;
-            align-items: center;
-            margin-top: 6px;
-            padding: 3px 8px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #1b84ff;
-            background: #f1f6ff;
-            border: 1px solid #dbe8ff;
-            border-radius: 6px;
-            line-height: 1.2;
-            white-space: nowrap;
-            max-width: 100%;
-        }
-
-        .invoice-service-fee-lines {
-            border-top: 1px dashed var(--bs-gray-300);
-            padding-top: 6px;
-            margin-top: 6px;
-        }
 
         #discount_type+.select2-container {
             width: max-content !important;
@@ -363,6 +342,7 @@
     <script src="{{ url('/modules/Sales/js/internal-consumption-invoice.js') }}?v={{ @filemtime(public_path('modules/Sales/js/internal-consumption-invoice.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-service-fees.js') }}?v={{ @filemtime(public_path('modules/Sales/js/invoice-service-fees.js')) ?: time() }}"></script>
+    <script src="{{ url('/modules/Sales/js/payment-method-fees.js') }}?v={{ @filemtime(public_path('modules/Sales/js/payment-method-fees.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/sell-modifiers-combos.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/sell-invoice-submit.js') }}?v={{ @filemtime(public_path('modules/Sales/js/sell-invoice-submit.js')) ?: time() }}"></script>
 
@@ -380,6 +360,12 @@
                 lineN: @json(__('sales::lang.service_fee_line_n')),
                 plusVat: @json(__('sales::lang.service_fee_plus_vat')),
             },
+        };
+
+        // رسوم طرق الدفع — تجريبي
+        window.paymentMethodFeesConfig = {
+            methods: @json($paymentMethodFees ?? []),
+            locale: @json(app()->getLocale()),
         };
 
       $("#addSalesRow").on("click", function() {
@@ -456,9 +442,6 @@
         </td>                       <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
             <td>
                 <input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;">
-                <div class="sales-line-item-fee d-none" data-line-fee>
-                    <span data-line-fee-text></span>
-                </div>
             </td>
             <td>
                 <button type="button" class="btn btn-icon btn-danger delete-sales-row">
@@ -509,11 +492,13 @@
     const selectedData = e.params.data;
     const $row = $(this).closest('tr');
 
-    $row.find('.unit_price-field').val(
-        typeof resolveInvoiceProductUnitPrice === 'function'
-            ? resolveInvoiceProductUnitPrice(selectedData)
-            : (selectedData.price || 0)
-    );
+    const catalogPrice = typeof resolveInvoiceProductUnitPrice === 'function'
+        ? resolveInvoiceProductUnitPrice(selectedData)
+        : (selectedData.price || 0);
+    $row.find('.unit_price-field').val(catalogPrice);
+    if (window.PaymentMethodFees && typeof window.PaymentMethodFees.captureCatalogPrice === 'function') {
+        window.PaymentMethodFees.captureCatalogPrice($row, catalogPrice);
+    }
     if (selectedData.inventory_cost !== undefined || selectedData.cost !== undefined) {
         $row.data('inventory-cost', selectedData.inventory_cost != null ? selectedData.inventory_cost : selectedData.cost);
     }
@@ -962,7 +947,12 @@ $.ajax({
 
                 if (!productFound) {
                     resetRowIndexes();
-                    currentRow.find('.unit_price-field').val(price.toFixed(2));
+                    if (productPrice > 0) {
+                        currentRow.find('.unit_price-field').val(price.toFixed(2));
+                        if (window.PaymentMethodFees && typeof window.PaymentMethodFees.captureCatalogPrice === 'function') {
+                            window.PaymentMethodFees.captureCatalogPrice(currentRow, price);
+                        }
+                    }
                     currentRow.find('.qty-field').val(1);
 
                     updateSalesTotals();

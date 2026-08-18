@@ -284,6 +284,31 @@
                 <p class="fs-5 ">@lang('sales::lang.total_before_vat'): {{ $transaction->total_before_tax }}</p>
                 <p class="fs-5 ">@lang('sales::lang.invoice_discount'): (-) {{ $transaction->discount_amount ?? ' 0.00 ' }}</p>
                 <p class="fs-5 ">@lang('sales::lang.totalAfterDiscount'): {{ $transaction->totalAfterDiscount }}</p>
+                @if ((float) ($transaction->service_fee_amount ?? 0) > 0)
+                    @php
+                        $feePayload = is_array($transaction->service_fees_payload)
+                            ? $transaction->service_fees_payload
+                            : (is_string($transaction->getRawOriginal('service_fees_payload'))
+                                ? json_decode($transaction->getRawOriginal('service_fees_payload'), true)
+                                : []);
+                        $feePayload = is_array($feePayload) ? $feePayload : [];
+                        $locale = app()->getLocale();
+                    @endphp
+                    @if (count($feePayload) > 1)
+                        <p class="fs-5 fw-bold mb-1">@lang('sales::lang.service_fees'):</p>
+                        @foreach ($feePayload as $feeLine)
+                            @php
+                                $feeName = $locale === 'ar'
+                                    ? ($feeLine['name_ar'] ?? $feeLine['name_en'] ?? __('sales::lang.service_fees'))
+                                    : ($feeLine['name_en'] ?? $feeLine['name_ar'] ?? __('sales::lang.service_fees'));
+                                $feeTotal = (float) ($feeLine['fee_amount'] ?? 0) + (float) ($feeLine['tax_amount'] ?? 0);
+                            @endphp
+                            <p class="fs-6 ms-3 mb-0">{{ $feeName }}: (+) {{ number_format($feeTotal, 2) }}</p>
+                        @endforeach
+                    @else
+                        <p class="fs-5">@lang('sales::lang.service_fees'): (+) {{ number_format((float) $transaction->service_fee_amount + (float) ($transaction->service_fee_tax ?? 0), 2) }}</p>
+                    @endif
+                @endif
                 <p class="fs-5 ">@lang('sales::lang.vat_value'): (+) {{ $transaction->tax_amount }}</p>
                 <p class="fs-5 ">@lang('sales::lang.total_with_tax'): {{ $transaction->final_total }}</p>
 

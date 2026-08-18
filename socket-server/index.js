@@ -233,10 +233,11 @@ function wrapLegacyTableUpdated(data) {
   };
 }
 
-function resolveRooms(tenantId, establishmentId, tableId) {
+function resolveRooms(tenantId, establishmentId, tableId, waiterId) {
   const rooms = [`tenant:${tenantId}`];
   if (establishmentId) rooms.push(`establishment:${establishmentId}`);
   if (tableId) rooms.push(`table:${tableId}`);
+  if (waiterId) rooms.push(`waiter:${waiterId}`);
   return rooms;
 }
 
@@ -467,6 +468,9 @@ app.post("/broadcast", (req, res) => {
   const payload = body.payload ?? body.data ?? {};
   const establishmentId = body.establishment_id ?? payload.establishment_id;
   const tableId = body.table_id ?? payload.table_id ?? payload.data?.id;
+  const waiterId = Number(
+    body.assigned_waiter_id ?? body.waiter_id ?? payload.assigned_waiter_id ?? 0
+  ) || null;
 
   if (!tenantId || !eventName) {
     return res.status(422).json({ message: "tenant_id and event are required" });
@@ -537,7 +541,8 @@ app.post("/broadcast", (req, res) => {
     return res.json({ ok: true, rooms, kitchen: true });
   }
 
-  const rooms = resolveRooms(tenantId, establishmentId, tableId);
+  // Waiter / table events — never kitchen category-filter these.
+  const rooms = resolveRooms(tenantId, establishmentId, tableId, waiterId);
 
   // Legacy React event
   if (eventName === "TableUpdated" || eventName === "table-reserved") {

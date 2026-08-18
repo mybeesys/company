@@ -39,16 +39,25 @@ class CashierCatalogSettingsController extends Controller
     public function updatePaymentMethods(Request $request)
     {
         $request->validate([
-            'cashier_payment_rows' => ['nullable', 'array'],
-            'cashier_payment_rows.*.id' => ['nullable', 'integer'],
-            'cashier_payment_rows.*.name_ar' => ['nullable', 'string', 'max:255'],
-            'cashier_payment_rows.*.name_en' => ['nullable', 'string', 'max:255'],
-            'cashier_payment_rows.*.account_id' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
-            'cashier_payment_rows.*.payment_method_key' => ['nullable', 'string', 'max:100'],
-            'cashier_payment_rows.*.establishment_ids' => ['nullable', 'array'],
-            'cashier_payment_rows.*.establishment_ids.*' => ['integer', 'exists:est_establishments,id'],
-            'cashier_payment_rows.*.branch_accounts' => ['nullable', 'array'],
-            'cashier_payment_rows.*.branch_accounts.*' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
+            'cashier_payment_rows'                           => ['nullable', 'array'],
+            'cashier_payment_rows.*.id'                      => ['nullable', 'integer'],
+            'cashier_payment_rows.*.name_ar'                 => ['nullable', 'string', 'max:255'],
+            'cashier_payment_rows.*.name_en'                 => ['nullable', 'string', 'max:255'],
+            'cashier_payment_rows.*.account_id'              => ['nullable', 'integer', 'exists:accounting_accounts,id'],
+            'cashier_payment_rows.*.payment_method_key'      => ['nullable', 'string', 'max:100'],
+            'cashier_payment_rows.*.establishment_ids'       => ['nullable', 'array'],
+            'cashier_payment_rows.*.establishment_ids.*'     => ['integer', 'exists:est_establishments,id'],
+            'cashier_payment_rows.*.branch_accounts'         => ['nullable', 'array'],
+            'cashier_payment_rows.*.branch_accounts.*'       => ['nullable', 'integer', 'exists:accounting_accounts,id'],
+            // رسوم طريقة الدفع
+            'cashier_payment_rows.*.fees'                    => ['nullable', 'array'],
+            'cashier_payment_rows.*.fees.*.id'               => ['nullable', 'integer'],
+            'cashier_payment_rows.*.fees.*.name_ar'          => ['nullable', 'string', 'max:255'],
+            'cashier_payment_rows.*.fees.*.name_en'          => ['nullable', 'string', 'max:255'],
+            'cashier_payment_rows.*.fees.*.fee_type'         => ['nullable', 'in:0,1'],
+            'cashier_payment_rows.*.fees.*.application_type' => ['nullable', 'in:0,1'],
+            'cashier_payment_rows.*.fees.*.amount'           => ['nullable', 'numeric', 'min:0'],
+            'cashier_payment_rows.*.fees.*.is_active'        => ['nullable', 'boolean'],
         ]);
 
         $this->assertBranchAccounts($request->input('cashier_payment_rows', []));

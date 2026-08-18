@@ -1,4 +1,12 @@
 function updateSalesTotals() {
+    if (window.PaymentMethodFees && typeof window.PaymentMethodFees.applyItemFeesToLines === "function") {
+        try {
+            window.PaymentMethodFees.applyItemFeesToLines();
+        } catch (e) {
+            /* never block invoice totals */
+        }
+    }
+
     let totalBeforeVat = 0;
     let totalVat = 0;
     let totalAfterVat = 0;
@@ -224,6 +232,28 @@ function updateSalesTotals() {
         }
     }
 
+    let paymentMethodFeeAmount = 0;
+    let paymentMethodFeeTax = 0;
+    let paymentMethodFeeDisplay = 0;
+    if (window.PaymentMethodFees && typeof window.PaymentMethodFees.applyToTotals === "function") {
+        try {
+            const paymentMethodFees = window.PaymentMethodFees.applyToTotals({
+                subtotalAfterDiscount: totalAfterDiscount,
+                productVat: adjustedVat,
+                productTotal: finalTotalAfterVat,
+            }) || {};
+            paymentMethodFeeAmount = paymentMethodFees.feeAmount || 0;
+            paymentMethodFeeTax = paymentMethodFees.feeTax || 0;
+            paymentMethodFeeDisplay = paymentMethodFees.displayAmount || paymentMethodFeeAmount;
+            adjustedVat += paymentMethodFeeTax;
+            finalTotalAfterVat += paymentMethodFeeAmount + paymentMethodFeeTax;
+        } catch (e) {
+            paymentMethodFeeAmount = 0;
+            paymentMethodFeeTax = 0;
+            paymentMethodFeeDisplay = 0;
+        }
+    }
+
     $("#totalBeforeVat").text(totalBeforeVat.toFixed(2));
     $("#input-totalBeforeVat").val(totalBeforeVat.toFixed(2));
     $("#_invoiced_discount").text(totalDiscountAmount.toFixed(2));
@@ -234,6 +264,12 @@ function updateSalesTotals() {
     $("#input-totalVat").val(adjustedVat.toFixed(2));
     $("#totalAfterVat").text(finalTotalAfterVat.toFixed(2));
     $("#input-totalAfterVat").val(finalTotalAfterVat.toFixed(2));
+
+    if ($("#pmf-total-display").length) {
+        $("#pmf-total-display").text(paymentMethodFeeDisplay.toFixed(2));
+        $("#pmf-amount-input").val(paymentMethodFeeDisplay.toFixed(2));
+        $("#pmf-summary-card").toggleClass("d-none", paymentMethodFeeDisplay <= 0);
+    }
 
     if ($("#invoice_type").val() === "due") {
         $("#paid_amount").val(0);

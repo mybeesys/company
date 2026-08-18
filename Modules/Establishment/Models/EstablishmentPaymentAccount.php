@@ -5,6 +5,7 @@ namespace Modules\Establishment\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Establishment\Models\Concerns\HasEstablishmentAssignments;
 
@@ -102,5 +103,10 @@ class EstablishmentPaymentAccount extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(AccountingAccount::class, 'account_id');
+    }
+
+    public function fees(): HasMany
+    {
+        return $this->hasMany(PaymentMethodFee::class, 'payment_method_id')->orderBy('sort_order')->orderBy('id');
     }
 }

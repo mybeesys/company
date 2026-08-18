@@ -67,6 +67,30 @@
         </div>
     </div>
 
+    @if (!empty($paymentMethodFees ?? []))
+        <div class="col-4">
+            <div class="fv-row">
+                <label class="fs-6 fw-semibold mb-2">طريقة الدفع للتجريب</label>
+                <select class="form-select select-2 form-select-solid" id="payment_method_fee_demo_method"
+                    name="payment_method_fee_demo_method">
+                    <option value="">اختر طريقة الدفع لتجربة الرسوم</option>
+                    @foreach ($paymentMethodFees as $method)
+                        <option value="{{ $method['id'] }}">
+                            @if (app()->getLocale() == 'ar')
+                                {{ $method['name_ar'] ?: $method['name_en'] }}
+                            @else
+                                {{ $method['name_en'] ?: $method['name_ar'] }}
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+                <div class="form-text text-muted">
+                    هذا الحقل للتجريب فقط داخل صفحة إنشاء الفاتورة، ويحسب رسوم طريقة الدفع مباشرة من الإعدادات.
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="col-4 pay-paid_amount">
         <div class="d-flex flex-column " @if (app()->getLocale() == 'ar') dir="rtl" @endif>
             <label class="fs-6 fw-semibold mb-2">@lang('sales::lang.paid_amount')</label>
