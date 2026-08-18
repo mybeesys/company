@@ -117,6 +117,10 @@ function initCashierPaymentMethods() {
 
     function reindexRows() {
         $(rowsContainer).find('[data-cashier-row]').each(function (index) {
+            // تحديث data-index في تاب الرسوم والأزرار
+            $(this).find('[data-fees-pane]').attr('data-index', index);
+            $(this).find('.pmf-add-fee-btn').attr('data-index', index);
+
             $(this).find('input, select').each(function () {
                 const name = $(this).attr('name');
                 if (!name) {
@@ -151,6 +155,83 @@ function initCashierPaymentMethods() {
         }
         syncBranchAccountRows($newRow.find('[data-branch-assignment]'));
     });
+
+    // ── رسوم طريقة الدفع ──────────────────────────────────────────────────
+    const feeRowTemplate = document.getElementById('cashier_payment_fee_row_template');
+
+    function feeRowCount($methodRow) {
+        return $methodRow.find('[data-fees-pane] .pmf-fee-row').length;
+    }
+
+    function updateFeesTabBadge($methodRow) {
+        const count = feeRowCount($methodRow);
+        $methodRow.find('.pmf-fees-tab-count').text(count);
+    }
+
+    function updateFeeUnitLabel($feeRow) {
+        const feeType = $feeRow.find('.pmf-fee-type-select').val();
+        const currency = window.appCurrencySymbol || '';
+        $feeRow.find('.pmf-unit-label').text(feeType === '1' ? '%' : currency);
+    }
+
+    function reindexFeeRows($methodRow) {
+        const methodIndex = $methodRow.find('[data-fees-pane]').data('index');
+        $methodRow.find('[data-fees-pane] .pmf-fee-row').each(function (feeIdx) {
+            $(this).find('input, select').each(function () {
+                const name = $(this).attr('name');
+                if (!name) return;
+                $(this).attr(
+                    'name',
+                    name.replace(
+                        /cashier_payment_rows\[\d+]\[fees]\[\d+]/g,
+                        'cashier_payment_rows[' + methodIndex + '][fees][' + feeIdx + ']'
+                    )
+                );
+            });
+        });
+    }
+
+    function updateEmptyHint($methodRow) {
+        const $pane = $methodRow.find('[data-fees-pane]');
+        const hasFees = $pane.find('.pmf-fee-row').length > 0;
+        $pane.find('.pmf-empty-hint').toggleClass('d-none', hasFees);
+    }
+
+    $(rowsContainer).on('click', '.pmf-add-fee-btn', function () {
+        if (!feeRowTemplate) return;
+        const methodIndex = $(this).data('index');
+        const $methodRow  = $(this).closest('[data-cashier-row]');
+        const feeIndex    = feeRowCount($methodRow);
+        const html = feeRowTemplate.innerHTML
+            .replaceAll('__METHOD_INDEX__', String(methodIndex))
+            .replaceAll('__FEE_INDEX__',    String(feeIndex));
+        const $list = $methodRow.find('.pmf-fees-list');
+        $list.append(html);
+        reindexFeeRows($methodRow);
+        updateFeesTabBadge($methodRow);
+        updateEmptyHint($methodRow);
+    });
+
+    $(rowsContainer).on('click', '.pmf-remove-fee-btn', function () {
+        const $methodRow = $(this).closest('[data-cashier-row]');
+        $(this).closest('.pmf-fee-row').remove();
+        reindexFeeRows($methodRow);
+        updateFeesTabBadge($methodRow);
+        updateEmptyHint($methodRow);
+    });
+
+    $(rowsContainer).on('change', '.pmf-fee-type-select', function () {
+        updateFeeUnitLabel($(this).closest('.pmf-fee-row'));
+    });
+
+    // تهيئة أولية
+    $(rowsContainer).find('[data-cashier-row]').each(function () {
+        updateEmptyHint($(this));
+        $(this).find('.pmf-fee-row').each(function () {
+            updateFeeUnitLabel($(this));
+        });
+    });
+    // ────────────────────────────────────────────────────────────────────
 
     $(rowsContainer).on('click', '.cashier-remove-row', function () {
         const $rows = $(rowsContainer).children('[data-cashier-row]');

@@ -50,9 +50,18 @@
 <template id="cashier_payment_row_template">
     @include('establishment::components.establishments.partials.cashier-payment-row', [
         'index' => '__INDEX__',
-        'row' => ['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'establishment_ids' => [], 'branch_accounts' => []],
+        'row' => ['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'establishment_ids' => [], 'branch_accounts' => [], 'fees' => []],
         'accounts' => $accounts,
         'locale' => $locale,
         'branchOptions' => $branchOptions,
+    ])
+</template>
+
+<template id="cashier_payment_fee_row_template">
+    @include('establishment::components.establishments.partials.payment-method-fee-row', [
+        'methodIndex' => '__METHOD_INDEX__',
+        'feeIndex'    => '__FEE_INDEX__',
+        'fee'         => ['id' => null, 'name_ar' => '', 'name_en' => '', 'fee_type' => '0', 'amount' => '', 'application_type' => '1', 'is_active' => true],
+        'locale'      => $locale,
     ])
 </template>

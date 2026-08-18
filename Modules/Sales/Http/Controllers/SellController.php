@@ -680,6 +680,16 @@ class SellController extends Controller
         } catch (\Throwable $e) {
             $invoiceServiceFees = [];
         }
+
+        // رسوم طرق الدفع للتجريب في صفحة إنشاء الفاتورة
+        try {
+            $paymentMethodFees = \Modules\Establishment\Services\EstablishmentPaymentAccountResolver::catalogRows();
+            // نُبقي فقط الطرق التي لديها رسوم نشطة
+            $paymentMethodFees = array_filter($paymentMethodFees, fn (array $m) => ! empty($m['fees']));
+            $paymentMethodFees = array_values($paymentMethodFees);
+        } catch (\Throwable $e) {
+            $paymentMethodFees = [];
+        }
         $defaultEstablishmentId = (int) (Establishment::notMain()->active()->value('id') ?? 0);
         $invoiceServiceFeesSetting = Setting::where('key', 'toggleServiceFees')->value('value');
         $invoiceServiceFeesEnabled = $invoiceServiceFeesSetting === null
@@ -708,7 +718,8 @@ class SellController extends Controller
             'sellWithModifiersCombos',
             'invoiceServiceFees',
             'defaultEstablishmentId',
-            'invoiceServiceFeesEnabled'
+            'invoiceServiceFeesEnabled',
+            'paymentMethodFees'
         ));
     }
 

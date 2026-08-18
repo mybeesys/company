@@ -60,7 +60,7 @@ class TableRealtimePayload
         $items = [];
         if ($order && $order->sell_lines) {
             $allLines = $order->sell_lines;
-            $parentItems = $allLines->filter(fn ($line) => empty($line->parent_id) || $line->parent_id == 0);
+            $parentItems = $allLines->filter(fn ($line) => OrderLineParent::isRoot($line));
 
             $items = $parentItems->map(function ($mainItem) use ($allLines) {
                 $subItems = $allLines->where('parent_id', $mainItem->id);

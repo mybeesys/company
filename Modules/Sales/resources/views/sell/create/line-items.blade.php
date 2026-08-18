@@ -238,9 +238,6 @@
                                             class="form-control total_after_vat-field"
                                             name="products[{{ $index }}][total_after_vat]" placeholder="0.00"
                                             style="width: 107px;">
-                                        <div class="sales-line-item-fee d-none" data-line-fee>
-                                            <span data-line-fee-text></span>
-                                        </div>
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-icon btn-danger delete-sales-row">
@@ -353,6 +350,16 @@
 
                     </div>
 
+
+                    {{-- رسوم طريقة الدفع — تجريبي --}}
+                    <div class="border border-warning border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3 d-none" id="pmf-summary-card">
+                        <div class="d-flex align-items-center">
+                            <div class="fs-2 fw-bold counted" id="pmf-total-display">0.00</div>
+                            <span class="fw-semibold mx-2 text-muted fs-7">@get_format_currency()</span>
+                        </div>
+                        <div class="fw-semibold fs-4 text-gray-900" id="pmf-label">@lang('establishment::fields.payment_method_fees')</div>
+                        <input type="hidden" name="payment_method_fee_amount" id="pmf-amount-input" value="0">
+                    </div>
 
                     <div class="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3 d-none" id="service-fee-summary-card">
 

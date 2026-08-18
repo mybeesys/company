@@ -1,7 +1,10 @@
 @php
     $showAssignment = isset($branchOptions);
     $detailsTabId = 'cashier-pay-details-'.$index;
-    $assignTabId = 'cashier-pay-assign-'.$index;
+    $assignTabId  = 'cashier-pay-assign-'.$index;
+    $feesTabId    = 'cashier-pay-fees-'.$index;
+    $feesCount    = count($row['fees'] ?? []);
+    $locale       = $locale ?? app()->getLocale();
 @endphp
 <div class="border border-gray-300 rounded p-4 cashier-payment-row bg-body" data-cashier-row data-catalog-item>
     @if (! empty($row['id']))
@@ -11,11 +14,30 @@
         <input type="hidden" name="cashier_payment_rows[{{ $index }}][payment_method_key]" value="{{ $row['payment_method_key'] }}">
     @endif
     @if ($showAssignment)
-        @include('establishment::components.establishments.partials.catalog-item-tabs', [
-            'detailsTabId' => $detailsTabId,
-            'assignTabId' => $assignTabId,
-            'row' => $row,
-        ])
+        {{-- تبويبات: التفاصيل | الفروع | الرسوم --}}
+        @php $assignedCount = count(array_filter(array_map('intval', $row['establishment_ids'] ?? []))); @endphp
+        <ul class="nav nav-stretch nav-line-tabs nav-line-tabs-2x catalog-item-tabs mb-5" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link text-active-primary pb-4 active" data-bs-toggle="tab"
+                   href="#{{ $detailsTabId }}" role="tab">
+                    @lang('establishment::general.settings_details_tab')
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-active-primary pb-4 d-inline-flex align-items-center gap-2"
+                   data-bs-toggle="tab" href="#{{ $assignTabId }}" role="tab">
+                    @lang('establishment::general.assign_to_branches_tab')
+                    <span class="badge badge-light-primary fw-bold rounded-pill px-3 py-2 branch-assign-tab-count">{{ $assignedCount }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-active-primary pb-4 d-inline-flex align-items-center gap-2"
+                   data-bs-toggle="tab" href="#{{ $feesTabId }}" role="tab">
+                    @lang('establishment::fields.payment_method_fees_tab')
+                    <span class="badge badge-light-warning fw-bold rounded-pill px-3 py-2 pmf-fees-tab-count">{{ $feesCount }}</span>
+                </a>
+            </li>
+        </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="{{ $detailsTabId }}">
     @endif
@@ -51,6 +73,13 @@
                     'namePrefix' => 'cashier_payment_rows',
                     'branchOptions' => $branchOptions,
                     'accounts' => $accounts ?? [],
+                    'locale' => $locale,
+                ])
+            </div>
+            <div class="tab-pane fade" id="{{ $feesTabId }}">
+                @include('establishment::components.establishments.partials.payment-method-fees-tab', [
+                    'index' => $index,
+                    'row' => $row,
                     'locale' => $locale,
                 ])
             </div>

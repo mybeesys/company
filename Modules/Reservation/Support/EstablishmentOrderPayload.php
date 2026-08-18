@@ -36,7 +36,7 @@ class EstablishmentOrderPayload
 
         $table = $order->table_id ? Table::find($order->table_id) : null;
         $allLines = $order->sell_lines ?? collect();
-        $parentItems = $allLines->where('parent_id', null);
+        $parentItems = $allLines->filter(fn ($line) => OrderLineParent::isRoot($line));
 
         if ($parentItems->isEmpty()) {
             return null;

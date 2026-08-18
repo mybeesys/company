@@ -4,6 +4,7 @@ namespace Modules\Establishment\Services;
 
 use Illuminate\Support\Str;
 use Modules\Establishment\Models\EstablishmentPaymentAccount;
+use Modules\Establishment\Models\PaymentMethodFee;
 
 class EstablishmentPaymentAccountResolver
 {
@@ -157,12 +158,12 @@ class EstablishmentPaymentAccountResolver
     }
 
     /**
-     * @return list<array{id: int, name_ar: string, name_en: string, account_id: int|null, payment_method_key: string, establishment_ids: list<int>, branch_accounts: array<int, int|null>}>
+     * @return list<array{id: int, name_ar: string, name_en: string, account_id: int|null, payment_method_key: string, establishment_ids: list<int>, branch_accounts: array<int, int|null>, fees: list<array>}>
      */
     public static function catalogRows(): array
     {
         return EstablishmentPaymentAccount::query()
-            ->with('assignedEstablishments:id')
+            ->with(['assignedEstablishments:id', 'fees'])
             ->orderBy('id')
             ->get()
             ->map(function (EstablishmentPaymentAccount $row) {
@@ -178,14 +179,26 @@ class EstablishmentPaymentAccountResolver
                         ?? ($row->account_id ? (int) $row->account_id : null);
                 }
 
+                $fees = $row->fees->map(fn (PaymentMethodFee $fee) => [
+                    'id'               => (int) $fee->id,
+                    'name_ar'          => (string) ($fee->name_ar ?? ''),
+                    'name_en'          => (string) ($fee->name_en ?? ''),
+                    'fee_type'         => (string) $fee->fee_type,
+                    'amount'           => (float) $fee->amount,
+                    'application_type' => (string) $fee->application_type,
+                    'is_active'        => (bool) $fee->is_active,
+                    'sort_order'       => (int) $fee->sort_order,
+                ])->values()->all();
+
                 return [
-                    'id' => (int) $row->id,
-                    'name_ar' => (string) ($row->name_ar ?? ''),
-                    'name_en' => (string) ($row->name_en ?? $row->payment_method_key ?? ''),
-                    'account_id' => $row->account_id ? (int) $row->account_id : null,
-                    'payment_method_key' => (string) $row->payment_method_key,
-                    'establishment_ids' => $establishmentIds,
-                    'branch_accounts' => $branchAccounts,
+                    'id'                  => (int) $row->id,
+                    'name_ar'             => (string) ($row->name_ar ?? ''),
+                    'name_en'             => (string) ($row->name_en ?? $row->payment_method_key ?? ''),
+                    'account_id'          => $row->account_id ? (int) $row->account_id : null,
+                    'payment_method_key'  => (string) $row->payment_method_key,
+                    'establishment_ids'   => $establishmentIds,
+                    'branch_accounts'     => $branchAccounts,
+                    'fees'                => $fees,
                 ];
             })
             ->all();
@@ -231,6 +244,7 @@ class EstablishmentPaymentAccountResolver
             if ($existing) {
                 $existing->update($payload);
                 $existing->syncBranchAccounts($branchAccounts);
+                self::syncFees($existing, (array) ($row['fees'] ?? []));
                 $keptIds[] = (int) $existing->id;
 
                 continue;
@@ -238,6 +252,7 @@ class EstablishmentPaymentAccountResolver
 
             $created = EstablishmentPaymentAccount::query()->create($payload);
             $created->syncBranchAccounts($branchAccounts);
+            self::syncFees($created, (array) ($row['fees'] ?? []));
             $keptIds[] = (int) $created->id;
         }
 
@@ -246,6 +261,67 @@ class EstablishmentPaymentAccountResolver
         }
 
         EstablishmentPaymentAccount::query()->whereNotIn('id', $keptIds)->delete();
+    }
+
+    /**
+     * مزامنة رسوم طريقة دفع واحدة.
+     *
+     * @param  array<int, array<string, mixed>>  $feeRows
+     */
+    private static function syncFees(EstablishmentPaymentAccount $method, array $feeRows): void
+    {
+        $keptFeeIds = [];
+        $sortOrder = 0;
+
+        foreach ($feeRows as $feeRow) {
+            if (! is_array($feeRow)) {
+                continue;
+            }
+
+            $feeId       = self::nullableInt($feeRow['id'] ?? null);
+            $nameAr      = trim((string) ($feeRow['name_ar'] ?? ''));
+            $nameEn      = trim((string) ($feeRow['name_en'] ?? ''));
+            $feeType     = in_array((string) ($feeRow['fee_type'] ?? ''), ['0', '1'], true)
+                           ? (string) $feeRow['fee_type'] : '0';
+            $appType     = in_array((string) ($feeRow['application_type'] ?? ''), ['0', '1'], true)
+                           ? (string) $feeRow['application_type'] : '1';
+            $amount      = max(0, (float) ($feeRow['amount'] ?? 0));
+            $isActive    = filter_var($feeRow['is_active'] ?? true, FILTER_VALIDATE_BOOL);
+
+            $payload = [
+                'payment_method_id' => $method->id,
+                'name_ar'           => $nameAr,
+                'name_en'           => $nameEn,
+                'fee_type'          => $feeType,
+                'application_type'  => $appType,
+                'amount'            => $amount,
+                'is_active'         => $isActive,
+                'sort_order'        => $sortOrder++,
+            ];
+
+            if ($feeId) {
+                $existing = PaymentMethodFee::query()
+                    ->where('id', $feeId)
+                    ->where('payment_method_id', $method->id)
+                    ->first();
+
+                if ($existing) {
+                    $existing->update($payload);
+                    $keptFeeIds[] = $existing->id;
+
+                    continue;
+                }
+            }
+
+            $created = PaymentMethodFee::query()->create($payload);
+            $keptFeeIds[] = $created->id;
+        }
+
+        // احذف الرسوم المحذوفة من الواجهة
+        $method->fees()->when(
+            $keptFeeIds !== [],
+            fn ($q) => $q->whereNotIn('id', $keptFeeIds)
+        )->delete();
     }
 
     public static function defaultCatalogRows(): array
