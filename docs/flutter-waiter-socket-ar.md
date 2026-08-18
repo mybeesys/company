@@ -127,12 +127,13 @@ socket.on('tables:snapshot', (raw) {
 | `status` | `available` \| `reserved` \| `notAvailable` — أي قيمة ≠ `available` تعني غير متاحة في UI |
 | `order_status` | `inpreparation` \| `prepared` \| `served` \| null |
 | `current_order_id` | معرّف الطلب النشط |
-| `assigned_waiter_id` | للفلترة حسب النادل |
+| `assigned_waiter_id` | **للعرض فقط** (بطاقتي / نادل الطاولة). **لا تستخدمه لتجاهل الحدث** — الكاشير قد يغيّر الحالة ثم يُصفَّر الحقل |
 
 ```dart
 socket.on('table:updated', (raw) {
   final table = (raw as Map)['data'];
-  // tablesBloc.applyTablePatch(table);
+  // طبّق التعديل إذا الطاولة موجودة محلياً، أو table_id معروف.
+  // لا تسقط الحدث لأن assigned_waiter_id == null أو != employeeId.
 });
 ```
 
@@ -166,18 +167,40 @@ socket.on('table:updated', (raw) {
 
 إذا أُغلق الطلب: `"order": null`.
 
-### 4.6 `order:status_changed` (خفيف)
+### 4.6 `order:status_changed` (خفيف — **أساسي لتحديث الحالة**)
+
+يُرسل عند أي تغيير `order_status` من النادل **أو الكاشير** أو المطبخ.
 
 ```json
 {
   "table_id": 12,
   "order_id": 501,
   "status": "open",
-  "order_status": "prepared"
+  "order_status": "prepared",
+  "assigned_waiter_id": 45,
+  "establishment_id": 3
 }
 ```
 
-حدّث بطاقة الطاولة + شاشة التفاصيل إن `table_id` مطابق.
+حدّث بطاقة الطاولة + شاشة التفاصيل إن `table_id` مطابق. **لا تفلتر هذا الحدث بـ `assigned_waiter_id`.**
+
+### 4.6b `order:finished` (served / canceled / completed)
+
+نفس حقول `order:status_changed`. يُرسل **بالإضافة إليها** عند إنهاء الطلب (مثلاً من الكاشير).
+
+```dart
+void applyOrderStatus(Map payload) {
+  final tableId = payload['table_id'];
+  final orderStatus = payload['order_status'];
+  tablesBloc.patchOrderStatus(tableId, orderStatus);
+  if (openTableId == tableId) {
+    ordersBloc.patchOrderStatus(orderStatus);
+  }
+}
+
+socket.on('order:status_changed', (raw) => applyOrderStatus(raw as Map));
+socket.on('order:finished', (raw) => applyOrderStatus(raw as Map));
+```
 
 ### 4.7 `reservation:updated` (اختياري)
 
@@ -211,15 +234,15 @@ socket.on('pong', (data) { /* server_time */ });
 
 ### TablesBloc
 
-- عند `table:updated`: ابحث عن `id` في القائمة واستبدل العنصر.
+- عند `table:updated`: ابحث عن `id` في القائمة واستبدل العنصر. **لا تتجاهل** إذا `assigned_waiter_id` أصبح null (الكاشير أنهى الطلب).
 - عند `tables:snapshot`: استبدل القائمة كاملة.
-- عند `order:status_changed`: حدّث `order_status` و `current_order_id` إن وُجد.
+- عند `order:status_changed` و `order:finished`: حدّث `order_status` و `current_order_id` حسب `table_id` — **بدون فلتر نادل**.
 - احتفظ بـ `TablesRefresh` من REST عند فشل Socket أو بعد `reconnect`.
 
 ### OrdersBloc / شاشة التفاصيل
 
-- بعد `join:table` استمع لـ `order:updated` و `order:status_changed`.
-- فلتر بـ `payload['table_id'] == currentTableId`.
+- بعد `join:table` استمع لـ `order:updated` و `order:status_changed` و `order:finished`.
+- فلتر بـ `payload['table_id'] == currentTableId` **فقط** (ليس assigned_waiter_id).
 - تجاهل التكرار: خزّن آخر `event_id` في Set (حد أقصى 200).
 
 ```dart
@@ -291,7 +314,7 @@ socket.onReconnect((_) {
 |-----------------|--------------|
 | طلب جديد | `order:created`, `table:updated`, `order:updated` |
 | المطبخ: جاهز | `order:status_changed` (`prepared`), `table:updated` |
-| نادل: served | `order:status_changed` (`served`), `table:updated` |
+| نادل أو **كاشير**: served | `order:finished` + `order:status_changed` (`served`), `table:updated` |
 | إضافة أصناف | `order:updated` |
 | إغلاق طاولة | `table:updated` |
 | تغيير حجز | `table:updated` |
@@ -305,6 +328,8 @@ socket.onReconnect((_) {
 - [ ] تغيير من المطبخ يظهر خلال &lt; 2 ثانية
 - [ ] `join:table` يحدّث التفاصيل دون إعادة فتح الشاشة
 - [ ] `order_status`: `inpreparation`, `prepared`, `served`
+- [ ] تغيير حالة من **الكاشير** يظهر على النادل خلال &lt; 2 ثانية (`order:status_changed` / `order:finished`)
+- [ ] لا تتجاهل أحداث الحالة بسبب `assigned_waiter_id`
 - [ ] إعادة الاتصال + `sync:tables`
 - [ ] تجاهل `event_id` المكرر
 
