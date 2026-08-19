@@ -39,6 +39,16 @@ final class TransactionPurpose
         return self::STANDARD;
     }
 
+    public static function isRequested(mixed $purpose, mixed $typeId = null): bool
+    {
+        $purposeStr = is_string($purpose) || $purpose === null ? $purpose : (string) $purpose;
+        if (self::normalize($purposeStr) === self::INTERNAL_CONSUMPTION) {
+            return true;
+        }
+
+        return (int) $typeId > 0;
+    }
+
     public static function isInternalConsumption(object|string|null $transactionOrPurpose): bool
     {
         if (is_string($transactionOrPurpose) || $transactionOrPurpose === null) {
@@ -46,7 +56,10 @@ final class TransactionPurpose
         }
 
         $purpose = $transactionOrPurpose->purpose ?? self::STANDARD;
+        if (self::normalize(is_string($purpose) ? $purpose : null) === self::INTERNAL_CONSUMPTION) {
+            return true;
+        }
 
-        return self::normalize(is_string($purpose) ? $purpose : null) === self::INTERNAL_CONSUMPTION;
+        return (int) ($transactionOrPurpose->internal_consumption_type_id ?? 0) > 0;
     }
 }

@@ -6,6 +6,7 @@ namespace Modules\Sales\Services;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Modules\Establishment\Models\EstablishmentPaymentAccount;
 use Modules\General\Models\PaymentMethod;
 use Modules\General\Support\TransactionLineTaxRate;
 use Modules\Product\Models\ProductComboItem;
@@ -18,11 +19,17 @@ final class PosSalesInvoiceMapper
     public static function resolveInvoiceType(Request $request): string
     {
         $invoiceType = strtolower(trim((string) $request->input('invoice_type', '')));
+        if ($invoiceType === 'credit') {
+            $invoiceType = 'due';
+        }
         if (in_array($invoiceType, ['cash', 'due'], true)) {
             return $invoiceType;
         }
 
         $paymentStatus = strtolower(trim((string) $request->input('payment_status', '')));
+        if ($paymentStatus === 'credit') {
+            $paymentStatus = 'due';
+        }
         if (in_array($paymentStatus, ['cash', 'due'], true)) {
             return $paymentStatus;
         }
@@ -31,7 +38,60 @@ final class PosSalesInvoiceMapper
             return 'cash';
         }
 
+        $payments = $request->input('payments');
+        if (is_array($payments) && $payments !== []) {
+            return self::paymentsIndicateDeferred($request, $payments) ? 'due' : 'cash';
+        }
+
         return 'due';
+    }
+
+    /**
+     * @param  array<int, mixed>  $payments
+     */
+    private static function paymentsIndicateDeferred(Request $request, array $payments): bool
+    {
+        $establishmentId = (int) $request->input('establishment_id');
+        $methodIds = [];
+        foreach ($payments as $payment) {
+            $methodId = (int) (is_array($payment) ? ($payment['method_id'] ?? 0) : ($payment->method_id ?? 0));
+            if ($methodId > 0 && $methodId !== -1) {
+                $methodIds[] = $methodId;
+            }
+        }
+
+        if ($methodIds === [] || $establishmentId <= 0) {
+            return false;
+        }
+
+        $methods = EstablishmentPaymentAccount::query()
+            ->forEstablishment($establishmentId)
+            ->whereIn('id', array_values(array_unique($methodIds)))
+            ->get(['payment_method_key', 'name_en', 'name_ar']);
+
+        foreach ($methods as $method) {
+            if (self::isDeferredPaymentMethod($method)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function isDeferredPaymentMethod(EstablishmentPaymentAccount $method): bool
+    {
+        $hay = strtolower(trim(
+            (string) $method->payment_method_key.' '.
+            (string) $method->name_en.' '.
+            (string) $method->name_ar
+        ));
+
+        return str_contains($hay, 'due')
+            || str_contains($hay, 'credit')
+            || str_contains($hay, 'deferred')
+            || str_contains($hay, 'آجل')
+            || str_contains($hay, 'اجل')
+            || str_contains($hay, 'ذمم');
     }
 
     public static function resolveTaxAmount(Request $request): float
@@ -121,7 +181,7 @@ final class PosSalesInvoiceMapper
     }
 
     /**
-     * @param  array{discount_amount?: float, totalAfterDiscount?: float, tax_amount?: float, final_total?: float}  $overrides
+     * @param  array{discount_amount?: float, totalAfterDiscount?: float, tax_amount?: float, final_total?: float, total_before_tax?: float|null, purpose?: string|null, internal_consumption_type_id?: int|null, service_fee_amount?: float, service_fee_tax?: float, service_fees_payload?: list<array<string, mixed>>|null}  $overrides
      * @return array<string, mixed>
      */
     public static function mapTransactionAttributes(Request $request, array $overrides = []): array
@@ -132,12 +192,19 @@ final class PosSalesInvoiceMapper
         $totalAfterDiscount = (float) ($overrides['totalAfterDiscount'] ?? self::resolveTaxableAfterDiscount($request));
         $totalBeforeTax = (float) ($overrides['total_before_tax'] ?? self::resolveTotalBeforeTax($request));
         $discountType = trim((string) $request->input('discount_type', ''));
+        $typeId = self::nullablePositiveInt(
+            $overrides['internal_consumption_type_id'] ?? $request->input('internal_consumption_type_id')
+        );
+        $purpose = \Modules\Sales\Support\TransactionPurpose::normalize(
+            $overrides['purpose'] ?? $request->input('purpose')
+        );
+        if ($typeId) {
+            $purpose = \Modules\Sales\Support\TransactionPurpose::INTERNAL_CONSUMPTION;
+        }
 
         return [
             'type' => 'sell',
-            'purpose' => \Modules\Sales\Support\TransactionPurpose::normalize(
-                $overrides['purpose'] ?? $request->input('purpose')
-            ),
+            'purpose' => $purpose,
             'local_id' => $request->id,
             'invoice_type' => self::resolveInvoiceType($request),
             'due_date' => null,
@@ -148,6 +215,9 @@ final class PosSalesInvoiceMapper
             'total_before_tax' => $totalBeforeTax,
             'totalAfterDiscount' => $totalAfterDiscount,
             'tax_amount' => $totalTax,
+            'service_fee_amount' => (float) ($overrides['service_fee_amount'] ?? 0),
+            'service_fee_tax' => (float) ($overrides['service_fee_tax'] ?? 0),
+            'service_fees_payload' => $overrides['service_fees_payload'] ?? null,
             'final_total' => $finalTotal,
             'created_by' => $request->user_id,
             'description' => $request->note,
@@ -161,9 +231,7 @@ final class PosSalesInvoiceMapper
             'order_type' => $request->input('order_type'),
             'table_id' => $request->input('table_id'),
             'table_order_id' => $request->input('table_order_id'),
-            'internal_consumption_type_id' => self::nullablePositiveInt(
-                $overrides['internal_consumption_type_id'] ?? $request->input('internal_consumption_type_id')
-            ),
+            'internal_consumption_type_id' => $typeId,
         ];
     }
 

@@ -46,6 +46,39 @@ final class PosSalesInvoiceMapperTest extends TestCase
         $this->assertArrayNotHasKey('total_after_discount', $transaction);
     }
 
+    public function test_internal_consumption_type_id_forces_expense_purpose(): void
+    {
+        $request = Request::create('/api/stor-sales-invoice', 'POST', [
+            'purpose' => 'standard',
+            'internal_consumption_type_id' => 9,
+            'invoice_type' => 'cash',
+            'total_before_discount' => 0,
+            'total_after_discount' => 0,
+            'total_tax' => 0,
+            'total_paid' => 12.5,
+            'discount_value' => 0,
+            'created_at' => '2026-08-18 12:00',
+            'customer_id' => null,
+            'user_id' => 1,
+            'establishment_id' => 6,
+            'status' => 'final',
+            'invoice_number' => 'IC-001',
+        ]);
+
+        $transaction = PosSalesInvoiceMapper::mapTransactionAttributes($request, [
+            'final_total' => 12.5,
+            'tax_amount' => 0,
+            'discount_amount' => 0,
+            'totalAfterDiscount' => 12.5,
+            'total_before_tax' => 12.5,
+        ]);
+
+        $this->assertSame('internal_consumption', $transaction['purpose']);
+        $this->assertSame(9, $transaction['internal_consumption_type_id']);
+        $this->assertEqualsWithDelta(0.0, (float) $transaction['tax_amount'], 0.0001);
+        $this->assertEqualsWithDelta(0.0, (float) $transaction['discount_amount'], 0.0001);
+    }
+
     public function test_maps_sell_line_when_price_after_discount_is_zero(): void
     {
         $item = (object) [

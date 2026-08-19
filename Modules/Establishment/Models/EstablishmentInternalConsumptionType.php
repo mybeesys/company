@@ -61,4 +61,29 @@ class EstablishmentInternalConsumptionType extends Model
             ? (string) ($this->name_ar ?: $this->name_en)
             : (string) ($this->name_en ?: $this->name_ar);
     }
+
+    public function normalizedValueType(): string
+    {
+        $valueType = strtolower(trim((string) ($this->value_type ?: self::VALUE_TYPE_COST)));
+
+        return in_array($valueType, [self::VALUE_TYPE_COST, self::VALUE_TYPE_PERCENT, self::VALUE_TYPE_FIXED], true)
+            ? $valueType
+            : self::VALUE_TYPE_COST;
+    }
+
+    public function valueTypeLabel(string $locale): string
+    {
+        $key = 'establishment::fields.internal_consumption_value_type_'.$this->normalizedValueType();
+
+        return (string) trans($key, [], $locale);
+    }
+
+    public function calculationHint(string $locale): string
+    {
+        $valueType = $this->normalizedValueType();
+        $key = 'establishment::fields.internal_consumption_calc_'.$valueType;
+        $value = $this->value !== null ? rtrim(rtrim(number_format((float) $this->value, 4, '.', ''), '0'), '.') : '0';
+
+        return (string) trans($key, ['value' => $value], $locale);
+    }
 }

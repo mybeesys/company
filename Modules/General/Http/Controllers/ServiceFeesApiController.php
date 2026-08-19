@@ -4,15 +4,15 @@ namespace Modules\General\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\Establishment\Models\EstablishmentInternalConsumptionType;
-use Modules\General\Transformers\InternalConsumptionTypeResource;
+use Modules\Establishment\Models\EstablishmentServiceFee;
+use Modules\General\Transformers\EstablishmentServiceFeeResource;
 
-/**
- * Cashier internal consumption types for a branch.
- * Additive fields on the resource must not break existing Flutter clients.
- */
-class InternalConsumptionTypesApiController extends Controller
+class ServiceFeesApiController extends Controller
 {
+    /**
+     * Cashier service fees for a branch (est_establishment_service_fees).
+     * Distinct from legacy GET /api/serviceFees (global product catalog).
+     */
     public function index(Request $request)
     {
         $establishmentId = (int) $request->input('establishment_id');
@@ -23,14 +23,13 @@ class InternalConsumptionTypesApiController extends Controller
             ], 422);
         }
 
-        $types = EstablishmentInternalConsumptionType::query()
+        $fees = EstablishmentServiceFee::query()
             ->forEstablishment($establishmentId)
             ->where('is_active', true)
-            ->whereNotNull('account_id')
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
 
-        return InternalConsumptionTypeResource::collection($types);
+        return EstablishmentServiceFeeResource::collection($fees);
     }
 }

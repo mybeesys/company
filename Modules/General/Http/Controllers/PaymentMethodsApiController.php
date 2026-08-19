@@ -11,6 +11,7 @@ class PaymentMethodsApiController extends Controller
 {
     /**
      * Cashier payment methods for a branch (source of truth: est_establishment_payment_accounts).
+     * Each method includes its active fees. Existing fields are unchanged.
      */
     public function index(Request $request)
     {
@@ -23,7 +24,10 @@ class PaymentMethodsApiController extends Controller
 
         $methods = EstablishmentPaymentAccount::query()
             ->forEstablishment($establishmentId)
-            ->with('assignedEstablishments:id')
+            ->with([
+                'assignedEstablishments:id',
+                'activeFees',
+            ])
             ->orderBy('id')
             ->get()
             ->filter(fn (EstablishmentPaymentAccount $row) => (bool) $row->accountIdForEstablishment($establishmentId))

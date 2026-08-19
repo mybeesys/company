@@ -441,15 +441,19 @@ class AccountingUtil
                         $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
                     }
-                } elseif ($transaction->invoice_type == 'due') {
+                } elseif (in_array($transaction->invoice_type, ['due', 'credit'], true)) {
                     if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
                         throw new RuntimeException('Accounting routing missing for sell (due). Please configure sales_sales and sales_vat_calculation in Accounts Routing.');
                     }
-                    $client = Contact::find($transactionPayment->payment_for ?: $transaction->contact_id);
-                    if (! $client || ! $client->account_id) {
-                        throw new RuntimeException('Customer account is missing for sell (due). Please link an accounting account to the customer.');
+                    $collectionAccountId = (int) ($due_account_id ?: $cash_account_id);
+                    if ($collectionAccountId <= 0) {
+                        $client = Contact::find($transactionPayment->payment_for ?: $transaction->contact_id);
+                        if (! $client || ! $client->account_id) {
+                            throw new RuntimeException('Customer account is missing for sell (due). Please link an accounting account to the customer.');
+                        }
+                        $collectionAccountId = (int) $client->account_id;
                     }
-                    $transactionPayment->account_id = $client->account_id;
+                    $transactionPayment->account_id = $collectionAccountId;
                     $transactionPayment->amount = $finalTotal;
                     $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 

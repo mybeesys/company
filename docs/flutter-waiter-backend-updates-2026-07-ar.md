@@ -245,7 +245,8 @@ Content-Type: application/json
 | `table:updated`  | تغيير حالة طاولة                    |
 | `order:updated`  | تحديث طلب (بما فيه إعادة فتح مخدوم) |
 | `order:created`  | طلب جديد فعلاً على طاولة فارغة      |
-| `order:finished` | served / canceled                   |
+| `order:status_changed` | أي تغيير حالة (كاشير / نادل / مطبخ) |
+| `order:finished` | served / canceled / completed       |
 
 راجع `docs/flutter-waiter-socket-ar.md` للتفاصيل.
 

@@ -22,6 +22,8 @@ use Modules\Product\Models\ProductComboItem;
 use Modules\Reservation\Services\KitchenBroadcastService;
 use Modules\Reservation\Support\KitchenOrderPayload;
 use Modules\Sales\Services\ApplyCouponService;
+use Modules\Sales\Services\PosInternalConsumptionPricer;
+use Modules\Sales\Services\PosInvoiceServiceFeeApplier;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
@@ -29,7 +31,8 @@ use Modules\Sales\Utils\SalesUtile;
 class SellApiController extends Controller
 {
     public function __construct(
-        private readonly KitchenBroadcastService $kitchen
+        private readonly KitchenBroadcastService $kitchen,
+        private readonly PosInternalConsumptionPricer $internalConsumptionPricer,
     ) {}
     /**
      * Display a listing of the resource.
@@ -72,6 +75,44 @@ class SellApiController extends Controller
                 return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
             }
 
+            $isInternalConsumption = PosInternalConsumptionPricer::isRequested($request);
+            if ($isInternalConsumption) {
+                $typeId = (int) $request->input('internal_consumption_type_id');
+                if ($typeId <= 0) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => __('sales::lang.internal_consumption_type_required'),
+                        'code' => 'internal_consumption_type_required',
+                    ], 422);
+                }
+
+                if (PosInternalConsumptionPricer::requestHasDiscount($request)) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => __('establishment::responses.internal_consumption_discount_not_allowed'),
+                        'code' => 'internal_consumption_discount_not_allowed',
+                    ], 422);
+                }
+
+                $resolvedType = EstablishmentInternalConsumptionTypeResolver::resolveForCashier(
+                    (int) $establishment_id,
+                    $typeId
+                );
+                if (! $resolvedType['ok']) {
+                    DB::rollBack();
+
+                    return response()->json([
+                        'message' => $resolvedType['message'],
+                        'code' => $resolvedType['code'],
+                    ], $resolvedType['status']);
+                }
+
+                $this->internalConsumptionPricer->applyToRequest($request, (int) $establishment_id);
+                $request->merge(['purpose' => TransactionPurpose::INTERNAL_CONSUMPTION]);
+            }
+
             $products = json_decode(json_encode($request->items));
             $couponUsage = null;
             $couponCode = trim((string) $request->input('coupon_code', ''));
@@ -80,7 +121,13 @@ class SellApiController extends Controller
             $totalTax = (float) ($request->total_tax ?? 0);
             $finalTotal = (float) ($request->total_paid ?? 0);
 
-            if ($couponCode !== '') {
+            if ($isInternalConsumption) {
+                $discountValue = 0;
+                $totalTax = 0;
+                $totalAfterDiscount = $finalTotal;
+            }
+
+            if (! $isInternalConsumption && $couponCode !== '') {
                 $toggle = Setting::where('key', 'toggleCoupon')->value('value');
                 if (! is_null($toggle) && (int) $toggle !== 1) {
                     DB::rollBack();
@@ -123,6 +170,29 @@ class SellApiController extends Controller
                 }
             }
 
+            $serviceFeeAmount = 0.0;
+            $serviceFeeTax = 0.0;
+            $serviceFeesPayload = null;
+            if (! $isInternalConsumption) {
+                $appliedFees = PosInvoiceServiceFeeApplier::apply(
+                    $request,
+                    $products,
+                    (int) $establishment_id,
+                    $totalTax,
+                    $totalAfterDiscount,
+                    $finalTotal,
+                    (float) ($request->total_before_discount ?? $totalAfterDiscount),
+                    $discountValue
+                );
+                if ($appliedFees !== null) {
+                    $serviceFeeAmount = $appliedFees['fee_amount'];
+                    $serviceFeeTax = $appliedFees['fee_tax'];
+                    $serviceFeesPayload = $appliedFees['lines'] ?: null;
+                    $totalTax = $appliedFees['tax_amount'];
+                    $finalTotal = $appliedFees['final_total'];
+                }
+            }
+
             $transaction = Transaction::create(array_merge(
                 PosSalesInvoiceMapper::mapTransactionAttributes($request, [
                     'establishment_id' => $establishment_id,
@@ -130,6 +200,13 @@ class SellApiController extends Controller
                     'totalAfterDiscount' => $totalAfterDiscount,
                     'tax_amount' => $totalTax,
                     'final_total' => $finalTotal,
+                    'total_before_tax' => $isInternalConsumption ? $finalTotal : null,
+                    'purpose' => $isInternalConsumption
+                        ? TransactionPurpose::INTERNAL_CONSUMPTION
+                        : $request->input('purpose'),
+                    'service_fee_amount' => $serviceFeeAmount,
+                    'service_fee_tax' => $serviceFeeTax,
+                    'service_fees_payload' => $serviceFeesPayload,
                 ]),
                 ['ref_no' => $ref_no]
             ));
@@ -305,7 +382,8 @@ class SellApiController extends Controller
 
             $transaction->load(['sell_lines.product']);
             if (
-                ! KitchenOrderPayload::requestRepresentsTableSale($request)
+                ! $isInternalConsumption
+                && ! KitchenOrderPayload::requestRepresentsTableSale($request)
                 && KitchenOrderPayload::shouldBroadcastPosTransactionToKitchen($transaction)
             ) {
                 $this->kitchen->orderCreated($transaction, 'pos');

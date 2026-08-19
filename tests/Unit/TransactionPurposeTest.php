@@ -36,5 +36,10 @@ class TransactionPurposeTest extends TestCase
 
         $tx2 = (object) ['purpose' => 'standard'];
         $this->assertFalse(TransactionPurpose::isInternalConsumption($tx2));
+
+        $tx3 = (object) ['purpose' => 'standard', 'internal_consumption_type_id' => 4];
+        $this->assertTrue(TransactionPurpose::isInternalConsumption($tx3));
+        $this->assertTrue(TransactionPurpose::isRequested('standard', 4));
+        $this->assertFalse(TransactionPurpose::isRequested('standard', null));
     }
 }

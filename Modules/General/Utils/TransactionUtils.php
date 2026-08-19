@@ -127,25 +127,24 @@ class TransactionUtils
         $payment_method = 'cash';
         $account_id = null;
 
-        if ($transaction->invoice_type == 'cash') {
-            $cash_acc = $get_val('cash_account') ?: $get_val('account_id');
-            $account_id = $cash_acc;
-            $cash_account_id = $cash_acc;
-            $payment_method = 'cash';
-        } elseif ($transaction->invoice_type == 'due') {
-            $acc_id = $get_val('account_id') ?: $get_val('cash_account');
-            $account_id = $acc_id;
-            $due_account_id = $acc_id;
+        // حساب طريقة الدفع على الفرع = حساب التحصيل (نقداً أو آجل).
+        $collectionAccountId = $get_val('cash_account') ?: $get_val('account_id');
+        $invoiceType = (string) $transaction->invoice_type;
+        if (in_array($invoiceType, ['due', 'credit'], true)) {
+            $account_id = $collectionAccountId;
+            $due_account_id = $collectionAccountId;
+            $cash_account_id = $collectionAccountId;
             $payment_method = 'due';
+        } else {
+            $account_id = $collectionAccountId;
+            $cash_account_id = $collectionAccountId;
+            $payment_method = 'cash';
         }
 
         $payment_ref_no = $this->generateReferenceNumber($prefix_type);
 
         $payment_method_id = $get_val('payment_method_id');
 
-        $shift_id = $get_val('shift_id');
-        // Keep a resolved GL account on the payment row even during open shifts
-        // (journals still deferred when shift_id is present).
         $userId = auth()->user() ? auth()->user()->id : $request->created_by;
         $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
@@ -170,17 +169,15 @@ class TransactionUtils
             return true;
         }
 
-        if (! $shift_id) {
-            // Full invoice/return journals must post once; extra tenders only store payment rows.
-            $alreadyPosted = in_array($transaction->type, ['sell', 'sell-return'], true)
-                && AccountingAccountsTransaction::query()
-                    ->where('transaction_id', $transaction->id)
-                    ->where('sub_type', $transaction->type)
-                    ->exists();
+        // قيد واحد لكل فاتورة: حساب التحصيل = حساب طريقة الدفع (حتى مع shift_id).
+        $alreadyPosted = in_array($transaction->type, ['sell', 'sell-return'], true)
+            && AccountingAccountsTransaction::query()
+                ->where('transaction_id', $transaction->id)
+                ->where('sub_type', $transaction->type)
+                ->exists();
 
-            if (! $alreadyPosted) {
-                $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
-            }
+        if (! $alreadyPosted) {
+            $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
         }
 
         return true;
