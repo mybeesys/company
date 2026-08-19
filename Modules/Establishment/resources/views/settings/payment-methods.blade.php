@@ -5,6 +5,19 @@
     <div class="d-flex flex-column gap-5">
         <h1 class="fs-2hx fw-bold mb-0">@lang('establishment::general.cashier_payment_methods')</h1>
         <p class="text-muted fs-6 mb-0">@lang('establishment::general.cashier_payment_methods_page_hint')</p>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <div class="fw-bold mb-2">@lang('establishment::responses.cashier_payment_save_failed')</div>
+                <ul class="mb-0 ps-5">
+                    @foreach ($errors->all() as $message)
+                        <li>{{ $message }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
         <form method="POST" action="{{ route('cashier-settings.payment-methods.update') }}" class="form d-flex flex-column gap-5" id="cashier_payment_settings_form">
             @csrf
             @method('patch')
@@ -19,7 +32,7 @@
 
 @section('script')
     @parent
-    <script src="{{ url('modules/establishment/js/cashier-payment-methods.js') }}"></script>
+    <script src="{{ url('modules/establishment/js/cashier-payment-methods.js') }}?v=20260820"></script>
     <script src="{{ url('modules/establishment/js/branch-assignment.js') }}"></script>
     <script>
         $(document).ready(function() {

@@ -2,6 +2,8 @@
 
 namespace Modules\Establishment\Services;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Modules\Establishment\Models\EstablishmentPaymentAccount;
 use Modules\Establishment\Models\PaymentMethodFee;
@@ -162,8 +164,13 @@ class EstablishmentPaymentAccountResolver
      */
     public static function catalogRows(): array
     {
+        $with = ['assignedEstablishments:id'];
+        if (Schema::hasTable('est_payment_method_fees')) {
+            $with['fees'] = fn ($q) => $q->orderBy('sort_order')->orderBy('id');
+        }
+
         return EstablishmentPaymentAccount::query()
-            ->with(['assignedEstablishments:id', 'fees'])
+            ->with($with)
             ->orderBy('id')
             ->get()
             ->map(function (EstablishmentPaymentAccount $row) {
@@ -179,16 +186,18 @@ class EstablishmentPaymentAccountResolver
                         ?? ($row->account_id ? (int) $row->account_id : null);
                 }
 
-                $fees = $row->fees->map(fn (PaymentMethodFee $fee) => [
-                    'id'               => (int) $fee->id,
-                    'name_ar'          => (string) ($fee->name_ar ?? ''),
-                    'name_en'          => (string) ($fee->name_en ?? ''),
-                    'fee_type'         => (string) $fee->fee_type,
-                    'amount'           => (float) $fee->amount,
-                    'application_type' => (string) $fee->application_type,
-                    'is_active'        => (bool) $fee->is_active,
-                    'sort_order'       => (int) $fee->sort_order,
-                ])->values()->all();
+                $fees = $row->relationLoaded('fees')
+                    ? $row->fees->map(fn (PaymentMethodFee $fee) => [
+                        'id'               => (int) $fee->id,
+                        'name_ar'          => (string) ($fee->name_ar ?? ''),
+                        'name_en'          => (string) ($fee->name_en ?? ''),
+                        'fee_type'         => (string) $fee->fee_type,
+                        'amount'           => (float) $fee->amount,
+                        'application_type' => (string) $fee->application_type,
+                        'is_active'        => (bool) $fee->is_active,
+                        'sort_order'       => (int) $fee->sort_order,
+                    ])->values()->all()
+                    : [];
 
                 return [
                     'id'                  => (int) $row->id,
@@ -230,8 +239,11 @@ class EstablishmentPaymentAccountResolver
             $existing = $rowId
                 ? EstablishmentPaymentAccount::query()->where('id', $rowId)->first()
                 : null;
-            $key = $existing?->payment_method_key
-                ?: self::uniqueKey($nameEn, $rowId, (string) ($row['payment_method_key'] ?? ''));
+            $key = self::uniqueKey(
+                $nameEn,
+                $existing?->id,
+                (string) (($row['payment_method_key'] ?? '') ?: ($existing?->payment_method_key ?? ''))
+            );
             $firstAccountId = $branchAccounts !== [] ? (int) reset($branchAccounts) : $accountId;
             $payload = [
                 'payment_method_key' => $key,
@@ -260,7 +272,14 @@ class EstablishmentPaymentAccountResolver
             return;
         }
 
-        EstablishmentPaymentAccount::query()->whereNotIn('id', $keptIds)->delete();
+        try {
+            EstablishmentPaymentAccount::query()->whereNotIn('id', $keptIds)->delete();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Could not delete unused cashier payment methods', [
+                'error' => $e->getMessage(),
+                'kept_ids' => $keptIds,
+            ]);
+        }
     }
 
     /**
@@ -270,6 +289,10 @@ class EstablishmentPaymentAccountResolver
      */
     private static function syncFees(EstablishmentPaymentAccount $method, array $feeRows): void
     {
+        if (! Schema::hasTable('est_payment_method_fees')) {
+            return;
+        }
+
         $keptFeeIds = [];
         $sortOrder = 0;
 
@@ -278,25 +301,32 @@ class EstablishmentPaymentAccountResolver
                 continue;
             }
 
-            $feeId       = self::nullableInt($feeRow['id'] ?? null);
-            $nameAr      = trim((string) ($feeRow['name_ar'] ?? ''));
-            $nameEn      = trim((string) ($feeRow['name_en'] ?? ''));
-            $feeType     = in_array((string) ($feeRow['fee_type'] ?? ''), ['0', '1'], true)
-                           ? (string) $feeRow['fee_type'] : '0';
-            $appType     = in_array((string) ($feeRow['application_type'] ?? ''), ['0', '1'], true)
-                           ? (string) $feeRow['application_type'] : '1';
-            $amount      = max(0, (float) ($feeRow['amount'] ?? 0));
-            $isActive    = filter_var($feeRow['is_active'] ?? true, FILTER_VALIDATE_BOOL);
+            $nameAr = trim((string) ($feeRow['name_ar'] ?? ''));
+            $nameEn = trim((string) ($feeRow['name_en'] ?? ''));
+            if ($nameAr === '' && $nameEn === '') {
+                continue;
+            }
+
+            $feeId = self::nullableInt($feeRow['id'] ?? null);
+            $feeType = in_array((string) ($feeRow['fee_type'] ?? ''), ['0', '1'], true)
+                ? (string) $feeRow['fee_type'] : '0';
+            $appType = in_array((string) ($feeRow['application_type'] ?? ''), ['0', '1'], true)
+                ? (string) $feeRow['application_type'] : '1';
+            $amount = max(0, (float) ($feeRow['amount'] ?? 0));
+            $isActive = filter_var(
+                is_array($feeRow['is_active'] ?? null) ? end($feeRow['is_active']) : ($feeRow['is_active'] ?? true),
+                FILTER_VALIDATE_BOOL
+            );
 
             $payload = [
                 'payment_method_id' => $method->id,
-                'name_ar'           => $nameAr,
-                'name_en'           => $nameEn,
-                'fee_type'          => $feeType,
-                'application_type'  => $appType,
-                'amount'            => $amount,
-                'is_active'         => $isActive,
-                'sort_order'        => $sortOrder++,
+                'name_ar' => $nameAr !== '' ? $nameAr : $nameEn,
+                'name_en' => $nameEn !== '' ? $nameEn : $nameAr,
+                'fee_type' => $feeType,
+                'application_type' => $appType,
+                'amount' => $amount,
+                'is_active' => $isActive,
+                'sort_order' => $sortOrder++,
             ];
 
             if ($feeId) {
@@ -307,21 +337,21 @@ class EstablishmentPaymentAccountResolver
 
                 if ($existing) {
                     $existing->update($payload);
-                    $keptFeeIds[] = $existing->id;
+                    $keptFeeIds[] = (int) $existing->id;
 
                     continue;
                 }
             }
 
             $created = PaymentMethodFee::query()->create($payload);
-            $keptFeeIds[] = $created->id;
+            $keptFeeIds[] = (int) $created->id;
         }
 
-        // احذف الرسوم المحذوفة من الواجهة
-        $method->fees()->when(
-            $keptFeeIds !== [],
-            fn ($q) => $q->whereNotIn('id', $keptFeeIds)
-        )->delete();
+        $deleteQuery = PaymentMethodFee::query()->where('payment_method_id', $method->id);
+        if ($keptFeeIds !== []) {
+            $deleteQuery->whereNotIn('id', $keptFeeIds);
+        }
+        $deleteQuery->delete();
     }
 
     public static function defaultCatalogRows(): array

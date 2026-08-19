@@ -107,7 +107,7 @@ class EstablishmentPaymentAccount extends Model
 
     public function fees(): HasMany
     {
-        return $this->hasMany(PaymentMethodFee::class, 'payment_method_id')->orderBy('sort_order')->orderBy('id');
+        return $this->hasMany(PaymentMethodFee::class, 'payment_method_id');
     }
 
     public function activeFees(): HasMany

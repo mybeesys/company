@@ -38,6 +38,8 @@ class CashierCatalogSettingsController extends Controller
 
     public function updatePaymentMethods(Request $request)
     {
+        $this->normalizePaymentMethodFeeFlags($request);
+
         $request->validate([
             'cashier_payment_rows'                           => ['nullable', 'array'],
             'cashier_payment_rows.*.id'                      => ['nullable', 'integer'],
@@ -182,19 +184,78 @@ class CashierCatalogSettingsController extends Controller
         }
     }
 
+    private function normalizePaymentMethodFeeFlags(Request $request): void
+    {
+        $rows = $request->input('cashier_payment_rows', []);
+        if (! is_array($rows)) {
+            return;
+        }
+
+        foreach ($rows as $index => $row) {
+            if (! is_array($row) || ! is_array($row['fees'] ?? null)) {
+                continue;
+            }
+
+            foreach ($row['fees'] as $feeIndex => $fee) {
+                if (! is_array($fee)) {
+                    continue;
+                }
+
+                $active = $fee['is_active'] ?? true;
+                if (is_array($active)) {
+                    $active = end($active);
+                }
+
+                $rows[$index]['fees'][$feeIndex]['is_active'] = filter_var($active, FILTER_VALIDATE_BOOL) ? '1' : '0';
+            }
+        }
+
+        $request->merge(['cashier_payment_rows' => $rows]);
+    }
+
     private function persist(callable $callback)
     {
-        return DB::transaction(function () use ($callback) {
-            try {
+        try {
+            return DB::transaction(function () use ($callback) {
                 return $callback();
-            } catch (\Throwable $e) {
-                Log::error('Cashier catalog settings update failed', [
-                    'error' => $e->getMessage(),
-                ]);
+            });
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Cashier catalog settings update failed', [
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
 
-                return redirect()->back()->withInput()->with('error', __('establishment::responses.something_wrong_happened'));
-            }
-        });
+            return redirect()->back()->withInput()->with('error', $this->readablePersistError($e));
+        }
+    }
+
+    private function readablePersistError(\Throwable $e): string
+    {
+        $message = $e->getMessage();
+        $sqlState = (string) ($e->getCode() ?: '');
+        if ($e instanceof \Illuminate\Database\QueryException) {
+            $sqlState = (string) ($e->errorInfo[1] ?? $e->errorInfo[0] ?? $sqlState);
+        }
+
+        if (str_contains($message, 'est_payment_method_fees') || str_contains($message, "1146")) {
+            return __('establishment::responses.cashier_payment_fees_table_missing');
+        }
+
+        if (in_array($sqlState, ['1062', '23000'], true) || str_contains($message, 'Duplicate') || str_contains($message, 'UNIQUE')) {
+            return __('establishment::responses.cashier_payment_duplicate_method');
+        }
+
+        if (in_array($sqlState, ['1451', '1452'], true) || str_contains($message, 'Integrity constraint')) {
+            return __('establishment::responses.cashier_payment_constraint_failed');
+        }
+
+        $trimmed = trim($message);
+
+        return $trimmed !== ''
+            ? __('establishment::responses.something_wrong_happened').' — '.$trimmed
+            : __('establishment::responses.something_wrong_happened');
     }
 
     private function accounts()
