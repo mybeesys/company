@@ -118,6 +118,7 @@ return [
     'service_fee_calc_method_total' => 'الإجمالي قبل الضريبة',
     'service_fee_calc_method_taxable' => 'الإجمالي بعد الضريبة',
     'service_fee_taxable' => 'تخضع للضريبة',
+    'service_fee_auto_apply_always' => 'متاح دائماً (يختاره الكاشير)',
     'service_fee_auto_apply_type' => 'نمط التطبيق التلقائي',
     'service_fee_auto_apply_dining' => 'حسب نوع الطلب',
     'service_fee_auto_apply_guest_count' => 'حسب عدد الزبائن',

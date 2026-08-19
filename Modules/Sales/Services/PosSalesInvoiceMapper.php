@@ -181,7 +181,7 @@ final class PosSalesInvoiceMapper
     }
 
     /**
-     * @param  array{discount_amount?: float, totalAfterDiscount?: float, tax_amount?: float, final_total?: float, total_before_tax?: float|null, purpose?: string|null, internal_consumption_type_id?: int|null}  $overrides
+     * @param  array{discount_amount?: float, totalAfterDiscount?: float, tax_amount?: float, final_total?: float, total_before_tax?: float|null, purpose?: string|null, internal_consumption_type_id?: int|null, service_fee_amount?: float, service_fee_tax?: float, service_fees_payload?: list<array<string, mixed>>|null}  $overrides
      * @return array<string, mixed>
      */
     public static function mapTransactionAttributes(Request $request, array $overrides = []): array
@@ -215,6 +215,9 @@ final class PosSalesInvoiceMapper
             'total_before_tax' => $totalBeforeTax,
             'totalAfterDiscount' => $totalAfterDiscount,
             'tax_amount' => $totalTax,
+            'service_fee_amount' => (float) ($overrides['service_fee_amount'] ?? 0),
+            'service_fee_tax' => (float) ($overrides['service_fee_tax'] ?? 0),
+            'service_fees_payload' => $overrides['service_fees_payload'] ?? null,
             'final_total' => $finalTotal,
             'created_by' => $request->user_id,
             'description' => $request->note,

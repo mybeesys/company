@@ -117,6 +117,7 @@ return [
     'service_fee_calc_method_total' => 'Subtotal before tax',
     'service_fee_calc_method_taxable' => 'Total after tax',
     'service_fee_taxable' => 'Taxable',
+    'service_fee_auto_apply_always' => 'Always available (cashier selects)',
     'service_fee_auto_apply_type' => 'Auto-apply type',
     'service_fee_auto_apply_dining' => 'By dining type',
     'service_fee_auto_apply_guest_count' => 'By guest count',

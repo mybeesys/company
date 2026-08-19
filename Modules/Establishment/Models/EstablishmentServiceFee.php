@@ -88,4 +88,65 @@ class EstablishmentServiceFee extends Model
     {
         return (string) $this->calculation_method === self::CALC_AFTER_TAX;
     }
+
+    public function appliesTo(): string
+    {
+        return $this->isItemLevel() ? 'item' : 'order';
+    }
+
+    public function calculatedOn(): string
+    {
+        return $this->isCalculatedAfterTax() ? 'after_tax' : 'before_tax';
+    }
+
+    public function autoApplyKey(): string
+    {
+        return match ((string) ($this->auto_apply_type ?? '')) {
+            self::AUTO_DINING => 'dining',
+            self::AUTO_GUEST => 'guest_count',
+            self::AUTO_PAYMENT => 'payment_method',
+            self::AUTO_TIME => 'time_slot',
+            default => 'always',
+        };
+    }
+
+    public function feeTypeLabel(string $locale): string
+    {
+        $key = $this->isPercent()
+            ? 'establishment::fields.service_fee_type_percentage'
+            : 'establishment::fields.service_fee_type_amount';
+
+        return (string) trans($key, [], $locale);
+    }
+
+    public function applicationLabel(string $locale): string
+    {
+        $key = $this->isItemLevel()
+            ? 'establishment::fields.service_fee_app_type_item'
+            : 'establishment::fields.service_fee_app_type_order';
+
+        return (string) trans($key, [], $locale);
+    }
+
+    public function calculationMethodLabel(string $locale): string
+    {
+        $key = $this->isCalculatedAfterTax()
+            ? 'establishment::fields.service_fee_calc_method_taxable'
+            : 'establishment::fields.service_fee_calc_method_total';
+
+        return (string) trans($key, [], $locale);
+    }
+
+    public function autoApplyLabel(string $locale): string
+    {
+        $key = match ($this->autoApplyKey()) {
+            'dining' => 'establishment::fields.service_fee_auto_apply_dining',
+            'guest_count' => 'establishment::fields.service_fee_auto_apply_guest_count',
+            'payment_method' => 'establishment::fields.service_fee_auto_apply_payment',
+            'time_slot' => 'establishment::fields.service_fee_auto_apply_time_slot',
+            default => 'establishment::fields.service_fee_auto_apply_always',
+        };
+
+        return (string) trans($key, [], $locale);
+    }
 }

@@ -23,6 +23,7 @@ use Modules\Reservation\Services\KitchenBroadcastService;
 use Modules\Reservation\Support\KitchenOrderPayload;
 use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\PosInternalConsumptionPricer;
+use Modules\Sales\Services\PosInvoiceServiceFeeApplier;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
@@ -169,6 +170,29 @@ class SellApiController extends Controller
                 }
             }
 
+            $serviceFeeAmount = 0.0;
+            $serviceFeeTax = 0.0;
+            $serviceFeesPayload = null;
+            if (! $isInternalConsumption) {
+                $appliedFees = PosInvoiceServiceFeeApplier::apply(
+                    $request,
+                    $products,
+                    (int) $establishment_id,
+                    $totalTax,
+                    $totalAfterDiscount,
+                    $finalTotal,
+                    (float) ($request->total_before_discount ?? $totalAfterDiscount),
+                    $discountValue
+                );
+                if ($appliedFees !== null) {
+                    $serviceFeeAmount = $appliedFees['fee_amount'];
+                    $serviceFeeTax = $appliedFees['fee_tax'];
+                    $serviceFeesPayload = $appliedFees['lines'] ?: null;
+                    $totalTax = $appliedFees['tax_amount'];
+                    $finalTotal = $appliedFees['final_total'];
+                }
+            }
+
             $transaction = Transaction::create(array_merge(
                 PosSalesInvoiceMapper::mapTransactionAttributes($request, [
                     'establishment_id' => $establishment_id,
@@ -180,6 +204,9 @@ class SellApiController extends Controller
                     'purpose' => $isInternalConsumption
                         ? TransactionPurpose::INTERNAL_CONSUMPTION
                         : $request->input('purpose'),
+                    'service_fee_amount' => $serviceFeeAmount,
+                    'service_fee_tax' => $serviceFeeTax,
+                    'service_fees_payload' => $serviceFeesPayload,
                 ]),
                 ['ref_no' => $ref_no]
             ));
