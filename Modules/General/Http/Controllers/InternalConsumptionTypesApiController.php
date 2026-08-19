@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 use Modules\Establishment\Models\EstablishmentInternalConsumptionType;
 use Modules\General\Transformers\InternalConsumptionTypeResource;
 
+/**
+ * Cashier internal consumption types for a branch.
+ * Additive fields on the resource must not break existing Flutter clients.
+ */
 class InternalConsumptionTypesApiController extends Controller
 {
     public function index(Request $request)
@@ -15,6 +19,7 @@ class InternalConsumptionTypesApiController extends Controller
         if ($establishmentId <= 0) {
             return response()->json([
                 'message' => __('establishment::responses.cashier_payment_establishment_required'),
+                'code' => 'establishment_id_required',
             ], 422);
         }
 

@@ -181,7 +181,7 @@ final class PosSalesInvoiceMapper
     }
 
     /**
-     * @param  array{discount_amount?: float, totalAfterDiscount?: float, tax_amount?: float, final_total?: float}  $overrides
+     * @param  array{discount_amount?: float, totalAfterDiscount?: float, tax_amount?: float, final_total?: float, total_before_tax?: float|null, purpose?: string|null, internal_consumption_type_id?: int|null}  $overrides
      * @return array<string, mixed>
      */
     public static function mapTransactionAttributes(Request $request, array $overrides = []): array
@@ -192,12 +192,19 @@ final class PosSalesInvoiceMapper
         $totalAfterDiscount = (float) ($overrides['totalAfterDiscount'] ?? self::resolveTaxableAfterDiscount($request));
         $totalBeforeTax = (float) ($overrides['total_before_tax'] ?? self::resolveTotalBeforeTax($request));
         $discountType = trim((string) $request->input('discount_type', ''));
+        $typeId = self::nullablePositiveInt(
+            $overrides['internal_consumption_type_id'] ?? $request->input('internal_consumption_type_id')
+        );
+        $purpose = \Modules\Sales\Support\TransactionPurpose::normalize(
+            $overrides['purpose'] ?? $request->input('purpose')
+        );
+        if ($typeId) {
+            $purpose = \Modules\Sales\Support\TransactionPurpose::INTERNAL_CONSUMPTION;
+        }
 
         return [
             'type' => 'sell',
-            'purpose' => \Modules\Sales\Support\TransactionPurpose::normalize(
-                $overrides['purpose'] ?? $request->input('purpose')
-            ),
+            'purpose' => $purpose,
             'local_id' => $request->id,
             'invoice_type' => self::resolveInvoiceType($request),
             'due_date' => null,
@@ -221,9 +228,7 @@ final class PosSalesInvoiceMapper
             'order_type' => $request->input('order_type'),
             'table_id' => $request->input('table_id'),
             'table_order_id' => $request->input('table_order_id'),
-            'internal_consumption_type_id' => self::nullablePositiveInt(
-                $overrides['internal_consumption_type_id'] ?? $request->input('internal_consumption_type_id')
-            ),
+            'internal_consumption_type_id' => $typeId,
         ];
     }
 

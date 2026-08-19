@@ -20,4 +20,5 @@ return [
     'internal_consumption_type_account_required' => 'Internal consumption type «:type» has no linked collection account. Configure it in Cashier internal consumption settings.',
     'internal_consumption_charge_required' => 'Could not calculate the internal consumption charge amount.',
     'internal_consumption_variance_account_required' => 'The charge amount differs from inventory COGS and no branch variance expense account is configured. Set the legacy internal consumption expense account or use the «Inventory cost» value type.',
+    'internal_consumption_discount_not_allowed' => 'Internal consumption is an expense invoice only. Discount, coupon, or promotional reduction is not allowed.',
 ];

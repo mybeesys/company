@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\General\Http\Controllers\Api\GeneralController;
 use Modules\General\Http\Controllers\CashRegisterApiController;
 use Modules\General\Http\Controllers\InternalConsumptionTypesApiController;
+use Modules\General\Http\Controllers\InvoiceInventoryCostsApiController;
 use Modules\General\Http\Controllers\PaymentMethodsApiController;
 use Modules\General\Http\Controllers\TaxApiController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -18,6 +19,7 @@ Route::middleware([
     Route::get('taxes', [TaxApiController::class, 'taxes'])->name('taxes');
     Route::get('payment-methods', [PaymentMethodsApiController::class, 'index'])->name('payment-methods');
     Route::get('internal-consumption-types', [InternalConsumptionTypesApiController::class, 'index'])->name('internal-consumption-types');
+    Route::post('invoice-inventory-costs', [InvoiceInventoryCostsApiController::class, 'store'])->name('invoice-inventory-costs');
 
     Route::get('/company-details', [GeneralController::class, 'companyDetails']);
 
