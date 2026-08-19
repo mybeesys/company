@@ -117,11 +117,11 @@ function initCashierPaymentMethods() {
 
     function reindexRows() {
         $(rowsContainer).find('[data-cashier-row]').each(function (index) {
-            // تحديث data-index في تاب الرسوم والأزرار
-            $(this).find('[data-fees-pane]').attr('data-index', index);
-            $(this).find('.pmf-add-fee-btn').attr('data-index', index);
+            const $row = $(this);
+            $row.find('[data-fees-pane]').attr('data-index', index).removeData('index');
+            $row.find('.pmf-add-fee-btn').attr('data-index', index).removeData('index');
 
-            $(this).find('input, select').each(function () {
+            $row.find('input, select').each(function () {
                 const name = $(this).attr('name');
                 if (!name) {
                     return;
@@ -131,7 +131,14 @@ function initCashierPaymentMethods() {
                     name.replace(/cashier_payment_rows\[\d+]|cashier_payment_rows\[__INDEX__]/, 'cashier_payment_rows[' + index + ']')
                 );
             });
+            reindexFeeRows($row);
         });
+    }
+
+    function resolveMethodIndex($methodRow) {
+        const raw = $methodRow.find('[data-fees-pane]').attr('data-index');
+
+        return raw !== undefined && raw !== '' ? String(raw) : '0';
     }
 
     function clearRow($row) {
@@ -175,7 +182,7 @@ function initCashierPaymentMethods() {
     }
 
     function reindexFeeRows($methodRow) {
-        const methodIndex = $methodRow.find('[data-fees-pane]').data('index');
+        const index = resolveMethodIndex($methodRow);
         $methodRow.find('[data-fees-pane] .pmf-fee-row').each(function (feeIdx) {
             $(this).find('input, select').each(function () {
                 const name = $(this).attr('name');
@@ -183,8 +190,8 @@ function initCashierPaymentMethods() {
                 $(this).attr(
                     'name',
                     name.replace(
-                        /cashier_payment_rows\[\d+]\[fees]\[\d+]/g,
-                        'cashier_payment_rows[' + methodIndex + '][fees][' + feeIdx + ']'
+                        /cashier_payment_rows\[(?:\d+|__INDEX__|__METHOD_INDEX__)]\[fees]\[(?:\d+|__FEE_INDEX__)]/g,
+                        'cashier_payment_rows[' + index + '][fees][' + feeIdx + ']'
                     )
                 );
             });
@@ -199,8 +206,8 @@ function initCashierPaymentMethods() {
 
     $(rowsContainer).on('click', '.pmf-add-fee-btn', function () {
         if (!feeRowTemplate) return;
-        const methodIndex = $(this).data('index');
         const $methodRow  = $(this).closest('[data-cashier-row]');
+        const methodIndex = resolveMethodIndex($methodRow);
         const feeIndex    = feeRowCount($methodRow);
         const html = feeRowTemplate.innerHTML
             .replaceAll('__METHOD_INDEX__', String(methodIndex))
