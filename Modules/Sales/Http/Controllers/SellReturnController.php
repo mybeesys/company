@@ -182,7 +182,10 @@ class SellReturnController extends Controller
             $establishment_id = $main_establishment->id;
         }
 
-        $invoiceType = $request->invoice_type ?: $sell->invoice_type;
+        $invoiceType = $request->invoice_type ?: $sell->invoice_type ?: 'due';
+        if (! in_array((string) $invoiceType, ['cash', 'due', 'credit'], true)) {
+            $invoiceType = 'due';
+        }
 
         $products = json_decode(json_encode($request->products ?? []));
         $inputLines = [];
@@ -259,7 +262,13 @@ class SellReturnController extends Controller
                 $request->merge(['client_id' => $sell->contact_id]);
             }
 
-            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            try {
+                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            } catch (\Throwable $e) {
+                DB::rollBack();
+
+                return redirect()->back()->withInput()->with('error', $e->getMessage());
+            }
         }
         if ($transaction) {
             $this->updateSalesReturnStatus(
