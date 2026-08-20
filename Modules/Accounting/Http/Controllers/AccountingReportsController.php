@@ -1650,7 +1650,7 @@ class AccountingReportsController extends Controller
             ->when($refNo, fn ($q) => $q->where('ref_no', 'like', '%'.$refNo.'%'))
             ->when($note, fn ($q) => $q->where('note', 'like', '%'.$note.'%'))
             ->with(['transactions' => function ($query) {
-                $query->join('accounting_accounts', 'accounting_accounts.id', '=', 'accounting_accounts_transactions.accounting_account_id')
+                $query->leftJoin('accounting_accounts', 'accounting_accounts.id', '=', 'accounting_accounts_transactions.accounting_account_id')
                     ->select('accounting_accounts_transactions.*', 'accounting_accounts.name_ar', 'accounting_accounts.name_en', 'accounting_accounts.gl_code')
                     ->when(request()->filled('choose_cost_center_select'), function ($q) {
                         $q->whereIn('accounting_accounts_transactions.cost_center_id', request()->input('choose_cost_center_select', []));
