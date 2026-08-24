@@ -81,6 +81,7 @@ return [
     'purchase_invoices' => 'فواتير الشراء',
     'purchases_favorites' => 'مفضلة المشتريات',
     'general_setting' => 'الإعدادات العامة',
+    'zatca_settings' => 'الفوترة الإلكترونية (ZATCA)',
     'setting' => 'إعدادات',
     'cashier_payment_methods' => 'طرق الدفع',
     'internal_consumption_types' => 'مصروف الاستهلاك الداخلي للكاشير',

@@ -441,6 +441,11 @@ return [
                 'permission' => 'setting.General setting.show',
 
             ],
+            ...(config('zatca.show_in_menu', true) ? [[
+                'name' => 'zatca_settings',
+                'url' => 'zatca-settings',
+                'permission' => 'setting.General setting.show',
+            ]] : []),
             [
                 'name' => 'establishments',
                 'url' => 'establishment',

@@ -1711,7 +1711,14 @@ class AccountingReportsController extends Controller
                 $outer->orWhere(function ($sub) use ($key) {
                     match ($key) {
                         'sales' => $sub->whereHas('transactions', function ($q) {
-                            $q->whereIn('sub_type', ['sell', 'sell-return', 'sell_cash', 'sales_revenue']);
+                            $q->whereIn('sub_type', [
+                                'sell',
+                                'sell-return',
+                                'sell_cash',
+                                'sales_revenue',
+                                // Internal consumption (expense invoice) posts under this sub_type.
+                                'internal_consumption',
+                            ]);
                         }),
                         'purchases' => $sub->whereHas('transactions', function ($q) {
                             $q->whereIn('sub_type', ['purchases', 'purchases-return']);

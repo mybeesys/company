@@ -1,0 +1,20 @@
+{
+    "name": "nwidart/zatca",
+    "description": "ZATCA Phase 2 settings module",
+    "authors": [
+        {
+            "name": "My Bee"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Zatca\\": ""
+        }
+    }
+}
