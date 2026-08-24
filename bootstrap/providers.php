@@ -8,4 +8,5 @@ return [
     Modules\Inventory\Providers\InventoryServiceProvider::class,
     Modules\Reservation\Providers\RouteServiceProvider::class,
     Modules\Reservation\Providers\ReservationServiceProvider::class,
+    Bl\FatooraZatca\FatooraZatcaServiceProvider::class,
 ];

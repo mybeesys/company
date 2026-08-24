@@ -332,7 +332,7 @@ class SellApiController extends Controller
 
                     try {
                         app(InventoryCostingService::class)->processTransaction($transaction->fresh());
-                        (new AccountingUtil)->postInternalConsumptionJournal($transaction->fresh(), $request);
+                        (new AccountingUtil)->postInternalConsumptionJournal($transaction->fresh(), $request, true);
                         $transaction->payment_status = 'paid';
                         $transaction->save();
                     } catch (\Throwable $e) {

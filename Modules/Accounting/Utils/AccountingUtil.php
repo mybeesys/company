@@ -105,15 +105,31 @@ class AccountingUtil
             throw new RuntimeException("Accounting account #{$accountId} does not exist. Please re-link the customer/supplier or Accounts Routing.");
         }
 
+        $costCenterId = null;
+        if (is_object($request)) {
+            $costCenterId = $request->cost_center_id
+                ?? $request->cost_center
+                ?? (method_exists($request, 'input') ? ($request->input('cost_center_id') ?: $request->input('cost_center')) : null);
+        }
+        if ($costCenterId === null || $costCenterId === '') {
+            $costCenterId = $transaction->cost_center ?? null;
+        }
+
+        $createdBy = $transactionPayment->created_by
+            ?? $transaction->created_by
+            ?? Auth::id()
+            ?? 1;
+
         $account_transaction_data = [
             'amount' => round((float) $transactionPayment->amount, 2),
             'accounting_account_id' => $accountId,
             'type' => $type,
-            'cost_center_id' => $request->cost_center_id ?? null,
+            'cost_center_id' => $costCenterId ? (int) $costCenterId : null,
             'sub_type' => $subTypeOverride ?? $transaction->type,
-            'operation_date' => $transactionPayment->paid_on,
-            'created_by' => $transactionPayment->created_by,
-            'transaction_id' => $transactionPayment->transaction_id,
+            'operation_date' => $transactionPayment->paid_on
+                ?? Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s'),
+            'created_by' => $createdBy,
+            'transaction_id' => $transactionPayment->transaction_id ?? $transaction->id,
             'transaction_payment_id' => $transactionPayment->id ?? null,
             'acc_trans_mapping_id' => $acc_trans_mapping_id,
         ];
@@ -160,17 +176,31 @@ class AccountingUtil
     }
 
     /**
-     * Internal consumption (staff meals, etc.): Dr collection account + Cr inventory at cost.
-     * When charge differs from COGS, the difference is balanced on the same collection account.
+     * Internal consumption (staff meals / expense invoice): Dr expense account + Cr inventory at cost.
+     * When charge differs from COGS, the difference is balanced on the same expense account.
      * No sales revenue / VAT / AR. Posts even when the POS shift is still open.
+     *
+     * @param  bool  $required  When true (web/API save), never silently skip — throw instead.
      */
-    public function postInternalConsumptionJournal($transaction, $request = null): bool
+    public function postInternalConsumptionJournal($transaction, $request = null, bool $required = false): bool
     {
         if (! TransactionPurpose::isInternalConsumption($transaction)) {
+            if ($required) {
+                throw new RuntimeException(app()->getLocale() === 'ar'
+                    ? 'فاتورة المصروف/الاستهلاك الداخلي غير مُعرَّفة على المستند (purpose / نوع المصروف).'
+                    : 'Internal consumption purpose/type is missing on the document.');
+            }
+
             return false;
         }
 
         if (($transaction->status ?? '') === 'draft') {
+            if ($required) {
+                throw new RuntimeException(app()->getLocale() === 'ar'
+                    ? 'لا يمكن ترحيل قيد المصروف لمسودة. احفظ الفاتورة بحالة نهائية.'
+                    : 'Cannot post expense journal for a draft invoice. Save as final/approved.');
+            }
+
             return false;
         }
 
@@ -192,27 +222,33 @@ class AccountingUtil
 
         $resolved = EstablishmentInternalConsumptionTypeResolver::resolveForCashier($establishmentId, $typeId);
         if (! $resolved['ok']) {
-            throw new RuntimeException($resolved['message']);
+            throw new RuntimeException($resolved['message'] ?? __('establishment::responses.internal_consumption_type_required'));
         }
 
         $type = $resolved['type'];
         $chargeAccountId = (int) $resolved['account_id'];
+        if ($chargeAccountId <= 0 || ! AccountingAccount::whereKey($chargeAccountId)->exists()) {
+            throw new RuntimeException(app()->getLocale() === 'ar'
+                ? 'حساب المصروف المرتبط بنوع الاستهلاك الداخلي غير موجود في دليل الحسابات.'
+                : 'Expense account linked to the internal consumption type is missing from the chart of accounts.');
+        }
 
-        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId($establishmentId);
+        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId($establishmentId)
+            ?: PerpetualInventoryAccountResolver::resolveCogsAccountId();
         if (! $inventoryAccountId) {
             throw new RuntimeException(__('establishment::responses.internal_consumption_inventory_account_required'));
         }
 
-        $cogsAmount = round(
-            app(\Modules\Inventory\Services\InventoryCostingService::class)
-                ->resolveCogsAmountForSell((int) $transaction->id),
-            2
-        );
+        $cogsAmount = $this->resolveInternalConsumptionCostAmount($transaction);
         if ($cogsAmount <= 0) {
             throw new RuntimeException(__('establishment::responses.internal_consumption_cost_required'));
         }
 
         $chargeAmount = EstablishmentInternalConsumptionTypeResolver::calculateChargeAmount($type, $transaction, $cogsAmount);
+        if ($chargeAmount <= 0) {
+            // Cost-based types should equal COGS; keep journal movable if document total is usable.
+            $chargeAmount = $cogsAmount;
+        }
         if ($chargeAmount <= 0) {
             throw new RuntimeException(__('establishment::responses.internal_consumption_charge_required'));
         }
@@ -221,26 +257,30 @@ class AccountingUtil
 
         FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
 
+        $createdBy = $transaction->created_by ?? Auth::id() ?? 1;
+        $operationDate = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
+
         $acc_trans_mapping = new AccountingAccTransMapping;
         $acc_trans_mapping->ref_no = $this->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->note = app()->getLocale() === 'ar'
             ? 'استهلاك داخلي — '.$type->displayName()
             : 'Internal consumption — '.$type->displayName();
         $acc_trans_mapping->type = 'journal_entry';
-        $acc_trans_mapping->created_by = $transaction->created_by;
+        $acc_trans_mapping->created_by = $createdBy;
         $acc_trans_mapping->is_manual = 0;
-        $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
+        $acc_trans_mapping->operation_date = $operationDate;
         $acc_trans_mapping->save();
 
         $paymentStub = (object) [
             'id' => null,
             'amount' => $chargeAmount,
             'account_id' => $chargeAccountId,
-            'paid_on' => Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s'),
-            'created_by' => $transaction->created_by,
+            'paid_on' => $operationDate,
+            'created_by' => $createdBy,
             'transaction_id' => $transaction->id,
         ];
 
+        // Dr Expense (consumption type account)
         $this->saveAccountRouteTransaction(
             'debit',
             $paymentStub,
@@ -250,6 +290,7 @@ class AccountingUtil
             TransactionPurpose::JOURNAL_SUB_TYPE
         );
 
+        // Cr Inventory (or COGS fallback when inventory asset is not configured)
         $paymentStub->account_id = $inventoryAccountId;
         $paymentStub->amount = $cogsAmount;
         $this->saveAccountRouteTransaction(
@@ -277,6 +318,42 @@ class AccountingUtil
         AutoJournalGuard::assertBalanced((int) $acc_trans_mapping->id);
 
         return true;
+    }
+
+    /**
+     * Prefer inventory costing engine; fall back to IC document totals (already at cost).
+     */
+    protected function resolveInternalConsumptionCostAmount($transaction): float
+    {
+        $fromEngine = round(
+            app(\Modules\Inventory\Services\InventoryCostingService::class)
+                ->resolveCogsAmountForSell((int) $transaction->id),
+            2
+        );
+        if ($fromEngine > 0) {
+            return $fromEngine;
+        }
+
+        $fromDocument = round((float) ($transaction->final_total ?? 0), 2);
+        if ($fromDocument <= 0) {
+            $fromDocument = round((float) ($transaction->total_before_tax
+                ?? $transaction->totalAfterDiscount
+                ?? $transaction->total_after_discount
+                ?? 0), 2);
+        }
+        if ($fromDocument <= 0) {
+            $fromDocument = round((float) TransactionSellLine::query()
+                ->where('transaction_id', $transaction->id)
+                ->where(function ($q) {
+                    $q->whereNull('is_show')
+                        ->orWhere('is_show', 1)
+                        ->orWhere('is_show', '1');
+                })
+                ->selectRaw('COALESCE(SUM(COALESCE(total_before_vat, COALESCE(unit_price, 0) * COALESCE(qyt, 0))), 0) as cost_total')
+                ->value('cost_total'), 2);
+        }
+
+        return max(0.0, $fromDocument);
     }
 
     // public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
@@ -382,7 +459,7 @@ class AccountingUtil
     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
         if (TransactionPurpose::isInternalConsumption($transaction)) {
-            return $this->postInternalConsumptionJournal($transaction, $request);
+            return $this->postInternalConsumptionJournal($transaction, $request, true);
         }
 
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);

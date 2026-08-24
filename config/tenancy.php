@@ -204,6 +204,7 @@ return [
             'Modules/Screen/database/migrations/tenant',
             'Modules/Reservation/database/migrations/tenant',
             'Modules/Expense/database/migrations/tenant',
+            'Modules/Zatca/database/migrations/tenant',
         ],
 
         '--realpath' => true,

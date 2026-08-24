@@ -1317,7 +1317,8 @@ class SellController extends Controller
 
             try {
                 app(InventoryCostingService::class)->processTransaction($transaction->fresh());
-                $accountUtil->postInternalConsumptionJournal($transaction->fresh(), $request);
+                // required=true: never silently skip the expense journal when saving a final IC invoice.
+                $accountUtil->postInternalConsumptionJournal($transaction->fresh(), $request, true);
                 $transaction->payment_status = 'paid';
                 $transaction->save();
             } catch (\Throwable $e) {

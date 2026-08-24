@@ -12,5 +12,6 @@
     "Reservation": true,
     "Report": true,
     "Franchise": true,
-    "Expense": true
+    "Expense": true,
+    "Zatca": true
 }

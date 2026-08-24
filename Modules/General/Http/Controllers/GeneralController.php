@@ -52,6 +52,14 @@ class GeneralController extends Controller
             ],
         ];
 
+        if (config('zatca.show_in_menu', true)) {
+            $cards[] = [
+                'name' => __('zatca::lang.menu_card'),
+                'route' => 'zatca.settings.edit',
+                'icon' => 'fa-solid fa-file-invoice',
+            ];
+        }
+
         $taxesColumns = Tax::getsTaxesColumns();
         $taxes = Tax::where('is_tax_group', 0)->get();
         $methodColumns = PaymentMethod::getsPaymentMethodsColumns();

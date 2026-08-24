@@ -335,13 +335,15 @@
             return false;
         }
 
-        submitSellInvoice('save', 'approved');
+        // Prefer button data-status (final) so inventory costing + IC journals see an approved status.
+        submitSellInvoice('save', 'final');
         return false;
     });
 
     $(document).on('click', '#sell_save [data-action]', function (e) {
         e.preventDefault();
-        submitSellInvoice($(this).data('action'), 'approved');
+        const status = $(this).data('status') || 'final';
+        submitSellInvoice($(this).data('action'), status);
     });
 
     $(function () {

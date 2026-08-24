@@ -164,7 +164,7 @@ class TransactionUtils
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
 
         if (\Modules\Sales\Support\TransactionPurpose::isInternalConsumption($transaction)) {
-            $accountUtil->postInternalConsumptionJournal($transaction, $request);
+            $accountUtil->postInternalConsumptionJournal($transaction, $request, true);
 
             return true;
         }
