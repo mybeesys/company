@@ -191,21 +191,7 @@ class PurchasesReturnController extends Controller
             $products = json_decode(json_encode($request->products));
 
             foreach ($products as $product) {
-                $discount_type = null;
-                TransactionSellLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->products_id,
-                    'qyt' => $product->qty,
-                    'unit_id' => $product->unit,
-                    'unit_price_before_discount' => $product->unit_price,
-                    'unit_price' => $product->unit_price,
-                    'discount_type' => $discount_type,
-                    'discount_amount' => 0,
-                    'unit_price_inc_tax' => $product->total_after_vat,
-                    'tax_id' => $product->tax_vat,
-                    'tax_value' => $product->vat_value,
-                    'total_before_vat' => $product->total_before_vat,
-                ]);
+                $this->createPurchaseReturnLine((int) $transaction->id, $product);
             }
 
             if ($transaction) {
@@ -279,21 +265,7 @@ class PurchasesReturnController extends Controller
             $products = json_decode(json_encode($request->products));
 
             foreach ($products as $product) {
-                $discount_type = null;
-                TransactionSellLine::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $product->product_id,
-                    'qyt' => $product->qty,
-                    'unit_id' => $product->unit,
-                    'unit_price_before_discount' => $product->unit_price,
-                    'unit_price' => $product->unit_price,
-                    'discount_type' => $discount_type,
-                    'discount_amount' => 0,
-                    'unit_price_inc_tax' => $product->total_after_vat,
-                    'tax_id' => $product->tax_vat,
-                    'tax_value' => $product->vat_value,
-                    'total_before_vat' => $product->total_before_vat,
-                ]);
+                $this->createPurchaseReturnLine((int) $transaction->id, $product);
             }
             DB::commit();
 
@@ -335,5 +307,27 @@ class PurchasesReturnController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function createPurchaseReturnLine(int $transactionId, object $product): void
+    {
+        $productId = (int) ($product->products_id ?? $product->product_id ?? 0);
+        $discountAmount = (float) ($product->discount ?? 0);
+        $discountType = $discountAmount > 0 ? (string) ($product->discount_type ?? 'fixed') : null;
+
+        TransactionSellLine::create([
+            'transaction_id' => $transactionId,
+            'product_id' => $productId,
+            'qyt' => $product->qty,
+            'unit_id' => $product->unit,
+            'unit_price_before_discount' => $product->unit_price,
+            'unit_price' => $product->unit_price,
+            'discount_type' => $discountType,
+            'discount_amount' => $discountAmount,
+            'unit_price_inc_tax' => $product->total_after_vat,
+            'tax_id' => $product->tax_vat,
+            'tax_value' => $product->vat_value,
+            'total_before_vat' => $product->total_before_vat,
+        ]);
     }
 }

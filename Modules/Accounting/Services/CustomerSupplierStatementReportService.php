@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
+use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Models\AccountingAccountsTransaction;
+use Modules\Accounting\Support\AccountingNote;
+use Modules\Accounting\Support\AccountingOpeningBalanceScope;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
@@ -37,7 +41,9 @@ final class CustomerSupplierStatementReportService
   public static function dataset(Request $request): array
   {
     $contactId = (int) ($request->input('id') ?? Contact::query()->value('id'));
-    $contact = Contact::findOrFail($contactId);
+    $contact = Contact::with('account')->findOrFail($contactId);
+    $contactAccount = static::contactAccount($contact);
+    $isDebitNature = $contactAccount ? static::isDebitNature($contactAccount) : true;
     $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
     $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
     $costCenterIds = array_values(array_filter((array) $request->input('choose_cost_center_select', [])));
@@ -64,13 +70,15 @@ final class CustomerSupplierStatementReportService
     );
 
     $openingBalance = static::contactBalanceBefore($contactId, $startDate, $costCenterIds, $establishmentIds);
-    $lines = static::buildStatementLines($rows, $openingBalance);
-    $currentBalance = static::contactBalanceAllTime($contactId, $costCenterIds, $establishmentIds);
-    $closingBalance = $openingBalance + static::periodNetMovement($rows);
+    $lines = static::buildStatementLines($rows, $openingBalance, $isDebitNature);
+    $closingBalance = $openingBalance + static::periodNetMovement($rows, $isDebitNature);
+    $currentBalance = static::contactBalanceAsOfEndDate($contactId, $endDate, $costCenterIds, $establishmentIds);
 
     $categoryTotals = static::summarizeByCategory($rows);
     $periodDebit = (float) $rows->where('type', 'debit')->sum('amount');
     $periodCredit = (float) $rows->where('type', 'credit')->sum('amount');
+
+    $aging = static::buildContactAging($contactId, $endDate);
 
     $kpis = static::buildKpis(
       $currentBalance,
@@ -78,7 +86,8 @@ final class CustomerSupplierStatementReportService
       $periodDebit,
       $periodCredit,
       $rows->count(),
-      $closingBalance
+      $closingBalance,
+      $aging
     );
 
     $chart = static::buildCompositionChart($categoryTotals, $closingBalance);
@@ -91,7 +100,6 @@ final class CustomerSupplierStatementReportService
       $closingBalance
     );
 
-    $aging = static::buildContactAging($contactId, $endDate);
     $analytics = static::buildAnalytics($rows, $periodDebit, $periodCredit, $openingBalance, $closingBalance, $aging);
 
     $comparePeriod = null;
@@ -116,7 +124,7 @@ final class CustomerSupplierStatementReportService
         $costCenterIds,
         $establishmentIds
       );
-      $compareClosing = $compareOpening + static::periodNetMovement($compareRows);
+      $compareClosing = $compareOpening + static::periodNetMovement($compareRows, $isDebitNature);
       $compareAnalytics = [
         'period_debit' => (float) $compareRows->where('type', 'debit')->sum('amount'),
         'period_credit' => (float) $compareRows->where('type', 'credit')->sum('amount'),
@@ -131,6 +139,8 @@ final class CustomerSupplierStatementReportService
 
     return compact(
       'contact',
+      'contactAccount',
+      'isDebitNature',
       'contactId',
       'startDate',
       'endDate',
@@ -184,7 +194,7 @@ final class CustomerSupplierStatementReportService
     return 'other';
   }
 
-  /** @return Collection<int, object> */
+  /** @return Collection<int, AccountingAccountsTransaction> */
   public static function fetchMovements(
     int $contactId,
     string $startDate,
@@ -198,11 +208,51 @@ final class CustomerSupplierStatementReportService
     bool $unsettledOnly = false
   ): Collection {
     return static::baseQuery($contactId, $costCenterIds, $establishmentIds, $userId, $entryType, $subType, $refNo, $unsettledOnly)
-      ->whereDate('aat.operation_date', '>=', $startDate)
-      ->whereDate('aat.operation_date', '<=', $endDate)
-      ->orderBy('aat.operation_date')
-      ->orderBy('aat.id')
+      ->whereDate('operation_date', '>=', $startDate)
+      ->whereDate('operation_date', '<=', $endDate)
+      ->tap(function ($query) use ($startDate) {
+        AccountingOpeningBalanceScope::applyExcludeOpeningOnStartFromPeriod($query, $startDate);
+      })
+      ->orderBy('operation_date')
+      ->orderBy('id')
       ->get();
+  }
+
+  private static function contactAccount(Contact $contact): ?AccountingAccount
+  {
+    if (! $contact->account_id) {
+      return null;
+    }
+
+    if ($contact->relationLoaded('account') && $contact->account) {
+      return $contact->account;
+    }
+
+    return AccountingAccount::query()->find((int) $contact->account_id);
+  }
+
+  private static function contactAccountId(int $contactId): ?int
+  {
+    $accountId = Contact::query()->whereKey($contactId)->value('account_id');
+
+    return $accountId ? (int) $accountId : null;
+  }
+
+  private static function resolveIsDebitNatureForContact(int $contactId): bool
+  {
+    $accountId = static::contactAccountId($contactId);
+    if (! $accountId) {
+      return true;
+    }
+
+    $account = AccountingAccount::query()->find($accountId);
+
+    return $account ? static::isDebitNature($account) : true;
+  }
+
+  public static function isDebitNature(AccountingAccount $account): bool
+  {
+    return in_array($account->account_primary_type, ['asset', 'expenses', 'analytical_accounts'], true);
   }
 
   private static function baseQuery(
@@ -215,60 +265,50 @@ final class CustomerSupplierStatementReportService
     ?string $refNo,
     bool $unsettledOnly
   ) {
-    return Contact::query()
-      ->where('cs_contacts.id', $contactId)
-      ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-      ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
-      ->leftJoin('accounting_acc_trans_mappings as atm', 'aat.acc_trans_mapping_id', '=', 'atm.id')
-      ->leftJoin('transaction_payments as tp', 'aat.transaction_payment_id', '=', 'tp.id')
-      ->leftJoin('emp_employees as u', 'aat.created_by', '=', 'u.id')
-      ->leftJoin('accounting_cost_centers as cc', 'aat.cost_center_id', '=', 'cc.id')
-      ->leftJoin('est_establishments as est', 't.establishment_id', '=', 'est.id')
-      ->when(! empty($costCenterIds), fn ($q) => $q->whereIn('aat.cost_center_id', $costCenterIds))
-      ->when(! empty($establishmentIds), fn ($q) => $q->whereIn('t.establishment_id', $establishmentIds))
-      ->when($userId, fn ($q) => $q->where('aat.created_by', $userId))
-      ->when(! empty($entryType), fn ($q) => $q->where('aat.type', $entryType))
-      ->when(! empty($subType), fn ($q) => $q->where('aat.sub_type', $subType))
-      ->when($unsettledOnly, fn ($q) => $q->whereIn('t.payment_status', ['due', 'partial']))
-      ->when(! empty($refNo), function ($query) use ($refNo) {
-        $query->where(function ($q) use ($refNo) {
-          $q->where('atm.ref_no', 'like', '%'.$refNo.'%')
-            ->orWhere('t.ref_no', 'like', '%'.$refNo.'%')
-            ->orWhere('tp.payment_ref_no', 'like', '%'.$refNo.'%');
+    $accountId = static::contactAccountId($contactId);
+    if (! $accountId) {
+      return AccountingAccountsTransaction::query()->whereRaw('1 = 0');
+    }
+
+    return AccountingAccountsTransaction::query()
+      ->with([
+        'accTransMapping',
+        'transaction.establishment',
+        'transactionPayments',
+        'costCenter',
+        'createdBy',
+      ])
+      ->where('accounting_account_id', $accountId)
+      ->when(! empty($costCenterIds), fn ($q) => $q->whereIn('cost_center_id', $costCenterIds))
+      ->when(! empty($establishmentIds), function ($query) use ($establishmentIds) {
+        $query->where(function ($sub) use ($establishmentIds) {
+          $sub->whereHas('transaction', fn ($t) => $t->whereIn('establishment_id', $establishmentIds))
+            ->orWhereDoesntHave('transaction');
         });
       })
-      ->select(
-        'aat.id',
-        'aat.operation_date',
-        'aat.sub_type',
-        'aat.type',
-        'aat.cost_center_id',
-        'aat.acc_trans_mapping_id',
-        'aat.transaction_id',
-        'atm.ref_no as atm_ref_no',
-        'tp.payment_ref_no',
-        'atm.id as atm_id',
-        'cc.name_ar as cost_center_name_ar',
-        'cc.name_en as cost_center_name_en',
-        'atm.note',
-        'aat.amount',
-        'u.name as added_by',
-        't.ref_no as invoice_no',
-        't.establishment_id',
-        DB::raw("CASE WHEN '".app()->getLocale()."' = 'ar' THEN est.name ELSE COALESCE(est.name_en, est.name) END as establishment_name"),
-        't.payment_status',
-        't.final_total',
-        't.tax_amount'
-      );
+      ->when($userId, fn ($q) => $q->where('created_by', $userId))
+      ->when(! empty($entryType), fn ($q) => $q->where('type', $entryType))
+      ->when(! empty($subType), fn ($q) => $q->where('sub_type', $subType))
+      ->when($unsettledOnly, fn ($q) => $q->whereHas(
+        'transaction',
+        fn ($t) => $t->whereIn('payment_status', ['due', 'partial'])
+      ))
+      ->when(! empty($refNo), function ($query) use ($refNo) {
+        $query->where(function ($q) use ($refNo) {
+          $q->whereHas('accTransMapping', fn ($m) => $m->where('ref_no', 'like', '%'.$refNo.'%'))
+            ->orWhereHas('transaction', fn ($t) => $t->where('ref_no', 'like', '%'.$refNo.'%'))
+            ->orWhereHas('transactionPayments', fn ($p) => $p->where('payment_ref_no', 'like', '%'.$refNo.'%'));
+        });
+      });
   }
 
-  /** @param  Collection<int, object>  $rows */
-  private static function periodNetMovement(Collection $rows): float
+  /** @param  Collection<int, AccountingAccountsTransaction>  $rows */
+  private static function periodNetMovement(Collection $rows, bool $isDebitNature): float
   {
     $debit = (float) $rows->where('type', 'debit')->sum('amount');
     $credit = (float) $rows->where('type', 'credit')->sum('amount');
 
-    return $debit - $credit;
+    return $isDebitNature ? $debit - $credit : $credit - $debit;
   }
 
   public static function contactBalanceBefore(
@@ -277,18 +317,52 @@ final class CustomerSupplierStatementReportService
     array $costCenterIds = [],
     array $establishmentIds = []
   ): float {
-    $util = new AccountingUtil;
+    $accountId = static::contactAccountId($contactId);
+    if (! $accountId) {
+      return 0.0;
+    }
 
-    $query = Contact::where('cs_contacts.id', $contactId)
-      ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-      ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-      ->leftJoin('accounting_accounts as accounting_accounts', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
-      ->whereDate('AAT.operation_date', '<', $beforeDate)
-      ->when(! empty($costCenterIds), fn ($q) => $q->whereIn('AAT.cost_center_id', $costCenterIds))
-      ->when(! empty($establishmentIds), fn ($q) => $q->whereIn('t.establishment_id', $establishmentIds))
-      ->select([DB::raw($util->balanceFormula())]);
+    $account = AccountingAccount::query()->find($accountId);
+    if (! $account) {
+      return 0.0;
+    }
 
-    return (float) ($query->first()?->balance ?? 0);
+    $isDebitNature = static::isDebitNature($account);
+    $openingQuery = AccountingAccountsTransaction::query()
+      ->where('accounting_account_id', $accountId)
+      ->when(! empty($costCenterIds), fn ($q) => $q->whereIn('cost_center_id', $costCenterIds))
+      ->when(! empty($establishmentIds), function ($query) use ($establishmentIds) {
+        $query->where(function ($sub) use ($establishmentIds) {
+          $sub->whereHas('transaction', fn ($t) => $t->whereIn('establishment_id', $establishmentIds))
+            ->orWhereDoesntHave('transaction');
+        });
+      });
+
+    AccountingOpeningBalanceScope::applyOpeningScope($openingQuery, $beforeDate);
+
+    $openingTransactions = $openingQuery->get(['type', 'amount']);
+    $totalDebitOpening = (float) $openingTransactions->where('type', 'debit')->sum('amount');
+    $totalCreditOpening = (float) $openingTransactions->where('type', 'credit')->sum('amount');
+
+    if ($isDebitNature) {
+      return $totalDebitOpening - $totalCreditOpening;
+    }
+
+    return $totalCreditOpening - $totalDebitOpening;
+  }
+
+  public static function contactBalanceAsOfEndDate(
+    int $contactId,
+    string $endDate,
+    array $costCenterIds = [],
+    array $establishmentIds = []
+  ): float {
+    return static::contactBalanceBefore(
+      $contactId,
+      Carbon::parse($endDate)->addDay()->toDateString(),
+      $costCenterIds,
+      $establishmentIds
+    );
   }
 
   public static function contactBalanceAllTime(
@@ -296,24 +370,39 @@ final class CustomerSupplierStatementReportService
     array $costCenterIds = [],
     array $establishmentIds = []
   ): float {
-    $util = new AccountingUtil;
+    $accountId = static::contactAccountId($contactId);
+    if (! $accountId) {
+      return 0.0;
+    }
 
-    $query = Contact::where('cs_contacts.id', $contactId)
-      ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-      ->join('accounting_accounts_transactions as AAT', 't.id', '=', 'AAT.transaction_id')
-      ->leftJoin('accounting_accounts as accounting_accounts', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
+    $query = AccountingAccount::query()
+      ->where('accounting_accounts.id', $accountId)
+      ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
       ->when(! empty($costCenterIds), fn ($q) => $q->whereIn('AAT.cost_center_id', $costCenterIds))
-      ->when(! empty($establishmentIds), fn ($q) => $q->whereIn('t.establishment_id', $establishmentIds))
-      ->select([DB::raw($util->balanceFormula())]);
+      ->when(! empty($establishmentIds), function ($q) use ($establishmentIds) {
+        $q->where(function ($sub) use ($establishmentIds) {
+          $sub->whereExists(function ($exists) use ($establishmentIds) {
+            $exists->select(DB::raw(1))
+              ->from('transactions as t')
+              ->whereColumn('t.id', 'AAT.transaction_id')
+              ->whereIn('t.establishment_id', $establishmentIds);
+          })->orWhereNotExists(function ($exists) {
+            $exists->select(DB::raw(1))
+              ->from('transactions as t')
+              ->whereColumn('t.id', 'AAT.transaction_id');
+          });
+        });
+      })
+      ->select([DB::raw((new AccountingUtil)->balanceFormula())]);
 
     return (float) ($query->first()?->balance ?? 0);
   }
 
   /**
-   * @param  Collection<int, object>  $rows
+   * @param  Collection<int, AccountingAccountsTransaction>  $rows
    * @return array<int, array<string, mixed>>
    */
-  private static function buildStatementLines(Collection $rows, float $openingBalance): array
+  private static function buildStatementLines(Collection $rows, float $openingBalance, bool $isDebitNature): array
   {
     $running = $openingBalance;
     $lines = [];
@@ -341,19 +430,39 @@ final class CustomerSupplierStatementReportService
     foreach ($rows as $row) {
       $debit = $row->type === 'debit' ? (float) $row->amount : 0.0;
       $credit = $row->type === 'credit' ? (float) $row->amount : 0.0;
-      $running += $debit - $credit;
+      if ($isDebitNature) {
+        $running += $debit - $credit;
+      } else {
+        $running += $credit - $debit;
+      }
 
-      $ref = $row->atm_ref_no ?: ($row->invoice_no ?: ($row->payment_ref_no ?: '—'));
+      $transaction = $row->transaction;
+      $ref = $row->displayRefNo();
       $subTypeLabel = Lang::has('accounting::lang.'.$row->sub_type)
         ? __('accounting::lang.'.$row->sub_type)
         : (string) $row->sub_type;
       $costCenter = app()->getLocale() === 'ar'
-        ? ($row->cost_center_name_ar ?? $row->cost_center_name_en ?? '—')
-        : ($row->cost_center_name_en ?? $row->cost_center_name_ar ?? '—');
+        ? ($row->costCenter?->name_ar ?? $row->costCenter?->name_en ?? '—')
+        : ($row->costCenter?->name_en ?? $row->costCenter?->name_ar ?? '—');
 
-      $detailUrl = ! empty($row->atm_id)
-        ? action('\Modules\Accounting\Http\Controllers\JournalEntryController@print', [$row->atm_id])
-        : null;
+      $establishment = $transaction?->establishment;
+      $establishmentName = '—';
+      if ($establishment) {
+        $establishmentName = app()->getLocale() === 'ar'
+          ? ($establishment->name ?? '—')
+          : ($establishment->name_en ?? $establishment->name ?? '—');
+      }
+
+      $description = AccountingNote::resolveForDisplay(
+        $row->note,
+        $row->accTransMapping?->note
+      );
+      if ($description === '' || $description === '—') {
+        $description = $subTypeLabel;
+        if ($transaction?->ref_no) {
+          $description = trim($transaction->ref_no.' — '.$subTypeLabel);
+        }
+      }
 
       $category = static::resolveCategory($row->sub_type);
 
@@ -364,19 +473,19 @@ final class CustomerSupplierStatementReportService
         'ref_no' => $ref,
         'transaction_type' => $subTypeLabel,
         'category' => $category,
-        'description' => $row->note ?: $subTypeLabel,
-        'establishment_name' => $row->establishment_name ?? '—',
+        'description' => $description,
+        'establishment_name' => $establishmentName,
         'cost_center' => $costCenter,
         'debit' => $debit,
         'credit' => $credit,
         'running_balance' => $running,
-        'added_by' => $row->added_by ?? '—',
-        'detail_url' => $detailUrl,
-        'group_key' => (string) ($row->atm_id ?: ('t-'.$row->transaction_id)),
+        'added_by' => $row->createdBy?->name ?? '—',
+        'detail_url' => $row->ledgerDetailUrl(),
+        'group_key' => (string) ($row->acc_trans_mapping_id ?: ('aat-'.$row->id)),
         'is_important' => in_array($category, ['invoice', 'payment', 'return'], true)
-          || in_array($row->payment_status ?? '', ['due', 'partial'], true),
-        'tax_amount' => isset($row->tax_amount) ? (float) $row->tax_amount : null,
-        'payment_status' => $row->payment_status ?? null,
+          || in_array($transaction?->payment_status ?? '', ['due', 'partial'], true),
+        'tax_amount' => $transaction?->tax_amount !== null ? (float) $transaction->tax_amount : null,
+        'payment_status' => $transaction?->payment_status ?? null,
       ];
     }
 
@@ -422,12 +531,17 @@ final class CustomerSupplierStatementReportService
     float $periodDebit,
     float $periodCredit,
     int $transactionCount,
-    float $closingBalance
+    float $closingBalance,
+    array $aging = []
   ): array {
     $invoices = $categoryTotals['invoice'] ?? 0.0;
     $payments = ($categoryTotals['payment'] ?? 0.0) + ($categoryTotals['voucher'] ?? 0.0);
     $returns = $categoryTotals['return'] ?? 0.0;
-    $amountDue = max(0, $closingBalance);
+    $amountDue = max(0.0, round($closingBalance, 2));
+    $agingDue = max(0.0, round((float) ($aging['buckets']['total_due'] ?? 0), 2));
+    if ($agingDue > $amountDue) {
+      $amountDue = $agingDue;
+    }
     $amountPaid = $payments;
 
     return [
@@ -511,7 +625,7 @@ final class CustomerSupplierStatementReportService
         $costCenterIds,
         $establishmentIds
       );
-      $closing = $opening + static::periodNetMovement($periodRows);
+      $closing = $opening + static::periodNetMovement($periodRows, static::resolveIsDebitNatureForContact($contactId));
 
       $labels[] = $label;
       $balances[] = round($closing, 2);
@@ -710,13 +824,17 @@ final class CustomerSupplierStatementReportService
   /** @return array<int, string> */
   private static function availableSubTypes(int $contactId, string $startDate, string $endDate): array
   {
-    return Contact::where('cs_contacts.id', $contactId)
-      ->join('transactions as t', 'cs_contacts.id', '=', 't.contact_id')
-      ->join('accounting_accounts_transactions as aat', 't.id', '=', 'aat.transaction_id')
-      ->whereDate('aat.operation_date', '>=', $startDate)
-      ->whereDate('aat.operation_date', '<=', $endDate)
+    $accountId = static::contactAccountId($contactId);
+    if (! $accountId) {
+      return [];
+    }
+
+    return AccountingAccountsTransaction::query()
+      ->where('accounting_account_id', $accountId)
+      ->whereDate('operation_date', '>=', $startDate)
+      ->whereDate('operation_date', '<=', $endDate)
       ->distinct()
-      ->pluck('aat.sub_type')
+      ->pluck('sub_type')
       ->filter()
       ->values()
       ->all();
@@ -725,10 +843,14 @@ final class CustomerSupplierStatementReportService
   /** @return Collection<int, object> */
   private static function usersForContact(int $contactId, string $startDate, string $endDate): Collection
   {
+    $accountId = static::contactAccountId($contactId);
+    if (! $accountId) {
+      return collect();
+    }
+
     return DB::table('accounting_accounts_transactions as aat')
-      ->join('transactions as t', 't.id', '=', 'aat.transaction_id')
       ->join('emp_employees as u', 'u.id', '=', 'aat.created_by')
-      ->where('t.contact_id', $contactId)
+      ->where('aat.accounting_account_id', $accountId)
       ->whereDate('aat.operation_date', '>=', $startDate)
       ->whereDate('aat.operation_date', '<=', $endDate)
       ->select('u.id', 'u.name')

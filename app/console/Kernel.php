@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         // Register your commands here
         \Modules\Inventory\Notifications\CheckLowStockReminder::class,
+        \Modules\Zatca\Console\SyncPendingZatcaSellsCommand::class,
     ];
 
     /**
@@ -26,6 +27,10 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('inventory:ten-minute-reminder')->everyMinute()
             ->sendOutputTo(storage_path('logs/inventory_schedule_output.log'));
+
+        $schedule->command('zatca:sync-pending-sells')->dailyAt('00:00')
+            ->timezone('Asia/Riyadh')
+            ->sendOutputTo(storage_path('logs/zatca_daily_sync.log'));
     }
 
     /**
@@ -36,6 +41,7 @@ class Kernel extends ConsoleKernel
     protected function commands()
     {
         $this->load(__DIR__.'/Modules/Inventory/Notifications');
+        $this->load(base_path('Modules/Zatca/Console'));
 
         require base_path('routes/console.php');
     }

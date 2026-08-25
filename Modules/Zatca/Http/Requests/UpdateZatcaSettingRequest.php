@@ -31,10 +31,10 @@ class UpdateZatcaSettingRequest extends FormRequest
             'organization_name' => ['required', 'string', 'max:191'],
             'country_code' => ['required', 'string', 'size:2'],
             'city' => ['required', 'string', 'max:191'],
-            'building_number' => ['required', 'string', 'max:16'],
-            'postal_code' => ['required', 'string', 'max:16'],
+            'building_number' => ['required', 'regex:/^\d{4}$/'],
+            'postal_code' => ['required', 'regex:/^\d{5}$/'],
             'district' => ['required', 'string', 'max:191'],
-            'street_name' => ['nullable', 'string', 'max:191'],
+            'street_name' => ['required', 'string', 'max:191'],
             'plot_identification' => ['nullable', 'string', 'max:32'],
             'email_address' => ['required', 'email', 'max:191'],
             'otp' => ['required', 'string', 'max:32'],
@@ -51,6 +51,8 @@ class UpdateZatcaSettingRequest extends FormRequest
         return [
             'vat_number.regex' => __('zatca::lang.vat_number_invalid'),
             'organization_unit.regex' => __('zatca::lang.organization_unit_invalid'),
+            'building_number.regex' => __('zatca::lang.zatca_err_building_number'),
+            'postal_code.regex' => __('zatca::lang.zatca_err_postal_code'),
             'zatca_app_key.required' => __('zatca::lang.app_key_required_production'),
             'otp.required' => __('zatca::lang.otp_required'),
         ];
@@ -60,10 +62,21 @@ class UpdateZatcaSettingRequest extends FormRequest
     {
         $vat = preg_replace('/\D+/', '', (string) $this->input('vat_number', ''));
         $ou = preg_replace('/\D+/', '', (string) $this->input('organization_unit', ''));
+        $building = preg_replace('/\D+/', '', (string) $this->input('building_number', ''));
+        $postal = preg_replace('/\D+/', '', (string) $this->input('postal_code', ''));
+
+        if ($building !== '') {
+            $building = strlen($building) > 4 ? substr($building, -4) : str_pad($building, 4, '0', STR_PAD_LEFT);
+        }
+        if ($postal !== '') {
+            $postal = strlen($postal) > 5 ? substr($postal, 0, 5) : str_pad($postal, 5, '0', STR_PAD_LEFT);
+        }
 
         $this->merge([
             'vat_number' => $vat,
             'organization_unit' => $ou,
+            'building_number' => $building,
+            'postal_code' => $postal,
             'country_code' => strtoupper((string) ($this->input('country_code') ?: 'SA')),
             'generate_certificates' => $this->boolean('generate_certificates'),
         ]);

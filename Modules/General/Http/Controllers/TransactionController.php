@@ -9,11 +9,34 @@ use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Zatca\Models\ZatcaInvoiceSync;
 use Mpdf\Mpdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TransactionController extends Controller
 {
+    private function resolveInvoiceQrPayload(Transaction $transaction, object $company): string
+    {
+        $sync = ZatcaInvoiceSync::query()
+            ->where('transaction_id', $transaction->id)
+            ->where('status', ZatcaInvoiceSync::STATUS_SYNCED)
+            ->whereNotNull('qr_tlv')
+            ->first();
+
+        if ($sync?->qr_tlv) {
+            return (string) $sync->qr_tlv;
+        }
+
+        $transactionUtil = new TransactionUtils;
+
+        return $transactionUtil->generateZatcaQr(
+            $company->name,
+            $company->tax_number,
+            $transaction->transaction_date,
+            $transaction->final_total,
+            $transaction->tax_amount
+        );
+    }
     /**
      * Display a listing of the resource.
      */
@@ -50,17 +73,9 @@ class TransactionController extends Controller
         if (! $transaction) {
             return redirect()->back();
         }
-        $transactionUtil = new TransactionUtils;
-        $qrData = $transactionUtil->generateZatcaQr(
-            $company->name,
-            $company->tax_number,
-            $transaction->transaction_date,
-            $transaction->final_total,
-            $transaction->tax_amount
-        );
 
         // SVG avoids Imagick (PNG backend); safe for HTML and mPDF via print/export views
-        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         return view('general::transactions.show', compact('transaction', 'qrCode', 'company'));
     }
@@ -151,16 +166,7 @@ class TransactionController extends Controller
 
         $transaction = Transaction::find($id);
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-        $transactionUtil = new TransactionUtils;
-        $qrData = $transactionUtil->generateZatcaQr(
-            $company->name,
-            $company->tax_number,
-            $transaction->transaction_date,
-            $transaction->final_total,
-            $transaction->tax_amount
-        );
-
-        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         return view('general::transactions.print', compact('transaction', 'qrCode', 'company'));
     }
@@ -170,16 +176,7 @@ class TransactionController extends Controller
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
-        $transactionUtil = new TransactionUtils;
-        $qrData = $transactionUtil->generateZatcaQr(
-            $company->name,
-            $company->tax_number,
-            $transaction->transaction_date,
-            $transaction->final_total,
-            $transaction->tax_amount
-        );
-
-        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         return view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'));
     }
@@ -189,17 +186,7 @@ class TransactionController extends Controller
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::find($id);
-
-        $transactionUtil = new TransactionUtils;
-        $qrData = $transactionUtil->generateZatcaQr(
-            $company->name,
-            $company->tax_number,
-            $transaction->transaction_date,
-            $transaction->final_total,
-            $transaction->tax_amount
-        );
-
-        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         $html = view('general::transactions.print', compact('transaction', 'qrCode', 'company'))->render();
 
@@ -223,16 +210,7 @@ class TransactionController extends Controller
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
-        $transactionUtil = new TransactionUtils;
-        $qrData = $transactionUtil->generateZatcaQr(
-            $company->name,
-            $company->tax_number,
-            $transaction->transaction_date,
-            $transaction->final_total,
-            $transaction->tax_amount
-        );
-
-        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         $html = view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'))->render();
 
@@ -262,16 +240,7 @@ class TransactionController extends Controller
             $amount = 0;
         }
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-        $transactionUtil = new TransactionUtils;
-        $qrData = $transactionUtil->generateZatcaQr(
-            $company->name,
-            $company->tax_number,
-            $transaction->transaction_date,
-            $transaction->final_total,
-            $transaction->tax_amount
-        );
-
-        $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
+        $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         return view('general::transactions.show-payments', compact('transaction', 'qrCode', 'company', 'accounts', 'amount'));
     }

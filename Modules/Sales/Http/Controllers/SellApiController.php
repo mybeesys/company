@@ -27,6 +27,8 @@ use Modules\Sales\Services\PosInvoiceServiceFeeApplier;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
+use Modules\Zatca\Services\ZatcaAutoSyncService;
+use Modules\Zatca\Services\ZatcaSalesRulesApplier;
 
 class SellApiController extends Controller
 {
@@ -57,6 +59,7 @@ class SellApiController extends Controller
     {
 
         try {
+            app(ZatcaSalesRulesApplier::class)->applyToRequest($request);
 
             $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
@@ -379,6 +382,13 @@ class SellApiController extends Controller
             }
 
             DB::commit();
+
+            if (
+                ! $isInternalConsumption
+                && in_array((string) $transaction->status, ['approved', 'final'], true)
+            ) {
+                app(ZatcaAutoSyncService::class)->queueIfInstant((int) $transaction->id);
+            }
 
             $transaction->load(['sell_lines.product']);
             if (

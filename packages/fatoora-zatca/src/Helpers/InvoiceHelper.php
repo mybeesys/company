@@ -32,17 +32,17 @@ class InvoiceHelper
             // generate groups by tax percentage...
             foreach($taxPercentages as $taxPercentage) {
 
-                // check exempt tax category code and eleminate none zero tax percentage...
-                if($taxCategoryCode === TaxCategoryCode::STANDARD_RATE && $taxPercentage === 0.0) {
-                    continue;
-                }
-
-                // check exempt tax category code and eleminate none zero tax percentage...
-                if(self::isExemptTaxCategoryCode($taxCategoryCode) && $taxPercentage !== 0.0) {
-                    continue;
-                }
-
                 $taxPercentage = (float) $taxPercentage;
+
+                // check exempt tax category code and eleminate none zero tax percentage...
+                if($taxCategoryCode === TaxCategoryCode::STANDARD_RATE && abs($taxPercentage) < 0.00001) {
+                    continue;
+                }
+
+                // check exempt tax category code and eleminate none zero tax percentage...
+                if(self::isExemptTaxCategoryCode($taxCategoryCode) && abs($taxPercentage) > 0.00001) {
+                    continue;
+                }
 
                 // filter invoice items and get only taxable...
                 $taxableItems = array_values(
@@ -50,7 +50,7 @@ class InvoiceHelper
                         $invoiceItems,
                         function(InvoiceItem $item) use ($taxCategoryCode, $taxPercentage) {
                             return $item->tax_category_code === $taxCategoryCode &&
-                            $item->tax_percent === $taxPercentage;
+                            abs((float) $item->tax_percent - $taxPercentage) < 0.00001;
                         }
                     )
                 );

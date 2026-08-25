@@ -40,6 +40,8 @@ use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\WebSellModifiersCombosService;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
+use Modules\Zatca\Services\ZatcaAutoSyncService;
+use Modules\Zatca\Services\ZatcaSalesRulesApplier;
 use Mpdf\Mpdf;
 
 // use Illuminate\Support\Facades\Log;
@@ -696,6 +698,24 @@ class SellController extends Controller
             ? true
             : ((int) $invoiceServiceFeesSetting === 1);
 
+        $zatcaOps = [
+            'disable_discount' => false,
+            'disable_order_tax' => false,
+            'default_sales_discount' => 0,
+        ];
+        try {
+            if (config('zatca.show_in_menu', true)) {
+                $zatcaSetting = \Modules\Zatca\Models\ZatcaSetting::current();
+                $zatcaOps = [
+                    'disable_discount' => (bool) $zatcaSetting->disable_discount,
+                    'disable_order_tax' => (bool) $zatcaSetting->disable_order_tax,
+                    'default_sales_discount' => (float) ($zatcaSetting->default_sales_discount ?? 0),
+                ];
+            }
+        } catch (\Throwable) {
+            // Tenant / module not ready.
+        }
+
         return view('sales::sell.create', compact(
             'clients',
             'settings',
@@ -719,7 +739,8 @@ class SellController extends Controller
             'invoiceServiceFees',
             'defaultEstablishmentId',
             'invoiceServiceFeesEnabled',
-            'paymentMethodFees'
+            'paymentMethodFees',
+            'zatcaOps'
         ));
     }
 
@@ -891,6 +912,8 @@ class SellController extends Controller
     private function persistSellInvoice(Request $request)
     {
         // return $request;
+
+        app(ZatcaSalesRulesApplier::class)->applyToRequest($request);
 
         // try {
         $actionUtil = new ActionUtil;
@@ -1368,6 +1391,11 @@ class SellController extends Controller
         }
 
         DB::commit();
+
+        if (in_array((string) $transaction->status, ['approved', 'final'], true)) {
+            app(ZatcaAutoSyncService::class)->queueIfInstant((int) $transaction->id);
+        }
+
         if ($request->action == 'save_print') {
             return $this->respondSellInvoiceStoreSuccess(
                 $request,

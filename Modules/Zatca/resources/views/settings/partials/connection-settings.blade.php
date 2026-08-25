@@ -1,5 +1,11 @@
-<div class="z-banner">
-    {{ __('zatca::lang.env_help') }}
+@include('zatca::settings.partials.setup-readiness', ['readiness' => $readiness])
+
+<div class="z-banner d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>{{ __('zatca::lang.env_help') }}</div>
+    <button type="button" class="btn btn-sm btn-light-dark" id="btn-zatca-fill-sandbox">
+        <i class="fa fa-flask me-1"></i>
+        {{ __('zatca::lang.fill_sandbox_sample') }}
+    </button>
 </div>
 
 <form method="POST" action="{{ route('zatca.settings.update') }}" id="zatca-settings-form">
@@ -108,12 +114,16 @@
                 <div class="col-md-4">
                     <label class="form-label required" for="building_number">{{ __('zatca::lang.building_number') }}</label>
                     <input type="text" name="building_number" id="building_number" class="form-control form-control-solid"
-                           value="{{ old('building_number', $setting->building_number) }}" required>
+                           value="{{ old('building_number', $setting->building_number) }}"
+                           maxlength="4" inputmode="numeric" pattern="\d{4}" required>
+                    <div class="z-help">{{ __('zatca::lang.zatca_err_building_number') }}</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label required" for="postal_code">{{ __('zatca::lang.postal_code') }}</label>
                     <input type="text" name="postal_code" id="postal_code" class="form-control form-control-solid"
-                           value="{{ old('postal_code', $setting->postal_code) }}" required>
+                           value="{{ old('postal_code', $setting->postal_code) }}"
+                           maxlength="5" inputmode="numeric" pattern="\d{5}" required>
+                    <div class="z-help">{{ __('zatca::lang.zatca_err_postal_code') }}</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label" for="plot_identification">{{ __('zatca::lang.plot_identification') }}</label>
@@ -162,7 +172,7 @@
         </div>
     </div>
 
-    <div class="z-card">
+    <div class="z-card" id="zatca-credentials-card">
         <div class="z-card-header">
             <h2 class="z-card-title">{{ __('zatca::lang.section_credentials') }}</h2>
         </div>

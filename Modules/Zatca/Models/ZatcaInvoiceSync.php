@@ -12,11 +12,16 @@ class ZatcaInvoiceSync extends Model
 
     protected $fillable = [
         'transaction_id',
+        'invoice_uuid',
         'report_type',
+        'synced_environment',
         'status',
+        'reporting_status',
         'last_error',
         'response_payload',
         'invoice_hash',
+        'qr_tlv',
+        'cleared_invoice',
         'last_attempt_at',
         'synced_at',
     ];
