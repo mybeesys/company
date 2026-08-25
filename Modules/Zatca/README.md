@@ -46,4 +46,13 @@ Production requires a valid `ZATCA_APP_KEY` (also enterable on the settings page
 | Invoice type | `invoiceType` (`0100`/`1000`/`1100`) |
 | Country | `countryName` |
 
-Address fields (city, district, postal, …) are stored for later `Seller` construction when reporting invoices.
+## Invoice reporting (sell)
+
+1. Configure certificates on **Connection settings**
+2. Open **Send sell invoice** tab
+3. Sync one invoice or select many (B2C / B2B)
+4. Status + PIH hash chain are stored in `zatca_invoice_syncs` / `zatca_settings`
+
+Services:
+- `ZatcaInvoiceMapper` — ERP sell → Seller / Client / Invoice / InvoiceItem
+- `ZatcaSellSyncService` — report via `B2C` / `B2B`, persist result, lock hash chain

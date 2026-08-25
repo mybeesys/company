@@ -49,8 +49,8 @@
                 @endif
             </div>
             <div class="d-flex flex-wrap gap-2 flex-shrink-0">
-                <button type="button" class="btn btn-sm btn-light-primary" id="cssExpandGroups">@lang('accounting::lang.css_expand_all')</button>
-                <button type="button" class="btn btn-sm btn-light" id="cssCollapseGroups">@lang('accounting::lang.css_collapse_all')</button>
+                <button type="button" class="btn btn-sm btn-light-primary" id="cssCollapseGroups">@lang('accounting::lang.css_collapse_all')</button>
+                <button type="button" class="btn btn-sm btn-light" id="cssExpandGroups">@lang('accounting::lang.css_expand_all')</button>
                 <button type="button" class="btn btn-sm btn-light-primary" onclick="window.print()">
                     <i class="fa fa-print"></i> @lang('general.print')
                 </button>
@@ -316,7 +316,7 @@
                             $rowClass = trim(implode(' ', array_filter([
                                 $isOpening ? 'css-opening-row' : '',
                                 !empty($line['is_important']) ? 'css-important-row' : '',
-                                $isGroupStart ? '' : (!$isOpening ? 'css-group-child css-visible' : ''),
+                                $isGroupStart ? '' : (!$isOpening ? 'css-group-child' : ''),
                             ])));
                         @endphp
                         <tr class="{{ $rowClass }}" data-css-group="{{ $groupKey }}" @if($isGroupStart && !$isOpening) data-css-group-parent="1" @endif>
@@ -476,6 +476,9 @@
 
             $('#cssExpandGroups').on('click', () => $('.css-group-child').addClass('css-visible'));
             $('#cssCollapseGroups').on('click', () => $('.css-group-child').removeClass('css-visible'));
+
+            // Default: collapsed groups
+            $('.css-group-child').removeClass('css-visible');
         });
     </script>
 @endsection

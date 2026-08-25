@@ -1,10 +1,5 @@
 <?php
 
-use Bl\FatooraZatca\Exemptions\Exempt;
-use Bl\FatooraZatca\Exemptions\ZeroRate;
-use Bl\FatooraZatca\Exemptions\OutOfScope;
-use Bl\FatooraZatca\Classes\TaxCategoryCode;
-
 return [
 
     /**
@@ -28,17 +23,23 @@ return [
      * Set ZATCA_SHOW_IN_MENU=false in .env to hide the link without removing the module.
      */
     'show_in_menu' => filter_var(env('ZATCA_SHOW_IN_MENU', true), FILTER_VALIDATE_BOOLEAN),
+
+    /**
+     * Soft brand accent for ZATCA PDF (hex). Defaults to Metronic --bs-primary.
+     */
+    'pdf_primary_color' => env('ZATCA_PDF_PRIMARY', '#e9b71f'),
+
     'exemptions' => [
-        TaxCategoryCode::ZERO_RATE => [
-            'code' => ZeroRate::EXPORT_OF_GOODS,
+        'Z' => [
+            'code' => 'VATEX-SA-32',
             'reason' => 'Export of goods',
         ],
-        TaxCategoryCode::EXEMPT => [
-            'code' => Exempt::MEDICAL_INSURANCE,
+        'E' => [
+            'code' => 'VATEX-SA-29-7',
             'reason' => 'Financial services mentioned in Article 29 of the VAT Regulations',
         ],
-        TaxCategoryCode::OUT_OF_SCOPE => [
-            'code' => OutOfScope::DEFAULT_CODE,
+        'O' => [
+            'code' => 'VATEX-SA-OOS',
             'reason' => 'Exempt',
         ],
     ],

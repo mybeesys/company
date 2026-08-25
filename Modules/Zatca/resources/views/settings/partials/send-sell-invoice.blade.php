@@ -30,7 +30,7 @@
             <div class="alert alert-warning mb-0">
                 {{ __('zatca::lang.send_requires_credentials') }}
             </div>
-        @elseif ($sellInvoices->isEmpty())
+        @elseif ($sellInvoices->total() === 0)
             <div class="alert alert-secondary mb-0">{{ __('zatca::lang.no_sell_invoices') }}</div>
         @else
             <form method="POST" action="{{ route('zatca.settings.sync-sell') }}" id="zatca-sync-sell-form">
@@ -98,7 +98,8 @@
                                             <input class="form-check-input zatca-row-check"
                                                    type="checkbox"
                                                    name="transaction_ids[]"
-                                                   value="{{ $invoice->id }}">
+                                                   value="{{ $invoice->id }}"
+                                                   @disabled($status === 'synced')>
                                         </div>
                                     </td>
                                     <td>
@@ -108,38 +109,90 @@
                                     <td>{{ \Illuminate\Support\Carbon::parse($invoice->transaction_date)->format('Y-m-d') }}</td>
                                     <td class="text-end">{{ number_format((float) $invoice->final_total, 2) }}</td>
                                     <td>
-                                        <select name="report_types[{{ $invoice->id }}]"
-                                                class="form-select form-select-solid form-select-sm zatca-row-type"
-                                                style="min-width: 100px;">
-                                            <option value="B2C" @selected($rowType === 'B2C')>B2C</option>
-                                            <option value="B2B" @selected($rowType === 'B2B')>B2B</option>
-                                        </select>
+                                        @if ($status === 'synced')
+                                            <span class="badge badge-light">{{ $rowType }}</span>
+                                            <input type="hidden" name="report_types[{{ $invoice->id }}]" value="{{ $rowType }}">
+                                        @else
+                                            <select name="report_types[{{ $invoice->id }}]"
+                                                    class="form-select form-select-solid form-select-sm zatca-row-type"
+                                                    style="min-width: 100px;">
+                                                <option value="B2C" @selected($rowType === 'B2C')>B2C</option>
+                                                <option value="B2B" @selected($rowType === 'B2B')>B2B</option>
+                                            </select>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
+                                        @if ($sync?->reporting_status)
+                                            @php
+                                                $statusKey = 'zatca::lang.reporting_status_'.strtolower((string) $sync->reporting_status);
+                                                $statusLabel = __($statusKey);
+                                                if ($statusLabel === $statusKey) {
+                                                    $statusLabel = $sync->reporting_status;
+                                                }
+                                            @endphp
+                                            <div class="text-muted small mt-1">{{ $statusLabel }}</div>
+                                        @endif
                                         @if ($sync?->last_error)
-                                            <div class="text-danger small mt-1" style="max-width: 220px;"
-                                                 title="{{ $sync->last_error }}">
-                                                {{ \Illuminate\Support\Str::limit($sync->last_error, 80) }}
+                                            @php
+                                                $errorLines = preg_split("/\r\n|\n|\r/", (string) $sync->last_error) ?: [];
+                                                $firstError = $errorLines[0] ?? $sync->last_error;
+                                            @endphp
+                                            <div class="z-sync-row-error mt-1" title="{{ $sync->last_error }}">
+                                                {{ \Illuminate\Support\Str::limit($firstError, 120) }}
+                                                @if (count($errorLines) > 1)
+                                                    <div class="text-muted">+{{ count($errorLines) - 1 }}</div>
+                                                @endif
                                             </div>
                                         @endif
                                     </td>
                                     <td class="text-muted small">
                                         {{ $sync?->last_attempt_at?->format('Y-m-d H:i') ?? __('zatca::lang.never') }}
                                     </td>
-                                    <td class="text-end">
-                                        <button type="button"
-                                                class="btn btn-sm btn-light-primary zatca-sync-one-btn"
-                                                data-transaction-id="{{ $invoice->id }}"
-                                                title="{{ __('zatca::lang.sync_one') }}">
-                                            <i class="fa fa-cloud-upload-alt"></i>
-                                            {{ __('zatca::lang.sync_one') }}
-                                        </button>
+                                    <td class="text-end text-nowrap">
+                                        @if ($status === 'synced')
+                                            <div class="btn-group">
+                                                <a href="{{ route('zatca.documents.pdf', $invoice->id) }}"
+                                                   class="btn btn-sm btn-light-danger"
+                                                   title="{{ __('zatca::lang.download_pdf') }}">
+                                                    <i class="fa fa-file-pdf"></i>
+                                                </a>
+                                                <a href="{{ route('zatca.documents.xml', $invoice->id) }}"
+                                                   class="btn btn-sm btn-light-primary"
+                                                   title="{{ __('zatca::lang.download_xml') }}">
+                                                    <i class="fa fa-file-code"></i>
+                                                </a>
+                                                <a href="{{ route('zatca.documents.qr', $invoice->id) }}"
+                                                   class="btn btn-sm btn-light-dark"
+                                                   title="{{ __('zatca::lang.download_qr') }}">
+                                                    <i class="fa fa-qrcode"></i>
+                                                </a>
+                                            </div>
+                                        @else
+                                            <button type="button"
+                                                    class="btn btn-sm btn-light-primary zatca-sync-one-btn"
+                                                    data-transaction-id="{{ $invoice->id }}"
+                                                    title="{{ __('zatca::lang.sync_one') }}">
+                                                <i class="fa fa-cloud-upload-alt"></i>
+                                                {{ __('zatca::lang.sync_one') }}
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+                    <div class="text-muted small">
+                        {{ __('zatca::lang.pagination_showing', [
+                            'from' => $sellInvoices->firstItem() ?? 0,
+                            'to' => $sellInvoices->lastItem() ?? 0,
+                            'total' => $sellInvoices->total(),
+                        ]) }}
+                    </div>
+                    {{ $sellInvoices->onEachSide(1)->links('zatca::pagination.bootstrap') }}
                 </div>
 
                 <div class="z-help mt-3">{{ __('zatca::lang.sync_table_help') }}</div>

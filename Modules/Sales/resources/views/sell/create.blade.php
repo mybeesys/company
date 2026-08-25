@@ -1069,6 +1069,26 @@ $.ajax({
             }
             ensureAtLeastOneSalesLineRow();
 
+            @if (! empty($zatcaOps))
+            (function applyZatcaOpsRules() {
+                const ops = @json($zatcaOps);
+                if (ops.disable_discount) {
+                    $('#invoice_discount').val(0).prop('readonly', true).prop('disabled', true);
+                    $('#invoiced_discount_type').prop('disabled', true).val('fixed');
+                    $('#input-invoiced_discount').val(0);
+                } else if (ops.default_sales_discount > 0 && !$('#invoice_discount').val()) {
+                    $('#invoice_discount').val(ops.default_sales_discount);
+                    $('#invoiced_discount_type').val('percentage').trigger('change');
+                }
+                if (ops.disable_order_tax) {
+                    $('input[name="service_fee_tax"], #service_fee_tax').val(0).prop('readonly', true);
+                }
+                if (typeof updateSalesTotals === 'function') {
+                    updateSalesTotals();
+                }
+            })();
+            @endif
+
         });
     </script>
 @stop

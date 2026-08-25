@@ -14,6 +14,10 @@ class ZatcaSetting extends Model
     protected $casts = [
         'generated_credentials' => 'array',
         'credentials_generated_at' => 'datetime',
+        'disable_discount' => 'boolean',
+        'disable_order_tax' => 'boolean',
+        'lock_synced_invoices' => 'boolean',
+        'default_sales_discount' => 'float',
     ];
 
     protected $hidden = [

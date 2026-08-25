@@ -13,6 +13,7 @@ use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Sales\Support\TransactionPurpose;
+use Modules\Zatca\Models\ZatcaInvoiceSync;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\General\Database\Factories\TransactionFactory;
@@ -83,6 +84,16 @@ class Transaction extends Model
     public function accountsTransactions()
     {
         return $this->hasOne(AccountingAccountsTransaction::class, 'transaction_id');
+    }
+
+    public function zatcaInvoiceSync()
+    {
+        return $this->hasOne(ZatcaInvoiceSync::class, 'transaction_id');
+    }
+
+    public function parentSell()
+    {
+        return $this->belongsTo(self::class, 'parent_id');
     }
 
     public function createdBy()

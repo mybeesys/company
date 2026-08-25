@@ -24,6 +24,8 @@ use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Sales\Services\SellReturnRepairService;
 use Modules\Sales\Utils\SalesUtile;
+use Modules\Zatca\Services\ZatcaAutoSyncService;
+use Modules\Zatca\Services\ZatcaInvoiceGuard;
 
 class SellReturnController extends Controller
 {
@@ -171,6 +173,12 @@ class SellReturnController extends Controller
             return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
         }
 
+        try {
+            app(ZatcaInvoiceGuard::class)->assertParentSyncedForReturn($sell);
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+
         $ref_no = SalesUtile::generateReferenceNumber('sell-return');
         $transactionUtil = new TransactionUtils;
         DB::beginTransaction();
@@ -278,11 +286,9 @@ class SellReturnController extends Controller
         }
         DB::commit();
 
+        app(ZatcaAutoSyncService::class)->queueIfInstant((int) $transaction->id);
+
         return redirect()->route('invoices')->with('success', __('messages.add_successfully'));
-        // } catch (Exception $e) {
-        //     DB::rollBack();
-        //     return redirect()->route('invoices')->with('error', __('messages.something_went_wrong'));
-        // }
     }
 
     public function storeSellReturn(Request $request)
