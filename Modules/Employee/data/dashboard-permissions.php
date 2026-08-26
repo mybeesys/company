@@ -2426,4 +2426,118 @@ return [
         'type' => 'ems',
     ],
 
+    // ─── ZATCA Phase 2 e-invoicing ───────────────────────────────────────────
+    [
+        'name' => 'zatca.all.show',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'zatca.all.print',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'zatca.all.create',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'zatca.all.update',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'zatca.all.delete',
+        'name_ar' => '',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'zatca.Settings.show',
+        'name_ar' => 'إعدادات الربط',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'zatca.Settings.update',
+        'name_ar' => 'إعدادات الربط',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'zatca.Operations.show',
+        'name_ar' => 'العمليات والقواعد',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'zatca.Operations.update',
+        'name_ar' => 'العمليات والقواعد',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'zatca.E-invoicing.show',
+        'name_ar' => 'الفوترة الإلكترونية',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'zatca.Sync.create',
+        'name_ar' => 'مزامنة الفواتير مع الهيئة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'zatca.Regenerate.create',
+        'name_ar' => 'إعادة توليد الشهادات',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'zatca.Purge sandbox.create',
+        'name_ar' => 'حذف بيانات التجربة',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
+        'name' => 'zatca.Documents.show',
+        'name_ar' => 'مستندات ZATCA',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'zatca.Documents.print',
+        'name_ar' => 'مستندات ZATCA',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
 ];

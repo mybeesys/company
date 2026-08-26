@@ -13,10 +13,17 @@
         'failed' => __('zatca::lang.status_failed'),
         default => __('zatca::lang.status_pending'),
     };
-    $activeTab = old('active_tab', session('active_tab', request('tab', 'connection')));
+    $activeTab = $activeTab ?? old('active_tab', session('active_tab', request('tab', 'connection')));
     if (! in_array($activeTab, ['connection', 'operations'], true)) {
         $activeTab = 'connection';
     }
+    $canSettingsShow = $canSettingsShow ?? false;
+    $canOperationsShow = $canOperationsShow ?? false;
+    $canSettingsUpdate = $canSettingsUpdate ?? false;
+    $canOperationsUpdate = $canOperationsUpdate ?? false;
+    $canRegenerate = $canRegenerate ?? false;
+    $canPurgeSandbox = $canPurgeSandbox ?? false;
+    $canEinvoicingShow = $canEinvoicingShow ?? false;
 @endphp
 
 <div class="container-fluid zatca-settings py-4">
@@ -34,10 +41,12 @@
                     {{ $setting->credentials_generated_at?->format('Y-m-d H:i') ?? __('zatca::lang.never') }}
                 </span>
             </div>
-            <a href="{{ route('zatca.einvoicing.index') }}" class="btn btn-sm btn-light-primary">
-                <i class="fa fa-file-invoice me-1"></i>
-                {{ __('zatca::lang.einvoicing_page_title') }}
-            </a>
+            @if ($canEinvoicingShow)
+                <a href="{{ route('zatca.einvoicing.index') }}" class="btn btn-sm btn-light-primary">
+                    <i class="fa fa-file-invoice me-1"></i>
+                    {{ __('zatca::lang.einvoicing_page_title') }}
+                </a>
+            @endif
         </div>
     </div>
 
@@ -61,32 +70,40 @@
 
     <div class="d-flex flex-column flex-row-fluid gap-5">
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link justify-content-center text-active-gray-800 {{ $activeTab === 'connection' ? 'active' : '' }}"
-                   href="{{ route('zatca.settings.edit', ['tab' => 'connection']) }}">
-                    {{ __('zatca::lang.tab_connection') }}
-                </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link justify-content-center text-active-gray-800 {{ $activeTab === 'operations' ? 'active' : '' }}"
-                   href="{{ route('zatca.settings.edit', ['tab' => 'operations']) }}">
-                    {{ __('zatca::lang.tab_operations') }}
-                </a>
-            </li>
+            @if ($canSettingsShow)
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link justify-content-center text-active-gray-800 {{ $activeTab === 'connection' ? 'active' : '' }}"
+                       href="{{ route('zatca.settings.edit', ['tab' => 'connection']) }}">
+                        {{ __('zatca::lang.tab_connection') }}
+                    </a>
+                </li>
+            @endif
+            @if ($canOperationsShow)
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link justify-content-center text-active-gray-800 {{ $activeTab === 'operations' ? 'active' : '' }}"
+                       href="{{ route('zatca.settings.edit', ['tab' => 'operations']) }}">
+                        {{ __('zatca::lang.tab_operations') }}
+                    </a>
+                </li>
+            @endif
         </ul>
 
         <div class="tab-content">
-            <div class="tab-pane fade {{ $activeTab === 'connection' ? 'show active' : '' }}"
-                 id="zatca_connection_tab"
-                 role="tabpanel">
-                @include('zatca::settings.partials.connection-settings')
-            </div>
+            @if ($canSettingsShow)
+                <div class="tab-pane fade {{ $activeTab === 'connection' ? 'show active' : '' }}"
+                     id="zatca_connection_tab"
+                     role="tabpanel">
+                    @include('zatca::settings.partials.connection-settings')
+                </div>
+            @endif
 
-            <div class="tab-pane fade {{ $activeTab === 'operations' ? 'show active' : '' }}"
-                 id="zatca_operations_tab"
-                 role="tabpanel">
-                @include('zatca::settings.partials.operations')
-            </div>
+            @if ($canOperationsShow)
+                <div class="tab-pane fade {{ $activeTab === 'operations' ? 'show active' : '' }}"
+                     id="zatca_operations_tab"
+                     role="tabpanel">
+                    @include('zatca::settings.partials.operations')
+                </div>
+            @endif
         </div>
     </div>
 </div>

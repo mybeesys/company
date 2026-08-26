@@ -71,6 +71,7 @@ return [
     'generation_failed' => 'ZATCA certificate generation failed: :error',
     'package_missing' => 'Bl\\FatooraZatca package is not installed. See installation docs.',
     'menu_card' => 'ZATCA e-invoicing',
+    'permission_denied' => 'You do not have permission to access this ZATCA action.',
     'never' => '—',
     'tab_connection' => 'Connection settings',
     'tab_send_sell' => 'Send sell invoices',

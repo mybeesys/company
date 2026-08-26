@@ -1,10 +1,15 @@
+@php
+    $canSync = auth()->user()?->hasDashboardPermission(\Modules\Zatca\Support\ZatcaPermissions::SYNC_CREATE);
+    $canDocShow = auth()->user()?->hasDashboardPermission(\Modules\Zatca\Support\ZatcaPermissions::DOCUMENTS_SHOW);
+    $canDocPrint = auth()->user()?->hasDashboardPermission(\Modules\Zatca\Support\ZatcaPermissions::DOCUMENTS_PRINT);
+    $listingRoute = $zatcaListingRoute ?? 'zatca.einvoicing.index';
+@endphp
 <div class="z-card">
     <div class="z-card-header d-flex flex-wrap justify-content-between align-items-start gap-3">
         <div>
             <h2 class="z-card-title">{{ __('zatca::lang.tab_send_returns') }}</h2>
             <p class="z-card-subtitle mb-0">{{ __('zatca::lang.send_returns_subtitle') }}</p>
         </div>
-        @php $listingRoute = $zatcaListingRoute ?? 'zatca.einvoicing.index'; @endphp
         @if ($setting->isConfigured())
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route($listingRoute, ['tab' => 'returns', 'zatca_return_status' => 'all']) }}"
@@ -48,10 +53,12 @@
                     <div class="text-muted small pb-2">
                         <span id="zatca-return-selected-count">0</span> {{ __('zatca::lang.selected_invoices') }}
                     </div>
-                    <button type="submit" class="btn btn-primary" id="zatca-bulk-return-sync-btn" disabled>
-                        <i class="fa fa-sync-alt me-1"></i>
-                        {{ __('zatca::lang.sync_selected_returns') }}
-                    </button>
+                    @if ($canSync)
+                        <button type="submit" class="btn btn-primary" id="zatca-bulk-return-sync-btn" disabled>
+                            <i class="fa fa-sync-alt me-1"></i>
+                            {{ __('zatca::lang.sync_selected_returns') }}
+                        </button>
+                    @endif
                 </div>
 
                 <div class="table-responsive">
@@ -132,23 +139,27 @@
                                         <input type="hidden" name="report_types[{{ $return->id }}]" value="{{ $rowType }}">
                                         @if ($status === 'synced')
                                             <div class="btn-group">
-                                                <a href="{{ route('zatca.documents.pdf', $return->id) }}"
-                                                   class="btn btn-sm btn-light-danger"
-                                                   title="{{ __('zatca::lang.download_pdf') }}">
-                                                    <i class="fa fa-file-pdf"></i>
-                                                </a>
-                                                <a href="{{ route('zatca.documents.xml', $return->id) }}"
-                                                   class="btn btn-sm btn-light-primary"
-                                                   title="{{ __('zatca::lang.download_xml') }}">
-                                                    <i class="fa fa-file-code"></i>
-                                                </a>
-                                                <a href="{{ route('zatca.documents.qr', $return->id) }}"
-                                                   class="btn btn-sm btn-light-dark"
-                                                   title="{{ __('zatca::lang.download_qr') }}">
-                                                    <i class="fa fa-qrcode"></i>
-                                                </a>
+                                                @if ($canDocPrint)
+                                                    <a href="{{ route('zatca.documents.pdf', $return->id) }}"
+                                                       class="btn btn-sm btn-light-danger"
+                                                       title="{{ __('zatca::lang.download_pdf') }}">
+                                                        <i class="fa fa-file-pdf"></i>
+                                                    </a>
+                                                @endif
+                                                @if ($canDocShow)
+                                                    <a href="{{ route('zatca.documents.xml', $return->id) }}"
+                                                       class="btn btn-sm btn-light-primary"
+                                                       title="{{ __('zatca::lang.download_xml') }}">
+                                                        <i class="fa fa-file-code"></i>
+                                                    </a>
+                                                    <a href="{{ route('zatca.documents.qr', $return->id) }}"
+                                                       class="btn btn-sm btn-light-dark"
+                                                       title="{{ __('zatca::lang.download_qr') }}">
+                                                        <i class="fa fa-qrcode"></i>
+                                                    </a>
+                                                @endif
                                             </div>
-                                        @else
+                                        @elseif ($canSync)
                                             <button type="button"
                                                     class="btn btn-sm btn-light-primary zatca-sync-return-one-btn"
                                                     data-transaction-id="{{ $return->id }}"

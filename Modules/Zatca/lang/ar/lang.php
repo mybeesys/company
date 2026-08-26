@@ -71,6 +71,7 @@ return [
     'generation_failed' => 'فشل توليد شهادات ZATCA: :error',
     'package_missing' => 'حزمة Bl\\FatooraZatca غير مثبتة. راجع توثيق التثبيت.',
     'menu_card' => 'الفوترة الإلكترونية ZATCA',
+    'permission_denied' => 'ليست لديك صلاحية للوصول إلى هذا الإجراء ضمن ZATCA.',
     'never' => '—',
     'tab_connection' => 'إعدادات الربط',
     'tab_send_sell' => 'إرسال فواتير البيع',

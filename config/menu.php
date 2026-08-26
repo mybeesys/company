@@ -204,7 +204,7 @@ return [
             ...(config('zatca.show_in_menu', true) ? [[
                 'name' => 'zatca_einvoicing',
                 'url' => 'zatca-einvoicing',
-                'permission' => 'sales.Sell invoices.show',
+                'permission' => 'zatca.E-invoicing.show',
             ]] : []),
             [
                 'name' => 'clients',
@@ -449,7 +449,7 @@ return [
             ...(config('zatca.show_in_menu', true) ? [[
                 'name' => 'zatca_settings',
                 'url' => 'zatca-settings',
-                'permission' => 'setting.General setting.show',
+                'permission' => ['zatca.Settings.show', 'zatca.Operations.show'],
             ]] : []),
             [
                 'name' => 'establishments',

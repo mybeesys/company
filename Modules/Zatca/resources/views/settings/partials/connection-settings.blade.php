@@ -236,14 +236,18 @@
     </div>
 
     <div class="d-flex flex-wrap gap-3 justify-content-end mb-5">
-        <button type="submit" name="generate_certificates" value="0" class="btn btn-light-primary">
-            {{ __('zatca::lang.save_only') }}
-        </button>
-        <button type="submit" name="generate_certificates" value="1" class="btn btn-primary">
-            {{ __('zatca::lang.save_generate') }}
-        </button>
-        <button type="button" class="btn btn-success" id="btn-zatca-regenerate">
-            {{ __('zatca::lang.regenerate') }}
-        </button>
+        @if ($canSettingsUpdate ?? false)
+            <button type="submit" name="generate_certificates" value="0" class="btn btn-light-primary">
+                {{ __('zatca::lang.save_only') }}
+            </button>
+            <button type="submit" name="generate_certificates" value="1" class="btn btn-primary">
+                {{ __('zatca::lang.save_generate') }}
+            </button>
+        @endif
+        @if ($canRegenerate ?? false)
+            <button type="button" class="btn btn-success" id="btn-zatca-regenerate">
+                {{ __('zatca::lang.regenerate') }}
+            </button>
+        @endif
     </div>
 </form>

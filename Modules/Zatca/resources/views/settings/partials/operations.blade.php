@@ -127,20 +127,22 @@
 
                 <div class="mt-auto">
                     @if (in_array((string) $setting->zatca_environment, ['local', 'simulation'], true))
-                        <form method="POST"
-                              action="{{ route('zatca.settings.purge-sandbox') }}"
-                              onsubmit="return confirm(@json(__('zatca::lang.ops_purge_confirm')));">
-                            @csrf
-                            <input type="hidden" name="confirm" value="1">
-                            <input type="hidden" name="active_tab" value="operations">
-                            <button type="submit" class="btn btn-danger-soft w-100 rounded-2">
-                                <i class="fa fa-trash me-1"></i>
-                                {{ __('zatca::lang.ops_purge_button') }}
-                            </button>
-                        </form>
-                        <div class="zatca-ops-note mt-3 mb-0">
-                            {{ __('zatca::lang.ops_purge_help') }}
-                        </div>
+                        @if ($canPurgeSandbox ?? false)
+                            <form method="POST"
+                                  action="{{ route('zatca.settings.purge-sandbox') }}"
+                                  onsubmit="return confirm(@json(__('zatca::lang.ops_purge_confirm')));">
+                                @csrf
+                                <input type="hidden" name="confirm" value="1">
+                                <input type="hidden" name="active_tab" value="operations">
+                                <button type="submit" class="btn btn-danger-soft w-100 rounded-2">
+                                    <i class="fa fa-trash me-1"></i>
+                                    {{ __('zatca::lang.ops_purge_button') }}
+                                </button>
+                            </form>
+                            <div class="zatca-ops-note mt-3 mb-0">
+                                {{ __('zatca::lang.ops_purge_help') }}
+                            </div>
+                        @endif
                     @else
                         <div class="alert alert-warning mb-0 rounded-3 border-0">
                             {{ __('zatca::lang.ops_purge_production_blocked') }}
@@ -197,7 +199,7 @@
                         </ol>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 rounded-2 mt-auto">
+                    <button type="submit" class="btn btn-primary w-100 rounded-2 mt-auto" @disabled(! ($canOperationsUpdate ?? false))>
                         <i class="fa fa-save me-1"></i>
                         {{ __('zatca::lang.ops_save') }}
                     </button>
@@ -280,7 +282,7 @@
                         {{ __('zatca::lang.ops_lock_warning') }}
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 rounded-2 mt-auto">
+                    <button type="submit" class="btn btn-primary w-100 rounded-2 mt-auto" @disabled(! ($canOperationsUpdate ?? false))>
                         <i class="fa fa-check me-1"></i>
                         {{ __('zatca::lang.ops_apply_rules') }}
                     </button>

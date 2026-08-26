@@ -46,6 +46,7 @@ return [
     'purchases_management_module' => 'المشتريات',
     'accountingReports_management_module' => 'التقارير المحاسبية',
     'setting_management_module' => 'الإعدادات',
+    'zatca_management_module' => 'الفوترة الإلكترونية ZATCA',
     'Franchise Companies_management_module' => 'الإمتياز التجاري',
     //
 
