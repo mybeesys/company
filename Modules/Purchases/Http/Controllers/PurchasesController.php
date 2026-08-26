@@ -15,7 +15,6 @@ use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AccountingUtil;
-use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Establishment\Models\Establishment;
@@ -631,106 +630,26 @@ class PurchasesController extends Controller
             $acc_trans_mapping->save();
             $acc_trans_mapping_id = $acc_trans_mapping->id;
 
-            $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
-            $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
-            $inventoryAssetAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
-                isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
-            );
-            $purchasesTargetAccountId = Setting::isPerpetualInventory()
-                ? ($inventoryAssetAccountId ?? $purchases_purchase?->account_id)
-                : ($purchases_purchase?->account_id);
-            if (! $purchasesTargetAccountId) {
-                throw ValidationException::withMessages([
-                    'accounting' => app()->getLocale() === 'ar'
-                        ? 'مسار حساب المشتريات/المخزون غير مضبوط. يرجى ضبط توجيه الحسابات للمشتريات.'
-                        : 'Purchases/Inventory account routing is not configured. Please configure Accounts Routing.',
-                ]);
-            }
-            if (! $purchases_vat_calculation || ! $purchases_vat_calculation->account_id) {
-                throw ValidationException::withMessages([
-                    'accounting' => app()->getLocale() === 'ar'
-                        ? 'حساب ضريبة المشتريات غير مضبوط في توجيه الحسابات.'
-                        : 'Purchases VAT account routing is not configured.',
-                ]);
-            }
-
-            $client = Contact::find($request->client_id);
-            if (! $client || ! $client->account_id) {
-                throw ValidationException::withMessages([
-                    'accounting' => app()->getLocale() === 'ar'
-                        ? 'حساب المورد غير مربوط بدليل الحسابات.'
-                        : 'Supplier account is not linked to the chart of accounts.',
-                ]);
-            }
-
-            $purchases_earned_discount = AccountsRoting::where('type', 'purchases_earned_discount')->first();
-            $discountAmount = round(max(
-                0,
-                (float) ($transaction->total_before_tax ?? 0) - (float) ($transaction->totalAfterDiscount ?? 0)
-            ), 2);
-            if ($discountAmount <= 0 && (float) ($transaction->discount_amount ?? 0) > 0) {
-                $discountAmount = round((float) $transaction->discount_amount, 2);
-            }
-
             $transactionPayment = new \stdClass;
-            $transactionPayment->paid_on = Carbon::parse(now())->format('Y-m-d H:i:s');
+            $transactionPayment->paid_on = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
             $transactionPayment->created_by = Auth::user()->id;
             $transactionPayment->transaction_id = $transaction->id;
             $transactionPayment->id = null;
 
-            // Credit supplier for net payable (after invoice discount + VAT).
-            $transactionPayment->account_id = $client->account_id;
-            $transactionPayment->amount = $transaction->final_total;
-            $accountUtil->saveAccountRouteTransaction(
-                'credit',
-                $transactionPayment,
-                $transaction,
-                $acc_trans_mapping_id,
-                $request
-            );
-
-            // Debit purchases/inventory at amount before invoice-level discount when earned-discount
-            // account will offset it; otherwise debit the post-discount taxable amount.
-            $hasEarnedDiscountRoute = $discountAmount > 0.0001
-                && $purchases_earned_discount
-                && $purchases_earned_discount->account_id;
-            $purchasesDebitAmount = $hasEarnedDiscountRoute
-                ? (float) $transaction->total_before_tax
-                : (float) ($transaction->totalAfterDiscount ?? $transaction->total_before_tax);
-
-            $transactionPayment->account_id = $purchasesTargetAccountId;
-            $transactionPayment->amount = $purchasesDebitAmount;
-            $accountUtil->saveAccountRouteTransaction(
-                'debit',
-                $transactionPayment,
-                $transaction,
-                $acc_trans_mapping_id,
-                $request
-            );
-
-            if ($hasEarnedDiscountRoute) {
-                $transactionPayment->account_id = $purchases_earned_discount->account_id;
-                $transactionPayment->amount = $discountAmount;
-                $accountUtil->saveAccountRouteTransaction(
-                    'credit',
-                    $transactionPayment,
+            try {
+                // Due/unpaid purchase: Dr Purchases + Dr VAT | Cr Earned discount + Cr Supplier AP
+                app(\Modules\Accounting\Services\PurchaseJournalPoster::class)->postPurchase(
                     $transaction,
-                    $acc_trans_mapping_id,
-                    $request
+                    $transactionPayment,
+                    (int) $acc_trans_mapping_id,
+                    $request,
+                    null
                 );
+            } catch (\Throwable $e) {
+                throw ValidationException::withMessages([
+                    'accounting' => $e->getMessage(),
+                ]);
             }
-
-            $transactionPayment->account_id = $purchases_vat_calculation->account_id;
-            $transactionPayment->amount = $transaction->tax_amount;
-            $accountUtil->saveAccountRouteTransaction(
-                'debit',
-                $transactionPayment,
-                $transaction,
-                $acc_trans_mapping_id,
-                $request
-            );
-
-            AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
         }
 
         $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);

@@ -90,12 +90,12 @@
         <div class="">
             <div class="row">
                 <div class="col-6">
-                    <div class="d-flex align-items-center my-3 gap-2 gap-lg-3">
-                        <h1> @lang('sales::lang.Create a sell return') @if ($transaction)
+                    <div class="d-flex align-items-center my-3 gap-2 gap-lg-3 flex-wrap">
+                        <h1 class="mb-0"> @lang('sales::lang.Create a sell return') @if ($transaction)
                                 {{ $transaction->ref_no }}
                             @endif
                         </h1>
-
+                        @include('zatca::partials.instant-sync-title-badge', ['zatcaOps' => $zatcaOps ?? [], 'docType' => 'return'])
                     </div>
                 </div>
             </div>
@@ -103,6 +103,8 @@
         <div class="separator d-flex flex-center my-3">
             <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
         </div>
+
+        @include('zatca::partials.instant-sync-notice', ['zatcaOps' => $zatcaOps ?? [], 'docType' => 'return'])
 
         <div class="">
             <div class="row">
@@ -195,6 +197,11 @@
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
+    @include('zatca::partials.save-sync-overlay', [
+        'zatcaOps' => $zatcaOps ?? [],
+        'overlayDocType' => 'return',
+        'bindClassicForm' => true,
+    ])
     <script>
         let salesRowIndex = 1;
 
@@ -415,6 +422,9 @@
                 name: 'status',
                 value: 'approved'
             }).appendTo('#sell_save');
+            if (window.ZatcaSaveOverlay && typeof window.ZatcaSaveOverlay.show === 'function') {
+                window.ZatcaSaveOverlay.show({ status: 'final', docType: 'return' });
+            }
             $('#sell_save').submit();
         });
 

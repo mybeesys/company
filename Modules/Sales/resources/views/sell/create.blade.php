@@ -87,8 +87,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-6">
-                    <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1>
+                    <div class="d-flex align-items-center gap-2 gap-lg-3 flex-wrap">
+                        <h1 class="mb-0">
                             @if ($isDuplicate ?? false)
                                 @lang('sales::lang.Create a sales invoice')
                                 <span class="text-gray-600 fs-5"> — @lang('sales::lang.duplicate_from_ref', ['ref' => $transaction->ref_no])</span>
@@ -98,7 +98,7 @@
                                 @lang('sales::lang.Create a sales invoice')
                             @endif
                         </h1>
-
+                        @include('zatca::partials.instant-sync-title-badge', ['zatcaOps' => $zatcaOps ?? [], 'docType' => 'invoice'])
                     </div>
                 </div>
                 @include('general::invoice-setting.setting', [
@@ -110,6 +110,8 @@
         <div class="separator d-flex flex-center my-3">
             <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
         </div>
+
+        @include('zatca::partials.instant-sync-notice', ['zatcaOps' => $zatcaOps ?? [], 'docType' => 'invoice'])
 
         @if (session('error') || $errors->any())
             <div class="container mb-4">
@@ -344,6 +346,10 @@
     <script src="{{ url('/modules/Sales/js/invoice-service-fees.js') }}?v={{ @filemtime(public_path('modules/Sales/js/invoice-service-fees.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/payment-method-fees.js') }}?v={{ @filemtime(public_path('modules/Sales/js/payment-method-fees.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/sell-modifiers-combos.js') }}"></script>
+    @include('zatca::partials.save-sync-overlay', [
+        'zatcaOps' => $zatcaOps ?? [],
+        'overlayDocType' => 'invoice',
+    ])
     <script src="{{ url('/modules/Sales/js/sell-invoice-submit.js') }}?v={{ @filemtime(public_path('modules/Sales/js/sell-invoice-submit.js')) ?: time() }}"></script>
 
 

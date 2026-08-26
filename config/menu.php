@@ -101,12 +101,12 @@ return [
                 'permission' => 'products.custom menu.show',
 
             ],
-            [
-                'name' => 'serviceFee',
-                'url' => 'serviceFee',
-                'permission' => 'products.service fee.show',
-
-            ],
+            // Temporarily hidden from sidebar (route remains available)
+            // [
+            //     'name' => 'serviceFee',
+            //     'url' => 'serviceFee',
+            //     'permission' => 'products.service fee.show',
+            // ],
             [
                 'name' => 'type-service',
                 'url' => 'type-service',
@@ -201,6 +201,11 @@ return [
                 'url' => 'sell-return',
                 'permission' => 'sales.Sell returns.show',
             ],
+            ...(config('zatca.show_in_menu', true) ? [[
+                'name' => 'zatca_einvoicing',
+                'url' => 'zatca-einvoicing',
+                'permission' => 'sales.Sell invoices.show',
+            ]] : []),
             [
                 'name' => 'clients',
                 'url' => 'clients',

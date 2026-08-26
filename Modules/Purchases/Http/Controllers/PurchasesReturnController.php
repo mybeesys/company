@@ -255,6 +255,12 @@ class PurchasesReturnController extends Controller
 
             ]);
 
+            $products = json_decode(json_encode($request->products));
+
+            foreach ($products as $product) {
+                $this->createPurchaseReturnLine((int) $transaction->id, $product);
+            }
+
             if ($transaction) {
                 $request['amount'] = $transaction->final_total;
 
@@ -262,11 +268,6 @@ class PurchasesReturnController extends Controller
             }
 
             $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-            $products = json_decode(json_encode($request->products));
-
-            foreach ($products as $product) {
-                $this->createPurchaseReturnLine((int) $transaction->id, $product);
-            }
             DB::commit();
 
             return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));

@@ -29,6 +29,15 @@ return [
      */
     'pdf_primary_color' => env('ZATCA_PDF_PRIMARY', '#e9b71f'),
 
+    /**
+     * Operations rules UI/effect toggles (temporary hide without removing the feature).
+     * When false: field is hidden and has no effect on sell create/save.
+     */
+    'ops_rules' => [
+        'disable_order_tax' => filter_var(env('ZATCA_OPS_DISABLE_ORDER_TAX', false), FILTER_VALIDATE_BOOLEAN),
+        'default_sales_discount' => filter_var(env('ZATCA_OPS_DEFAULT_SALES_DISCOUNT', false), FILTER_VALIDATE_BOOLEAN),
+    ],
+
     'exemptions' => [
         'Z' => [
             'code' => 'VATEX-SA-32',

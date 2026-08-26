@@ -94,8 +94,9 @@ class SellReturnController extends Controller
         }])->get();
 
         $invoicePrecheckConfig = $this->buildSellReturnPrecheckConfig();
+        $zatcaOps = \Modules\Zatca\Models\ZatcaSetting::opsForSellUi();
 
-        return view('sales::sell-return.create', compact('transaction', 'products', 'taxes', 'invoicePrecheckConfig'));
+        return view('sales::sell-return.create', compact('transaction', 'products', 'taxes', 'invoicePrecheckConfig', 'zatcaOps'));
     }
 
     public function createSellReturn(Request $request)
@@ -133,8 +134,9 @@ class SellReturnController extends Controller
         }
 
         $invoicePrecheckConfig = $this->buildSellReturnPrecheckConfig();
+        $zatcaOps = \Modules\Zatca\Models\ZatcaSetting::opsForSellUi();
 
-        return view('sales::sell-return.create-return', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig'));
+        return view('sales::sell-return.create-return', compact('clients', 'settings', 'Latest_event', 'transaction', 'quotation', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'invoicePrecheckConfig', 'zatcaOps'));
     }
 
     private function buildSellReturnPrecheckConfig(): array
@@ -367,6 +369,8 @@ class SellReturnController extends Controller
         $msg = __('messages.add_successfully');
         $status = 'success';
         DB::commit();
+
+        app(ZatcaAutoSyncService::class)->queueIfInstant((int) $transaction->id);
 
         return redirect()->route('sell-return')->with($status, $msg);
         // } catch (Exception $e) {

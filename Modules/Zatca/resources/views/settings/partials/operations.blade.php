@@ -170,8 +170,8 @@
                     @method('PUT')
                     <input type="hidden" name="active_tab" value="operations">
                     <input type="hidden" name="disable_discount" value="{{ old('disable_discount', $setting->disable_discount ? '1' : '0') }}">
-                    <input type="hidden" name="disable_order_tax" value="{{ old('disable_order_tax', $setting->disable_order_tax ? '1' : '0') }}">
-                    <input type="hidden" name="default_sales_discount" value="{{ old('default_sales_discount', $setting->default_sales_discount ?? 0) }}">
+                    <input type="hidden" name="disable_order_tax" value="{{ config('zatca.ops_rules.disable_order_tax', false) ? old('disable_order_tax', $setting->disable_order_tax ? '1' : '0') : '0' }}">
+                    <input type="hidden" name="default_sales_discount" value="{{ config('zatca.ops_rules.default_sales_discount', false) ? old('default_sales_discount', $setting->default_sales_discount ?? 0) : 0 }}">
                     <input type="hidden" name="lock_synced_invoices" value="{{ old('lock_synced_invoices', ($setting->lock_synced_invoices ?? true) ? '1' : '0') }}">
 
                     <div class="mb-3">
@@ -234,25 +234,37 @@
                         <label class="form-check-label" for="disable_discount">
                             {{ __('zatca::lang.ops_disable_discount') }}
                         </label>
+                        <div class="form-text text-muted mt-1">{{ __('zatca::lang.ops_disable_discount_help') }}</div>
                     </div>
 
-                    <div class="form-check form-switch mb-3">
+                    {{-- Temporarily hidden: disable_order_tax + default_sales_discount (no UI / no effect) --}}
+                    @if (config('zatca.ops_rules.disable_order_tax', false))
+                        <div class="form-check form-switch mb-3">
+                            <input type="hidden" name="disable_order_tax" value="0">
+                            <input class="form-check-input" type="checkbox" name="disable_order_tax" value="1"
+                                   id="disable_order_tax"
+                                   @checked(old('disable_order_tax', $setting->disable_order_tax))>
+                            <label class="form-check-label" for="disable_order_tax">
+                                {{ __('zatca::lang.ops_disable_order_tax') }}
+                            </label>
+                            <div class="form-text text-muted mt-1">{{ __('zatca::lang.ops_disable_order_tax_help') }}</div>
+                        </div>
+                    @else
                         <input type="hidden" name="disable_order_tax" value="0">
-                        <input class="form-check-input" type="checkbox" name="disable_order_tax" value="1"
-                               id="disable_order_tax"
-                               @checked(old('disable_order_tax', $setting->disable_order_tax))>
-                        <label class="form-check-label" for="disable_order_tax">
-                            {{ __('zatca::lang.ops_disable_order_tax') }}
-                        </label>
-                    </div>
+                    @endif
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" for="default_sales_discount">{{ __('zatca::lang.ops_default_discount') }}</label>
-                        <input type="number" step="0.01" min="0" max="100"
-                               name="default_sales_discount" id="default_sales_discount"
-                               class="form-control rounded-2"
-                               value="{{ old('default_sales_discount', $setting->default_sales_discount ?? 0) }}">
-                    </div>
+                    @if (config('zatca.ops_rules.default_sales_discount', false))
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="default_sales_discount">{{ __('zatca::lang.ops_default_discount') }}</label>
+                            <input type="number" step="0.01" min="0" max="100"
+                                   name="default_sales_discount" id="default_sales_discount"
+                                   class="form-control rounded-2"
+                                   value="{{ old('default_sales_discount', $setting->default_sales_discount ?? 0) }}">
+                            <div class="form-text text-muted mt-1">{{ __('zatca::lang.ops_default_discount_help') }}</div>
+                        </div>
+                    @else
+                        <input type="hidden" name="default_sales_discount" value="0">
+                    @endif
 
                     <div class="form-check form-switch mb-3">
                         <input type="hidden" name="lock_synced_invoices" value="0">

@@ -83,7 +83,8 @@ class AccountsRoutingController extends Controller
             // 'purchases_total_amount' => 'asset',
             // 'purchases_amount_before_vat' => 'asset',
             'purchases_discount_calculation' => 'expense',
-            'purchases_earned_discount' => 'expense',
+            // Contra-purchase / income nature — keep isolated from sales_discount_allowed (expense).
+            'purchases_earned_discount' => 'revenue',
             // 'purchases_suppliers' => 'liability',
             'purchases_purchase' => 'expense',
             'purchases_purchase_return' => 'expense',
