@@ -3,7 +3,7 @@
 namespace Modules\Zatca\Console;
 
 use Illuminate\Console\Command;
-use Modules\Zatca\Database\Seeders\ZatcaPermissionsSeeder;
+use Modules\Zatca\database\Seeders\ZatcaPermissionsSeeder;
 
 class SyncZatcaPermissionsCommand extends Command
 {
@@ -13,7 +13,11 @@ class SyncZatcaPermissionsCommand extends Command
 
     public function handle(): int
     {
-        $this->callSilent(ZatcaPermissionsSeeder::class);
+        /** @var ZatcaPermissionsSeeder $seeder */
+        $seeder = $this->laravel->make(ZatcaPermissionsSeeder::class);
+        $seeder->setCommand($this);
+        $seeder->run();
+
         $this->info('ZATCA permissions synced.');
 
         return self::SUCCESS;

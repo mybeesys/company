@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Zatca\Database\Seeders;
+namespace Modules\Zatca\database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Employee\Models\DashboardRole;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\Permission;
-use Modules\Employee\Models\DashboardRole;
 use Modules\Zatca\Support\ZatcaPermissions;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -41,14 +41,12 @@ class ZatcaPermissionsSeeder extends Seeder
         $permissionIds = collect($created)->pluck('id')->all();
         $permissionModels = Permission::query()->whereIn('id', $permissionIds)->get();
 
-        // Admin user (same as EmployeeDatabaseSeeder)
         $admin = Employee::query()->where('email', 'admin@admin.com')->first()
             ?? Employee::query()->where('user_name', 'admin')->first();
         if ($admin) {
             $admin->givePermissionTo($permissionModels);
         }
 
-        // Roles that previously saw ZATCA via recycled menu permissions
         $legacyNames = [
             'setting.General setting.show',
             'setting.General setting.update',
