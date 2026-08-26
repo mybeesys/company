@@ -25,7 +25,8 @@ class ZatcaSalesRulesApplier
                 'invoiced_discount_type' => 'fixed',
                 'coupon_code' => '',
             ]);
-        } elseif ((float) $setting->default_sales_discount > 0
+        } elseif (config('zatca.ops_rules.default_sales_discount', false)
+            && (float) $setting->default_sales_discount > 0
             && ! $request->filled('invoice_discount')
             && ! $request->filled('invoiced_discount')) {
             $request->merge([
@@ -35,7 +36,8 @@ class ZatcaSalesRulesApplier
             ]);
         }
 
-        if ((bool) $setting->disable_order_tax) {
+        if (config('zatca.ops_rules.disable_order_tax', false)
+            && (bool) $setting->disable_order_tax) {
             $request->merge([
                 'service_fee_tax' => 0,
                 'order_tax' => 0,

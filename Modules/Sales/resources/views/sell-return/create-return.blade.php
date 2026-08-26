@@ -85,10 +85,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-6">
-                    <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        <h1> @lang('sales::general.add_sell-return')
+                    <div class="d-flex align-items-center gap-2 gap-lg-3 flex-wrap">
+                        <h1 class="mb-0"> @lang('sales::general.add_sell-return')
                         </h1>
-
+                        @include('zatca::partials.instant-sync-title-badge', ['zatcaOps' => $zatcaOps ?? [], 'docType' => 'return'])
                     </div>
                 </div>
                 @include('general::invoice-setting.setting')
@@ -97,6 +97,8 @@
         <div class="separator d-flex flex-center my-3">
             <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
         </div>
+
+        @include('zatca::partials.instant-sync-notice', ['zatcaOps' => $zatcaOps ?? [], 'docType' => 'return'])
 
         <div class="">
             <div class="row">
@@ -212,6 +214,11 @@
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
+    @include('zatca::partials.save-sync-overlay', [
+        'zatcaOps' => $zatcaOps ?? [],
+        'overlayDocType' => 'return',
+        'bindClassicForm' => true,
+    ])
     <script>
             let salesRowIndex = 1;
 

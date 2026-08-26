@@ -7,10 +7,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Modules\General\Models\Transaction;
+use Modules\Zatca\Http\Controllers\Concerns\LoadsZatcaDocumentListings;
 use Modules\Zatca\Http\Requests\UpdateZatcaOperationsRequest;
 use Modules\Zatca\Http\Requests\UpdateZatcaSettingRequest;
-use Modules\Zatca\Models\ZatcaInvoiceSync;
 use Modules\Zatca\Models\ZatcaSetting;
+use Modules\Zatca\Services\ZatcaCompanyDefaultsService;
 use Modules\Zatca\Services\ZatcaCredentialService;
 use Modules\Zatca\Services\ZatcaOperationsService;
 use Modules\Zatca\Services\ZatcaSellSyncService;
@@ -19,101 +20,49 @@ use Throwable;
 
 class ZatcaSettingController extends Controller
 {
+    use LoadsZatcaDocumentListings;
+
     public function __construct(
         private readonly ZatcaCredentialService $credentials,
         private readonly ZatcaSellSyncService $sellSync,
         private readonly ZatcaSetupReadinessService $readiness,
-        private readonly ZatcaOperationsService $operations
+        private readonly ZatcaOperationsService $operations,
+        private readonly ZatcaCompanyDefaultsService $companyDefaults
     ) {}
 
-    public function edit(Request $request): View
+    public function edit(Request $request): View|RedirectResponse
     {
         abort_unless(config('zatca.show_in_menu', true), 404);
 
+        $requestedTab = (string) $request->query('tab', session('active_tab', 'connection'));
+        if (in_array($requestedTab, ['send', 'returns'], true)) {
+            return redirect()->route('zatca.einvoicing.index', array_filter([
+                'tab' => $requestedTab,
+                'zatca_status' => $request->query('zatca_status'),
+                'zatca_return_status' => $request->query('zatca_return_status'),
+                'sell_page' => $request->query('sell_page'),
+                'return_page' => $request->query('return_page'),
+            ]));
+        }
+
         $setting = ZatcaSetting::current();
-        $perPage = 15;
+        $companyDefaults = $this->companyDefaults->forCurrentCompany();
+        $mergedForm = $this->companyDefaults->mergeForForm($setting, $companyDefaults['values']);
 
-        $statusFilter = (string) $request->query('zatca_status', 'all');
-        if (! in_array($statusFilter, ['all', 'pending', 'synced', 'failed'], true)) {
-            $statusFilter = 'all';
+        // Readiness preview includes company-backed empty fields so the checklist stays accurate.
+        $readinessSetting = $setting->replicate();
+        foreach ($mergedForm['values'] as $key => $value) {
+            if (trim((string) ($setting->{$key} ?? '')) === '' && $value !== '') {
+                $readinessSetting->{$key} = $value;
+            }
         }
-
-        $sellBase = Transaction::query()
-            ->where('type', 'sell')
-            ->whereIn('status', ['approved', 'final']);
-
-        $statusCounts = [
-            'all' => (clone $sellBase)->count(),
-            'synced' => (clone $sellBase)->whereHas('zatcaInvoiceSync', fn ($q) => $q->where('status', ZatcaInvoiceSync::STATUS_SYNCED))->count(),
-            'failed' => (clone $sellBase)->whereHas('zatcaInvoiceSync', fn ($q) => $q->where('status', ZatcaInvoiceSync::STATUS_FAILED))->count(),
-            'pending' => 0,
-        ];
-        $statusCounts['pending'] = max(0, $statusCounts['all'] - $statusCounts['synced'] - $statusCounts['failed']);
-
-        $sellQuery = (clone $sellBase)
-            ->with(['client:id,name'])
-            ->latest('id');
-
-        $this->applyZatcaStatusFilter($sellQuery, $statusFilter);
-
-        $sellInvoices = $sellQuery->paginate($perPage, [
-            'id', 'ref_no', 'transaction_date', 'final_total', 'contact_id', 'status', 'payment_status',
-        ], 'sell_page')->withQueryString();
-
-        $syncMap = ZatcaInvoiceSync::query()
-            ->whereIn('transaction_id', $sellInvoices->getCollection()->pluck('id'))
-            ->get()
-            ->keyBy('transaction_id');
-
-        $returnStatusFilter = (string) $request->query('zatca_return_status', 'all');
-        if (! in_array($returnStatusFilter, ['all', 'pending', 'synced', 'failed'], true)) {
-            $returnStatusFilter = 'all';
-        }
-
-        $returnBase = Transaction::query()
-            ->where('type', 'sell-return')
-            ->whereIn('status', ['approved', 'final']);
-
-        $returnStatusCounts = [
-            'all' => (clone $returnBase)->count(),
-            'synced' => (clone $returnBase)->whereHas('zatcaInvoiceSync', fn ($q) => $q->where('status', ZatcaInvoiceSync::STATUS_SYNCED))->count(),
-            'failed' => (clone $returnBase)->whereHas('zatcaInvoiceSync', fn ($q) => $q->where('status', ZatcaInvoiceSync::STATUS_FAILED))->count(),
-            'pending' => 0,
-        ];
-        $returnStatusCounts['pending'] = max(0, $returnStatusCounts['all'] - $returnStatusCounts['synced'] - $returnStatusCounts['failed']);
-
-        $returnQuery = (clone $returnBase)
-            ->with(['client:id,name', 'parentSell:id,ref_no,contact_id'])
-            ->latest('id');
-
-        $this->applyZatcaStatusFilter($returnQuery, $returnStatusFilter);
-
-        $sellReturns = $returnQuery->paginate($perPage, [
-            'id', 'ref_no', 'transaction_date', 'final_total', 'contact_id', 'status', 'parent_id',
-        ], 'return_page')->withQueryString();
-
-        $returnSyncMap = ZatcaInvoiceSync::query()
-            ->whereIn('transaction_id', $sellReturns->getCollection()->pluck('id'))
-            ->get()
-            ->keyBy('transaction_id');
-
-        $parentSyncMap = ZatcaInvoiceSync::query()
-            ->whereIn('transaction_id', $sellReturns->getCollection()->pluck('parent_id')->filter()->unique())
-            ->get()
-            ->keyBy('transaction_id');
 
         return view('zatca::settings.edit', [
             'setting' => $setting,
-            'readiness' => $this->readiness->analyze($setting),
-            'sellInvoices' => $sellInvoices,
-            'syncMap' => $syncMap,
-            'statusFilter' => $statusFilter,
-            'statusCounts' => $statusCounts,
-            'sellReturns' => $sellReturns,
-            'returnSyncMap' => $returnSyncMap,
-            'parentSyncMap' => $parentSyncMap,
-            'returnStatusFilter' => $returnStatusFilter,
-            'returnStatusCounts' => $returnStatusCounts,
+            'formValues' => $mergedForm['values'],
+            'appliedFromCompany' => $mergedForm['applied_from_company'],
+            'companyDefaults' => $companyDefaults,
+            'readiness' => $this->readiness->analyze($readinessSetting),
             'sandboxCounts' => $this->operations->sandboxCounts(),
             'environments' => [
                 'local' => __('zatca::lang.env_local'),
@@ -126,20 +75,6 @@ class ZatcaSettingController extends Controller
                 '1100' => __('zatca::lang.invoice_type_both'),
             ],
         ]);
-    }
-
-    private function applyZatcaStatusFilter($query, string $statusFilter): void
-    {
-        if ($statusFilter === 'synced') {
-            $query->whereHas('zatcaInvoiceSync', fn ($q) => $q->where('status', ZatcaInvoiceSync::STATUS_SYNCED));
-        } elseif ($statusFilter === 'failed') {
-            $query->whereHas('zatcaInvoiceSync', fn ($q) => $q->where('status', ZatcaInvoiceSync::STATUS_FAILED));
-        } elseif ($statusFilter === 'pending') {
-            $query->where(function ($q) {
-                $q->whereDoesntHave('zatcaInvoiceSync')
-                    ->orWhereHas('zatcaInvoiceSync', fn ($s) => $s->where('status', ZatcaInvoiceSync::STATUS_PENDING));
-            });
-        }
     }
 
     public function update(UpdateZatcaSettingRequest $request): RedirectResponse
@@ -189,7 +124,7 @@ class ZatcaSettingController extends Controller
     }
 
     /**
-     * Sync one or many sell invoices to ZATCA.
+     * Sync one or many sell invoices / returns to ZATCA.
      */
     public function syncSell(Request $request): RedirectResponse
     {
@@ -199,7 +134,7 @@ class ZatcaSettingController extends Controller
 
         if (! $setting->isConfigured()) {
             return redirect()
-                ->route('zatca.settings.edit', ['tab' => 'send'])
+                ->route('zatca.einvoicing.index', ['tab' => 'send'])
                 ->with('error', __('zatca::lang.send_requires_credentials'))
                 ->with('active_tab', 'send');
         }
@@ -228,7 +163,6 @@ class ZatcaSettingController extends Controller
 
         $activeTab = (string) $request->input('active_tab', 'send');
         if (! in_array($activeTab, ['send', 'returns'], true)) {
-            // Infer from first synced document type when possible.
             $firstId = (int) ($items[0]['id'] ?? 0);
             $type = $firstId
                 ? Transaction::query()->whereKey($firstId)->value('type')
@@ -237,7 +171,7 @@ class ZatcaSettingController extends Controller
         }
 
         $redirect = redirect()
-            ->route('zatca.settings.edit', ['tab' => $activeTab])
+            ->route('zatca.einvoicing.index', ['tab' => $activeTab])
             ->with('active_tab', $activeTab)
             ->with('sync_feedback', [
                 'success' => $result['success'],

@@ -41,8 +41,13 @@ class ZatcaOperationsService
         $setting->fill([
             'auto_sync_mode' => $data['auto_sync_mode'] ?? 'disable',
             'disable_discount' => (bool) ($data['disable_discount'] ?? false),
-            'disable_order_tax' => (bool) ($data['disable_order_tax'] ?? false),
-            'default_sales_discount' => (float) ($data['default_sales_discount'] ?? 0),
+            // Temporarily disabled rules: keep stored as off while UI is hidden.
+            'disable_order_tax' => config('zatca.ops_rules.disable_order_tax', false)
+                ? (bool) ($data['disable_order_tax'] ?? false)
+                : false,
+            'default_sales_discount' => config('zatca.ops_rules.default_sales_discount', false)
+                ? (float) ($data['default_sales_discount'] ?? 0)
+                : 0,
             'lock_synced_invoices' => (bool) ($data['lock_synced_invoices'] ?? true),
         ]);
         $setting->save();

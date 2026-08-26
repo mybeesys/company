@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Zatca\Http\Controllers\ZatcaDocumentController;
+use Modules\Zatca\Http\Controllers\ZatcaEinvoicingController;
 use Modules\Zatca\Http\Controllers\ZatcaSettingController;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -11,6 +12,8 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     Route::middleware(['auth'])->group(function () {
+        Route::get('zatca-einvoicing', [ZatcaEinvoicingController::class, 'index'])->name('zatca.einvoicing.index');
+
         Route::get('zatca-settings', [ZatcaSettingController::class, 'edit'])->name('zatca.settings.edit');
         Route::put('zatca-settings', [ZatcaSettingController::class, 'update'])->name('zatca.settings.update');
         Route::post('zatca-settings/regenerate', [ZatcaSettingController::class, 'regenerate'])->name('zatca.settings.regenerate');

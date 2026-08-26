@@ -698,23 +698,7 @@ class SellController extends Controller
             ? true
             : ((int) $invoiceServiceFeesSetting === 1);
 
-        $zatcaOps = [
-            'disable_discount' => false,
-            'disable_order_tax' => false,
-            'default_sales_discount' => 0,
-        ];
-        try {
-            if (config('zatca.show_in_menu', true)) {
-                $zatcaSetting = \Modules\Zatca\Models\ZatcaSetting::current();
-                $zatcaOps = [
-                    'disable_discount' => (bool) $zatcaSetting->disable_discount,
-                    'disable_order_tax' => (bool) $zatcaSetting->disable_order_tax,
-                    'default_sales_discount' => (float) ($zatcaSetting->default_sales_discount ?? 0),
-                ];
-            }
-        } catch (\Throwable) {
-            // Tenant / module not ready.
-        }
+        $zatcaOps = \Modules\Zatca\Models\ZatcaSetting::opsForSellUi();
 
         return view('sales::sell.create', compact(
             'clients',

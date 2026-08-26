@@ -85,6 +85,7 @@ return [
     'purchases_favorites' => 'Purchases Favorites',
     'general_setting' => 'General Settings',
     'zatca_settings' => 'E-Invoicing (ZATCA)',
+    'zatca_einvoicing' => 'ZATCA E-Invoicing',
     'setting' => 'Settings',
     'cashier_payment_methods' => 'Payment methods',
     'internal_consumption_types' => 'Cashier internal consumption',

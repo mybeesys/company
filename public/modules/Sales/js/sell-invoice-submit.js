@@ -255,6 +255,16 @@
         const $submitButtons = $('#sell_save [data-action], #sell_save button[type="submit"]');
         $submitButtons.prop('disabled', true);
 
+        if (window.ZatcaSaveOverlay && typeof window.ZatcaSaveOverlay.show === 'function') {
+            window.ZatcaSaveOverlay.show({
+                status: status || 'final',
+                docType: (function () {
+                    var ov = document.getElementById('zatca-save-overlay');
+                    return (ov && ov.getAttribute('data-doc-type')) || 'invoice';
+                })(),
+            });
+        }
+
         const formData = new FormData(form);
         const csrf = $('meta[name="csrf-token"]').attr('content');
         if (csrf && !formData.get('_token')) {
@@ -263,6 +273,9 @@
 
         const formUrl = form.getAttribute('action') || $('#sell_save').attr('action');
         if (!formUrl) {
+            if (window.ZatcaSaveOverlay && typeof window.ZatcaSaveOverlay.hide === 'function') {
+                window.ZatcaSaveOverlay.hide();
+            }
             showFeedback('error', 'Invoice form action URL is missing.');
             $submitButtons.prop('disabled', false);
             return false;
@@ -292,6 +305,9 @@
                         || (payload?.errors && Object.values(payload.errors).flat()[0])
                         || 'Could not save invoice.';
                     const action = payload?.action || null;
+                    if (window.ZatcaSaveOverlay && typeof window.ZatcaSaveOverlay.hide === 'function') {
+                        window.ZatcaSaveOverlay.hide();
+                    }
                     showFeedback('error', message, {
                         actionUrl: action?.url,
                         actionLabel: action?.label,
@@ -300,6 +316,9 @@
                 }
 
                 if (payload && payload.redirect) {
+                    if (window.ZatcaSaveOverlay && typeof window.ZatcaSaveOverlay.setStage === 'function') {
+                        window.ZatcaSaveOverlay.setStage('redirecting');
+                    }
                     persistFlashForRedirect(payload.status === 'error' ? 'error' : 'success', payload.message);
                     window.location.assign(payload.redirect);
                     return;
@@ -308,10 +327,20 @@
                 window.location.reload();
             })
             .catch(function () {
+                if (window.ZatcaSaveOverlay && typeof window.ZatcaSaveOverlay.hide === 'function') {
+                    window.ZatcaSaveOverlay.hide();
+                }
                 showFeedback('error', 'Network error while saving. Please try again.');
             })
             .finally(function () {
-                $submitButtons.prop('disabled', false);
+                var overlayOpen = false;
+                try {
+                    var ov = document.getElementById('zatca-save-overlay');
+                    overlayOpen = !!(ov && ov.classList.contains('is-open'));
+                } catch (e) {}
+                if (!overlayOpen) {
+                    $submitButtons.prop('disabled', false);
+                }
             });
 
         return true;

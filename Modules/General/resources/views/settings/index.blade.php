@@ -259,16 +259,18 @@
                 initElements_{{ $notification_name }}();
             @endforeach
             mailSettingsForm();
-            initMethodDatatable();
-            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_payment_methods_table', "{{ session('locale') }}", [], [],
-                'A4',
-                methodTable, methodDataTable);
+            if (methodTable.length) {
+                initMethodDatatable();
+                exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_payment_methods_table', "{{ session('locale') }}", [], [],
+                    'A4',
+                    methodTable, methodDataTable);
 
-            handleFormFiltersDatatable();
-            $('#add_payment_methods_button').on('click', function(event) {
-                event.preventDefault();
-                $('#kt_modal_create_add_pay_method').modal('show');
-            });
+                handleFormFiltersDatatable();
+                $('#add_payment_methods_button').on('click', function(event) {
+                    event.preventDefault();
+                    $('#kt_modal_create_add_pay_method').modal('show');
+                });
+            }
 
             initTaxesDatatable();
             exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_tax_table', "{{ session('locale') }}", [], [], 'A4',
@@ -558,7 +560,9 @@
         });
 
         $(document).on('click', '.nav-link-methods', function() {
-            methodDataTable.ajax.reload();
+            if (methodDataTable) {
+                methodDataTable.ajax.reload();
+            }
         });
 
 

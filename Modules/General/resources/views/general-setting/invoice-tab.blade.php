@@ -19,10 +19,8 @@
                 <li class="nav-item w-md-200px me-0 py-1 nav-link-taxes">
                     <a class="nav-link py-3" data-bs-toggle="tab" href="#taxes_tab">@lang('menuItemLang.taxes')</a>
                 </li>
-                <li class="nav-item w-md-200px me-0 py-1 nav-link-methods">
-                    <a class="nav-link py-3" data-bs-toggle="tab" href="#payemnt_methods_tab">@lang('general::lang.payment_methods')</a>
-                </li>
-                <li class="nav-item w-md-200px me-0 py-1 nav-link-methods">
+                {{-- Temporarily hidden: payment methods tab (page UI only) --}}
+                <li class="nav-item w-md-200px me-0 py-1">
                     <a class="nav-link py-3" data-bs-toggle="tab" href="#inventory_policy_tab">@lang('general::lang.inventory_tracking_policy')</a>
                 </li>
 
@@ -115,7 +113,8 @@
                 </div>
 
                 <x-general::taxes.tax-index :taxesColumns=$taxesColumns />
-                <x-general::paymentMethods.payment-method-index :methodColumns=$methodColumns />
+                {{-- Temporarily hidden: payment methods content + modals (page UI only) --}}
+                {{-- <x-general::paymentMethods.payment-method-index :methodColumns=$methodColumns /> --}}
 
 
             </div>
@@ -125,8 +124,8 @@
     </div>
     @include('general::tax.create')
     @include('general::tax.edit')
-    @include('general::payment-methods.create')
-    @include('general::payment-methods.edit')
+    {{-- @include('general::payment-methods.create') --}}
+    {{-- @include('general::payment-methods.edit') --}}
 </div>
 
 <script>

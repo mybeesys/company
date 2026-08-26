@@ -88,4 +88,47 @@ class ZatcaSetting extends Model
             'status' => 'pending',
         ]);
     }
+
+    /**
+     * Flags for sell / sell-return create screens (rules + instant sync notice).
+     *
+     * @return array{
+     *     disable_discount: bool,
+     *     disable_order_tax: bool,
+     *     default_sales_discount: float,
+     *     auto_sync_mode: string,
+     *     is_configured: bool
+     * }
+     */
+    public static function opsForSellUi(): array
+    {
+        $defaults = [
+            'disable_discount' => false,
+            'disable_order_tax' => false,
+            'default_sales_discount' => 0.0,
+            'auto_sync_mode' => 'disable',
+            'is_configured' => false,
+        ];
+
+        try {
+            if (! config('zatca.show_in_menu', true)) {
+                return $defaults;
+            }
+
+            $setting = static::current();
+
+            return [
+                'disable_discount' => (bool) $setting->disable_discount,
+                'disable_order_tax' => config('zatca.ops_rules.disable_order_tax', false)
+                    && (bool) $setting->disable_order_tax,
+                'default_sales_discount' => config('zatca.ops_rules.default_sales_discount', false)
+                    ? (float) ($setting->default_sales_discount ?? 0)
+                    : 0.0,
+                'auto_sync_mode' => (string) ($setting->auto_sync_mode ?? 'disable'),
+                'is_configured' => $setting->isConfigured(),
+            ];
+        } catch (\Throwable) {
+            return $defaults;
+        }
+    }
 }

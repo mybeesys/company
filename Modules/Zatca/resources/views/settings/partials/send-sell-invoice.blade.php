@@ -4,21 +4,22 @@
             <h2 class="z-card-title">{{ __('zatca::lang.tab_send_sell') }}</h2>
             <p class="z-card-subtitle mb-0">{{ __('zatca::lang.send_sell_subtitle') }}</p>
         </div>
+        @php $listingRoute = $zatcaListingRoute ?? 'zatca.einvoicing.index'; @endphp
         @if ($setting->isConfigured())
             <div class="d-flex flex-wrap gap-2">
-                <a href="{{ route('zatca.settings.edit', ['tab' => 'send', 'zatca_status' => 'all']) }}"
+                <a href="{{ route($listingRoute, ['tab' => 'send', 'zatca_status' => 'all']) }}"
                    class="badge {{ $statusFilter === 'all' ? 'badge-primary' : 'badge-light' }} fs-7 px-3 py-2 text-decoration-none">
                     {{ __('zatca::lang.filter_all') }} ({{ $statusCounts['all'] }})
                 </a>
-                <a href="{{ route('zatca.settings.edit', ['tab' => 'send', 'zatca_status' => 'pending']) }}"
+                <a href="{{ route($listingRoute, ['tab' => 'send', 'zatca_status' => 'pending']) }}"
                    class="badge {{ $statusFilter === 'pending' ? 'badge-warning' : 'badge-light-warning' }} fs-7 px-3 py-2 text-decoration-none">
                     {{ __('zatca::lang.sync_status_pending') }} ({{ $statusCounts['pending'] }})
                 </a>
-                <a href="{{ route('zatca.settings.edit', ['tab' => 'send', 'zatca_status' => 'synced']) }}"
+                <a href="{{ route($listingRoute, ['tab' => 'send', 'zatca_status' => 'synced']) }}"
                    class="badge {{ $statusFilter === 'synced' ? 'badge-success' : 'badge-light-success' }} fs-7 px-3 py-2 text-decoration-none">
                     {{ __('zatca::lang.sync_status_synced') }} ({{ $statusCounts['synced'] }})
                 </a>
-                <a href="{{ route('zatca.settings.edit', ['tab' => 'send', 'zatca_status' => 'failed']) }}"
+                <a href="{{ route($listingRoute, ['tab' => 'send', 'zatca_status' => 'failed']) }}"
                    class="badge {{ $statusFilter === 'failed' ? 'badge-danger' : 'badge-light-danger' }} fs-7 px-3 py-2 text-decoration-none">
                     {{ __('zatca::lang.sync_status_failed') }} ({{ $statusCounts['failed'] }})
                 </a>
@@ -29,6 +30,11 @@
         @if (! $setting->isConfigured())
             <div class="alert alert-warning mb-0">
                 {{ __('zatca::lang.send_requires_credentials') }}
+                <div class="mt-2">
+                    <a href="{{ route('zatca.settings.edit', ['tab' => 'connection']) }}" class="btn btn-sm btn-warning">
+                        {{ __('zatca::lang.tab_connection') }}
+                    </a>
+                </div>
             </div>
         @elseif ($sellInvoices->total() === 0)
             <div class="alert alert-secondary mb-0">{{ __('zatca::lang.no_sell_invoices') }}</div>
