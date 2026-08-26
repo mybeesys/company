@@ -22,6 +22,17 @@ class ZatcaServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations/tenant'));
+
+        $this->app['router']->aliasMiddleware(
+            'zatca.perm',
+            \Modules\Zatca\Http\Middleware\EnsureZatcaPermission::class
+        );
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Zatca\Console\SyncZatcaPermissionsCommand::class,
+            ]);
+        }
     }
 
     public function register(): void

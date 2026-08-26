@@ -18,10 +18,13 @@
             <h1 class="fs-2 fw-bold mb-1">{{ __('zatca::lang.einvoicing_page_title') }}</h1>
             <p class="text-muted mb-0">{{ __('zatca::lang.einvoicing_page_subtitle') }}</p>
         </div>
-        <a href="{{ route('zatca.settings.edit', ['tab' => 'connection']) }}" class="btn btn-light-primary btn-sm">
-            <i class="fa fa-cog me-1"></i>
-            {{ __('zatca::lang.menu_card') }}
-        </a>
+        @if (auth()->user()?->hasDashboardPermission(\Modules\Zatca\Support\ZatcaPermissions::SETTINGS_SHOW)
+            || auth()->user()?->hasDashboardPermission(\Modules\Zatca\Support\ZatcaPermissions::OPERATIONS_SHOW))
+            <a href="{{ route('zatca.settings.edit', ['tab' => 'connection']) }}" class="btn btn-light-primary btn-sm">
+                <i class="fa fa-cog me-1"></i>
+                {{ __('zatca::lang.menu_card') }}
+            </a>
+        @endif
     </div>
 
     @include('zatca::partials.sync-feedback')

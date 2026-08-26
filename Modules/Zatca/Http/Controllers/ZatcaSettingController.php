@@ -16,6 +16,7 @@ use Modules\Zatca\Services\ZatcaCredentialService;
 use Modules\Zatca\Services\ZatcaOperationsService;
 use Modules\Zatca\Services\ZatcaSellSyncService;
 use Modules\Zatca\Services\ZatcaSetupReadinessService;
+use Modules\Zatca\Support\ZatcaPermissions;
 use Throwable;
 
 class ZatcaSettingController extends Controller
@@ -49,6 +50,20 @@ class ZatcaSettingController extends Controller
         $companyDefaults = $this->companyDefaults->forCurrentCompany();
         $mergedForm = $this->companyDefaults->mergeForForm($setting, $companyDefaults['values']);
 
+        $user = auth()->user();
+        $canSettingsShow = $user && $user->hasDashboardPermission(ZatcaPermissions::SETTINGS_SHOW);
+        $canOperationsShow = $user && $user->hasDashboardPermission(ZatcaPermissions::OPERATIONS_SHOW);
+
+        $activeTab = (string) $request->query('tab', session('active_tab', 'connection'));
+        if (! in_array($activeTab, ['connection', 'operations'], true)) {
+            $activeTab = 'connection';
+        }
+        if ($activeTab === 'connection' && ! $canSettingsShow && $canOperationsShow) {
+            $activeTab = 'operations';
+        } elseif ($activeTab === 'operations' && ! $canOperationsShow && $canSettingsShow) {
+            $activeTab = 'connection';
+        }
+
         // Readiness preview includes company-backed empty fields so the checklist stays accurate.
         $readinessSetting = $setting->replicate();
         foreach ($mergedForm['values'] as $key => $value) {
@@ -64,6 +79,14 @@ class ZatcaSettingController extends Controller
             'companyDefaults' => $companyDefaults,
             'readiness' => $this->readiness->analyze($readinessSetting),
             'sandboxCounts' => $this->operations->sandboxCounts(),
+            'activeTab' => $activeTab,
+            'canSettingsShow' => $canSettingsShow,
+            'canOperationsShow' => $canOperationsShow,
+            'canSettingsUpdate' => $user && $user->hasDashboardPermission(ZatcaPermissions::SETTINGS_UPDATE),
+            'canOperationsUpdate' => $user && $user->hasDashboardPermission(ZatcaPermissions::OPERATIONS_UPDATE),
+            'canRegenerate' => $user && $user->hasDashboardPermission(ZatcaPermissions::REGENERATE_CREATE),
+            'canPurgeSandbox' => $user && $user->hasDashboardPermission(ZatcaPermissions::PURGE_SANDBOX_CREATE),
+            'canEinvoicingShow' => $user && $user->hasDashboardPermission(ZatcaPermissions::EINVOICING_SHOW),
             'environments' => [
                 'local' => __('zatca::lang.env_local'),
                 'simulation' => __('zatca::lang.env_simulation'),
