@@ -597,93 +597,13 @@ class AccountingUtil
 
                 $this->appendPerpetualCogsEntries($transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             } elseif ($transaction->type == 'purchases') {
-                $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
-                $sales_sales = AccountsRoting::where('type', 'sales_sales')->first();
-                $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
-                $purchases_earned_discount = AccountsRoting::where('type', 'purchases_earned_discount')->first();
-                $discountAmount = (float) ($transaction->discount_amount ?? 0);
-                $purchasesGrossBeforeDiscount = $netTotalBeforeTax + max(0, $discountAmount);
-                $inventoryAssetAccountId = Setting::isPerpetualInventory()
-                    ? PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
-                        isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
-                    )
-                    : null;
-                $purchasesTargetAccountId = Setting::isPerpetualInventory()
-                    ? ($inventoryAssetAccountId ?: $purchases_purchase?->account_id)
-                    : ($purchases_purchase?->account_id);
-                if (! $purchasesTargetAccountId) {
-                    throw new RuntimeException('Accounting routing missing for purchases. Please configure purchases_purchase or Inventory (perpetual_inventory_asset) in Accounts Routing.');
-                }
-                if (! $purchases_vat_calculation || ! $purchases_vat_calculation->account_id) {
-                    throw new RuntimeException('Accounting routing missing for purchases VAT. Please configure purchases_vat_calculation route.');
-                }
-                if ($transaction->invoice_type == 'cash' && ! $cash_account_id) {
-                    throw new RuntimeException('Cash account is missing for purchases cash invoice. Please configure cash account.');
-                }
-
-                if ($transaction->invoice_type == 'cash') {
-                    if (! $transactionPayment->payment_for) {
-                        $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $transaction->final_total;
-                        $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                        $transactionPayment->account_id = $purchasesTargetAccountId;
-                        $transactionPayment->amount = $purchasesGrossBeforeDiscount;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                        if ($discountAmount > 0 && $purchases_earned_discount && $purchases_earned_discount->account_id) {
-                            $transactionPayment->account_id = $purchases_earned_discount->account_id;
-                            $transactionPayment->amount = $discountAmount;
-                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                        }
-                        $transactionPayment->account_id = $purchases_vat_calculation->account_id;
-                        $transactionPayment->amount = $transaction->tax_amount;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                    } else {
-                        $client = Contact::find($transactionPayment->payment_for);
-                        if (! $client || ! $client->account_id) {
-                            throw new RuntimeException('Supplier account is missing for purchases. Please ensure the supplier has an accounting account linked.');
-                        }
-                        $transactionPayment->account_id = $client->account_id;
-                        $transactionPayment->amount = $transaction->final_total;
-                        $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                        $transactionPayment->account_id = $purchasesTargetAccountId;
-                        $transactionPayment->amount = $purchasesGrossBeforeDiscount;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                        if ($discountAmount > 0 && $purchases_earned_discount && $purchases_earned_discount->account_id) {
-                            $transactionPayment->account_id = $purchases_earned_discount->account_id;
-                            $transactionPayment->amount = $discountAmount;
-                            $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                        }
-                        $transactionPayment->account_id = $purchases_vat_calculation->account_id;
-                        $transactionPayment->amount = $transaction->tax_amount;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                        $transactionPayment->account_id = $client->account_id;
-                        $transactionPayment->amount = $transaction->final_total;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                        $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $transaction->final_total;
-                        $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                        //
-                    }
-                }
-                // else {
-                //     $client = Contact::find($transactionPayment->payment_for);
-                //     if ($client) {
-                //         $transactionPayment->account_id = $client->account_id;
-                //         $transactionPayment->amount = $transaction->final_total;
-                //         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                //     } else {
-                //         $accountsRoute = AccountsRoting::where('type', 'purchases_suppliers')->first();
-                //         if ($accountsRoute && $accountsRoute->direction == 'auto_assign') {
-                //             $transactionPayment->account_id = $accountsRoute->account_id;
-                //             $transactionPayment->amount = $transaction->final_total;
-                //             $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                //         }
-                //     }
-                // }
+                app(\Modules\Accounting\Services\PurchaseJournalPoster::class)->postPurchase(
+                    $transaction,
+                    $transactionPayment,
+                    (int) $acc_trans_mapping_id,
+                    $request,
+                    (int) $cash_account_id
+                );
             } elseif ($transaction->type == 'sell-return') {
                 $sales_sell_return = AccountsRoting::where('type', 'sales_sell_return')->first();
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
@@ -739,68 +659,13 @@ class AccountingUtil
 
                 $this->appendPerpetualCogsEntries($transactionPayment, $transaction, $acc_trans_mapping_id, $request);
             } elseif ($transaction->type == 'purchases-return') {
-                $purchases_purchase = AccountsRoting::where('type', 'purchases_purchase')->first();
-                $purchases_purchase_return = AccountsRoting::where('type', 'purchases_purchase_return')->first();
-                $purchases_vat_calculation = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
-                $purchases_earned_discount = AccountsRoting::where('type', 'purchases_earned_discount')->first();
-
-                if (! $purchases_purchase_return?->account_id || ! $purchases_vat_calculation?->account_id) {
-                    throw new RuntimeException('Accounting routing missing for purchases-return. Please configure Accounts Routing: purchases_purchase_return, purchases_vat_calculation.');
-                }
-
-                $amounts = $this->resolveSellRevenueAmounts($transaction);
-                $finalTotal = $amounts['final_total'];
-                $taxAmount = $amounts['tax_amount'];
-                $discountAmount = $amounts['discount_amount'];
-                $grossBeforeDiscount = $amounts['sales_gross_before_discount'];
-
-                $inventoryAssetAccountId = Setting::isPerpetualInventory()
-                    ? PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(
-                        isset($transaction->establishment_id) ? (int) $transaction->establishment_id : null
-                    )
-                    : null;
-                $returnCreditAccountId = Setting::isPerpetualInventory()
-                    ? ($inventoryAssetAccountId ?: $purchases_purchase?->account_id ?: $purchases_purchase_return->account_id)
-                    : $purchases_purchase_return->account_id;
-
-                $client = Contact::find($transactionPayment->payment_for ?: $transaction->contact_id);
-                if (! $client || ! $client->account_id) {
-                    throw new RuntimeException('Supplier account is missing for purchases-return. Please ensure the supplier has an accounting account linked.');
-                }
-
-                $invoiceType = (string) ($transaction->invoice_type ?? '');
-
-                // Debit note (mirror of sell-return, reverse of purchase):
-                // Dr Supplier/Cash | Cr Inventory/return (gross) + Dr earned discount (if any) + Cr VAT
-                if ($invoiceType === 'cash') {
-                    $cashTarget = (int) $cash_account_id;
-                    if ($cashTarget <= 0) {
-                        $cashTarget = (int) $client->account_id;
-                    } elseif (! AccountingAccount::whereKey($cashTarget)->exists()) {
-                        throw new RuntimeException("Cash account #{$cashTarget} is invalid for purchases-return cash refund.");
-                    }
-                    $transactionPayment->account_id = $cashTarget;
-                    $transactionPayment->amount = $finalTotal;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                } else {
-                    $transactionPayment->account_id = $client->account_id;
-                    $transactionPayment->amount = $finalTotal;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                }
-
-                $transactionPayment->account_id = $returnCreditAccountId;
-                $transactionPayment->amount = $grossBeforeDiscount;
-                $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-
-                if ($discountAmount > 0 && $purchases_earned_discount?->account_id) {
-                    $transactionPayment->account_id = $purchases_earned_discount->account_id;
-                    $transactionPayment->amount = $discountAmount;
-                    $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
-                }
-
-                $transactionPayment->account_id = $purchases_vat_calculation->account_id;
-                $transactionPayment->amount = $taxAmount;
-                $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                app(\Modules\Accounting\Services\PurchaseJournalPoster::class)->postPurchaseReturn(
+                    $transaction,
+                    $transactionPayment,
+                    (int) $acc_trans_mapping_id,
+                    $request,
+                    (int) $cash_account_id
+                );
             }
 
             //   dd($transaction);
