@@ -150,6 +150,13 @@
     #cssStatementTable tr.css-group-child { display: none; }
     #cssStatementTable tr.css-group-child.css-visible { display: table-row; }
 
+    #cssStatementTable tr.css-settlement-row td {
+        background-color: rgba(50, 168, 82, 0.06);
+    }
+    [data-bs-theme="dark"] #cssStatementTable tr.css-settlement-row td {
+        background-color: rgba(50, 168, 82, 0.12);
+    }
+
     .css-aging-bar {
         height: 8px;
         border-radius: 4px;

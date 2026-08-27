@@ -851,5 +851,7 @@ return [
     'css_expand_all' => 'توسيع الكل',
     'css_collapse_all' => 'طي الكل',
     'css_print_footer' => 'كشف حساب صادر من النظام المحاسبي',
+    'css_invoice_payment' => 'سداد فاتورة',
+    'css_invoice_payment_for' => 'سداد للفاتورة :ref',
 
 ];
