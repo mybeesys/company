@@ -98,10 +98,6 @@ class TransactionUtils
 
     public function createOrUpdatePaymentLines($transaction, $request)
     {
-        if (isset($request->paid_amount) && $request->paid_amount !== '') {
-            $request->amount = $request->paid_amount;
-        }
-
         $accountUtil = new AccountingUtil;
 
         if ($transaction->status == 'draft') {
@@ -117,6 +113,15 @@ class TransactionUtils
 
             return $request->{$key} ?? null;
         };
+
+        $paidAmount = $get_val('paid_amount');
+        if ($paidAmount !== null && $paidAmount !== '') {
+            if (is_array($request)) {
+                $request['amount'] = $paidAmount;
+            } else {
+                $request->merge(['amount' => $paidAmount]);
+            }
+        }
 
         $payment_on_raw = $get_val('payment_on');
         $date = ! empty($payment_on_raw) ? Carbon::parse($payment_on_raw) : now();
@@ -181,6 +186,32 @@ class TransactionUtils
         }
 
         return true;
+    }
+
+    /**
+     * Cash invoices: payment line amount = invoice total.
+     * Due/credit: amount comes from paid_amount in the request (0 = unpaid).
+     *
+     * @param  \Illuminate\Http\Request|array  $request
+     * @return \Illuminate\Http\Request|array
+     */
+    public function mergeInvoicePaymentAmount($transaction, $request)
+    {
+        $invoiceType = (string) ($transaction->invoice_type ?? '');
+        if (in_array($invoiceType, ['due', 'credit'], true)) {
+            return $request;
+        }
+
+        $amount = (float) $transaction->final_total;
+        if (is_array($request)) {
+            $request['amount'] = $amount;
+
+            return $request;
+        }
+
+        $request->merge(['amount' => $amount]);
+
+        return $request;
     }
 
     protected function recordCOGS($transaction)
