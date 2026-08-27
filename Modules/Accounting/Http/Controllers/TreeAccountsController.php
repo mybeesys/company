@@ -609,7 +609,7 @@ class TreeAccountsController extends Controller
 
         $opening_balance = $this->buildLedgerOpeningBalance($account, $choose_cost_center_select, $start_date);
 
-        $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->paginate(10);
+        $account_transactions = $this->buildLedgerTransactionsQuery($account, $request)->get();
 
         $current_bal = AccountingAccount::leftjoin(
             'accounting_accounts_transactions as AAT',

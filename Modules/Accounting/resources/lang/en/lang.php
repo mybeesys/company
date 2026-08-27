@@ -856,6 +856,8 @@ return [
     'css_expand_all' => 'Expand all',
     'css_collapse_all' => 'Collapse all',
     'css_print_footer' => 'Statement generated from accounting system',
+    'css_invoice_payment' => 'Invoice payment',
+    'css_invoice_payment_for' => 'Payment for invoice :ref',
 
     'inventory_routing_tab' => 'Inventory',
     'periodic_inventory_routing_tab' => 'Periodic inventory',

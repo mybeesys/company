@@ -313,13 +313,17 @@
                             $groupKey = $line['group_key'] ?? 'row-' . $key;
                             $isGroupStart = !$isOpening && !isset($seenGroups[$groupKey]);
                             if ($isGroupStart) { $seenGroups[$groupKey] = true; }
+                            $hasSiblings = !empty($line['has_group_siblings']);
+                            $isSettlement = !empty($line['is_settlement']);
                             $rowClass = trim(implode(' ', array_filter([
                                 $isOpening ? 'css-opening-row' : '',
                                 !empty($line['is_important']) ? 'css-important-row' : '',
-                                $isGroupStart ? '' : (!$isOpening ? 'css-group-child' : ''),
+                                $isSettlement ? 'css-settlement-row' : '',
+                                // Only collapse true multi-line journal details — never hide invoice payments/settlements.
+                                ($isGroupStart || $isOpening || $isSettlement || !$hasSiblings) ? '' : 'css-group-child',
                             ])));
                         @endphp
-                        <tr class="{{ $rowClass }}" data-css-group="{{ $groupKey }}" @if($isGroupStart && !$isOpening) data-css-group-parent="1" @endif>
+                        <tr class="{{ $rowClass }}" data-css-group="{{ $groupKey }}" @if($isGroupStart && !$isOpening && $hasSiblings) data-css-group-parent="1" @endif>
                             <td>{{ $line['operation_date'] ? \Carbon\Carbon::parse($line['operation_date'])->format('Y-m-d') : '—' }}</td>
                             <td>
                                 @if(!empty($line['detail_url']))
@@ -328,7 +332,13 @@
                                     {{ $line['ref_no'] }}
                                 @endif
                             </td>
-                            <td>{{ $line['transaction_type'] }}</td>
+                            <td>
+                                @if($isSettlement)
+                                    <span class="badge badge-light-success">{{ $line['transaction_type'] }}</span>
+                                @else
+                                    {{ $line['transaction_type'] }}
+                                @endif
+                            </td>
                             <td class="text-truncate" style="max-width: 180px;" title="{{ $line['description'] }}">
                                 {{ $line['description'] }}
                                 @if(isset($line['tax_amount']) && $line['tax_amount'] > 0)
@@ -344,7 +354,7 @@
                             </td>
                             <td>{{ $line['added_by'] }}</td>
                             <td class="text-center no-print">
-                                @if($isGroupStart && !$isOpening)
+                                @if($isGroupStart && !$isOpening && $hasSiblings)
                                     <button type="button" class="btn btn-xs btn-light btn-sm py-0 px-1 css-toggle-group" data-group="{{ $groupKey }}">±</button>
                                 @elseif(!empty($line['detail_url']))
                                     <a href="{{ $line['detail_url'] }}" class="btn btn-xs btn-light-primary btn-sm py-1 px-2 btn-modal" data-container="#printJournalEntry">@lang('accounting::lang.voucher_show')</a>

@@ -74,7 +74,7 @@ final class CustomerSupplierStatementReportService
     $closingBalance = $openingBalance + static::periodNetMovement($rows, $isDebitNature);
     $currentBalance = static::contactBalanceAsOfEndDate($contactId, $endDate, $costCenterIds, $establishmentIds);
 
-    $categoryTotals = static::summarizeByCategory($rows);
+    $categoryTotals = static::summarizeByCategory($rows, $isDebitNature);
     $periodDebit = (float) $rows->where('type', 'debit')->sum('amount');
     $periodCredit = (float) $rows->where('type', 'credit')->sum('amount');
 
@@ -92,7 +92,7 @@ final class CustomerSupplierStatementReportService
 
     $chart = static::buildCompositionChart($categoryTotals, $closingBalance);
     $balanceTrend = static::monthlyBalanceTrend($contactId, $startDate, $endDate, $costCenterIds, $establishmentIds, $periodGroup);
-    $barChart = static::buildInvoicePaymentBar($rows, $periodGroup);
+    $barChart = static::buildInvoicePaymentBar($rows, $periodGroup, $isDebitNature);
     $statementSummary = static::buildStatementSummary(
       $openingBalance,
       $categoryTotals,
@@ -192,6 +192,64 @@ final class CustomerSupplierStatementReportService
     }
 
     return 'other';
+  }
+
+  /**
+   * Party-account sides present per journal mapping (debit/credit).
+   *
+   * @param  Collection<int, object>  $rows
+   * @return array<string, array{debit?: true, credit?: true}>
+   */
+  private static function mappingPartySides(Collection $rows): array
+  {
+    $mappingSides = [];
+    foreach ($rows as $row) {
+      $mapKey = (string) ($row->acc_trans_mapping_id ?: ('aat-'.$row->id));
+      $side = (string) $row->type;
+      $mappingSides[$mapKey][$side] = true;
+    }
+
+    return $mappingSides;
+  }
+
+  /**
+   * Cash invoice journals post the invoice and its immediate settlement on the same party account.
+   * The settlement side reduces the receivable/payable and should present as a payment.
+   */
+  private static function isInvoiceSettlementSide(
+    object $row,
+    array $mappingSides,
+    bool $isDebitNature
+  ): bool {
+    $subType = (string) ($row->sub_type ?? '');
+    $isInvoiceSubType = in_array($subType, static::CATEGORY_SUB_TYPES['invoice'] ?? [], true);
+    if (! $isInvoiceSubType) {
+      return false;
+    }
+
+    $mapKey = (string) ($row->acc_trans_mapping_id ?: ('aat-'.$row->id));
+    $hasBothSides = ! empty($mappingSides[$mapKey]['debit']) && ! empty($mappingSides[$mapKey]['credit']);
+    if (! $hasBothSides) {
+      return false;
+    }
+
+    // Customer AR (debit nature): credit reduces receivable = receipt/settlement.
+    // Supplier AP (credit nature): debit reduces payable = payment/settlement.
+    return $isDebitNature
+      ? ($row->type === 'credit')
+      : ($row->type === 'debit');
+  }
+
+  /**
+   * Category for statement KPIs/charts, treating cash-invoice settlements as payments.
+   */
+  private static function resolveMovementCategory(object $row, array $mappingSides, bool $isDebitNature): string
+  {
+    if (static::isInvoiceSettlementSide($row, $mappingSides, $isDebitNature)) {
+      return 'payment';
+    }
+
+    return static::resolveCategory($row->sub_type ?? null);
   }
 
   /** @return Collection<int, AccountingAccountsTransaction> */
@@ -406,6 +464,7 @@ final class CustomerSupplierStatementReportService
   {
     $running = $openingBalance;
     $lines = [];
+    $mappingSides = static::mappingPartySides($rows);
 
     $openingLine = [
       'row_type' => 'opening',
@@ -424,6 +483,7 @@ final class CustomerSupplierStatementReportService
       'group_key' => 'opening',
       'is_important' => true,
       'tax_amount' => null,
+      'has_group_siblings' => false,
     ];
     $lines[] = $openingLine;
 
@@ -438,9 +498,10 @@ final class CustomerSupplierStatementReportService
 
       $transaction = $row->transaction;
       $ref = $row->displayRefNo();
-      $subTypeLabel = Lang::has('accounting::lang.'.$row->sub_type)
-        ? __('accounting::lang.'.$row->sub_type)
-        : (string) $row->sub_type;
+      $subType = (string) ($row->sub_type ?? '');
+      $subTypeLabel = Lang::has('accounting::lang.'.$subType)
+        ? __('accounting::lang.'.$subType)
+        : $subType;
       $costCenter = app()->getLocale() === 'ar'
         ? ($row->costCenter?->name_ar ?? $row->costCenter?->name_en ?? '—')
         : ($row->costCenter?->name_en ?? $row->costCenter?->name_ar ?? '—');
@@ -464,7 +525,20 @@ final class CustomerSupplierStatementReportService
         }
       }
 
-      $category = static::resolveCategory($row->sub_type);
+      $category = static::resolveCategory($subType);
+      $mapKey = (string) ($row->acc_trans_mapping_id ?: ('aat-'.$row->id));
+      $groupKey = $mapKey;
+      $isSettlement = static::isInvoiceSettlementSide($row, $mappingSides, $isDebitNature);
+
+      if ($isSettlement) {
+        $category = 'payment';
+        $subTypeLabel = __('accounting::lang.css_invoice_payment');
+        $description = __('accounting::lang.css_invoice_payment_for', [
+          'ref' => $ref !== '—' && $ref !== '' ? $ref : ($transaction?->ref_no ?: '#'),
+        ]);
+        // Own group so the row is never hidden under ± expand.
+        $groupKey = $mapKey.'-settle-'.$row->id;
+      }
 
       $lines[] = [
         'row_type' => 'movement',
@@ -481,12 +555,32 @@ final class CustomerSupplierStatementReportService
         'running_balance' => $running,
         'added_by' => $row->createdBy?->name ?? '—',
         'detail_url' => $row->ledgerDetailUrl(),
-        'group_key' => (string) ($row->acc_trans_mapping_id ?: ('aat-'.$row->id)),
+        'group_key' => $groupKey,
         'is_important' => in_array($category, ['invoice', 'payment', 'return'], true)
           || in_array($transaction?->payment_status ?? '', ['due', 'partial'], true),
-        'tax_amount' => $transaction?->tax_amount !== null ? (float) $transaction->tax_amount : null,
+        'tax_amount' => ($category === 'payment')
+          ? null
+          : ($transaction?->tax_amount !== null ? (float) $transaction->tax_amount : null),
         'payment_status' => $transaction?->payment_status ?? null,
+        'is_settlement' => $isSettlement,
       ];
+    }
+
+    $groupCounts = [];
+    foreach ($lines as $line) {
+      if (($line['row_type'] ?? '') !== 'movement') {
+        continue;
+      }
+      $gk = (string) ($line['group_key'] ?? '');
+      $groupCounts[$gk] = ($groupCounts[$gk] ?? 0) + 1;
+    }
+    foreach ($lines as $i => $line) {
+      if (($line['row_type'] ?? '') !== 'movement') {
+        $lines[$i]['has_group_siblings'] = false;
+        continue;
+      }
+      $gk = (string) ($line['group_key'] ?? '');
+      $lines[$i]['has_group_siblings'] = ($groupCounts[$gk] ?? 0) > 1;
     }
 
     return $lines;
@@ -496,7 +590,7 @@ final class CustomerSupplierStatementReportService
    * @param  Collection<int, object>  $rows
    * @return array<string, float>
    */
-  private static function summarizeByCategory(Collection $rows): array
+  private static function summarizeByCategory(Collection $rows, bool $isDebitNature = true): array
   {
     $totals = [
       'invoice' => 0.0,
@@ -506,9 +600,10 @@ final class CustomerSupplierStatementReportService
       'adjustment' => 0.0,
       'other' => 0.0,
     ];
+    $mappingSides = static::mappingPartySides($rows);
 
     foreach ($rows as $row) {
-      $category = static::resolveCategory($row->sub_type);
+      $category = static::resolveMovementCategory($row, $mappingSides, $isDebitNature);
       if (in_array($category, ['payment', 'voucher'], true)) {
         $totals['payment'] += (float) $row->amount;
       } elseif (isset($totals[$category])) {
@@ -638,9 +733,10 @@ final class CustomerSupplierStatementReportService
    * @param  Collection<int, object>  $rows
    * @return array{labels: array<int, string>, invoices: array<int, float>, payments: array<int, float>}
    */
-  private static function buildInvoicePaymentBar(Collection $rows, string $periodGroup): array
+  private static function buildInvoicePaymentBar(Collection $rows, string $periodGroup, bool $isDebitNature = true): array
   {
     $buckets = [];
+    $mappingSides = static::mappingPartySides($rows);
 
     foreach ($rows as $row) {
       $date = Carbon::parse($row->operation_date);
@@ -654,7 +750,7 @@ final class CustomerSupplierStatementReportService
         $buckets[$key] = ['invoice' => 0.0, 'payment' => 0.0];
       }
 
-      $category = static::resolveCategory($row->sub_type);
+      $category = static::resolveMovementCategory($row, $mappingSides, $isDebitNature);
       $amount = (float) $row->amount;
 
       if ($category === 'invoice') {
