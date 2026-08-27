@@ -868,4 +868,23 @@ return [
     'periodic_inventory_last_count_hint' => 'Period start (from last posted count)',
     'unit' => 'Unit',
 
+    'purchase_journal_poster' => [
+        'routing_missing_purchases' => 'Accounting routing is missing for purchases. Please configure purchases_purchase or Inventory (perpetual_inventory_asset).',
+        'routing_missing_purchases_vat' => 'Accounting routing is missing for purchases VAT. Please configure purchases_vat_calculation.',
+        'routing_missing_purchases_return' => 'Accounting routing is missing for purchase returns. Please configure purchases_purchase_return and purchases_vat_calculation.',
+        'earned_discount_not_configured' => 'Purchase discount is present but purchases_earned_discount is not configured in Accounts Routing (do not use sales discount allowed).',
+        'supplier_account_missing' => 'Supplier account is missing for :context. Please link an accounting account to the supplier.',
+        'supplier_account_invalid' => 'Supplier accounting account #:account is invalid for :context.',
+        'cash_account_missing' => 'Cash/bank account is missing for :context.',
+        'cash_account_invalid' => 'Cash account #:account is invalid for :context.',
+        'negative_line_amount' => 'Purchase auto journal contains a negative line amount.',
+        'invalid_line_type' => 'Purchase auto journal line has an invalid type.',
+        'journal_not_balanced' => 'Purchase auto journal is not balanced before save: debit :debit != credit :credit',
+        'context_purchases' => 'purchase invoice',
+        'context_purchases_return' => 'purchase return',
+        'context_purchases_cash' => 'cash purchase invoice',
+        'context_purchases_return_cash' => 'cash purchase return',
+        'context_unknown' => ':context',
+    ],
+
 ];
