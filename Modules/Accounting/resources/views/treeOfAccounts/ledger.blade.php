@@ -110,6 +110,9 @@
             padding-top: 0.65rem;
             padding-bottom: 0.65rem;
             padding-inline: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         #ledger-table.ledger-table-pro tbody td,
@@ -194,6 +197,12 @@
             padding: 0.12rem 0.45rem;
             line-height: 1.2;
             white-space: nowrap;
+        }
+
+        .ledger-table-scroll {
+            max-height: min(70vh, 720px);
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
         }
     </style>
 @stop
@@ -529,7 +538,7 @@
                     $ledgerOpeningLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
                     $ledgerFootLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
                 @endphp
-                <div class="table-responsive">
+                <div class="ledger-table-scroll table-responsive">
                     <table class="table align-middle gs-0 gy-4 ledger-table-pro" id="ledger-table">
                         <thead>
                             <tr class="fw-bold  text-muted bg-light">
@@ -791,7 +800,6 @@
                 </div>
 
             </div>
-            {{ $account_transactions->withQueryString()->links('pagination::bootstrap-4') }}
 
         @endif
     </div>
