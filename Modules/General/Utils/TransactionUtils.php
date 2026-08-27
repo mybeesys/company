@@ -333,19 +333,22 @@ class TransactionUtils
 
     public function calculatePaymentStatus($transaction_id, $final_amount = null)
     {
-        $total_paid = $this->getTotalPaid($transaction_id);
+        $total_paid = (float) ($this->getTotalPaid($transaction_id) ?? 0);
         if (is_null($final_amount)) {
             $final_amount = Transaction::find($transaction_id)->final_total;
         }
 
-        $status = 'due';
-        if ((int) $final_amount <= ($total_paid ?? 0)) {
-            $status = 'paid';
-        } elseif ($total_paid > 0 && $final_amount > $total_paid) {
-            $status = 'partial';
+        $final_amount = (float) $final_amount;
+
+        if ($total_paid <= 0) {
+            return 'due';
         }
 
-        return $status;
+        if ($total_paid + 0.000001 >= $final_amount) {
+            return 'paid';
+        }
+
+        return 'partial';
     }
 
     public function getTotalPaid($transaction_id)
