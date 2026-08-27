@@ -81,6 +81,7 @@
 @section('content')
     <form id="sell_save" method="POST" action="{{ route('store-purchases-return-invoice') }}">
         @csrf
+        <input type="hidden" name="status" value="approved">
 
         <div class="container">
             <div class="row">
@@ -426,6 +427,9 @@ if( selectedData.units.length > 0){
                 name: 'status',
                 value: 'approved'
             }).appendTo('#sell_save');
+            if (typeof window.prepareInvoicePaymentFieldsForSubmit === 'function') {
+                window.prepareInvoicePaymentFieldsForSubmit();
+            }
             $('#sell_save').submit();
         });
 
@@ -681,6 +685,12 @@ if( selectedData.units.length > 0){
                 window.initPrefilledSalesLineSelect2();
             }
             ensureAtLeastOneSalesLineRow();
+
+            $('#sell_save').on('submit', function () {
+                if (typeof window.prepareInvoicePaymentFieldsForSubmit === 'function') {
+                    window.prepareInvoicePaymentFieldsForSubmit();
+                }
+            });
 
         });
     </script>

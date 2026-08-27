@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
@@ -21,6 +22,7 @@ use Modules\General\Models\TransactionSellLine;
 use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
+use Modules\Product\Models\UnitTransfer;
 use Modules\Sales\Utils\SalesUtile;
 
 class PurchasesReturnController extends Controller
@@ -137,6 +139,7 @@ class PurchasesReturnController extends Controller
                 'missingUnit' => app()->getLocale() === 'ar'
                     ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
                     : 'Please select unit for each product before saving.',
+                'contactMissingAccount' => __('purchases::lang.contact_missing_accounting_account'),
             ],
         ];
     }
@@ -144,16 +147,14 @@ class PurchasesReturnController extends Controller
     public function storeReturnInvoice(Request $request)
     {
         try {
+            $this->validateStandalonePurchaseReturnRequest($request);
+
             $ref_no = SalesUtile::generateReferenceNumber('purchases-return');
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
-            $main_establishment = Establishment::notMain()->active()->first();
 
-            $establishment_id = $request->storehouse;
-            if ($request->storehouse == $main_establishment->id) {
-                $establishment_id = $main_establishment->id;
-            }
+            $establishment_id = $this->resolvePurchaseReturnEstablishmentId($request);
             $termsNotesData = null;
             if (isset($request->toggle_terms_notes)) {
                 $termsNotesData = json_encode([
@@ -180,32 +181,38 @@ class PurchasesReturnController extends Controller
                 'created_by' => Auth::user()->id,
                 'description' => $request->invoice_note,
                 'ref_no' => $ref_no,
-                'status' => $request->status,
+                'status' => $request->input('status', 'approved'),
                 'notice' => $request->notice,
                 'establishment_id' => $establishment_id,
                 'settings_terms_notes' => $termsNotesData,
 
             ]);
 
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
-            $products = json_decode(json_encode($request->products));
+            $products = $this->normalizePurchaseReturnProducts($request);
 
             foreach ($products as $product) {
                 $this->createPurchaseReturnLine((int) $transaction->id, $product);
             }
 
-            if ($transaction) {
-                $request['amount'] = $transaction->final_total;
+            $request = $transactionUtil->mergeInvoicePaymentAmount($transaction, $request);
+            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
 
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            }
             DB::commit();
 
             return redirect()->route('purchases-return')->with('success', __('messages.add_successfully'));
-        } catch (Exception $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
 
-            return redirect()->route('purchases-return')->with('error', __('messages.something_went_wrong'));
+            return redirect()->back()->withInput()->withErrors($e->errors());
+        } catch (Exception $e) {
+            DB::rollBack();
+            report($e);
+
+            return redirect()->back()->withInput()->with(
+                'error',
+                config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong')
+            );
         }
     }
 
@@ -226,12 +233,8 @@ class PurchasesReturnController extends Controller
             $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
             $transactionUtil = new TransactionUtils;
             DB::beginTransaction();
-            $main_establishment = Establishment::notMain()->active()->first();
 
-            $establishment_id = $request->storehouse;
-            if ($request->storehouse == $main_establishment->id) {
-                $establishment_id = $main_establishment->id;
-            }
+            $establishment_id = $this->resolvePurchaseReturnEstablishmentId($request);
             $transaction = Transaction::create([
                 'type' => 'purchases-return',
                 'invoice_type' => $request->invoice_type,
@@ -255,26 +258,34 @@ class PurchasesReturnController extends Controller
 
             ]);
 
-            $products = json_decode(json_encode($request->products));
+            $products = $this->normalizePurchaseReturnProducts($request);
 
             foreach ($products as $product) {
                 $this->createPurchaseReturnLine((int) $transaction->id, $product);
             }
 
             if ($transaction) {
-                $request['amount'] = $transaction->final_total;
+                $request = $transactionUtil->mergeInvoicePaymentAmount($transaction, $request);
 
                 $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
             }
 
-            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
             DB::commit();
 
             return redirect()->route('purchase-invoices')->with('success', __('messages.add_successfully'));
-        } catch (Exception $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
 
-            return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
+            return redirect()->back()->withInput()->withErrors($e->errors());
+        } catch (Exception $e) {
+            DB::rollBack();
+            report($e);
+
+            return redirect()->back()->withInput()->with(
+                'error',
+                config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong')
+            );
         }
     }
 
@@ -313,14 +324,23 @@ class PurchasesReturnController extends Controller
     private function createPurchaseReturnLine(int $transactionId, object $product): void
     {
         $productId = (int) ($product->products_id ?? $product->product_id ?? 0);
+        if ($productId <= 0) {
+            throw ValidationException::withMessages([
+                'products' => app()->getLocale() === 'ar'
+                    ? 'يرجى اختيار صنف صالح لكل سطر.'
+                    : 'Please choose a valid product on each line.',
+            ]);
+        }
+
         $discountAmount = (float) ($product->discount ?? 0);
         $discountType = $discountAmount > 0 ? (string) ($product->discount_type ?? 'fixed') : null;
+        $unitId = $this->resolvePurchaseUnitId($productId, $product->unit ?? null);
 
         TransactionSellLine::create([
             'transaction_id' => $transactionId,
             'product_id' => $productId,
             'qyt' => $product->qty,
-            'unit_id' => $product->unit,
+            'unit_id' => $unitId,
             'unit_price_before_discount' => $product->unit_price,
             'unit_price' => $product->unit_price,
             'discount_type' => $discountType,
@@ -329,6 +349,124 @@ class PurchasesReturnController extends Controller
             'tax_id' => $product->tax_vat,
             'tax_value' => $product->vat_value,
             'total_before_vat' => $product->total_before_vat,
+        ]);
+    }
+
+    private function validateStandalonePurchaseReturnRequest(Request $request): void
+    {
+        $request->validate([
+            'client_id' => 'required|integer|min:1',
+            'transaction_date' => 'required|date',
+            'due_date' => 'required|date',
+            'invoice_type' => 'required|in:cash,due,credit',
+            'products' => 'required|array|min:1',
+            'totalAfterVat' => 'required|numeric|min:0.01',
+        ]);
+
+        $products = $this->normalizePurchaseReturnProducts($request);
+        if ($products === []) {
+            throw ValidationException::withMessages([
+                'products' => app()->getLocale() === 'ar'
+                    ? 'يرجى إضافة صنف واحد على الأقل.'
+                    : 'Please add at least one product line.',
+            ]);
+        }
+
+        $supplier = Contact::find($request->client_id);
+        if (! $supplier || ! $supplier->account_id) {
+            throw ValidationException::withMessages([
+                'client_id' => __('purchases::lang.contact_missing_accounting_account'),
+            ]);
+        }
+
+        $invoiceType = in_array((string) $request->invoice_type, ['due', 'credit'], true) ? 'due' : 'cash';
+        if ($invoiceType === 'cash' && ! $request->filled('cash_account')) {
+            throw ValidationException::withMessages([
+                'cash_account' => app()->getLocale() === 'ar'
+                    ? 'يرجى اختيار حساب الدفع للمردود النقدي.'
+                    : 'Please select a payment account for the cash purchase return.',
+            ]);
+        }
+    }
+
+    /**
+     * @return list<object>
+     */
+    private function normalizePurchaseReturnProducts(Request $request): array
+    {
+        $rawProducts = $request->input('products', []);
+        if (! is_array($rawProducts)) {
+            return [];
+        }
+
+        $filtered = [];
+        foreach ($rawProducts as $product) {
+            if (! is_array($product)) {
+                continue;
+            }
+
+            $productId = (int) ($product['products_id'] ?? $product['product_id'] ?? 0);
+            if ($productId <= 0) {
+                continue;
+            }
+
+            $filtered[] = $product;
+        }
+
+        return json_decode(json_encode($filtered), false) ?: [];
+    }
+
+    private function resolvePurchaseReturnEstablishmentId(Request $request): ?int
+    {
+        $establishmentId = $request->storehouse;
+        $mainEstablishment = Establishment::notMain()->active()->first();
+
+        if ($mainEstablishment && (int) $request->storehouse === (int) $mainEstablishment->id) {
+            return (int) $mainEstablishment->id;
+        }
+
+        return $establishmentId ? (int) $establishmentId : null;
+    }
+
+    private function resolvePurchaseUnitId(int $productId, $rawUnit): ?int
+    {
+        if (is_null($rawUnit) || $rawUnit === '') {
+            $defaultTransferId = UnitTransfer::query()
+                ->where('product_id', $productId)
+                ->orderByDesc('default')
+                ->value('id');
+            if ($defaultTransferId) {
+                return (int) $defaultTransferId;
+            }
+
+            throw ValidationException::withMessages([
+                'products' => app()->getLocale() === 'ar'
+                    ? "لم يتم اختيار وحدة للصنف #{$productId} ولا يوجد وحدة افتراضية معرفة له."
+                    : "Unit is missing for product #{$productId} and no default unit is configured.",
+            ]);
+        }
+
+        if (is_numeric($rawUnit)) {
+            return (int) $rawUnit;
+        }
+
+        $rawUnit = trim((string) $rawUnit);
+        $unitTransferId = UnitTransfer::query()
+            ->where('product_id', $productId)
+            ->where(function ($q) use ($rawUnit) {
+                $q->where('unit1', $rawUnit)->orWhere('unit2', $rawUnit);
+            })
+            ->orderByDesc('default')
+            ->value('id');
+
+        if ($unitTransferId) {
+            return (int) $unitTransferId;
+        }
+
+        throw ValidationException::withMessages([
+            'products' => app()->getLocale() === 'ar'
+                ? "تعذر تحديد وحدة الصنف #{$productId}. يرجى اختيار وحدة صحيحة من القائمة."
+                : "Unable to resolve unit for product #{$productId}. Please choose a valid unit from list.",
         ]);
     }
 }

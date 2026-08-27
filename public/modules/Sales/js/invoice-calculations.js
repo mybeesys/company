@@ -271,9 +271,8 @@ function updateSalesTotals() {
         $("#pmf-summary-card").toggleClass("d-none", paymentMethodFeeDisplay <= 0);
     }
 
-    if ($("#invoice_type").val() === "due") {
-        $("#paid_amount").val(0);
-    } else {
+    const invoiceType = String($("#invoice_type").val() || "").toLowerCase();
+    if (invoiceType !== "due" && invoiceType !== "credit") {
         $("#paid_amount").val(finalTotalAfterVat.toFixed(2));
     }
 }

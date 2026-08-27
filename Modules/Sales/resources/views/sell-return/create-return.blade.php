@@ -81,6 +81,7 @@
 @section('content')
     <form id="sell_save" method="POST" action="{{ route('store-sell-return-invoice') }}">
         @csrf
+        <input type="hidden" name="status" value="approved">
 
         <div class="container">
             <div class="row">
@@ -806,6 +807,12 @@ $.ajax({
                 window.initPrefilledSalesLineSelect2();
             }
             ensureAtLeastOneSalesLineRow();
+
+            $('#sell_save').on('submit', function () {
+                if (typeof window.prepareInvoicePaymentFieldsForSubmit === 'function') {
+                    window.prepareInvoicePaymentFieldsForSubmit();
+                }
+            });
 
         });
     </script>

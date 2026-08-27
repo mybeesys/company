@@ -18,6 +18,7 @@
         $('#div-cash_account').addClass('d-none').hide();
         $('#cash_account').prop('required', false).removeAttr('required').val(null).trigger('change');
         $('#li-payment_info, #tab-content-payment_info').hide();
+        setPaymentTabFieldsEnabled(false);
         $('#lable-account_id, #client_l_id').removeClass('required');
         $('#account_id').prop('required', false).removeAttr('required');
     }
@@ -25,6 +26,42 @@
     function isInternalConsumptionMode() {
         return typeof window.isInternalConsumptionInvoiceMode === 'function'
             && window.isInternalConsumptionInvoiceMode();
+    }
+
+    function getPaymentTabFields() {
+        return $('#tab-content-payment_info').find('input, select, textarea');
+    }
+
+    function setPaymentTabFieldsEnabled(enabled) {
+        const $fields = getPaymentTabFields();
+        if (!$fields.length) {
+            return;
+        }
+
+        $fields.prop('disabled', !enabled);
+        if (!enabled) {
+            $fields.prop('required', false).removeAttr('required');
+        }
+    }
+
+    function prepareInvoicePaymentFieldsForSubmit() {
+        if (isDocumentOnlyForm() || isInternalConsumptionMode()) {
+            setPaymentTabFieldsEnabled(false);
+
+            return;
+        }
+
+        const $invoiceType = $('#invoice_type');
+        if (!$invoiceType.length) {
+            return;
+        }
+
+        const isDeferred = isDeferredInvoiceType($invoiceType.val());
+        setPaymentTabFieldsEnabled(isDeferred);
+
+        if (!isDeferred && typeof window.updateSalesTotals === 'function') {
+            window.updateSalesTotals();
+        }
     }
 
     function applyInvoiceTypeAccountUi(invoiceType) {
@@ -40,6 +77,7 @@
             $cashWrap.addClass('d-none').hide();
             $cash.prop('required', false).removeAttr('required');
             $('#li-payment_info, #tab-content-payment_info').hide();
+            setPaymentTabFieldsEnabled(false);
             $('#lable-account_id, #client_l_id').removeClass('required');
             $('#account_id, #client_id').prop('required', false).removeAttr('required');
 
@@ -51,6 +89,7 @@
             $cash.prop('required', false).removeAttr('required').val(null).trigger('change');
 
             $('#li-payment_info, #tab-content-payment_info').show();
+            setPaymentTabFieldsEnabled(true);
             $('#paid_amount').val(0);
 
             // Payment-voucher account is optional on credit invoices (partial payments later).
@@ -66,6 +105,7 @@
             $cash.prop('required', true).attr('required', 'required');
 
             $('#li-payment_info, #tab-content-payment_info').hide();
+            setPaymentTabFieldsEnabled(false);
 
             $('#lable-account_id').removeClass('required');
             $('#account_id').prop('required', false).removeAttr('required');
@@ -101,9 +141,14 @@
 
     $(bindInvoiceTypeAccountToggle);
 
+    $(document).on('click', '#sell_save button[type="submit"]', function () {
+        prepareInvoicePaymentFieldsForSubmit();
+    });
+
     window.applyInvoiceTypeAccountUi = applyInvoiceTypeAccountUi;
     window.applyDocumentOnlyFormUi = applyDocumentOnlyFormUi;
     window.bindInvoiceTypeAccountToggle = bindInvoiceTypeAccountToggle;
+    window.prepareInvoicePaymentFieldsForSubmit = prepareInvoicePaymentFieldsForSubmit;
     window.refreshInvoiceTypeAccountVisibility = function () {
         applyInvoiceTypeAccountUi($('#invoice_type').val());
     };
