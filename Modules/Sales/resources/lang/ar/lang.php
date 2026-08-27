@@ -177,7 +177,7 @@ return [
     'this_month' => 'هذا الشهر',
     'overdue' => 'متأخر',
     'collection_trend' => 'اتجاه التحصيل',
-    'payment_methods' => 'طرق الدفع',
+    'payment_methods_title' => 'طرق الدفع',
     'recent_receipts' => 'أحدث السندات',
     'view_all' => 'عرض الكل',
     'receipt_no' => 'رقم السند',
