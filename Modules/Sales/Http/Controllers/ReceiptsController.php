@@ -3,19 +3,20 @@
 namespace Modules\Sales\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\General\Models\Country;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Utils\TransactionUtils;
-use Modules\ClientsAndSuppliers\Models\Contact as ContactModel;
 
 class ReceiptsController extends Controller
 {
@@ -83,55 +84,52 @@ class ReceiptsController extends Controller
 
         $contact = Contact::find($validated['client_id']);
         if (! $contact) {
-            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+            return redirect()->back()->withInput()->with('error', __('messages.something_went_wrong'));
+        }
+
+        try {
+            $this->assertReceiptContactHasAccount($contact);
+            $this->assertReceiptPaymentAccount((int) $validated['account_id'], $contact);
+            FiscalPeriodGatekeeper::assertPostable($validated['payment_on']);
+            $transactions = $this->openTransactionsForReceipt(
+                $contact,
+                $validated['allocation_option'],
+                $validated['transactions'] ?? []
+            );
+        } catch (ValidationException $e) {
+            return redirect()->back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->withInput()->with(
+                'error',
+                config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong')
+            );
         }
 
         try {
             DB::beginTransaction();
-        if ($validated['allocation_option'] == 'specified_invoices') {
-            $ids = $validated['transactions'] ?? [];
-            if (count($ids) === 0) {
-                return redirect()->back()->with('error', __('messages.something_went_wrong'));
-            }
-            $allowedTypes = $contact->business_type === 'supplier' ? ['purchases', 'purchase'] : ['sell'];
-            $transactions = Transaction::where('contact_id', $validated['client_id'])
-                ->whereIn('type', $allowedTypes)
-                ->where('status', 'approved')
-                ->where('payment_status', '<>', 'paid')
-                ->whereIn('id', $ids)
-                ->get();
+            $this->settleTransactions($transactions, $request, $contact);
+            DB::commit();
+        } catch (ValidationException $e) {
+            DB::rollBack();
 
-            $this->settleTransactions($transactions, $request, $contact);
-        } else {
-            if ($contact->business_type == 'customer') {
-                $transactions = Transaction::where('contact_id', $validated['client_id'])
-                    ->where('status', 'approved')
-                    ->where('payment_status', '<>', 'paid')
-                    ->whereIn('type', ['sell'])
-                    ->orderBy('transaction_date')
-                    ->get();
-            } else {
-                $transactions = Transaction::where('contact_id', $validated['client_id'])
-                    ->where('status', 'approved')
-                    ->where('payment_status', '<>', 'paid')
-                    ->whereIn('type', ['purchases', 'purchase'])
-                    ->orderBy('transaction_date')
-                    ->get();
-            }
-            $this->settleTransactions($transactions, $request, $contact);
+            return redirect()->back()->withInput()->withErrors($e->errors());
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+
+            return redirect()->back()->withInput()->with(
+                'error',
+                config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong')
+            );
         }
 
-        DB::commit();
         if ($contact->business_type == 'customer') {
             return redirect()->route('receipts')->with('success', __('messages.add_successfully'));
         }
 
         return redirect()->route('suppliers-receipts')->with('success', __('messages.add_successfully'));
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            report($e);
-            return redirect()->back()->with('error', config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong'));
-        }
     }
 
     public function settleTransactions($transactions, $request, $contact)
@@ -139,7 +137,7 @@ class ReceiptsController extends Controller
 
         $transactionUtil = new TransactionUtils;
         $contactUtils = new ContactUtils;
-        $paid_amount = $request->paid_amount;
+        $paid_amount = (float) str_replace(',', '', (string) $request->paid_amount);
         foreach ($transactions as $transaction) {
             $paidAmount = $transactionUtil->getTotalPaid($transaction->id);
 
@@ -161,7 +159,6 @@ class ReceiptsController extends Controller
                 continue;
             }
 
-            $paid_amount = (float) str_replace(',', '', (string) $paid_amount);
             if ($paid_amount >= $remaining_amount) {
                 // Pay the full remaining amount of this invoice.
                 $paid_amount -= $remaining_amount;
@@ -181,9 +178,17 @@ class ReceiptsController extends Controller
             $settledTransactions[] = $transaction;
         }
 
-        // Any extra amount beyond open invoices becomes customer balance (once).
+        // Any extra amount beyond open invoices becomes contact balance (once).
         if ($paid_amount > 0) {
-            if ($contact && $contact->business_type === 'supplier') {
+            if (! $contact?->account_id) {
+                throw ValidationException::withMessages([
+                    'client_id' => $contact?->business_type === 'supplier'
+                        ? __('purchases::lang.contact_missing_accounting_account')
+                        : __('sales::lang.contact_missing_accounting_account'),
+                ]);
+            }
+
+            if ($contact->business_type === 'supplier') {
                 $contactUtils->addRemainingAmountToSupplierAccount($request->client_id, $paid_amount);
             } else {
                 $contactUtils->addRemainingAmountToCustomerAccount($request->client_id, $paid_amount);
@@ -363,6 +368,70 @@ class ReceiptsController extends Controller
         }
 
         return $transaction;
+    }
+
+    private function assertReceiptContactHasAccount(Contact $contact): void
+    {
+        if ($contact->account_id) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'client_id' => $contact->business_type === 'supplier'
+                ? __('purchases::lang.contact_missing_accounting_account')
+                : __('sales::lang.contact_missing_accounting_account'),
+        ]);
+    }
+
+    private function assertReceiptPaymentAccount(int $accountId, Contact $contact): void
+    {
+        if (! AccountingAccount::whereKey($accountId)->exists()) {
+            throw ValidationException::withMessages([
+                'account_id' => __('sales::lang.receipt_payment_account_invalid'),
+            ]);
+        }
+
+        if ((int) $accountId === (int) $contact->account_id) {
+            throw ValidationException::withMessages([
+                'account_id' => __('sales::lang.receipt_payment_account_same_as_contact'),
+            ]);
+        }
+    }
+
+    /**
+     * @param  list<int|string>  $specifiedIds
+     */
+    private function openTransactionsForReceipt(Contact $contact, string $allocationOption, array $specifiedIds): Collection
+    {
+        $allowedTypes = $contact->business_type === 'supplier'
+            ? ['purchases', 'purchase']
+            : ['sell'];
+
+        $query = Transaction::query()
+            ->where('contact_id', $contact->id)
+            ->whereIn('type', $allowedTypes)
+            ->where('status', 'approved')
+            ->where('payment_status', '<>', 'paid');
+
+        if ($allocationOption === 'specified_invoices') {
+            $ids = array_values(array_unique(array_map('intval', $specifiedIds)));
+            if ($ids === []) {
+                throw ValidationException::withMessages([
+                    'transactions' => __('sales::lang.receipt_select_open_invoices'),
+                ]);
+            }
+
+            $transactions = (clone $query)->whereIn('id', $ids)->get();
+            if ($transactions->count() !== count($ids)) {
+                throw ValidationException::withMessages([
+                    'transactions' => __('sales::lang.receipt_invalid_invoices_selected'),
+                ]);
+            }
+
+            return $transactions;
+        }
+
+        return $query->orderBy('transaction_date')->get();
     }
 
     /**
