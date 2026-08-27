@@ -162,10 +162,10 @@ class PurchaseJournalPoster
             : (int) ($purchasesRoute?->account_id);
 
         if ($purchasesId <= 0) {
-            throw new RuntimeException('Accounting routing missing for purchases. Please configure purchases_purchase or Inventory (perpetual_inventory_asset).');
+            throw new RuntimeException($this->trans('routing_missing_purchases'));
         }
         if (! $vatRoute?->account_id) {
-            throw new RuntimeException('Accounting routing missing for purchases VAT. Please configure purchases_vat_calculation.');
+            throw new RuntimeException($this->trans('routing_missing_purchases_vat'));
         }
 
         return [
@@ -186,7 +186,7 @@ class PurchaseJournalPoster
         $vatRoute = AccountsRoting::where('type', 'purchases_vat_calculation')->first();
 
         if (! $returnRoute?->account_id || ! $vatRoute?->account_id) {
-            throw new RuntimeException('Accounting routing missing for purchases-return. Please configure purchases_purchase_return and purchases_vat_calculation.');
+            throw new RuntimeException($this->trans('routing_missing_purchases_return'));
         }
 
         $inventoryAssetAccountId = Setting::isPerpetualInventory()
@@ -220,7 +220,7 @@ class PurchaseJournalPoster
         $route = AccountsRoting::where('type', 'purchases_earned_discount')->first();
         $accountId = (int) ($route?->account_id ?? 0);
         if ($accountId <= 0) {
-            throw new RuntimeException('Purchase discount is present but purchases_earned_discount is not configured in Accounts Routing (do not use sales discount allowed).');
+            throw new RuntimeException($this->trans('earned_discount_not_configured'));
         }
 
         // Hard isolation: refuse if the same account is accidentally the only sales-allowed route
@@ -233,12 +233,17 @@ class PurchaseJournalPoster
         $contactId = (int) ($transaction->contact_id ?? 0);
         $client = $contactId > 0 ? Contact::find($contactId) : null;
         if (! $client || ! $client->account_id) {
-            throw new RuntimeException("Supplier account is missing for {$context}. Please link an accounting account to the supplier.");
+            throw new RuntimeException($this->trans('supplier_account_missing', [
+                'context' => $this->contextLabel($context),
+            ]));
         }
 
         $accountId = (int) $client->account_id;
         if ($accountId <= 0 || ! AccountingAccount::whereKey($accountId)->exists()) {
-            throw new RuntimeException("Supplier accounting account #{$accountId} is invalid for {$context}.");
+            throw new RuntimeException($this->trans('supplier_account_invalid', [
+                'account' => $accountId,
+                'context' => $this->contextLabel($context),
+            ]));
         }
 
         return $accountId;
@@ -248,10 +253,15 @@ class PurchaseJournalPoster
     {
         $cashId = (int) ($cashAccountId ?? 0);
         if ($cashId <= 0) {
-            throw new RuntimeException("Cash/bank account is missing for {$context}.");
+            throw new RuntimeException($this->trans('cash_account_missing', [
+                'context' => $this->contextLabel($context),
+            ]));
         }
         if (! AccountingAccount::whereKey($cashId)->exists()) {
-            throw new RuntimeException("Cash account #{$cashId} is invalid for {$context}.");
+            throw new RuntimeException($this->trans('cash_account_invalid', [
+                'account' => $cashId,
+                'context' => $this->contextLabel($context),
+            ]));
         }
 
         return $cashId;
@@ -283,7 +293,7 @@ class PurchaseJournalPoster
             if ((float) $amount <= 0) {
                 // Allow zero tax lines to be skipped by caller; reject negative.
                 if ((float) $amount < 0) {
-                    throw new RuntimeException('Purchase auto journal contains a negative line amount.');
+                    throw new RuntimeException($this->trans('negative_line_amount'));
                 }
                 continue;
             }
@@ -292,13 +302,36 @@ class PurchaseJournalPoster
             } elseif (($line['type'] ?? '') === 'credit') {
                 $credit = $this->bcAdd($credit, $amount);
             } else {
-                throw new RuntimeException('Purchase auto journal line has invalid type.');
+                throw new RuntimeException($this->trans('invalid_line_type'));
             }
         }
 
         if ($this->bcComp($debit, $credit) !== 0) {
-            throw new RuntimeException("Purchase auto journal is not balanced before save: debit {$debit} != credit {$credit}");
+            throw new RuntimeException($this->trans('journal_not_balanced', [
+                'debit' => $debit,
+                'credit' => $credit,
+            ]));
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $replace
+     */
+    private function trans(string $key, array $replace = []): string
+    {
+        return (string) __('accounting::lang.purchase_journal_poster.'.$key, $replace);
+    }
+
+    private function contextLabel(string $context): string
+    {
+        $map = [
+            'purchases' => 'context_purchases',
+            'purchases-return' => 'context_purchases_return',
+            'purchases cash' => 'context_purchases_cash',
+            'purchases-return cash' => 'context_purchases_return_cash',
+        ];
+
+        return $this->trans($map[$context] ?? 'context_unknown', ['context' => $context]);
     }
 
     /**

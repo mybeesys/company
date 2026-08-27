@@ -854,4 +854,23 @@ return [
     'css_invoice_payment' => 'سداد فاتورة',
     'css_invoice_payment_for' => 'سداد للفاتورة :ref',
 
+    'purchase_journal_poster' => [
+        'routing_missing_purchases' => 'توجيه الحسابات ناقص للمشتريات. يرجى ضبط purchases_purchase أو حساب المخزون (perpetual_inventory_asset).',
+        'routing_missing_purchases_vat' => 'توجيه الحسابات ناقص لضريبة المشتريات. يرجى ضبط purchases_vat_calculation.',
+        'routing_missing_purchases_return' => 'توجيه الحسابات ناقص لمردود المشتريات. يرجى ضبط purchases_purchase_return و purchases_vat_calculation.',
+        'earned_discount_not_configured' => 'يوجد خصم على الفاتورة لكن حساب purchases_earned_discount غير مضبوط في توجيه الحسابات (لا تستخدم خصم المبيعات المسموح).',
+        'supplier_account_missing' => 'حساب المورد المحاسبي غير مربوط لعملية :context. يرجى ربط حساب محاسبي من بطاقة المورد.',
+        'supplier_account_invalid' => 'حساب المورد المحاسبي رقم :account غير صالح لعملية :context.',
+        'cash_account_missing' => 'حساب الصندوق/البنك مطلوب لعملية :context.',
+        'cash_account_invalid' => 'حساب الصندوق/البنك رقم :account غير صالح لعملية :context.',
+        'negative_line_amount' => 'القيد التلقائي للمشتريات يحتوي على مبلغ سالب.',
+        'invalid_line_type' => 'نوع أحد أسطر القيد التلقائي للمشتريات غير صالح.',
+        'journal_not_balanced' => 'القيد التلقائي للمشتريات غير متوازن قبل الحفظ: مدين :debit ≠ دائن :credit',
+        'context_purchases' => 'فاتورة مشتريات',
+        'context_purchases_return' => 'مردود مشتريات',
+        'context_purchases_cash' => 'فاتورة مشتريات نقدية',
+        'context_purchases_return_cash' => 'مردود مشتريات نقدي',
+        'context_unknown' => ':context',
+    ],
+
 ];
