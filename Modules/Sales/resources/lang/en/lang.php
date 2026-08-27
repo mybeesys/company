@@ -173,7 +173,7 @@ return [
     'this_month' => 'This Month',
     'overdue' => 'Overdue',
     'collection_trend' => 'Collection Trend',
-    'payment_methods' => 'Payment Methods',
+    'payment_methods_title' => 'Payment Methods',
     'recent_receipts' => 'Recent Receipts',
     'view_all' => 'View All',
     'receipt_no' => 'Receipt No',

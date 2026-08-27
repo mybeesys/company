@@ -92,12 +92,35 @@
             }
         }
 
-        #ledger-table.ledger-table-pro {
+        #ledger-table.ledger-table-pro,
+        #ledger-table-head.ledger-table-pro,
+        #ledger-table-foot.ledger-table-pro {
+            border: none;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .ledger-table-shell {
             border: 1px solid #e4e6ef;
             font-variant-numeric: tabular-nums;
         }
 
-        #ledger-table.ledger-table-pro thead th {
+        .ledger-table-shell table.ledger-table-pro {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .ledger-table-shell .ledger-table-scroll {
+            max-height: min(55vh, 600px);
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            border-top: 1px solid #e4e6ef;
+        }
+
+        .ledger-table-shell .ledger-table-footer-wrap {
+            border-top: 2px solid #e4e6ef;
+        }
+
+        #ledger-table-head.ledger-table-pro thead th {
             background: #f5f8fa !important;
             color: #3f4254 !important;
             font-size: 0.86rem;
@@ -110,13 +133,10 @@
             padding-top: 0.65rem;
             padding-bottom: 0.65rem;
             padding-inline: 0.9rem;
-            position: sticky;
-            top: 0;
-            z-index: 2;
         }
 
         #ledger-table.ledger-table-pro tbody td,
-        #ledger-table.ledger-table-pro tfoot td {
+        #ledger-table-foot.ledger-table-pro tfoot td {
             border-color: #eff2f5;
             vertical-align: middle;
             padding-top: 0.45rem;
@@ -124,16 +144,19 @@
             padding-inline: 0.9rem;
         }
 
-        #ledger-table.ledger-table-pro .ledger-num {
+        #ledger-table.ledger-table-pro td,
+        #ledger-table-foot.ledger-table-pro td {
+            font-size: 0.78rem;
+        }
+
+        #ledger-table.ledger-table-pro .ledger-num,
+        #ledger-table-foot.ledger-table-pro .ledger-num {
             text-align: end;
             white-space: nowrap;
         }
 
-        #ledger-table.ledger-table-pro td {
-            font-size: 0.78rem;
-        }
-
-        #ledger-table.ledger-table-pro thead th {
+        #ledger-table.ledger-table-pro thead th,
+        #ledger-table-head.ledger-table-pro thead th {
             padding-top: 0.55rem;
             padding-bottom: 0.55rem;
             padding-inline: 0.9rem;
@@ -157,21 +180,20 @@
             background: #f8f9fb;
         }
 
-        #ledger-table.ledger-table-pro tfoot tr td {
+        #ledger-table-foot.ledger-table-pro tfoot tr td {
             background: #f0f4f8;
             border-top: 2px solid #e4e6ef;
         }
 
-        /* Metronic `.table.gs-0` zeros first/last cell horizontal padding — restore breathing room */
-        #ledger-table.ledger-table-pro thead th:first-child,
+        #ledger-table-head.ledger-table-pro thead th:first-child,
         #ledger-table.ledger-table-pro tbody td:first-child,
-        #ledger-table.ledger-table-pro tfoot td:first-child {
+        #ledger-table-foot.ledger-table-pro tfoot td:first-child {
             padding-left: 0.9rem !important;
         }
 
-        #ledger-table.ledger-table-pro thead th:last-child,
+        #ledger-table-head.ledger-table-pro thead th:last-child,
         #ledger-table.ledger-table-pro tbody td:last-child,
-        #ledger-table.ledger-table-pro tfoot td:last-child {
+        #ledger-table-foot.ledger-table-pro tfoot td:last-child {
             padding-right: 0.9rem !important;
         }
 
@@ -197,12 +219,6 @@
             padding: 0.12rem 0.45rem;
             line-height: 1.2;
             white-space: nowrap;
-        }
-
-        .ledger-table-scroll {
-            max-height: min(70vh, 720px);
-            overflow: auto;
-            -webkit-overflow-scrolling: touch;
         }
     </style>
 @stop
@@ -538,8 +554,8 @@
                     $ledgerOpeningLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
                     $ledgerFootLabelSpan = max(1, count(array_intersect($ledger_visible_columns, $ledgerPhysicalPrefixKeys)));
                 @endphp
-                <div class="ledger-table-scroll table-responsive">
-                    <table class="table align-middle gs-0 gy-4 ledger-table-pro" id="ledger-table">
+                <div class="ledger-table-shell table-responsive">
+                    <table class="table align-middle gs-0 gy-4 ledger-table-pro mb-0" id="ledger-table-head">
                         <thead>
                             <tr class="fw-bold  text-muted bg-light">
                                 <th class="min-w-110px @if (!$ledgerColShow('ref_no')) d-none @endif" data-ledger-col="ref_no">
@@ -565,6 +581,9 @@
                                     @lang('accounting::lang.balance')</th>
                             </tr>
                         </thead>
+                    </table>
+                    <div class="ledger-table-scroll">
+                        <table class="table align-middle gs-0 gy-4 ledger-table-pro mb-0" id="ledger-table">
                         <tbody>
                             @php
                                 $balance = $opening_balance;
@@ -705,6 +724,10 @@
                                 </tr>
                             @endforeach
                         </tbody>
+                    </table>
+                    </div>
+                    <div class="ledger-table-footer-wrap">
+                        <table class="table align-middle gs-0 gy-4 ledger-table-pro mb-0" id="ledger-table-foot">
                         <tfoot>
                             @php
                                 $netMovementSigned = $is_debit_nature
@@ -792,11 +815,8 @@
                                 </td>
                             </tr>
                         </tfoot>
-
-
                     </table>
-
-
+                    </div>
                 </div>
 
             </div>
@@ -862,6 +882,24 @@
                 });
             }
 
+            function ledgerSyncTableColumns() {
+                var $headCells = $('#ledger-table-head thead th:visible');
+                if (!$headCells.length) {
+                    return;
+                }
+
+                var colHtml = '<colgroup>';
+                $headCells.each(function() {
+                    colHtml += '<col style="width:' + $(this).outerWidth() + 'px">';
+                });
+                colHtml += '</colgroup>';
+
+                $('#ledger-table-head, #ledger-table, #ledger-table-foot').each(function() {
+                    $(this).find('colgroup').remove();
+                    $(this).prepend(colHtml);
+                });
+            }
+
             function ledgerApplyColumnVisibility(cols) {
                 var vis = {};
                 cols.forEach(function(k) {
@@ -869,7 +907,7 @@
                 });
                 LEDGER_COL_ORDER.forEach(function(k) {
                     var on = !!vis[k];
-                    $('#ledger-table').find('[data-ledger-col="' + k + '"]').toggleClass('d-none', !on);
+                    $('.ledger-table-shell').find('[data-ledger-col="' + k + '"]').toggleClass('d-none', !on);
                 });
                 var physicalPrefix = ['ref_no', 'operation_date', 'narration', 'cost_center', 'added_by'];
                 var openingSpan = Math.max(1, cols.filter(function(k) {
@@ -881,6 +919,7 @@
                 }).length);
                 $('.ledger-foot-label').attr('colspan', footSpan);
                 ledgerUpdateExportLinks(cols);
+                window.requestAnimationFrame(ledgerSyncTableColumns);
             }
 
             function ledgerSyncCheckboxes(cols) {
@@ -943,6 +982,8 @@
             });
 
             $('#choose_cost_center_select').select2();
+
+            $(window).on('resize.ledgerColumns', ledgerSyncTableColumns);
         });
     </script>
 @stop
