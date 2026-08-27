@@ -220,6 +220,17 @@
             line-height: 1.2;
             white-space: nowrap;
         }
+
+        .ledger-filter-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ledger-filter-actions .btn {
+            white-space: nowrap;
+        }
     </style>
 @stop
 @section('content')
@@ -282,6 +293,12 @@
 
 
 
+    @php
+        $ledgerExportQuery = array_merge($ledger_export_base_params ?? [], [
+            'ledger_cols' => implode(',', $ledger_visible_columns),
+        ]);
+    @endphp
+
     <form action="{{ url('ledger') }}?account_id={{ $account->id }}" method="GET">
         <div class="row py-5">
             <div class="col-md-3">
@@ -321,9 +338,15 @@
                 <input type="text" name="ref_no" class="form-control" value="{{ request('ref_no') }}"
                     placeholder="{{ __('accounting::lang.transaction_number') }}">
             </div>
-            <div class="col-md-3 d-flex align-items-end mt-4">
+            <div class="col-md-9 d-flex align-items-end mt-4 ledger-filter-actions">
                 <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
-                <a href="{{ route('ledger', ['account_id' => $account->id]) }}" class="btn btn-light ms-2">@lang('sales::lang.Remove filter')</a>
+                <a href="{{ route('ledger', ['account_id' => $account->id]) }}" class="btn btn-light">@lang('sales::lang.Remove filter')</a>
+                <a href="{{ url('/ledger-export-pdf', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
+                    class="btn btn-export-pdf btn-sm ledger-export-link"
+                    data-ledger-export-base="{{ url('/ledger-export-pdf', $account->id) }}">@lang('general.export_as_pdf')</a>
+                <a href="{{ url('/ledger-export-excel', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
+                    class="btn btn-export-excel btn-sm ledger-export-link"
+                    data-ledger-export-base="{{ url('/ledger-export-excel', $account->id) }}">@lang('general.export_as_excel')</a>
             </div>
         </div>
     </form>
@@ -462,7 +485,6 @@
                                         'cost_center' => __('accounting::lang.ledger_column_cost_center'),
                                         'added_by' => __('accounting::lang.ledger_column_added_by'),
                                     ];
-                                    $ledgerExportQuery = array_merge($ledger_export_base_params ?? [], ['ledger_cols' => implode(',', $ledger_visible_columns)]);
                                 @endphp
                                 @foreach (array_keys($ledgerColMeta) as $colKey)
                                     <div class="form-check">
@@ -480,22 +502,6 @@
                                     <a href="{{ url('/print-ledger', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
                                         class="btn ledger-export-link"
                                         data-ledger-export-base="{{ url('/print-ledger', $account->id) }}">@lang('accounting::fields.print')</a>
-                                </div>
-                            </li>
-
-                            <li>
-                                <div class="menu-item-custom ">
-                                    <a href="{{ url('/ledger-export-pdf', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
-                                        class="btn btn-export-pdf ledger-export-link"
-                                        data-ledger-export-base="{{ url('/ledger-export-pdf', $account->id) }}">@lang('general.export_as_pdf')</a>
-                                </div>
-                            </li>
-
-                            <li>
-                                <div class="menu-item-custom ">
-                                    <a href="{{ url('/ledger-export-excel', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
-                                        class="btn btn-export-excel ledger-export-link"
-                                        data-ledger-export-base="{{ url('/ledger-export-excel', $account->id) }}">@lang('general.export_as_excel')</a>
                                 </div>
                             </li>
                         </ul>
