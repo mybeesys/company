@@ -31,11 +31,16 @@ class JournalEntryImportService
         $glMap = $this->loadGlCodeMap();
         $missingGlCodes = $this->findMissingGlCodes($entries, $glMap);
         $duplicateRefs = $this->findDuplicateRefs(collect($entries)->pluck('ref_no')->all());
+        $duplicateSet = array_fill_keys($duplicateRefs, true);
 
         $linesCount = collect($entries)->sum(fn (array $e) => count($e['lines']));
+        $newEntriesCount = collect($entries)
+            ->reject(fn (array $e) => isset($duplicateSet[(string) $e['ref_no']]))
+            ->count();
 
         return [
             'entries_count' => count($entries),
+            'new_entries_count' => $newEntriesCount,
             'lines_count' => $linesCount,
             'parse_errors' => $parsed['errors'],
             'missing_gl_codes' => $missingGlCodes,
@@ -45,6 +50,10 @@ class JournalEntryImportService
     }
 
     /**
+     * Additive import only: creates new journal_entry rows.
+     * Never updates/deletes existing journals, accounts, sales, or opening balances.
+     * Existing ref_no values are always skipped.
+     *
      * @return array{
      *     imported: int,
      *     skipped_duplicates: int,
@@ -54,6 +63,9 @@ class JournalEntryImportService
      */
     public function import(string $filePath, bool $skipDuplicates = true): array
     {
+        // Safety: never overwrite or recreate existing journal numbers.
+        $skipDuplicates = true;
+
         $parsed = $this->parser->parse($filePath);
         $entries = $parsed['entries'];
         $glMap = $this->loadGlCodeMap();
@@ -101,14 +113,12 @@ class JournalEntryImportService
         $skippedDuplicates = 0;
         $skippedParseErrors = count($parsed['errors']);
         $errors = [];
-        $existingRefs = $skipDuplicates
-            ? AccountingAccTransMapping::query()
-                ->where('type', 'journal_entry')
-                ->whereIn('ref_no', collect($entries)->pluck('ref_no')->unique()->values())
-                ->pluck('ref_no')
-                ->mapWithKeys(fn ($ref) => [(string) $ref => true])
-                ->all()
-            : [];
+        $existingRefs = AccountingAccTransMapping::query()
+            ->where('type', 'journal_entry')
+            ->whereIn('ref_no', collect($entries)->pluck('ref_no')->unique()->values())
+            ->pluck('ref_no')
+            ->mapWithKeys(fn ($ref) => [(string) $ref => true])
+            ->all();
         $now = now();
 
         foreach (array_chunk($entries, 100) as $chunk) {
@@ -119,7 +129,7 @@ class JournalEntryImportService
                 foreach ($chunk as $entry) {
                     $refNo = (string) $entry['ref_no'];
 
-                    if ($skipDuplicates && isset($existingRefs[$refNo])) {
+                    if (isset($existingRefs[$refNo])) {
                         $skippedDuplicates++;
 
                         continue;
