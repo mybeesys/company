@@ -4,6 +4,7 @@ namespace Modules\Accounting\Services\JournalEntry;
 
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class JournalTransactionsExcelParser
 {
@@ -307,7 +308,23 @@ class JournalTransactionsExcelParser
     private function parseDate(string $raw): ?string
     {
         $raw = trim($raw);
-        if ($raw === '' || preg_match('/^\d+$/', $raw) === 1) {
+        if ($raw === '') {
+            return null;
+        }
+
+        // Excel serial dates (this export stores dates as numbers, e.g. 46023).
+        // Journal header rows also put a pure digit in col A (ref like 7103) —
+        // those are rejected by the low/high range check below.
+        if (preg_match('/^\d+(\.0+)?$/', $raw) === 1) {
+            $serial = (float) $raw;
+            if ($serial >= 20000 && $serial <= 80000) {
+                try {
+                    return ExcelDate::excelToDateTimeObject($serial)->format('Y-m-d');
+                } catch (\Throwable) {
+                    return null;
+                }
+            }
+
             return null;
         }
 

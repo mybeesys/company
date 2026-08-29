@@ -38,6 +38,26 @@ class JournalTransactionsExcelParserTest extends TestCase
         $this->assertEqualsWithDelta(1645.91, $debitSum, 0.02);
     }
 
+    public function test_accepts_excel_serial_dates(): void
+    {
+        // 46023 ≈ 2026-01-01 in Excel serial
+        $path = $this->makeWorkbook([
+            ['Date', 'Ref', 'Account', 'GL', 'Desc', '', 'Debit', 'Credit'],
+            ['7103', '', '', '', '', '', '', ''],
+            ['46023', '7103', 'Expense A', '1001', 'note', '', '62.29', '0'],
+            ['46023', '7103', 'Cash', '2001', 'note', '', '0', '62.29'],
+            ['', '7103', '', '', '', '', '62.29', '62.29'],
+            ['المجموع', '7103', '', '', '', '', '62.29', '62.29'],
+        ]);
+
+        $parsed = (new JournalTransactionsExcelParser)->parse($path);
+
+        $this->assertSame([], $parsed['errors']);
+        $this->assertCount(1, $parsed['entries']);
+        $this->assertSame('7103', $parsed['entries'][0]['ref_no']);
+        $this->assertSame('2026-01-01', $parsed['entries'][0]['operation_date']);
+    }
+
     /**
      * @param  list<list<string>>  $rows
      */

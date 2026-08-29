@@ -75,7 +75,7 @@ class JournalEntryImportController extends Controller
             return redirect()->route('journal-entry-import')->with('error', __('accounting::lang.import_journal_file_expired'));
         }
 
-        $skipDuplicates = $request->boolean('skip_duplicates', true);
+        $skipDuplicates = true; // Always additive — never recreate existing refs.
         $fullPath = JournalEntryImportStorage::fullPath($storedPath);
         $result = null;
 

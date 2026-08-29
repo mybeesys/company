@@ -131,14 +131,14 @@
                         </div>
                         <div class="col-md-3">
                             <div class="border rounded p-4 h-100">
-                                <div class="text-muted fs-7">@lang('accounting::lang.import_journal_lines_count')</div>
-                                <div class="fs-2 fw-bold">{{ $preview['lines_count'] ?? 0 }}</div>
+                                <div class="text-muted fs-7">@lang('accounting::lang.import_journal_new_entries_count')</div>
+                                <div class="fs-2 fw-bold text-success">{{ $preview['new_entries_count'] ?? ($preview['entries_count'] ?? 0) }}</div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="border rounded p-4 h-100">
-                                <div class="text-muted fs-7">@lang('accounting::lang.import_journal_parse_errors_count')</div>
-                                <div class="fs-2 fw-bold text-danger">{{ count($preview['parse_errors'] ?? []) }}</div>
+                                <div class="text-muted fs-7">@lang('accounting::lang.import_journal_lines_count')</div>
+                                <div class="fs-2 fw-bold">{{ $preview['lines_count'] ?? 0 }}</div>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -147,6 +147,10 @@
                                 <div class="fs-2 fw-bold text-warning">{{ count($preview['missing_gl_codes'] ?? []) }}</div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        @lang('accounting::lang.import_journal_additive_safe_note')
                     </div>
 
                     @if (! empty($preview['missing_gl_codes']))
@@ -223,14 +227,14 @@
                 <div class="card-body d-flex flex-wrap gap-3">
                     <form method="POST" action="{{ route('journal-entry-import-process') }}">
                         @csrf
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="skip_duplicates" id="skip_duplicates" value="1" checked>
-                            <label class="form-check-label" for="skip_duplicates">
-                                @lang('accounting::lang.import_journal_skip_duplicates')
-                            </label>
+                        <input type="hidden" name="skip_duplicates" value="1">
+                        <div class="alert alert-light border mb-3">
+                            <i class="ki-outline ki-shield-tick text-success fs-3 me-2"></i>
+                            @lang('accounting::lang.import_journal_skip_duplicates_forced')
                         </div>
                         <button type="submit" class="btn btn-primary"
-                            @if (! empty($preview['missing_gl_codes'])) disabled @endif>
+                            @if (! empty($preview['missing_gl_codes'])) disabled @endif
+                            @if (($preview['new_entries_count'] ?? 0) <= 0 && empty($preview['missing_gl_codes'])) disabled @endif>
                             <i class="ki-outline ki-arrow-up fs-4 me-2"></i>
                             @lang('accounting::lang.import_journal_confirm_button')
                         </button>
