@@ -152,8 +152,16 @@ class AccountingReportsController extends Controller
         $choose_cost_center_select = request()->choose_cost_center_select ?? [];
         $compare_mode = request()->get('compare_mode', 'none');
         $hide_zero_lines = (int) request()->get('hide_zero_lines', 1) === 1;
+        $level_filter = request()->input('level_filter');
+        $levelsArray = $this->resolveAccountLevelsArray() ?? [null => __('all')];
 
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $incomeDataset = $this->buildIncomeStatementDataset(
+            $start_date,
+            $end_date,
+            $choose_cost_center_select,
+            $hide_zero_lines,
+            $level_filter
+        );
         $compareDataset = null;
         $comparePeriod = null;
 
@@ -163,7 +171,8 @@ class AccountingReportsController extends Controller
                 $comparePeriod['start'],
                 $comparePeriod['end'],
                 $choose_cost_center_select,
-                $hide_zero_lines
+                $hide_zero_lines,
+                $level_filter
             );
         }
 
@@ -189,6 +198,8 @@ class AccountingReportsController extends Controller
                 'comparePeriod' => $comparePeriod,
                 'compare_mode' => $compare_mode,
                 'hide_zero_lines' => $hide_zero_lines,
+                'level_filter' => $level_filter,
+                'levelsArray' => $levelsArray,
                 'kpiGrowth' => $kpiGrowth,
                 'company' => $company,
                 'costCenters' => $costCenters,
@@ -203,7 +214,14 @@ class AccountingReportsController extends Controller
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
         $hide_zero_lines = (int) $request->input('hide_zero_lines', 1) === 1;
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $level_filter = $request->input('level_filter');
+        $incomeDataset = $this->buildIncomeStatementDataset(
+            $start_date,
+            $end_date,
+            $choose_cost_center_select,
+            $hide_zero_lines,
+            $level_filter
+        );
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $html = view('accounting::reports.income-statement-print', [
@@ -240,7 +258,14 @@ class AccountingReportsController extends Controller
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
 
         $hide_zero_lines = (int) $request->input('hide_zero_lines', 1) === 1;
-        $incomeDataset = $this->buildIncomeStatementDataset($start_date, $end_date, $choose_cost_center_select, $hide_zero_lines);
+        $level_filter = $request->input('level_filter');
+        $incomeDataset = $this->buildIncomeStatementDataset(
+            $start_date,
+            $end_date,
+            $choose_cost_center_select,
+            $hide_zero_lines,
+            $level_filter
+        );
         $rows = $this->buildIncomeStatementExportRows($incomeDataset);
 
         $filename = 'income-statement-'.now()->format('Ymd-His').'.xlsx';
@@ -258,7 +283,8 @@ class AccountingReportsController extends Controller
         string $start_date,
         string $end_date,
         array $choose_cost_center_select,
-        bool $hide_zero_lines = true
+        bool $hide_zero_lines = true,
+        mixed $level_filter = null
     ): array {
         $accounts = AccountingAccount::query()
             ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
@@ -301,19 +327,21 @@ class AccountingReportsController extends Controller
 
         $accounts = $this->enrichIncomeAccountsWithAmountsAndDepth($accounts);
 
-        $filterZero = static fn ($account) => ! $hide_zero_lines || abs((float) $account->amount) > 0.0001;
-
-        $grossRevenueAccounts = $accounts->where('acc_type', 'gross_revenue')->filter($filterZero)->values();
-        $salesReturnAccounts = $accounts->where('acc_type', 'sales_returns')->filter($filterZero)->values();
-        $cogsAccounts = $accounts->where('acc_type', 'cost_of_sales')->filter($filterZero)->values();
-        $expenseAccounts = $accounts->whereIn('acc_type', ['expenses', 'operating_expense'])->filter($filterZero)->values();
-        $otherIncomeAccounts = $accounts->where('acc_type', 'other_income')->filter($filterZero)->values();
-        $otherExpenseAccounts = $accounts->where('acc_type', 'other_expenses')->filter($filterZero)->values();
-
+        // Totals / KPIs always from full set so filtering levels never breaks the statement equation.
         $data = $this->getIcomeStatementData($accounts);
 
+        $visibleAccounts = $this->filterAccountsByAccountLevel($accounts, $level_filter);
+        $filterZero = static fn ($account) => ! $hide_zero_lines || abs((float) $account->amount) > 0.0001;
+
+        $grossRevenueAccounts = $visibleAccounts->where('acc_type', 'gross_revenue')->filter($filterZero)->values();
+        $salesReturnAccounts = $visibleAccounts->where('acc_type', 'sales_returns')->filter($filterZero)->values();
+        $cogsAccounts = $visibleAccounts->where('acc_type', 'cost_of_sales')->filter($filterZero)->values();
+        $expenseAccounts = $visibleAccounts->whereIn('acc_type', ['expenses', 'operating_expense'])->filter($filterZero)->values();
+        $otherIncomeAccounts = $visibleAccounts->where('acc_type', 'other_income')->filter($filterZero)->values();
+        $otherExpenseAccounts = $visibleAccounts->where('acc_type', 'other_expenses')->filter($filterZero)->values();
+
         return [
-            'accounts' => $accounts,
+            'accounts' => $visibleAccounts,
             'data' => $data,
             'grossRevenueAccounts' => $grossRevenueAccounts,
             'salesReturnAccounts' => $salesReturnAccounts,
@@ -497,24 +525,11 @@ class AccountingReportsController extends Controller
 
         $level_filter = $request->input('level_filter');
 
-        $max_levels = AccountingAccount::pluck('gl_code')->toArray();
-
-        $lengths = array_map(function ($length) {
-            return str_replace('.', '', $length);
-        }, $max_levels);
-        if (empty($max_levels)) {
-            // Redirect to the 'chart-of-accounts' route with a flash message
+        $levelsArray = $this->resolveAccountLevelsArray();
+        if ($levelsArray === null) {
             return redirect()->route('tree-of-accounts')
                 ->with('message', 'Please create a tree account for the chart of accounts.');
         }
-        $levels = strlen(max($lengths));
-
-        $levelsArray = [];
-        for ($i = 1; $i <= $levels; $i++) {
-            $levelsArray[$i] = $i;
-        }
-
-        $levelsArray = [null => __('all')] + $levelsArray;
 
         if (! empty($request->start_date) && ! empty($request->end_date)) {
             $start_date = $request->input('start_date');
@@ -878,6 +893,137 @@ class AccountingReportsController extends Controller
     }
 
     /**
+     * Dropdown levels for account-level filters (same source as trial balance).
+     *
+     * @return array<int|string|null, int|string>|null null when chart is empty
+     */
+    protected function resolveAccountLevelsArray(): ?array
+    {
+        $codes = AccountingAccount::query()
+            ->pluck('gl_code')
+            ->filter(fn ($code) => $code !== null && $code !== '')
+            ->map(fn ($code) => str_replace('.', '', (string) $code))
+            ->values()
+            ->all();
+
+        if ($codes === []) {
+            return null;
+        }
+
+        $maxLen = max(array_map('strlen', $codes));
+        $levelsArray = [];
+        for ($i = 1; $i <= $maxLen; $i++) {
+            $levelsArray[$i] = $i;
+        }
+
+        return [null => __('all')] + $levelsArray;
+    }
+
+    protected function normalizeAccountLevelFilter(mixed $levelFilter): ?int
+    {
+        if ($levelFilter === null || $levelFilter === '') {
+            return null;
+        }
+
+        $level = (int) $levelFilter;
+
+        return $level > 0 ? $level : null;
+    }
+
+    /**
+     * Trial-balance SQL semantics: keep accounts whose non-digit separator depth is <= selected level.
+     * Wrapped in a grouped where so OR does not leak into sibling filters.
+     */
+    protected function applyAccountLevelFilterToQuery($query, mixed $levelFilter)
+    {
+        $level = $this->normalizeAccountLevelFilter($levelFilter);
+        if ($level === null) {
+            return $query;
+        }
+
+        return $query->where(function ($inner) use ($level) {
+            $inner->whereRaw(
+                'LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) = ?',
+                [$level - 1]
+            )->orWhereRaw(
+                'LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) < ?',
+                [$level - 1]
+            );
+        });
+    }
+
+    /**
+     * Hierarchical reports (BS / IS): keep rows up to selected tree depth.
+     * depth 0 = level 1. Totals should still be computed from the unfiltered set.
+     */
+    protected function filterAccountsByAccountLevel(Collection $accounts, mixed $levelFilter): Collection
+    {
+        $level = $this->normalizeAccountLevelFilter($levelFilter);
+        if ($level === null) {
+            return $accounts;
+        }
+
+        $filtered = $accounts->filter(function ($account) use ($level) {
+            if (isset($account->depth)) {
+                return ((int) $account->depth + 1) <= $level;
+            }
+
+            $gl = (string) ($account->gl_code ?? '');
+            $nonDigits = preg_replace('/\d+/', '', $gl) ?? '';
+            if ($nonDigits !== '') {
+                return strlen($nonDigits) <= ($level - 1);
+            }
+
+            $digits = preg_replace('/\D+/', '', $gl) ?? '';
+
+            return strlen($digits) <= $level;
+        })->values();
+
+        return $filtered->map(function ($account) use ($filtered) {
+            $account->has_children = $filtered->contains(
+                fn ($child) => (int) ($child->parent_account_id ?? 0) === (int) $account->id
+            );
+
+            return $account;
+        });
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $sections
+     * @return list<array<string, mixed>>
+     */
+    protected function limitBalanceSheetSectionsByLevel(array $sections, mixed $levelFilter): array
+    {
+        $level = $this->normalizeAccountLevelFilter($levelFilter);
+        if ($level === null) {
+            return $sections;
+        }
+
+        foreach ($sections as &$section) {
+            $groups = [];
+            foreach ($section['groups'] as $group) {
+                if (($group['type'] ?? '') !== 'accounts') {
+                    $groups[] = $group;
+
+                    continue;
+                }
+
+                $accounts = $this->filterAccountsByAccountLevel(collect($group['accounts']), $level);
+                if ($accounts->isEmpty()) {
+                    continue;
+                }
+
+                $group['accounts'] = $accounts;
+                $groups[] = $group;
+            }
+            $section['groups'] = $groups;
+        }
+        unset($section);
+
+        return $sections;
+    }
+
+    /**
      * صفوف ميزان المراجعة — حساب واحد لكل سطر (بدون تكرار بسبب sub_type من الحركة).
      */
     protected function queryTrialBalanceAccountRows(
@@ -900,9 +1046,7 @@ class AccountingReportsController extends Controller
                 });
             })
             ->when($levelFilter, function ($q) use ($levelFilter) {
-                return $q
-                    ->whereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) = ?', [$levelFilter - 1])
-                    ->orWhereRaw('LENGTH(REGEXP_REPLACE(accounting_accounts.gl_code, "[0-9]", "")) < ?', [$levelFilter - 1]);
+                return $this->applyAccountLevelFilterToQuery($q, $levelFilter);
             })
             ->when($withZeroBalances === 0, function ($q) {
                 return $q->whereRaw(
@@ -1009,9 +1153,17 @@ class AccountingReportsController extends Controller
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
         $compare_mode = $request->get('compare_mode', 'none');
+        $level_filter = $request->input('level_filter');
+        $levelsArray = $this->resolveAccountLevelsArray() ?? [null => __('all')];
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
-        $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
+        $dataset = $this->buildBalanceSheetDataset(
+            $start_date,
+            $end_date,
+            $choose_cost_center_select,
+            $with_zero_balances,
+            $level_filter
+        );
         $compareDataset = null;
         $comparePeriod = null;
 
@@ -1021,7 +1173,8 @@ class AccountingReportsController extends Controller
                 $comparePeriod['start'],
                 $comparePeriod['end'],
                 $choose_cost_center_select,
-                $with_zero_balances
+                $with_zero_balances,
+                $level_filter
             );
         }
 
@@ -1040,6 +1193,8 @@ class AccountingReportsController extends Controller
                 'costCenters' => $costCenters,
                 'choose_cost_center_select' => $choose_cost_center_select,
                 'with_zero_balances' => $with_zero_balances,
+                'level_filter' => $level_filter,
+                'levelsArray' => $levelsArray,
                 'compare_mode' => $compare_mode,
                 'comparePeriod' => $comparePeriod,
                 'compareMetrics' => $compareDataset['metrics'] ?? null,
@@ -1058,8 +1213,15 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
+        $level_filter = $request->input('level_filter');
 
-        $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
+        $dataset = $this->buildBalanceSheetDataset(
+            $start_date,
+            $end_date,
+            $choose_cost_center_select,
+            $with_zero_balances,
+            $level_filter
+        );
 
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
@@ -1088,7 +1250,14 @@ class AccountingReportsController extends Controller
         $end_date = $request->input('end_date', now()->format('Y-m-d'));
         $choose_cost_center_select = $request->input('choose_cost_center_select', []);
         $with_zero_balances = (int) $request->input('with_zero_balances', 0);
-        $dataset = $this->buildBalanceSheetDataset($start_date, $end_date, $choose_cost_center_select, $with_zero_balances);
+        $level_filter = $request->input('level_filter');
+        $dataset = $this->buildBalanceSheetDataset(
+            $start_date,
+            $end_date,
+            $choose_cost_center_select,
+            $with_zero_balances,
+            $level_filter
+        );
 
         $rows = $this->buildBalanceSheetExportRows($dataset);
 
@@ -1107,8 +1276,13 @@ class AccountingReportsController extends Controller
      * الميزانية العمومية: رصيد تراكمي كما في نهاية الفترة (<= end_date)، بنفس منطق طبيعة الحساب في كشف الحساب
      * (أصول = مدين−دائن، خصوم وحقوق = دائن−مدين). تاريخ البداية لا يُخصم من الرصيد.
      */
-    private function buildBalanceSheetDataset(string $start_date, string $end_date, array $choose_cost_center_select, int $with_zero_balances): array
-    {
+    private function buildBalanceSheetDataset(
+        string $start_date,
+        string $end_date,
+        array $choose_cost_center_select,
+        int $with_zero_balances,
+        mixed $level_filter = null
+    ): array {
         $costCenterIds = array_values(array_filter($choose_cost_center_select));
 
         $debitMinusCredit = '(
@@ -1181,13 +1355,16 @@ class AccountingReportsController extends Controller
         $difference = $this->roundMoney(abs($total_assets - $total_liab_owners));
 
         $metrics = $this->calculateBalanceSheetMetrics($accounts, $total_assets, $total_liabilities, $total_equity);
-        $sections = $this->buildBalanceSheetSections($accounts);
+        $sections = $this->limitBalanceSheetSectionsByLevel(
+            $this->buildBalanceSheetSections($accounts),
+            $level_filter
+        );
 
         return [
-            'accounts' => $accounts,
-            'assets' => $assets,
-            'liabilities' => $liabilities,
-            'equities' => $equities,
+            'accounts' => $this->filterAccountsByAccountLevel($accounts, $level_filter),
+            'assets' => $this->filterAccountsByAccountLevel($assets, $level_filter),
+            'liabilities' => $this->filterAccountsByAccountLevel($liabilities, $level_filter),
+            'equities' => $this->filterAccountsByAccountLevel($equities, $level_filter),
             'sections' => $sections,
             'metrics' => $metrics,
             'total_assets' => $total_assets,

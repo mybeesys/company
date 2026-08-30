@@ -74,6 +74,14 @@
                 <input type="date" name="end_date" class="form-control form-control-sm"
                     value="{{ request('end_date', $end_date) }}">
             </div>
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small mb-1" for="level_filter">@lang('accounting::lang.account_level')</label>
+                <select name="level_filter" id="level_filter" class="form-select form-select-sm">
+                    @foreach (($levelsArray ?? [null => __('all')]) as $key => $value)
+                        <option value="{{ $key }}" @selected((string) request('level_filter', $level_filter ?? '') === (string) $key)>{{ $value }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="col-md-6 col-lg-3">
                 <label class="form-label small mb-1" for="choose_cost_center_select">@lang('accounting::lang.cost_center')</label>
                 <select name="choose_cost_center_select[]" id="choose_cost_center_select"
@@ -283,6 +291,10 @@
         if (endDate) params.append('end_date', endDate);
         if (compareMode) params.append('compare_mode', compareMode);
         if (hideZero !== null) params.append('hide_zero_lines', hideZero);
+        const levelFilter = $('#level_filter').val();
+        if (levelFilter !== undefined && levelFilter !== null && levelFilter !== '') {
+            params.append('level_filter', levelFilter);
+        }
         costCenters.forEach(function(value) {
             params.append('choose_cost_center_select[]', value);
         });
@@ -301,7 +313,7 @@
 
     $(document).ready(function() {
         $('#choose_cost_center_select').select2({ width: '100%' });
-        $('#compare_mode, #hide_zero_lines').select2({ minimumResultsForSearch: Infinity, width: '100%' });
+        $('#compare_mode, #hide_zero_lines, #level_filter').select2({ minimumResultsForSearch: Infinity, width: '100%' });
 
         $('#incomeStatementExportPdf').on('click', function() {
             window.open(incomeExportPdfUrl + '?' + buildIncomeQuery(), '_blank');
