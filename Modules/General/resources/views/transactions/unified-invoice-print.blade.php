@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <title>{{ $docTitleAr }} — {{ $transaction->ref_no }}</title>
     <style>
-        /* mPDF-safe · gold brand #e9b71f · no soft fills on nested divs */
         body {
-            font-family: dejavusans;
+            font-family: dejavusans, DejaVu Sans, sans-serif;
             font-size: 9.5pt;
             color: #222;
             line-height: 1.4;
             direction: rtl;
             text-align: right;
+            margin: 0;
+            padding: 8px;
         }
-
         .bi-ar { font-weight: bold; color: #222; font-size: 8.5pt; }
         .bi-en { font-size: 7pt; color: #888; }
         .muted { color: #888; }
@@ -31,26 +31,9 @@
 
         .hdr { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
         .hdr td { vertical-align: top; padding: 2px 4px; }
-
-        .brand {
-            font-size: 14pt;
-            font-weight: bold;
-            color: #1a1a1a;
-            margin-bottom: 3px;
-        }
-        .meta { font-size: 8pt; color: #555; line-height: 1.5; }
-        .meta .row { margin-top: 2px; }
-
+        .brand { font-size: 14pt; font-weight: bold; color: #1a1a1a; margin-bottom: 3px; }
         .logo { text-align: center; }
         .logo img { max-width: 100px; max-height: 60px; }
-
-        .qr { text-align: center; width: 115px; }
-        .qr-frame {
-            border: 1px solid #e5e5e5;
-            padding: 5px;
-            background-color: #ffffff;
-        }
-        .qr-cap { margin-top: 3px; font-size: 7pt; color: #888; }
 
         .title-wrap {
             text-align: center;
@@ -58,27 +41,10 @@
             margin: 0 0 10px 0;
             border-bottom: 2px solid {{ $primaryColor }};
         }
-        .title-ar {
-            font-size: 13pt;
-            font-weight: bold;
-            color: #222;
-            text-align: center;
-        }
-        /* Never use direction:ltr on a full-width block — mPDF parks it at the page corner */
-        .title-en {
-            font-size: 8.5pt;
-            color: #888;
-            text-align: center;
-            margin-top: 2px;
-        }
-        .badge {
-            margin-top: 4px;
-            font-size: 7.5pt;
-            color: #1a1a1a;
-            text-align: center;
-        }
+        .title-ar { font-size: 13pt; font-weight: bold; color: #222; text-align: center; }
+        .title-en { font-size: 8.5pt; color: #888; text-align: center; margin-top: 2px; }
+        .badge { margin-top: 4px; font-size: 7.5pt; color: #1a1a1a; text-align: center; }
 
-        /* plain white meta — background only on simple table cells */
         .info { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .info td {
             border: 1px solid #e8e8e8;
@@ -87,35 +53,21 @@
             font-size: 8.5pt;
             background-color: #ffffff;
         }
-        .info .lbl {
-            width: 18%;
-            border-right: 3px solid {{ $primaryColor }};
-        }
+        .info .lbl { width: 18%; border-right: 3px solid {{ $primaryColor }}; }
         .info .val { width: 32%; }
 
-        /* seller / buyer — one table so headers & heights stay parallel */
-        .parties {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-        }
+        .parties { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .parties .ph {
             width: 49%;
             text-align: right;
             padding: 6px 10px;
             border: 1px solid #e8e8e8;
-            border-bottom: 1px solid #e8e8e8;
             border-top: 3px solid {{ $primaryColor }};
             background-color: #ffffff;
             font-size: 9pt;
             vertical-align: middle;
         }
-        .parties .pgap {
-            width: 2%;
-            border: 0;
-            padding: 0;
-            background-color: #ffffff;
-        }
+        .parties .pgap { width: 2%; border: 0; padding: 0; background-color: #ffffff; }
         .parties .pb {
             width: 49%;
             padding: 8px 10px;
@@ -158,28 +110,16 @@
             color: #888;
             margin-top: 1px;
         }
-        table.lines td {
-            border-bottom: 1px solid #eeeeee;
-        }
-        table.lines .col-seq {
-            width: 4%;
-            text-align: center;
-            color: #888;
-        }
+        table.lines td { border-bottom: 1px solid #eeeeee; }
+        table.lines .col-seq { width: 4%; text-align: center; color: #888; }
         table.lines .col-desc {
             width: 29%;
             text-align: right;
             vertical-align: top;
             padding-right: 8px;
-            padding-left: 4px;
             word-wrap: break-word;
         }
-        table.lines .col-qty {
-            width: 8%;
-            text-align: center;
-            direction: ltr;
-            white-space: nowrap;
-        }
+        table.lines .col-qty { width: 8%; text-align: center; direction: ltr; white-space: nowrap; }
         table.lines .col-money {
             width: 12%;
             text-align: right;
@@ -188,12 +128,7 @@
             padding-left: 4px;
             padding-right: 6px;
         }
-        table.lines .col-pct {
-            width: 8%;
-            text-align: center;
-            direction: ltr;
-            white-space: nowrap;
-        }
+        table.lines .col-pct { width: 8%; text-align: center; direction: ltr; white-space: nowrap; }
         table.lines .col-total {
             width: 16%;
             text-align: right;
@@ -204,33 +139,14 @@
             padding-right: 6px;
         }
         table.lines th.col-money,
-        table.lines th.col-total {
-            text-align: right;
-            direction: rtl;
-        }
-        table.lines th.col-money .en,
-        table.lines th.col-total .en {
-            text-align: right;
-        }
+        table.lines th.col-total { text-align: right; direction: rtl; }
         .item { font-weight: bold; line-height: 1.35; }
         .sku { font-size: 7pt; color: #888; line-height: 1.3; margin-top: 2px; }
 
-        .foot-layout {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 8px;
-        }
-        .foot-layout td {
-            vertical-align: top;
-            background-color: #ffffff;
-        }
-        .foot-totals-wrap {
-            padding-left: 10px;
-        }
-        .foot {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .foot-layout { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+        .foot-layout td { vertical-align: top; background-color: #ffffff; }
+        .foot-totals-wrap { padding-left: 10px; }
+        .foot { width: 100%; border-collapse: collapse; }
         .foot .fh {
             text-align: right;
             padding: 6px 12px;
@@ -247,25 +163,10 @@
             background-color: #ffffff;
             vertical-align: top;
         }
-        .label-bi {
-            line-height: 1.45;
-            white-space: normal;
-        }
-        .label-bi .ar {
-            font-weight: bold;
-            font-size: 8.5pt;
-            color: #222;
-        }
-        .label-bi .sep {
-            color: #c8c8c8;
-            margin: 0 5px;
-            font-weight: normal;
-        }
-        .label-bi .en {
-            color: #888;
-            font-size: 7.5pt;
-            font-weight: normal;
-        }
+        .label-bi { line-height: 1.45; white-space: normal; }
+        .label-bi .ar { font-weight: bold; font-size: 8.5pt; color: #222; }
+        .label-bi .sep { color: #c8c8c8; margin: 0 5px; font-weight: normal; }
+        .label-bi .en { color: #888; font-size: 7.5pt; font-weight: normal; }
         .foot-qr-free {
             text-align: center;
             vertical-align: middle;
@@ -273,38 +174,14 @@
             border: 0;
             background: transparent;
         }
-        .qr-cap-bi {
-            margin-bottom: 8px;
-            line-height: 1.35;
-        }
-        .qr-cap-bi .ar {
-            font-weight: bold;
-            color: #666;
-            font-size: 7.5pt;
-        }
-        .qr-cap-bi .en {
-            color: #888;
-            font-size: 7pt;
-        }
-        .qr-cap-bi .sep {
-            color: #ccc;
-            margin: 0 5px;
-        }
-        .qr-svg-wrap {
-            display: inline-block;
-            line-height: 0;
-        }
-        .qr-svg-wrap svg {
-            width: 145px;
-            height: 145px;
-            max-width: 145px;
-            max-height: 145px;
-        }
+        .qr-cap-bi { margin-bottom: 8px; line-height: 1.35; }
+        .qr-cap-bi .ar { font-weight: bold; color: #666; font-size: 7.5pt; }
+        .qr-cap-bi .en { color: #888; font-size: 7pt; }
+        .qr-cap-bi .sep { color: #ccc; margin: 0 5px; }
+        .qr-svg-wrap { display: inline-block; line-height: 0; }
+        .qr-svg-wrap svg { width: 145px; height: 145px; max-width: 145px; max-height: 145px; }
 
-        .totals {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .totals { width: 100%; border-collapse: collapse; }
         .totals td {
             padding: 6px 12px;
             font-size: 8.5pt;
@@ -345,27 +222,27 @@
             text-align: left;
             line-height: 1.4;
         }
-
-        .comp {
-            margin-top: 8px;
-            padding-top: 6px;
-            border-top: 1px solid #e8e8e8;
-            font-size: 7.5pt;
-            color: #555;
-            line-height: 1.45;
-        }
-        .hash { direction: ltr; text-align: left; font-size: 7pt; color: #888; }
-        .note {
-            margin-top: 5px;
-            color: #1a1a1a;
-            font-weight: bold;
-            font-size: 7.5pt;
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
         }
     </style>
+    @if (!empty($autoPrint))
+        <script>
+            window.onload = function () { window.print(); };
+            window.onafterprint = function () {
+                @if (!empty($afterPrintUrl))
+                    window.location.href = @json($afterPrintUrl);
+                @endif
+            };
+        </script>
+    @endif
 </head>
 <body>
 @php
     $money = static fn ($v): string => number_format((float) $v, 2);
+    $seller = $seller ?? ['name' => '—', 'address' => '', 'vat' => '', 'cr' => '', 'mobile' => ''];
+    $buyer = $buyer ?? ['name' => '—', 'address' => '', 'vat' => '', 'cr' => '', 'mobile' => ''];
 @endphp
 
 <div class="top-rule"></div>
@@ -373,9 +250,9 @@
 <table class="hdr">
     <tr>
         <td width="55%">
-            <div class="brand">{{ $sellerName }}</div>
-            @if ($setting->seller_name && $setting->seller_name !== $sellerName)
-                <div class="meta">{{ $setting->seller_name }}</div>
+            <div class="brand">{{ $seller['name'] }}</div>
+            @if (($seller['vat'] ?? '') !== '')
+                <div class="bi-en ltr">VAT {{ $seller['vat'] }}</div>
             @endif
         </td>
         <td width="45%" class="logo">
@@ -389,9 +266,7 @@
 <div class="title-wrap">
     <div class="title-ar">{{ $docTitleAr }}</div>
     <div class="title-en">{{ $docTitleEn }}</div>
-    <div class="badge">
-        ZATCA Phase 2 · {{ $statusLabel }} · {{ strtoupper((string) ($sync->report_type ?: 'reporting')) }}
-    </div>
+    <div class="badge">{{ $docBadgeAr }} · {{ $docBadgeEn }}</div>
 </div>
 
 <table class="info">
@@ -422,11 +297,11 @@
             <div class="bi-en">{{ $paymentStatusLabelEn }}</div>
         </td>
     </tr>
-    @if ($isCreditNote && !empty($parentRef))
+    @if ($isReturn && !empty($parentRef))
         <tr>
             <td class="lbl">
-                <div class="bi-ar">الفاتورة الأصلية</div>
-                <div class="bi-en">Original Invoice</div>
+                <div class="bi-ar">المستند الأصلي</div>
+                <div class="bi-en">Original Document</div>
             </td>
             <td class="val ltr bold" colspan="3">{{ $parentRef }}</td>
         </tr>
@@ -436,52 +311,70 @@
 <table class="parties">
     <tr>
         <td class="ph" width="49%">
-            <div class="bi-ar">البائع</div>
-            <div class="bi-en">Seller</div>
+            <div class="bi-ar">{{ $sellerRoleAr }}</div>
+            <div class="bi-en">{{ $sellerRoleEn }}</div>
         </td>
         <td class="pgap" width="2%">&nbsp;</td>
         <td class="ph" width="49%">
-            <div class="bi-ar">العميل</div>
-            <div class="bi-en">Customer</div>
+            <div class="bi-ar">{{ $buyerRoleAr }}</div>
+            <div class="bi-en">{{ $buyerRoleEn }}</div>
         </td>
     </tr>
     <tr>
         <td class="pb" width="49%">
-            <div class="name">{{ $sellerName }}</div>
-            @if ($sellerAddressLine !== '')
-                <div class="ltr muted fs-7">{{ $sellerAddressLine }}</div>
+            <div class="name">{{ $seller['name'] }}</div>
+            @if (($seller['address'] ?? '') !== '')
+                <div class="ltr muted fs-7">{{ $seller['address'] }}</div>
             @endif
-            <div style="margin-top:4px;">
-                <span class="bi-ar">الرقم الضريبي</span>
-                <span class="bi-en"> VAT</span>
-                <span class="ltr"> {{ $setting->vat_number }}</span>
-            </div>
-            <div>
-                <span class="bi-ar">السجل التجاري</span>
-                <span class="bi-en"> CR</span>
-                <span class="ltr"> {{ $setting->commercial_registration_number }}</span>
-            </div>
-        </td>
-        <td class="pgap" width="2%">&nbsp;</td>
-        <td class="pb" width="49%">
-            <div class="name">{{ $buyerName }}</div>
-            @if ($buyerAddressLine !== '')
-                <div class="ltr muted fs-7">{{ $buyerAddressLine }}</div>
-            @endif
-            @if ($buyerVat !== '')
+            @if (($seller['vat'] ?? '') !== '')
                 <div style="margin-top:4px;">
                     <span class="bi-ar">الرقم الضريبي</span>
                     <span class="bi-en"> VAT</span>
-                    <span class="ltr"> {{ $buyerVat }}</span>
+                    <span class="ltr"> {{ $seller['vat'] }}</span>
+                </div>
+            @endif
+            @if (($seller['cr'] ?? '') !== '')
+                <div>
+                    <span class="bi-ar">السجل التجاري</span>
+                    <span class="bi-en"> CR</span>
+                    <span class="ltr"> {{ $seller['cr'] }}</span>
+                </div>
+            @endif
+            @if (($seller['mobile'] ?? '') !== '')
+                <div>
+                    <span class="bi-ar">الجوال</span>
+                    <span class="bi-en"> Mobile</span>
+                    <span class="ltr"> {{ $seller['mobile'] }}</span>
+                </div>
+            @endif
+        </td>
+        <td class="pgap" width="2%">&nbsp;</td>
+        <td class="pb" width="49%">
+            <div class="name">{{ $buyer['name'] }}</div>
+            @if (($buyer['address'] ?? '') !== '')
+                <div class="ltr muted fs-7">{{ $buyer['address'] }}</div>
+            @endif
+            @if (($buyer['vat'] ?? '') !== '')
+                <div style="margin-top:4px;">
+                    <span class="bi-ar">الرقم الضريبي</span>
+                    <span class="bi-en"> VAT</span>
+                    <span class="ltr"> {{ $buyer['vat'] }}</span>
                 </div>
             @else
-                <div class="muted fs-7">{{ __('zatca::lang.pdf_buyer_vat_na') }}</div>
+                <div class="muted fs-7">لا يوجد رقم ضريبي</div>
             @endif
-            @if ($buyerMobile !== '')
+            @if (($buyer['cr'] ?? '') !== '')
                 <div>
-                    <span class="bi-ar">{{ __('zatca::lang.pdf_mobile') }}</span>
+                    <span class="bi-ar">السجل التجاري</span>
+                    <span class="bi-en"> CR</span>
+                    <span class="ltr"> {{ $buyer['cr'] }}</span>
+                </div>
+            @endif
+            @if (($buyer['mobile'] ?? '') !== '')
+                <div>
+                    <span class="bi-ar">الجوال</span>
                     <span class="bi-en"> Mobile</span>
-                    <span class="ltr"> {{ $buyerMobile }}</span>
+                    <span class="ltr"> {{ $buyer['mobile'] }}</span>
                 </div>
             @endif
         </td>
@@ -489,16 +382,6 @@
 </table>
 
 <table class="lines">
-    <colgroup>
-        <col style="width:4%">
-        <col style="width:29%">
-        <col style="width:8%">
-        <col style="width:12%">
-        <col style="width:11%">
-        <col style="width:8%">
-        <col style="width:12%">
-        <col style="width:16%">
-    </colgroup>
     <thead>
         <tr>
             <th class="col-seq">#</th>
@@ -548,9 +431,15 @@
     <tr>
         <td width="30%" class="foot-qr-free">
             <div class="qr-cap-bi">
-                <span class="ar">رمز المرحلة الثانية</span>
-                <span class="sep">·</span>
-                <span class="en">ZATCA Phase 2 QR</span>
+                @if (!empty($hasZatcaQr))
+                    <span class="ar">رمز المرحلة الثانية</span>
+                    <span class="sep">·</span>
+                    <span class="en">ZATCA Phase 2 QR</span>
+                @else
+                    <span class="ar">رمز الفاتورة</span>
+                    <span class="sep">·</span>
+                    <span class="en">Invoice QR</span>
+                @endif
             </div>
             <div class="qr-svg-wrap">{!! $qrCode !!}</div>
         </td>
@@ -643,6 +532,5 @@
     </tr>
 </table>
 
-<div class="note" style="margin-top:8px;">{{ __('zatca::lang.pdf_disclaimer') }}</div>
 </body>
 </html>

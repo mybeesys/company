@@ -35,6 +35,9 @@ Route::middleware([
         Route::get('purchase-dashbord/export-pdf', [PurchasesController::class, 'purchaseDashboardExportPdf'])->name('purchase-dashbord-export-pdf');
         Route::get('create-purchases-invoice', [PurchasesController::class, 'create'])->name('create-purchases-invoice');
         Route::post('store-purchases-invoice', [PurchasesController::class, 'store'])->name('store-purchases-invoice');
+        Route::get('edit-purchases-invoice/{transaction}', [PurchasesController::class, 'edit'])->name('edit-purchases-invoice');
+        Route::put('update-purchases-invoice/{transaction}', [PurchasesController::class, 'update'])->name('update-purchases-invoice');
+        Route::delete('destroy-purchases-invoice/{transaction}', [PurchasesController::class, 'destroy'])->name('destroy-purchases-invoice');
 
         Route::get('purchases-return', [PurchasesReturnController::class, 'index'])->name('purchases-return');
         Route::get('create-purchases-return/{id}', [PurchasesReturnController::class, 'create'])->name('create-purchases-return');

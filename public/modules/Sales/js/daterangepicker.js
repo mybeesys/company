@@ -8,7 +8,7 @@
 $(document).ready(function () {
 
 
-    $("#favorite-filter,#customer,#payment_status").change(function () {
+    $("#favorite-filter,#customer,#payment_status,#approval_status").change(function () {
         dataTable.ajax.reload();
     });
 
@@ -37,6 +37,7 @@ $(document).ready(function () {
         $("#favorite-filter").val("").trigger("change");
         $("#customer").val("").trigger("change");
         $("#payment_status").val("").trigger("change");
+        $("#approval_status").val("").trigger("change");
         $("#sale_date_range").val("");
         dueDateRangeValue = "";
         sale_date_range = "";

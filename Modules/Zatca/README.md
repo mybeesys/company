@@ -25,7 +25,7 @@ Production requires a valid `ZATCA_APP_KEY` (also enterable on the settings page
 
 ## Flow
 
-1. Open **General Settings** → **ZATCA e-invoicing**, or go to `/zatca-settings`
+1. Open **General Settings** → **Tax connection**, or go to `/zatca-settings`
 2. Fill seller, address, OTP from Fatoora portal
 3. **Save & generate ZATCA certificates**
 4. Result (`private_key`, `cert_production`, `secret_production`, …) is stored in `generated_credentials` JSON

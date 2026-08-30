@@ -57,6 +57,16 @@
                     </div>
 
                     <div class="row">
+                        @if (!isset($page) || $page === 'purchases')
+                            <div class="col-md-6 mb-3">
+                                <label for="approval_status" class="form-label">@lang('sales::fields.document_status')</label>
+                                <select id="approval_status" class="form-select" name="approval_status">
+                                    <option value="">@lang('messages.view_all')</option>
+                                    <option value="draft">@lang('sales::lang.draft')</option>
+                                    <option value="finalized">@lang('sales::lang.approved_invoice')</option>
+                                </select>
+                            </div>
+                        @endif
                         @if (!isset($page) || (isset($page) && $page == 'purchases'))
                             <div class="col-md-6 mb-3">
                                 <label for="payment_status" class="form-label">@lang('sales::fields.payment_status')</label>

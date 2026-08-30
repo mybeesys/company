@@ -42,8 +42,8 @@
 
         /* شريط علوي أقصر وأكثر اتساقاً */
         .app-header.app-header--compact .app-header-main {
-            min-height: 52px;
-            padding-block: 0.25rem;
+            min-height: 56px;
+            padding-block: 0.35rem;
         }
 
         .app-header.app-header--compact .app-header-main--grid {
@@ -62,9 +62,9 @@
         }
 
         .app-header.app-header--compact .app-header-logo-img {
-            height: 64px;
+            height: 72px;
             width: auto;
-            max-height: 64px;
+            max-height: 72px;
             object-fit: contain;
             flex-shrink: 0;
         }

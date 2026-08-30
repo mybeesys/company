@@ -3,7 +3,7 @@
     <select id="storehouse" class="form-select select-2 form-select-solid" required
         style="padding: 0px 12px;border: 1px solid var(--bs-gray-300); width: 60% !important" name="storehouse">
         @foreach ($establishments as $establishment)
-            <option value="{{ $establishment->id }}">
+            <option value="{{ $establishment->id }}" @selected((int) old('storehouse', $transaction?->establishment_id) === (int) $establishment->id)>
                 {{ $establishment->name }}
             </option>
         @endforeach
@@ -11,7 +11,7 @@
 
 </div>
 
-<input type="hidden" name="purpose" id="transaction_purpose" value="{{ old('purpose', 'standard') }}">
+<input type="hidden" name="purpose" id="transaction_purpose" value="{{ old('purpose', $transaction?->purpose ?? 'standard') }}">
 
 <div class="d-flex align-items-center mb-5 d-none" id="div-internal-consumption">
     <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 100px;">@lang('sales::lang.internal_consumption_type')</label>

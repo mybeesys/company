@@ -423,12 +423,12 @@ class ZatcaDocumentController extends Controller
             abort(422, __('zatca::lang.document_qr_missing'));
         }
 
-        $qrCode = QrCode::format('svg')->size(120)->margin(0)->generate($qrPayload);
+        $qrCode = QrCode::format('svg')->size(155)->margin(1)->generate($qrPayload);
         $qrCode = preg_replace('/<\?xml[^>]*\?>/i', '', (string) $qrCode) ?? (string) $qrCode;
         $qrCode = preg_replace('/<!DOCTYPE[^>]*>/i', '', $qrCode) ?? $qrCode;
         // Keep SVG sizing predictable for mPDF.
         if (! str_contains($qrCode, 'width=')) {
-            $qrCode = preg_replace('/<svg\b/i', '<svg width="100" height="100"', $qrCode, 1) ?? $qrCode;
+            $qrCode = preg_replace('/<svg\b/i', '<svg width="145" height="145"', $qrCode, 1) ?? $qrCode;
         }
 
         return [$transaction, $sync, $setting, trim($qrCode)];

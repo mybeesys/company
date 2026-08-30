@@ -27,6 +27,7 @@ return [
     'amount' => 'Total incl. VAT',
     'actions' => 'Actions',
     'payment_status' => 'Payment status',
+    'document_status' => 'Document status',
     'Expiry Date' => 'Expiry Date',
 
     'remaining_amount' => 'Remainig Amount',

@@ -76,6 +76,11 @@ class PurchasesReturnController extends Controller
     public function create($id)
     {
         $transaction = Transaction::find($id);
+
+        if ($transaction && $transaction->type === 'purchases' && $transaction->isDraft()) {
+            return redirect()->route('purchase-invoices')->with('error', __('purchases::lang.cannot_return_draft_invoice'));
+        }
+
         $taxes = Tax::all();
 
         $products = Product::with(['unitTransfers' => function ($query) {

@@ -79,15 +79,24 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-purchases-invoice') }}">
+    <form id="sell_save" method="POST"
+        action="{{ ($isEditDraft ?? false) ? route('update-purchases-invoice', $transaction->id) : route('store-purchases-invoice') }}">
         @csrf
-        <input type="hidden" name="po_id" id="po_id" value="">
+        @if ($isEditDraft ?? false)
+            @method('PUT')
+        @endif
+        <input type="hidden" name="po_id" id="po_id" value="{{ old('po_id', ($isEditDraft ?? false) ? ($transaction->parent_id ?? '') : '') }}">
         <div class="container">
             <div class="row">
                 <div class="col-6">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
                         <h1>
-                            @lang('purchases::lang.Create a sales invoice')
+                            @if ($isEditDraft ?? false)
+                                @lang('purchases::lang.edit_draft_invoice')
+                                <span class="text-gray-600 fs-5"> — {{ $transaction->ref_no }}</span>
+                            @else
+                                @lang('purchases::lang.Create a sales invoice')
+                            @endif
                             @if ($isDuplicate ?? false)
                                 <span class="text-gray-600 fs-5"> — @lang('purchases::lang.duplicate_from_ref', ['ref' => $transaction->ref_no])</span>
                             @endif
@@ -158,17 +167,17 @@
                 <div class="col-sm-4">
                     <div class="btn-group">
                         @if ($Latest_event->action == 'save')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save" data-status="final">@lang('messages.save')
-                            </a>
+                            <button type="button" class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px"
+                                data-action="save" data-status="final">@lang('messages.save')
+                            </button>
                         @elseif ($Latest_event->action == 'save_add')
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_add" data-status="final">@lang('messages.save&add')
-                            </a>
+                            <button type="button" class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px"
+                                data-action="save_add" data-status="final">@lang('messages.save&add')
+                            </button>
                         @else
-                            <a class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px dropdown-item"
-                                type="submit" href="#" data-action="save_print" data-status="final">@lang('messages.save&print')
-                            </a>
+                            <button type="button" class="btn btn-primary fv-row flex-md-root text-center min-w-150px mw-250px"
+                                data-action="save_print" data-status="final">@lang('messages.save&print')
+                            </button>
                         @endif
 
 
@@ -179,20 +188,20 @@
 
                         <ul class="dropdown-menu p-5">
                             <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save"
+                                <button type="button" class="dropdown-item" data-action="save"
                                     data-status="final">@lang('messages.save')
-                                </a>
+                                </button>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" type="submit" href="#" data-action="save_add"
+                                <button type="button" class="dropdown-item" data-action="save_add"
                                     data-status="final">@lang('messages.save&add')
-                                </a>
+                                </button>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="#" data-action="save_print"
-                                    data-status="final">@lang('messages.save&print')</a>
+                                <button type="button" class="dropdown-item" data-action="save_print"
+                                    data-status="final">@lang('messages.save&print')</button>
 
                             </li>
                         </ul>
@@ -278,6 +287,7 @@
     <script src="{{ url('/modules/Sales/js/line-items-select2.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/settings.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
+    <script src="{{ url('/modules/Sales/js/sell-invoice-submit.js') }}?v={{ @filemtime(public_path('modules/Sales/js/sell-invoice-submit.js')) ?: time() }}"></script>
     <script>
         let salesRowIndex = 1;
 
@@ -452,54 +462,6 @@ if( selectedData.units.length > 0){
         $('#addNewAccountBtn').on('click', function() {
             $('#addClientModal').modal('show');
         });
-
-        $(document).on('click', '.dropdown-item', function(e) {
-            e.preventDefault();
-            let action = $(this).data('action');
-            let isValid = true;
-            let requiredFields = $('#sell_save').find('[required]');
-            console.log(requiredFields);
-
-            requiredFields.each(function() {
-                if (!$(this).val()) {
-                    isValid = false;
-                    $(this).addClass('is-invalid');
-                } else {
-                    $(this).removeClass('is-invalid');
-                }
-            });
-            if (!isValid) {
-                const message = "@lang('messages.required_fields_warning')";
-                toastr.warning(message);
-                return;
-            }
-            if (action === 'save_add') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save_add'
-                }).appendTo('#sell_save');
-            } else if (action === 'save_print') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save_print'
-                }).appendTo('#sell_save');
-            } else if (action === 'save') {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'action',
-                    value: 'save'
-                }).appendTo('#sell_save');
-            }
-            $('<input>').attr({
-                type: 'hidden',
-                name: 'status',
-                value: 'approved'
-            }).appendTo('#sell_save');
-            $('#sell_save').submit();
-        });
-
 
         $(document).ready(function() {
             let draggedRow = null;

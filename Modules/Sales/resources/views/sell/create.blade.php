@@ -80,9 +80,14 @@
 
 @stop
 @section('content')
-    <form id="sell_save" method="POST" action="{{ route('store-invoice') }}" novalidate>
+    <form id="sell_save" method="POST"
+        action="{{ ($isEditDraft ?? false) ? route('update-invoice', $transaction->id) : route('store-invoice') }}"
+        novalidate>
         @csrf
-        <input type="hidden" name="quotation_id" id="quotation_id" value="">
+        @if ($isEditDraft ?? false)
+            @method('PUT')
+        @endif
+        <input type="hidden" name="quotation_id" id="quotation_id" value="{{ old('quotation_id', ($isEditDraft ?? false) ? ($transaction->parent_id ?? '') : '') }}">
 
         <div class="container">
             <div class="row">
@@ -92,6 +97,9 @@
                             @if ($isDuplicate ?? false)
                                 @lang('sales::lang.Create a sales invoice')
                                 <span class="text-gray-600 fs-5"> — @lang('sales::lang.duplicate_from_ref', ['ref' => $transaction->ref_no])</span>
+                            @elseif ($isEditDraft ?? false)
+                                @lang('sales::lang.edit_draft_invoice')
+                                <span class="text-gray-600 fs-5"> — {{ $transaction->ref_no }}</span>
                             @elseif ($transaction)
                                 @lang('sales::lang.Create a sales invoice') @lang('sales::lang.from quotation') {{ $transaction->ref_no }}
                             @else

@@ -352,6 +352,13 @@ class PurchasesController extends Controller
                 })
                 ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
                 ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('approval_status'), function ($query) use ($request) {
+                    if ($request->approval_status === 'draft') {
+                        $query->where('status', 'draft');
+                    } elseif ($request->approval_status === 'finalized') {
+                        $query->whereIn('status', Transaction::finalizedStatuses());
+                    }
+                })
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -514,6 +521,10 @@ class PurchasesController extends Controller
                     ? 'يرجى اختيار وحدة لكل صنف قبل الحفظ.'
                     : 'Please select unit for each product before saving.',
                 'contactMissingAccount' => __('purchases::lang.contact_missing_accounting_account'),
+                'requiredFields' => __('messages.required_fields_warning'),
+                'missingProductLine' => app()->getLocale() === 'ar'
+                    ? 'أضف صنفاً واحداً على الأقل.'
+                    : 'Add at least one product line.',
             ],
         ];
     }
@@ -523,29 +534,221 @@ class PurchasesController extends Controller
      */
     public function store(Request $request)
     {
+        try {
+            return $this->persistPurchasesInvoice($request);
+        } catch (ValidationException $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            $message = collect($e->errors())->flatten()->first() ?: $e->getMessage();
+
+            return $this->respondPurchasesInvoiceStoreError($request, $message, $e->errors());
+        } catch (\Throwable $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            \Log::error('Purchase invoice store failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->respondPurchasesInvoiceStoreError(
+                $request,
+                $e->getMessage() ?: __('messages.something_went_wrong')
+            );
+        }
+    }
+
+    public function edit(Transaction $transaction)
+    {
+        abort_unless($this->isEditablePurchaseDraft($transaction), 404);
+
         $actionUtil = new ActionUtil;
-        $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', $request->action);
-        $accountUtil = new AccountingUtil;
+        $actionUtil->saveOrUpdateAction('create_po', 'add_sell', 'create-purchases-invoice');
 
-        // try {
-        $transactionUtil = new TransactionUtils;
+        $purchaseLineRelations = [
+            'purchases_lines' => fn ($q) => $q->orderBy('id'),
+            'purchases_lines.product.unitTransfers',
+            'purchases_lines.unitTransfer',
+        ];
 
-        $supplier = Contact::find($request->client_id);
-        if (! $supplier || ! $supplier->account_id) {
-            throw ValidationException::withMessages([
-                'client_id' => __('purchases::lang.contact_missing_accounting_account'),
+        $transaction = Transaction::with($purchaseLineRelations)->findOrFail($transaction->id);
+        $clients = Contact::where('business_type', 'supplier')->get();
+        $payment_terms = SalesUtile::paymentTerms();
+        $paymentMethods = SalesUtile::paymentMethods();
+        $orderStatuses = SalesUtile::orderStatuses();
+        $accounts = AccountingAccount::forDropdown();
+        $cost_centers = AccountingCostCenter::forDropdown();
+        $establishments = Establishment::where('is_main', 0)->get();
+        $countries = Country::all();
+        $isPurchaseOrderForm = false;
+        $convertingFromPo = false;
+        $isDuplicate = false;
+        $isEditDraft = true;
+        $taxes = Tax::all();
+        $settings = Setting::getNotesAndTermsConditions();
+        $invoicePrecheckConfig = $this->buildPurchasesInvoicePrecheckConfig();
+        $products = Product::where('active', 1)->take(25)->get();
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_purchases')->first();
+        if (! $Latest_event) {
+            $Latest_event = $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', 'save');
+        }
+
+        return view('purchases::purchases.create', compact(
+            'clients',
+            'settings',
+            'Latest_event',
+            'establishments',
+            'isPurchaseOrderForm',
+            'convertingFromPo',
+            'taxes',
+            'transaction',
+            'countries',
+            'payment_terms',
+            'orderStatuses',
+            'products',
+            'paymentMethods',
+            'accounts',
+            'cost_centers',
+            'invoicePrecheckConfig',
+            'isDuplicate',
+            'isEditDraft'
+        ));
+    }
+
+    public function update(Request $request, Transaction $transaction)
+    {
+        abort_unless($this->isEditablePurchaseDraft($transaction), 404);
+
+        try {
+            return $this->persistPurchasesInvoice($request, $transaction);
+        } catch (ValidationException $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            $message = collect($e->errors())->flatten()->first() ?: $e->getMessage();
+
+            return $this->respondPurchasesInvoiceStoreError($request, $message, $e->errors());
+        } catch (\Throwable $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            \Log::error('Purchase invoice update failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return $this->respondPurchasesInvoiceStoreError(
+                $request,
+                $e->getMessage() ?: __('messages.something_went_wrong')
+            );
+        }
+    }
+
+    public function destroy(Transaction $transaction)
+    {
+        abort_unless($this->isEditablePurchaseDraft($transaction), 404);
+
+        DB::transaction(function () use ($transaction) {
+            TransactionePurchasesLine::where('transaction_id', $transaction->id)->delete();
+            TransactionPayments::where('transaction_id', $transaction->id)->delete();
+            $transaction->favorites()->delete();
+            $transaction->delete();
+        });
+
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'message' => __('messages.deleted_successfully'),
             ]);
         }
 
-        // return $request;
+        return redirect()->route('purchase-invoices')->with('success', __('messages.deleted_successfully'));
+    }
+
+    private function isEditablePurchaseDraft(Transaction $transaction): bool
+    {
+        return $transaction->type === 'purchases' && $transaction->status === 'draft';
+    }
+
+    private function wantsPurchasesInvoiceJson(Request $request): bool
+    {
+        return $request->ajax() || $request->expectsJson();
+    }
+
+    private function respondPurchasesInvoiceStoreError(Request $request, string $message, array $errors = [])
+    {
+        if ($this->wantsPurchasesInvoiceJson($request)) {
+            return response()->json([
+                'message' => $message,
+                'errors' => $errors,
+            ], 422);
+        }
+
+        return redirect()
+            ->route(
+                $request->routeIs('update-purchases-invoice') ? 'edit-purchases-invoice' : 'create-purchases-invoice',
+                $request->routeIs('update-purchases-invoice') ? [$request->route('transaction')] : []
+            )
+            ->withInput()
+            ->withErrors($errors)
+            ->with('error', $message);
+    }
+
+    private function respondPurchasesInvoiceStoreSuccess(
+        Request $request,
+        string $routeName,
+        string $message,
+        string $status = 'success',
+        mixed $routeParameters = []
+    ) {
+        if ($this->wantsPurchasesInvoiceJson($request)) {
+            return response()->json([
+                'redirect' => route($routeName, $routeParameters),
+                'message' => $message,
+                'status' => $status,
+            ]);
+        }
+
+        return redirect()->route($routeName, $routeParameters)->with($status, $message);
+    }
+
+    private function persistPurchasesInvoice(Request $request, ?Transaction $existingTransaction = null)
+    {
+        $isUpdatingDraft = $existingTransaction && $this->isEditablePurchaseDraft($existingTransaction);
+        $isDraftSave = (string) $request->input('status') === 'draft';
+
+        $actionUtil = new ActionUtil;
+        if ($request->filled('action')) {
+            $actionUtil->saveOrUpdateAction('save_purchases', 'save_purchases', $request->action);
+        }
+
+        $accountUtil = new AccountingUtil;
+        $transactionUtil = new TransactionUtils;
+
+        if (! $isDraftSave) {
+            $supplier = Contact::find($request->client_id);
+            if (! $supplier || ! $supplier->account_id) {
+                throw ValidationException::withMessages([
+                    'client_id' => __('purchases::lang.contact_missing_accounting_account'),
+                ]);
+            }
+        }
+
         DB::beginTransaction();
-        $ref_no = SalesUtile::generateReferenceNumber('purchases');
+
+        $ref_no = $isUpdatingDraft
+            ? $existingTransaction->ref_no
+            : SalesUtile::generateReferenceNumber('purchases');
 
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
         $main_establishment = Establishment::notMain()->active()->first();
 
         $establishment_id = $request->storehouse;
-        if ($request->storehouse == $main_establishment->id) {
+        if ($main_establishment && $request->storehouse == $main_establishment->id) {
             $establishment_id = $main_establishment->id;
         }
 
@@ -558,12 +761,10 @@ class PurchasesController extends Controller
                 'note_ar' => request('note_ar'),
             ]);
         }
-        $po_id = null;
-        if ($request->po_id) {
-            $po_id = $request->po_id;
-        }
-        $transaction = Transaction::create([
-            'type' => 'purchases',
+
+        $po_id = $request->po_id ?: ($isUpdatingDraft ? $existingTransaction->parent_id : null);
+
+        $transactionPayload = [
             'invoice_type' => $request->invoice_type,
             'due_date' => $request->due_date,
             'transaction_date' => $request->transaction_date,
@@ -575,21 +776,40 @@ class PurchasesController extends Controller
             'totalAfterDiscount' => $request->totalAfterDiscount,
             'tax_amount' => $request->totalVat,
             'final_total' => $request->totalAfterVat,
-            'created_by' => Auth::user()->id,
             'description' => $request->invoice_note,
-            'ref_no' => $ref_no,
             'status' => $request->status,
             'notice' => $request->notice,
             'establishment_id' => $establishment_id,
             'settings_terms_notes' => $termsNotesData,
             'parent_id' => $po_id,
-        ]);
+        ];
 
-        $products = json_decode(json_encode($request->products));
+        if ($isUpdatingDraft) {
+            $existingTransaction->update($transactionPayload);
+            $transaction = $existingTransaction;
+            TransactionePurchasesLine::where('transaction_id', $transaction->id)->delete();
+        } else {
+            $transaction = Transaction::create(array_merge($transactionPayload, [
+                'type' => 'purchases',
+                'created_by' => Auth::user()->id,
+                'ref_no' => $ref_no,
+            ]));
+        }
+
+        $products = json_decode(json_encode($request->products ?? []));
 
         foreach ($products as $product) {
+            if (empty($product->products_id)) {
+                continue;
+            }
+
             $discount_type = $product->discount ? $product->discount_type : null;
-            $resolvedUnitId = $this->resolvePurchaseUnitId((int) $product->products_id, $product->unit ?? null);
+            $resolvedUnitId = $this->resolvePurchaseUnitId(
+                (int) $product->products_id,
+                $product->unit ?? null,
+                $isDraftSave
+            );
+
             TransactionePurchasesLine::create([
                 'transaction_id' => $transaction->id,
                 'product_id' => $product->products_id,
@@ -606,58 +826,65 @@ class PurchasesController extends Controller
             ]);
         }
 
-        if ($po_id) {
-            $this->updatePurchaseOrderStatus($po_id);
-        }
+        $isDraft = (string) $transaction->status === 'draft';
 
-        // dd($result);
-
-        app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
-
-        if ($request->paid_amount) {
-            $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-        } else {
-            FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
-
-            $acc_trans_mapping = new AccountingAccTransMapping;
-            $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
-            $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = 'مشتريات';
-            $acc_trans_mapping->type = 'journal_entry';
-            $acc_trans_mapping->created_by = Auth::user()->id;
-            $acc_trans_mapping->is_manual = 0;
-            $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
-            $acc_trans_mapping->save();
-            $acc_trans_mapping_id = $acc_trans_mapping->id;
-
-            $transactionPayment = new \stdClass;
-            $transactionPayment->paid_on = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
-            $transactionPayment->created_by = Auth::user()->id;
-            $transactionPayment->transaction_id = $transaction->id;
-            $transactionPayment->id = null;
-
-            try {
-                // Due/unpaid purchase: Dr Purchases + Dr VAT | Cr Earned discount + Cr Supplier AP
-                app(\Modules\Accounting\Services\PurchaseJournalPoster::class)->postPurchase(
-                    $transaction,
-                    $transactionPayment,
-                    (int) $acc_trans_mapping_id,
-                    $request,
-                    null
-                );
-            } catch (\Throwable $e) {
-                throw ValidationException::withMessages([
-                    'accounting' => $e->getMessage(),
-                ]);
+        if (! $isDraft) {
+            if ($po_id) {
+                $this->updatePurchaseOrderStatus($po_id);
             }
-        }
 
-        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+            app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
+
+            if ($request->paid_amount) {
+                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+            } else {
+                FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
+
+                $acc_trans_mapping = new AccountingAccTransMapping;
+                $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
+                $acc_trans_mapping->ref_no = $ref_number;
+                $acc_trans_mapping->note = 'مشتريات';
+                $acc_trans_mapping->type = 'journal_entry';
+                $acc_trans_mapping->created_by = Auth::user()->id;
+                $acc_trans_mapping->is_manual = 0;
+                $acc_trans_mapping->operation_date = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
+                $acc_trans_mapping->save();
+                $acc_trans_mapping_id = $acc_trans_mapping->id;
+
+                $transactionPayment = new \stdClass;
+                $transactionPayment->paid_on = Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s');
+                $transactionPayment->created_by = Auth::user()->id;
+                $transactionPayment->transaction_id = $transaction->id;
+                $transactionPayment->id = null;
+
+                try {
+                    app(\Modules\Accounting\Services\PurchaseJournalPoster::class)->postPurchase(
+                        $transaction,
+                        $transactionPayment,
+                        (int) $acc_trans_mapping_id,
+                        $request,
+                        null
+                    );
+                } catch (\Throwable $e) {
+                    throw ValidationException::withMessages([
+                        'accounting' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+        } else {
+            $transaction->payment_status = null;
+            $transaction->save();
+        }
 
         DB::commit();
-        $totalOutstanding = $transactionUtil->contactTotalOutstanding($transaction);
 
-        $msg = __('messages.add_successfully');
+        $totalOutstanding = $isDraft ? 0 : $transactionUtil->contactTotalOutstanding($transaction);
+
+        $msg = $isUpdatingDraft && ! $isDraft
+            ? __('messages.updated_successfully')
+            : __('messages.add_successfully');
         $status = 'success';
         if ($totalOutstanding) {
             $credit_limit = Contact::find($transaction->contact_id)->credit_limit;
@@ -668,16 +895,18 @@ class PurchasesController extends Controller
         }
 
         if ($request->action == 'save_print') {
-            return redirect()->route('transaction-print', $transaction->id)->with($status, $msg);
+            return $this->respondPurchasesInvoiceStoreSuccess(
+                $request,
+                'transaction-print',
+                $msg,
+                $status,
+                $transaction->id
+            );
         } elseif ($request->action == 'save_add') {
-            return redirect()->route('create-purchases-invoice')->with($status, $msg);
+            return $this->respondPurchasesInvoiceStoreSuccess($request, 'create-purchases-invoice', $msg, $status);
         } else {
-            return redirect()->route('purchase-invoices')->with($status, $msg);
+            return $this->respondPurchasesInvoiceStoreSuccess($request, 'purchase-invoices', $msg, $status);
         }
-        // } catch (Exception $e) {
-        //     DB::rollBack();
-        //     return redirect()->route('purchase-invoices')->with('error', __('messages.something_went_wrong'));
-        // }
     }
 
     /**
@@ -758,7 +987,7 @@ class PurchasesController extends Controller
         ];
     }
 
-    private function resolvePurchaseUnitId(int $productId, $rawUnit): ?int
+    private function resolvePurchaseUnitId(int $productId, $rawUnit, bool $allowMissing = false): ?int
     {
         if (is_null($rawUnit) || $rawUnit === '') {
             $defaultTransferId = UnitTransfer::query()
@@ -767,6 +996,10 @@ class PurchasesController extends Controller
                 ->value('id');
             if ($defaultTransferId) {
                 return (int) $defaultTransferId;
+            }
+
+            if ($allowMissing) {
+                return null;
             }
 
             throw ValidationException::withMessages([
@@ -791,6 +1024,10 @@ class PurchasesController extends Controller
 
         if ($unitTransferId) {
             return (int) $unitTransferId;
+        }
+
+        if ($allowMissing) {
+            return null;
         }
 
         throw ValidationException::withMessages([

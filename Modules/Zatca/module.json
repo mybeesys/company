@@ -1,7 +1,7 @@
 {
     "name": "Zatca",
     "alias": "zatca",
-    "description": "ZATCA E-Invoicing Phase 2 settings and credentials management",
+    "description": "ZATCA tax connection Phase 2 settings and credentials management",
     "keywords": ["zatca", "fatoora", "e-invoicing"],
     "priority": 0,
     "providers": [

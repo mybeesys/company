@@ -61,7 +61,7 @@ class SellReturnController extends Controller
                     }
                 });
 
-            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+            $transactions = $transactionsQuery->with('zatcaInvoiceSync')->orderBy('id', 'desc')->get();
 
             return Transaction::getSellsTable($transactions);
         }
@@ -89,6 +89,11 @@ class SellReturnController extends Controller
                 ->orderBy('id'),
             'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
         ])->findOrFail($id);
+
+        if ($transaction->type === 'sell' && $transaction->isDraft()) {
+            return redirect()->route('invoices')->with('error', __('sales::lang.cannot_return_draft_invoice'));
+        }
+
         $taxes = Tax::all();
 
         $products = Product::with(['unitTransfers' => function ($query) {
