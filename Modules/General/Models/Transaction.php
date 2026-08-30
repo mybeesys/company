@@ -14,6 +14,7 @@ use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Zatca\Models\ZatcaInvoiceSync;
+use Modules\Zatca\Support\ZatcaTransactionListBadge;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\General\Database\Factories\TransactionFactory;
@@ -39,6 +40,21 @@ class Transaction extends Model
             $q->whereNull('purpose')
                 ->orWhereNotIn('purpose', TransactionPurpose::internalAliases());
         });
+    }
+
+    public static function finalizedStatuses(): array
+    {
+        return ['approved', 'final'];
+    }
+
+    public static function isFinalizedStatus(?string $status): bool
+    {
+        return in_array(strtolower(trim((string) $status)), self::finalizedStatuses(), true);
+    }
+
+    public function isDraft(): bool
+    {
+        return ! self::isFinalizedStatus($this->status);
     }
 
     public function getIsFavoriteAttribute()
@@ -186,6 +202,10 @@ class Transaction extends Model
             ->editColumn('ref_no', function ($row) use ($returns) {
                 $ref = e($row->ref_no);
 
+                if (($row->type === 'sell' || $row->type === 'purchases') && $row->isDraft()) {
+                    $ref .= ' <span class="badge badge-light-warning ms-1">'.e(__('sales::lang.draft')).'</span>';
+                }
+
                 if (in_array($row->id, $returns)) {
                     $ref .= '<span class=" m-2" data-bs-toggle="tooltip" title="'.__('general::lang.tooltip_inv_return').'">
                                 <i class="fas fa-undo text-danger fs-6"></i>
@@ -196,6 +216,11 @@ class Transaction extends Model
                     $ref .= '<span class="ms-2" data-bs-toggle="tooltip" title="'.e(__('sales::lang.quotation_expired_notice')).'">
                                 <span class="badge badge-light-danger">'.e(__('sales::lang.quotation_expired')).'</span>
                             </span>';
+                }
+
+                $zatcaBadge = ZatcaTransactionListBadge::render($row);
+                if ($zatcaBadge !== '') {
+                    $ref = '<span class="d-inline-flex align-items-center gap-2 flex-wrap">'.$ref.$zatcaBadge.'</span>';
                 }
 
                 return $ref;
@@ -245,6 +270,10 @@ class Transaction extends Model
                 return number_format($row->final_total, 2) ?? '0.00';
             })
             ->editColumn('payment_status', function ($row) {
+                if (($row->type === 'sell' || $row->type === 'purchases') && $row->isDraft()) {
+                    return '<span class="text-muted">—</span>';
+                }
+
                 if ($row->payment_status == 'paid') {
                     return '<span class="badge badge-light-info px-3 py-3 fs-base">
 
@@ -278,8 +307,38 @@ class Transaction extends Model
             ->addColumn(
                 'actions',
                 function ($row) {
+                    $isSellDraft = $row->type === 'sell' && $row->isDraft();
+                    $isPurchasesDraft = $row->type === 'purchases' && $row->isDraft();
+                    $isFinalizedSell = $row->type === 'sell' && Transaction::isFinalizedStatus($row->status);
+
                     $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
-                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-175px py-4" data-kt-menu="true">';
+                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">';
+
+                    if ($isSellDraft) {
+                        $actions .= '<div class="menu-item px-3">
+                    <a href="'.route('edit-invoice', $row->id).'" class="menu-link px-3">'.e(__('employee::fields.edit')).'</a>
+                </div>';
+                        $actions .= '<div class="menu-item px-3">
+                    <a href="'.route('edit-invoice', $row->id).'" class="menu-link px-3 fw-semibold text-primary">'.e(__('sales::lang.post_as_sales_invoice')).'</a>
+                </div>';
+                        $actions .= '<div class="menu-item px-3">
+                    <a href="#" class="menu-link px-3 text-danger draft-invoice-delete" data-delete-url="'.route('destroy-invoice', $row->id).'" data-ref="'.e($row->ref_no).'">'.e(__('employee::fields.delete')).'</a>
+                </div>';
+                        $actions .= '<div class="separator my-2"></div>';
+                    }
+
+                    if ($isPurchasesDraft) {
+                        $actions .= '<div class="menu-item px-3">
+                    <a href="'.route('edit-purchases-invoice', $row->id).'" class="menu-link px-3">'.e(__('employee::fields.edit')).'</a>
+                </div>';
+                        $actions .= '<div class="menu-item px-3">
+                    <a href="'.route('edit-purchases-invoice', $row->id).'" class="menu-link px-3 fw-semibold text-primary">'.e(__('purchases::lang.post_as_purchases_invoice')).'</a>
+                </div>';
+                        $actions .= '<div class="menu-item px-3">
+                    <a href="#" class="menu-link px-3 text-danger draft-invoice-delete" data-delete-url="'.route('destroy-purchases-invoice', $row->id).'" data-ref="'.e($row->ref_no).'">'.e(__('employee::fields.delete')).'</a>
+                </div>';
+                        $actions .= '<div class="separator my-2"></div>';
+                    }
 
                     $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/transaction-show/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.show').'</a>
@@ -289,13 +348,13 @@ class Transaction extends Model
                 <a href="'.url("/transaction-print/{$row->id}").'" class="menu-link px-3">'.__('general.print').'</a>
             </div>';
 
-                    if ($row->type === 'sell') {
+                    if ($row->type === 'sell' && ! $isSellDraft) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.route('create-invoice', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
             </div>';
                     }
 
-                    if ($row->type === 'purchases') {
+                    if ($row->type === 'purchases' && ! $isPurchasesDraft) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.route('create-purchases-invoice', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
             </div>';
@@ -315,13 +374,13 @@ class Transaction extends Model
 
                     $completedReturn = Transaction::where('parent_id', $row->id)->where('type', 'sell-return')->where('po_status', 'completed')->first();
 
-                    if ($row->type == 'sell' && ! $completedReturn) {
+                    if ($isFinalizedSell && ! $completedReturn) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/create-sell-return/{$row->id}").'" class="menu-link px-3">'.__('general::lang.sell-return').'</a>
             </div>';
                     }
 
-                    if ($row->type == 'purchases') {
+                    if ($row->type == 'purchases' && ! $isPurchasesDraft) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/create-purchases-return/{$row->id}").'" class="menu-link px-3">'.__('general::lang.purchases-return').'</a>
             </div>';
@@ -333,7 +392,7 @@ class Transaction extends Model
             </div>';
                     }
 
-                    if ($row->type != 'quotation' && $row->type != 'purchases-order') {
+                    if ($row->type != 'quotation' && $row->type != 'purchases-order' && ! $isSellDraft && ! $isPurchasesDraft) {
                         if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
                             $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/transaction-show-payments/{$row->id}").'" class="menu-link px-3">'.__('general::lang.add_payment').'</a>

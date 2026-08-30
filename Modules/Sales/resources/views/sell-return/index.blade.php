@@ -2,6 +2,7 @@
 
 @section('title', __('menuItemLang.sell-return'))
 @section('css')
+    @include('zatca::partials.list-sync-badge-assets')
     <style>
         .dropend .dropdown-toggle::after {
             border-left: 0;
@@ -179,6 +180,9 @@
                 pageLength: 10,
                 drawCallback: function() {
                     KTMenu.createInstances();
+                    if (typeof window.initZatcaListSyncTooltips === 'function') {
+                        window.initZatcaListSyncTooltips(document.getElementById('kt_sell_table'));
+                    }
                 }
             });
         };

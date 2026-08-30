@@ -108,8 +108,9 @@
         }
     }
 
-    function validateSellInvoiceForm() {
+    function validateSellInvoiceForm(status) {
         const $form = $('#sell_save');
+        const isDraft = status === 'draft';
         const icMode = icModeActive();
         const precheck = window.invoicePrecheckConfig || {};
         const messages = [];
@@ -124,7 +125,7 @@
             );
         }
 
-        if (!icMode) {
+        if (!isDraft && !icMode) {
             const missingAccounts = Array.isArray(precheck.missingAccounts) ? precheck.missingAccounts : [];
             if (missingAccounts.length > 0) {
                 const header = precheck.messages?.missingAccountsHeader || 'Accounting setup is incomplete:';
@@ -156,19 +157,21 @@
                 return;
             }
             hasProductLine = true;
-            const unitValue = $row.find('[name*="[unit]"]').val();
+            const $unitSelect = $row.find('select.unit[name$="[unit]"]');
+            const unitValue = $unitSelect.val();
             if (!unitValue) {
                 missingUnit = true;
-                $row.find('[name*="[unit]"]').addClass('is-invalid');
+                $unitSelect.addClass('is-invalid');
             }
         });
 
-        if (!hasProductLine) {
+        if (!hasProductLine && !isDraft) {
             messages.push(precheck.messages?.missingProductLine || 'Add at least one product line.');
-        } else if (missingUnit) {
+        } else if (missingUnit && !isDraft) {
             messages.push(precheck.messages?.missingUnit || 'Select a unit for each product line.');
         }
 
+        if (!isDraft) {
         $form.find('[required]').each(function () {
             const $field = $(this);
             if (!isVisibleField($field)) {
@@ -194,6 +197,7 @@
                 }
             }
         });
+        }
 
         if (messages.length) {
             showFeedback('error', messages[0]);
@@ -240,7 +244,7 @@
     }
 
     function submitSellInvoice(action, status) {
-        if (!validateSellInvoiceForm()) {
+        if (!validateSellInvoiceForm(status)) {
             return false;
         }
 

@@ -26,6 +26,10 @@ return [
     'tooltip_inv_return' => 'A partial return has been processed for this invoice for some items.',
     'sell' => 'Sales Invoice',
     'quotation' => 'Quotation',
+    'unified_doc_sell' => 'Tax Invoice',
+    'unified_doc_sell_return' => 'Sales Return / Credit Note',
+    'unified_doc_purchases' => 'Purchase Tax Invoice',
+    'unified_doc_purchases_return' => 'Purchase Return',
 
     'add_to_favorites' => 'Add to Favorites',
     'remove_from_favorites' => 'Remove from Favorites',

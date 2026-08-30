@@ -2,6 +2,7 @@
 
 @section('title', __('sales::lang.invoices'))
 @section('css')
+    @include('zatca::partials.list-sync-badge-assets')
     <style>
         .dropend .dropdown-toggle::after {
             border-left: 0;
@@ -131,7 +132,7 @@
         $(document).ready(function() {
             if (!table.length) return;
             initDatatable();
-            exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_sell_table');
+            exportButtons([0, 1, 2, 3, 4, 5, 6, 7, 8], '#kt_sell_table');
             handleSearchDatatable();
             handleFormFiltersDatatable();
 
@@ -174,6 +175,7 @@
                             d.favorite = $('#favorite-filter').val();
                             d.customer = $('#customer').val();
                             d.payment_status = $('#payment_status').val();
+                            d.approval_status = $('#approval_status').val();
                             d.due_date_range = dueDateRangeValue;
                             d.sale_date_range = sale_date_range;
 
@@ -232,6 +234,9 @@
                     pageLength: 10,
                     drawCallback: function() {
                         KTMenu.createInstances();
+                        if (typeof window.initZatcaListSyncTooltips === 'function') {
+                            window.initZatcaListSyncTooltips(document.getElementById('kt_sell_table'));
+                        }
                     }
                 });
 
@@ -266,6 +271,41 @@
                     .load();
             });
         };
+    </script>
+
+    <script>
+        $(document).on('click', '.draft-invoice-delete', function (e) {
+            e.preventDefault();
+            const url = $(this).data('delete-url');
+            const ref = $(this).data('ref') || '';
+            const message = (@json(__('sales::lang.draft_delete_confirm'))).replace(':ref', ref);
+
+            if (!window.confirm(message)) {
+                return;
+            }
+
+            const token = $('meta[name="csrf-token"]').attr('content');
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            }).then(async (response) => {
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    alert(payload.message || 'Could not delete draft.');
+                    return;
+                }
+                if (typeof dataTable !== 'undefined') {
+                    dataTable.ajax.reload(null, false);
+                }
+                if (typeof toastr !== 'undefined' && payload.message) {
+                    toastr.success(payload.message);
+                }
+            }).catch(() => alert('Network error while deleting draft.'));
+        });
     </script>
 
 

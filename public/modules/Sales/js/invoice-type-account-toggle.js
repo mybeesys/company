@@ -38,9 +38,10 @@
             return;
         }
 
-        $fields.prop('disabled', !enabled);
+        // Keep paid_amount submittable; server also sets it for cash invoices.
+        $fields.not('#paid_amount').prop('disabled', !enabled);
         if (!enabled) {
-            $fields.prop('required', false).removeAttr('required');
+            $fields.not('#paid_amount').prop('required', false).removeAttr('required');
         }
     }
 

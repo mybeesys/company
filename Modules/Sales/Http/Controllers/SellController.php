@@ -500,6 +500,13 @@ class SellController extends Controller
                 })
                 ->when($request->filled('customer'), fn ($query) => $query->where('contact_id', $request->customer))
                 ->when($request->filled('payment_status'), fn ($query) => $query->where('payment_status', $request->payment_status))
+                ->when($request->filled('approval_status'), function ($query) use ($request) {
+                    if ($request->approval_status === 'draft') {
+                        $query->where('status', 'draft');
+                    } elseif ($request->approval_status === 'finalized') {
+                        $query->whereIn('status', Transaction::finalizedStatuses());
+                    }
+                })
                 ->when($request->filled('due_date_range'), function ($query) use ($request) {
                     $dueDateRange = trim($request->due_date_range);
                     $dates = explode(' إلى ', $dueDateRange);
@@ -515,7 +522,7 @@ class SellController extends Controller
                     }
                 });
 
-            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+            $transactions = $transactionsQuery->with('zatcaInvoiceSync')->orderBy('id', 'desc')->get();
 
             return Transaction::getSellsTable($transactions);
         }
@@ -566,7 +573,7 @@ class SellController extends Controller
                     }
                 });
 
-            $transactions = $transactionsQuery->orderBy('id', 'desc')->get();
+            $transactions = $transactionsQuery->with('zatcaInvoiceSync')->orderBy('id', 'desc')->get();
 
             return Transaction::getSellsTable($transactions);
         }
@@ -622,6 +629,7 @@ class SellController extends Controller
         $quotation = false;
         $isQuotationForm = false;
         $isDuplicate = false;
+        $isEditDraft = false;
         $transaction = null;
 
         $duplicateFrom = (int) $request->input('duplicate_from', 0);
@@ -635,7 +643,8 @@ class SellController extends Controller
                         ->orWhere('parent_id', 0);
                 })
                 ->orderBy('id'),
-            'sell_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
+            'sell_lines.product.unitTransfers',
+            'sell_lines.unitTransfer',
             'sell_lines.childLines.product',
         ];
 
@@ -719,6 +728,97 @@ class SellController extends Controller
             'allowSaleWithoutStock',
             'invoicePrecheckConfig',
             'isDuplicate',
+            'isEditDraft',
+            'sellWithModifiersCombos',
+            'invoiceServiceFees',
+            'defaultEstablishmentId',
+            'invoiceServiceFeesEnabled',
+            'paymentMethodFees',
+            'zatcaOps'
+        ));
+    }
+
+    public function edit(Transaction $transaction)
+    {
+        abort_unless($this->isEditableSellDraft($transaction), 404);
+
+        $actionUtil = new ActionUtil;
+        $actionUtil->saveOrUpdateAction('create_sell', 'add_sell', 'create-invoice');
+
+        $sellLineRelations = [
+            'sell_lines' => fn ($q) => $q->where('is_show', 1)
+                ->where(function ($query) {
+                    $query->whereNull('parent_id')
+                        ->orWhere('parent_id', '')
+                        ->orWhere('parent_id', 0);
+                })
+                ->orderBy('id'),
+            'sell_lines.product.unitTransfers',
+            'sell_lines.unitTransfer',
+            'sell_lines.childLines.product',
+        ];
+
+        $transaction = Transaction::with($sellLineRelations)->findOrFail($transaction->id);
+        $clients = Contact::where('business_type', 'customer')->get();
+        $taxes = Tax::all();
+        $payment_terms = SalesUtile::paymentTerms();
+        $paymentMethods = SalesUtile::paymentMethods();
+        $orderStatuses = SalesUtile::orderStatuses();
+        $accounts = AccountingAccount::forDropdown();
+        $cost_centers = AccountingCostCenter::forDropdown();
+        $establishments = Establishment::where('is_main', 0)->get();
+        $countries = Country::all();
+        $quotation = false;
+        $isQuotationForm = false;
+        $isDuplicate = false;
+        $isEditDraft = true;
+        $settings = Setting::getNotesAndTermsConditions();
+        $allowSaleWithoutStock = Auth::user() && Auth::user()->can(Setting::PERMISSION_ALLOW_SALE_WITHOUT_STOCK);
+        $invoicePrecheckConfig = $this->buildSalesInvoicePrecheckConfig();
+        $products = Product::productsForSell();
+        $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
+        if (! $Latest_event) {
+            $Latest_event = $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', 'save');
+        }
+        $sellWithModifiersCombos = WebSellModifiersCombosService::isEnabled();
+        try {
+            $invoiceServiceFees = EstablishmentServiceFeeResolver::invoiceCatalog();
+        } catch (\Throwable $e) {
+            $invoiceServiceFees = [];
+        }
+        try {
+            $paymentMethodFees = \Modules\Establishment\Services\EstablishmentPaymentAccountResolver::catalogRows();
+            $paymentMethodFees = array_values(array_filter($paymentMethodFees, fn (array $m) => ! empty($m['fees'])));
+        } catch (\Throwable $e) {
+            $paymentMethodFees = [];
+        }
+        $defaultEstablishmentId = (int) (Establishment::notMain()->active()->value('id') ?? 0);
+        $invoiceServiceFeesSetting = Setting::where('key', 'toggleServiceFees')->value('value');
+        $invoiceServiceFeesEnabled = $invoiceServiceFeesSetting === null
+            ? true
+            : ((int) $invoiceServiceFeesSetting === 1);
+        $zatcaOps = \Modules\Zatca\Models\ZatcaSetting::opsForSellUi();
+
+        return view('sales::sell.create', compact(
+            'clients',
+            'settings',
+            'Latest_event',
+            'transaction',
+            'quotation',
+            'isQuotationForm',
+            'taxes',
+            'establishments',
+            'countries',
+            'payment_terms',
+            'orderStatuses',
+            'products',
+            'paymentMethods',
+            'accounts',
+            'cost_centers',
+            'allowSaleWithoutStock',
+            'invoicePrecheckConfig',
+            'isDuplicate',
+            'isEditDraft',
             'sellWithModifiersCombos',
             'invoiceServiceFees',
             'defaultEstablishmentId',
@@ -821,6 +921,62 @@ class SellController extends Controller
         }
     }
 
+    public function update(Request $request, Transaction $transaction)
+    {
+        abort_unless($this->isEditableSellDraft($transaction), 404);
+
+        try {
+            return $this->persistSellInvoice($request, $transaction);
+        } catch (ValidationException $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            $message = collect($e->errors())->flatten()->first() ?: $e->getMessage();
+
+            return $this->respondSellInvoiceStoreError($request, $message, $e->errors());
+        } catch (\Throwable $e) {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            \Log::error('Sell invoice update failed', [
+                'transaction_id' => $transaction->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return $this->respondSellInvoiceStoreError(
+                $request,
+                $e->getMessage() ?: __('messages.something_went_wrong')
+            );
+        }
+    }
+
+    public function destroy(Transaction $transaction)
+    {
+        abort_unless($this->isEditableSellDraft($transaction), 404);
+
+        DB::transaction(function () use ($transaction) {
+            TransactionSellLine::where('transaction_id', $transaction->id)->delete();
+            TransactionPayments::where('transaction_id', $transaction->id)->delete();
+            $transaction->favorites()->delete();
+            $transaction->delete();
+        });
+
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'message' => __('messages.deleted_successfully'),
+            ]);
+        }
+
+        return redirect()->route('invoices')->with('success', __('messages.deleted_successfully'));
+    }
+
+    private function isEditableSellDraft(Transaction $transaction): bool
+    {
+        return $transaction->type === 'sell' && $transaction->status === 'draft';
+    }
+
     private function wantsSellInvoiceJson(Request $request): bool
     {
         return $request->ajax() || $request->expectsJson();
@@ -839,7 +995,10 @@ class SellController extends Controller
         }
 
         $redirect = redirect()
-            ->route('create-invoice')
+            ->route(
+                $request->routeIs('update-invoice') ? 'edit-invoice' : 'create-invoice',
+                $request->routeIs('update-invoice') ? [$request->route('transaction')] : []
+            )
             ->withInput()
             ->withErrors($errors)
             ->with('error', $message);
@@ -893,17 +1052,22 @@ class SellController extends Controller
         return redirect()->route($routeName, $routeParameters)->with($status, $message);
     }
 
-    private function persistSellInvoice(Request $request)
+    private function persistSellInvoice(Request $request, ?Transaction $existingTransaction = null)
     {
         // return $request;
 
         app(ZatcaSalesRulesApplier::class)->applyToRequest($request);
 
+        $isUpdatingDraft = $existingTransaction && $this->isEditableSellDraft($existingTransaction);
+        $isDraftSave = (string) $request->input('status') === 'draft';
+
         // try {
         $actionUtil = new ActionUtil;
         $contactUtils = new ContactUtils;
         $accountUtil = new AccountingUtil;
-        $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
+        if ($request->filled('action')) {
+            $actionUtil->saveOrUpdateAction('save_sell', 'save_sell', $request->action);
+        }
 
         $transactionUtil = new TransactionUtils;
 
@@ -938,7 +1102,7 @@ class SellController extends Controller
             ]);
         }
 
-        if (! $isInternalConsumption) {
+        if (! $isInternalConsumption && ! $isDraftSave) {
             $client = Contact::find($request->client_id);
             if (! $client || ! $client->account_id) {
                 throw ValidationException::withMessages([
@@ -969,7 +1133,9 @@ class SellController extends Controller
             }
         }
 
-        $ref_no = SalesUtile::generateReferenceNumber('sell');
+        $ref_no = $isUpdatingDraft
+            ? $existingTransaction->ref_no
+            : SalesUtile::generateReferenceNumber('sell');
 
         $invoiced_discount_type = $request->invoice_discount ? $request->invoiced_discount_type : null;
 
@@ -1155,10 +1321,10 @@ class SellController extends Controller
                     'establishment_id' => $establishment_id,
                 ]);
             }
+        }
 
-            if (($request->invoice_type ?? 'cash') === 'cash') {
-                $request->merge(['paid_amount' => $request->totalAfterVat]);
-            }
+        if (! $isInternalConsumption && ($request->invoice_type ?? 'cash') === 'cash') {
+            $request->merge(['paid_amount' => $request->totalAfterVat]);
         }
 
         $resolvedAccountId = (int) ($request->input('account_id') ?: $request->input('cash_account'));
@@ -1169,7 +1335,39 @@ class SellController extends Controller
         $quotation_id = null;
         if ($request->quotation_id) {
             $quotation_id = $request->quotation_id;
+        } elseif ($isUpdatingDraft) {
+            $quotation_id = $existingTransaction->parent_id;
         }
+        $transaction = $existingTransaction;
+        if ($isUpdatingDraft) {
+            $existingTransaction->update([
+                'purpose' => $purpose,
+                'internal_consumption_type_id' => $isInternalConsumption
+                    ? (int) $request->internal_consumption_type_id
+                    : null,
+                'invoice_type' => $request->invoice_type,
+                'due_date' => $request->due_date,
+                'transaction_date' => $request->transaction_date,
+                'contact_id' => $request->client_id,
+                'cost_center' => $request->cost_center ?? null,
+                'discount_amount' => $request->invoice_discount,
+                'discount_type' => $invoiced_discount_type,
+                'total_before_tax' => $request->totalBeforeVat,
+                'totalAfterDiscount' => $request->totalAfterDiscount,
+                'tax_amount' => $request->totalVat,
+                'service_fee_amount' => $serviceFeeResult['fee_amount'],
+                'service_fee_tax' => $serviceFeeResult['fee_tax'],
+                'service_fees_payload' => $serviceFeeResult['lines'] ?: null,
+                'final_total' => $request->totalAfterVat,
+                'description' => $request->invoice_note,
+                'status' => $request->status,
+                'notice' => $request->notice,
+                'establishment_id' => $establishment_id,
+                'settings_terms_notes' => $termsNotesData,
+                'parent_id' => $quotation_id,
+            ]);
+            TransactionSellLine::where('transaction_id', $existingTransaction->id)->delete();
+        } else {
         $transaction = Transaction::create([
             'type' => 'sell',
             'purpose' => $purpose,
@@ -1201,8 +1399,11 @@ class SellController extends Controller
             'parent_id' => $quotation_id,
 
         ]);
+        }
 
-        $mustValidateStock = Setting::mustValidatePerpetualStock(Auth::user());
+        $isDraft = (string) $transaction->status === 'draft';
+
+        $mustValidateStock = Setting::mustValidatePerpetualStock(Auth::user()) && ! $isDraft;
 
         foreach ($products as $product) {
             $discount_type = $product->discount ? $product->discount_type : null;
@@ -1333,26 +1534,59 @@ class SellController extends Controller
 
                 return $this->respondSellInvoiceStoreError($request, $e->getMessage());
             }
-        } elseif (! $isInternalConsumption && $request->paid_amount) {
-            if ($transaction->final_total == $request->paid_amount) {
-                $request['amount'] = $request->paid_amount;
-                $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
-            } else {
-                $this->createPaymentLines($transaction, $request);
-            }
-        } elseif (! $isInternalConsumption) {
-            // Due / unpaid: same GL engine as paid invoices (gross sales + discount allowed + VAT + AR + COGS).
+        } elseif (! $isInternalConsumption && ! $isDraft) {
+            $invoiceType = (string) ($request->invoice_type ?? 'cash');
+            $cashAccountId = (int) ($request->input('cash_account') ?: $request->input('account_id') ?: 0);
+
             try {
-                $paymentStub = (object) [
-                    'id' => null,
-                    'amount' => (float) $transaction->final_total,
-                    'account_id' => null,
-                    'paid_on' => Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s'),
-                    'created_by' => Auth::id() ?? $transaction->created_by,
-                    'transaction_id' => $transaction->id,
-                    'payment_for' => $transaction->contact_id,
-                ];
-                $accountUtil->accounts_route($paymentStub, $transaction, 0, 0, $request);
+                if ($invoiceType === 'cash') {
+                    if ($cashAccountId <= 0) {
+                        throw ValidationException::withMessages([
+                            'cash_account' => __('sales::lang.sell_cash_account_required'),
+                        ]);
+                    }
+
+                    $request->merge([
+                        'paid_amount' => $transaction->final_total,
+                        'amount' => $transaction->final_total,
+                        'cash_account' => $cashAccountId,
+                        'account_id' => $cashAccountId,
+                    ]);
+                    $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+                } elseif ($request->paid_amount) {
+                    if ($transaction->final_total == $request->paid_amount) {
+                        $request['amount'] = $request->paid_amount;
+                        $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+                    } else {
+                        $this->createPaymentLines($transaction, $request);
+                    }
+                } else {
+                    // Due / credit unpaid: post AR + sales + VAT + COGS.
+                    $paymentStub = (object) [
+                        'id' => null,
+                        'amount' => (float) $transaction->final_total,
+                        'account_id' => null,
+                        'paid_on' => Carbon::parse($transaction->transaction_date ?? now())->format('Y-m-d H:i:s'),
+                        'created_by' => Auth::id() ?? $transaction->created_by,
+                        'transaction_id' => $transaction->id,
+                        'payment_for' => $transaction->contact_id,
+                    ];
+                    $accountUtil->accounts_route(
+                        $paymentStub,
+                        $transaction,
+                        $cashAccountId,
+                        $cashAccountId,
+                        $request
+                    );
+                }
+            } catch (ValidationException $e) {
+                DB::rollBack();
+
+                return $this->respondSellInvoiceStoreError(
+                    $request,
+                    collect($e->errors())->flatten()->first() ?: $e->getMessage(),
+                    $e->errors()
+                );
             } catch (\Throwable $e) {
                 DB::rollBack();
 
@@ -1360,9 +1594,15 @@ class SellController extends Controller
             }
         }
 
-        $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+        if (! $isDraft) {
+            $payment_status = $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
+        } else {
+            $transaction->payment_status = null;
+            $transaction->save();
+            $payment_status = null;
+        }
 
-        $totalOutstanding = $transactionUtil->contactTotalOutstanding($transaction);
+        $totalOutstanding = $isDraft ? 0 : $transactionUtil->contactTotalOutstanding($transaction);
 
         $msg = __('messages.add_successfully');
         $status = 'success';

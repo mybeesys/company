@@ -37,6 +37,9 @@ Route::middleware([
         Route::get('create-invoice', [SellController::class, 'create'])->name('create-invoice');
         Route::get('convert-to-invoice', [SellController::class, 'create'])->name('convert-to-invoice');
         Route::post('store-invoice', [SellController::class, 'store'])->name('store-invoice');
+        Route::get('edit-invoice/{transaction}', [SellController::class, 'edit'])->name('edit-invoice');
+        Route::put('update-invoice/{transaction}', [SellController::class, 'update'])->name('update-invoice');
+        Route::delete('destroy-invoice/{transaction}', [SellController::class, 'destroy'])->name('destroy-invoice');
         Route::get('products-for-sale', [ProductController::class, 'productsForSale'])->name('products-for-sale');
         Route::post('invoice-inventory-costs', [SellController::class, 'invoiceInventoryCosts'])->name('web.invoice-inventory-costs');
         Route::get('internal-consumption-types', [\Modules\General\Http\Controllers\InternalConsumptionTypesApiController::class, 'index'])->name('web.internal-consumption-types');

@@ -75,7 +75,7 @@
                         @endphp
 
                         @foreach ($lines as $index => $line)
-                            @if ($line->line_status != 'completed' || request('type') == 'duplication')
+                            @if ($line->line_status != 'completed' || request('type') == 'duplication' || ($isEditDraft ?? false))
                                 <tr class="sales-line-row" draggable="true">
                                     <td class="sales-line-reorder-cell align-middle p-1 text-center">
                                         <div class="d-flex flex-column gap-0 align-items-center sales-line-reorder">
@@ -150,14 +150,22 @@
                                             class="form-select form-select-solid select-2 d-inline-block unit"
                                             name="products[{{ $index }}][unit]" {{-- @if ($line->line_status == 'completed') disabled @endif --}}
                                             style="width: 110px; display: inline-block;">
+                                            @php
+                                                $selectedUnitId = (int) ($line->unit_id ?? 0);
+                                                $unitOptions = collect($line->product?->unitTransfers ?? []);
+                                                if ($selectedUnitId > 0 && ! $unitOptions->contains('id', $selectedUnitId)) {
+                                                    $savedUnit = $line->unitTransfer;
+                                                    if ($savedUnit) {
+                                                        $unitOptions = $unitOptions->push($savedUnit);
+                                                    }
+                                                }
+                                            @endphp
                                             <option value="">@lang('sales::lang.unit')</option>
-                                            @if (!empty($line->product) && $line->product->unitTransfers->count() > 0)
-                                                @foreach ($line->product->unitTransfers as $unit)
-                                                    <option value="{{ $unit->id }}" @selected($unit->id == optional($line->unitTransfer)->id)>
-                                                        {{ $unit->unit1 }}
-                                                    </option>
-                                                @endforeach
-                                            @endif
+                                            @foreach ($unitOptions as $unit)
+                                                <option value="{{ $unit->id }}" @selected((int) $unit->id === $selectedUnitId)>
+                                                    {{ $unit->unit1 ?? ($unit->name_ar ?? $unit->name_en) }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                     </td>
 

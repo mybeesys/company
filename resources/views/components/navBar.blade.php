@@ -90,10 +90,12 @@
     <div class="app-navbar-meta d-flex align-items-center gap-2 gap-lg-3 text-gray-600 min-w-0 me-2 me-lg-3">
         @if ($navbarCompanyName)
             <div class="navbar-company-chip min-w-0" title="{{ $navbarCompanyName }}{{ $navbarCompanyDomain ? ' · '.$navbarCompanyDomain : '' }}">
-                <i class="ki-outline ki-office-bag navbar-company-chip-icon" aria-hidden="true"></i>
-                <span class="navbar-company-chip-label">{{ __('general.workspace') }}</span>
-                <span class="navbar-company-chip-sep" aria-hidden="true"></span>
-                <span class="navbar-company-chip-name text-truncate">{{ $navbarCompanyName }}</span>
+                <span class="navbar-company-chip-icon-wrap" aria-hidden="true">
+                    <i class="ki-outline ki-office-bag navbar-company-chip-icon"></i>
+                </span>
+                <span class="navbar-company-chip-body min-w-0">
+                    <span class="navbar-company-chip-name text-truncate">{{ $navbarCompanyName }}</span>
+                </span>
             </div>
         @endif
         <span class="d-none d-xl-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date flex-shrink-0">
@@ -497,73 +499,85 @@
     .navbar-company-chip {
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
-        max-width: min(48vw, 18rem);
+        gap: 0.55rem;
+        max-width: min(52vw, 22rem);
         min-width: 0;
-        padding: 0.2rem 0.55rem;
-        border-radius: 0.55rem;
-        border: 1px solid rgba(63, 66, 84, 0.08);
-        background: rgba(245, 248, 250, 0.9);
+        padding: 0.35rem 0.75rem 0.35rem 0.65rem;
+        border-radius: 0.65rem;
+        border: 1px solid rgba(63, 66, 84, 0.1);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .navbar-company-chip-icon-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.5rem;
+        background: rgba(233, 183, 31, 0.12);
+        border: 1px solid rgba(233, 183, 31, 0.22);
     }
 
     .navbar-company-chip-icon {
         flex-shrink: 0;
-        font-size: 0.85rem;
-        color: #b5b5c3;
+        font-size: 1rem;
+        color: #b8860b;
     }
 
-    .navbar-company-chip-label {
-        flex-shrink: 0;
-        font-size: 0.72rem;
-        font-weight: 500;
-        color: #a1a5b7;
-        white-space: nowrap;
-    }
-
-    .navbar-company-chip-sep {
-        flex-shrink: 0;
-        width: 3px;
-        height: 3px;
-        border-radius: 50%;
-        background: #c4cada;
+    .navbar-company-chip-body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        min-width: 0;
+        line-height: 1.25;
     }
 
     .navbar-company-chip-name {
         min-width: 0;
-        font-size: 0.78rem;
-        font-weight: 600;
+        font-size: 0.9rem;
+        font-weight: 700;
         letter-spacing: 0;
-        color: #5e6278;
+        color: #3f4254;
         white-space: nowrap;
     }
 
     [data-bs-theme="dark"] .navbar-company-chip {
-        border-color: rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+        box-shadow: none;
     }
 
-    [data-bs-theme="dark"] .navbar-company-chip-icon,
-    [data-bs-theme="dark"] .navbar-company-chip-label {
-        color: #8e95a9;
+    [data-bs-theme="dark"] .navbar-company-chip-icon-wrap {
+        background: rgba(233, 183, 31, 0.14);
+        border-color: rgba(233, 183, 31, 0.24);
     }
 
-    [data-bs-theme="dark"] .navbar-company-chip-sep {
-        background: #6d7385;
+    [data-bs-theme="dark"] .navbar-company-chip-icon {
+        color: #d4a82a;
     }
 
     [data-bs-theme="dark"] .navbar-company-chip-name {
-        color: #e4e6ef;
+        color: #f1f3f8;
     }
 
     @media (max-width: 575.98px) {
         .navbar-company-chip {
-            max-width: min(44vw, 11rem);
-            padding-inline: 0.4rem;
+            max-width: min(48vw, 13rem);
+            padding: 0.3rem 0.55rem 0.3rem 0.5rem;
+            gap: 0.45rem;
         }
 
-        .navbar-company-chip-label,
-        .navbar-company-chip-sep {
-            display: none;
+        .navbar-company-chip-icon-wrap {
+            width: 1.75rem;
+            height: 1.75rem;
+        }
+
+        .navbar-company-chip-name {
+            font-size: 0.82rem;
         }
     }
 

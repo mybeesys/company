@@ -28,6 +28,7 @@ return [
     'amount' => 'الإجمالي شامل VAT',
     'actions' => 'العمليات',
     'payment_status' => 'حالة الدفع',
+    'document_status' => 'حالة المستند',
     'Expiry Date' => 'تاريخ الانتهاء',
 
     'remaining_amount' => 'المبلغ المتبقي',

@@ -46,7 +46,7 @@ return [
     'purchases_management_module' => 'Purchases',
     'accountingReports_management_module' => 'Accounting Reports',
     'setting_management_module' => 'Setting',
-    'zatca_management_module' => 'ZATCA e-invoicing',
+    'zatca_management_module' => 'Tax connection',
     'reports_module_management_module' => 'General Reports',
     'Franchise Companies_management_module' => 'Franchise',
 

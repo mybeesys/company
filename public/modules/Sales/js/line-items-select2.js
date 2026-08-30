@@ -106,6 +106,10 @@
                     dropdownParent: $parent,
                     minimumResultsForSearch: minimumResultsForSearch,
                 });
+
+                if ($el.hasClass("unit") && $el.val()) {
+                    $el.trigger("change.select2");
+                }
             });
         });
     };

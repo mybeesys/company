@@ -2426,7 +2426,7 @@ return [
         'type' => 'ems',
     ],
 
-    // ─── ZATCA Phase 2 e-invoicing ───────────────────────────────────────────
+    // ─── ZATCA Phase 2 tax connection ───────────────────────────────────────────
     [
         'name' => 'zatca.all.show',
         'name_ar' => '',
@@ -2495,7 +2495,7 @@ return [
 
     [
         'name' => 'zatca.E-invoicing.show',
-        'name_ar' => 'الفوترة الإلكترونية',
+        'name_ar' => 'الربط الضريبي',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
