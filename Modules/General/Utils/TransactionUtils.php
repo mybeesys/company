@@ -151,10 +151,15 @@ class TransactionUtils
         $payment_method_id = $get_val('payment_method_id');
 
         $userId = auth()->user() ? auth()->user()->id : $request->created_by;
+        $amount = $get_val('amount');
+        if (($amount === null || $amount === '') && in_array($transaction->type, ['sell-return', 'purchases-return'], true)) {
+            $amount = (float) $transaction->final_total;
+        }
+
         $transactionPayment = TransactionPayments::create([
             'transaction_id' => $transaction->id,
             'payment_type' => $transaction->invoice_type,
-            'amount' => $get_val('amount'),
+            'amount' => $amount,
             'method' => $payment_method,
             'payment_method_id' => $payment_method_id,
             'is_return' => in_array($transaction->type, ['sell-return', 'purchases-return'], true) ? 1 : 0,
@@ -191,6 +196,7 @@ class TransactionUtils
     /**
      * Cash invoices: payment line amount = invoice total.
      * Due/credit: amount comes from paid_amount in the request (0 = unpaid).
+     * Return documents: always use the full return total on the payment line.
      *
      * @param  \Illuminate\Http\Request|array  $request
      * @return \Illuminate\Http\Request|array
@@ -198,6 +204,19 @@ class TransactionUtils
     public function mergeInvoicePaymentAmount($transaction, $request)
     {
         $invoiceType = (string) ($transaction->invoice_type ?? '');
+        if (in_array($transaction->type, ['sell-return', 'purchases-return'], true)) {
+            $amount = (float) $transaction->final_total;
+            if (is_array($request)) {
+                $request['amount'] = $amount;
+
+                return $request;
+            }
+
+            $request->merge(['amount' => $amount]);
+
+            return $request;
+        }
+
         if (in_array($invoiceType, ['due', 'credit'], true)) {
             return $request;
         }
