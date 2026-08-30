@@ -58,6 +58,14 @@
                 <label class="form-label small mb-1">@lang('accounting::lang.to_date')</label>
                 <input type="date" name="end_date" class="form-control form-control-sm" value="{{ request('end_date', $end_date) }}">
             </div>
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small mb-1" for="level_filter">@lang('accounting::lang.account_level')</label>
+                <select name="level_filter" id="level_filter" class="form-select form-select-sm">
+                    @foreach (($levelsArray ?? [null => __('all')]) as $key => $value)
+                        <option value="{{ $key }}" @selected((string) request('level_filter', $level_filter ?? '') === (string) $key)>{{ $value }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="col-md-6 col-lg-3">
                 <label class="form-label small mb-1" for="choose_cost_center_select">@lang('accounting::lang.cost_center')</label>
                 <select name="choose_cost_center_select[]" id="choose_cost_center_select" class="form-select form-select-sm" multiple>
@@ -222,6 +230,10 @@
         if (endDate) params.append('end_date', endDate);
         if (withZeroBalances !== null) params.append('with_zero_balances', withZeroBalances);
         if (compareMode) params.append('compare_mode', compareMode);
+        const levelFilter = $('#level_filter').val();
+        if (levelFilter !== undefined && levelFilter !== null && levelFilter !== '') {
+            params.append('level_filter', levelFilter);
+        }
         costCenters.forEach(v => params.append('choose_cost_center_select[]', v));
         return params.toString();
     }
@@ -235,7 +247,7 @@
 
     $(document).ready(function() {
         $('#choose_cost_center_select').select2({ width: '100%' });
-        $('#with_zero_balances, #compare_mode').select2({ minimumResultsForSearch: Infinity, width: '100%' });
+        $('#with_zero_balances, #compare_mode, #level_filter').select2({ minimumResultsForSearch: Infinity, width: '100%' });
 
         $('#balanceSheetExportPdf').on('click', () => window.open(balanceSheetExportPdfUrl + '?' + buildBalanceSheetQuery(), '_blank'));
         $('#balanceSheetExportExcel').on('click', () => { window.location.href = balanceSheetExportExcelUrl + '?' + buildBalanceSheetQuery(); });
