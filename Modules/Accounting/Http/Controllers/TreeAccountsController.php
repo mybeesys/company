@@ -21,6 +21,7 @@ use Modules\Accounting\Support\LedgerStatementPresenter;
 use Modules\Accounting\Support\AccountingReportDateResolver;
 use Modules\Accounting\Support\ImportedAccountTypeSync;
 use Modules\Accounting\Services\ChartOfAccountsTreeBuilder;
+use Modules\Accounting\Services\ChartOfAccountsTreePresenter;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\GlCodeRepairService;
 use Modules\Accounting\Utils\ContractorsAccUtil;
@@ -233,6 +234,16 @@ class TreeAccountsController extends Controller
             ? ChartOfAccountsTreeBuilder::rootsByPrimaryType()
             : [];
 
+        ChartOfAccountsTreePresenter::enrichAccountsCollection($accounts);
+        if ($useImportedChartLayout) {
+            foreach ($imported_roots as $typeRoots) {
+                ChartOfAccountsTreePresenter::enrichAccountsCollection($typeRoots);
+            }
+        }
+
+        $primaryTypeSummary = ChartOfAccountsTreePresenter::summarizeByPrimaryType($account_types, $account_GLC);
+        $treeStats = ChartOfAccountsTreePresenter::treeStats();
+
         return view('accounting::treeOfAccounts.index', compact(
             'accounts',
             'account_category',
@@ -243,6 +254,8 @@ class TreeAccountsController extends Controller
             'account_sub_types',
             'useImportedChartLayout',
             'imported_roots',
+            'primaryTypeSummary',
+            'treeStats',
         ));
     }
 
@@ -361,7 +374,13 @@ class TreeAccountsController extends Controller
                 return redirect()->back()->with('error', __('messages.no_data_found'));
             }
 
-            return redirect()->route('tree-of-accounts')->with('success', __('accounting::lang.import_tree_accounts_success').' ('.$createdCount.')');
+            $successMsg = __('accounting::lang.import_tree_accounts_success').' ('.$createdCount.')';
+            $violations = ChartOfAccountsTreePresenter::countStructureViolations();
+            if ($violations > 0) {
+                $successMsg .= ' '.__('accounting::lang.coa_import_structure_warnings', ['count' => $violations]);
+            }
+
+            return redirect()->route('tree-of-accounts')->with('success', $successMsg);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
@@ -371,6 +390,10 @@ class TreeAccountsController extends Controller
 
     public function repairGlCodes(Request $request)
     {
+        if (! config('accounting.show_repair_gl_codes', false)) {
+            abort(403, __('accounting::lang.repair_gl_codes_disabled'));
+        }
+
         try {
             DB::beginTransaction();
             $result = GlCodeRepairService::repairAll();
@@ -482,6 +505,14 @@ class TreeAccountsController extends Controller
             ]);
 
             $parent = AccountingAccount::find($input['account_id']);
+
+            if (! $parent) {
+                return redirect()->back()->with('error', __('messages.something_went_wrong'));
+            }
+
+            if (AccountingAccountsTransaction::where('accounting_account_id', $parent->id)->exists()) {
+                return redirect()->back()->with('error', __('accounting::lang.cannot_add_child_account_has_movements'));
+            }
 
             $input['account_primary_type'] = $parent->account_primary_type;
             $input['account_sub_type_id'] = $parent->account_sub_type_id;

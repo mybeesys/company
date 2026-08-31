@@ -16,14 +16,16 @@
                     <i class="ki-outline ki-file-down fs-4 me-2"></i>
                     تحميل قالب Excel
                 </a>
-                <form method="POST" action="{{ route('tree-of-accounts-repair-gl-codes') }}" class="d-inline"
-                    onsubmit="return confirm(@json(__('accounting::lang.repair_gl_codes_confirm')));">
-                    @csrf
-                    <button type="submit" class="btn btn-light-primary">
-                        <i class="ki-outline ki-wrench fs-4 me-2"></i>
-                        @lang('accounting::lang.repair_gl_codes_button')
-                    </button>
-                </form>
+                @if (config('accounting.show_repair_gl_codes'))
+                    <form method="POST" action="{{ route('tree-of-accounts-repair-gl-codes') }}" class="d-inline"
+                        onsubmit="return confirm(@json(__('accounting::lang.repair_gl_codes_confirm')));">
+                        @csrf
+                        <button type="submit" class="btn btn-light-primary">
+                            <i class="ki-outline ki-wrench fs-4 me-2"></i>
+                            @lang('accounting::lang.repair_gl_codes_button')
+                        </button>
+                    </form>
+                @endif
                 <a href="{{ route('tree-of-accounts') }}" class="btn btn-light">@lang('accounting::lang.back')</a>
             </div>
         </div>

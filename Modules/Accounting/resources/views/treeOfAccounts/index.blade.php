@@ -7,12 +7,201 @@
             color: #d1a400 !important;
         }
 
-        #accounts_tree_container>ul {
+        .coa-page { margin-top: 1rem; }
+
+        .coa-toolbar {
+            min-height: 34px;
+        }
+
+        .coa-search-wrap {
+            width: 240px;
+            max-width: 240px;
+            flex-shrink: 0;
+        }
+
+        .coa-search-input {
+            height: 34px;
+            font-size: 0.82rem;
+            padding-inline-start: 2.1rem;
+            padding-inline-end: 0.65rem;
+        }
+
+        .coa-search-icon {
+            font-size: 0.95rem;
+            inset-inline-start: 0.65rem;
+        }
+
+        .coa-toolbar-actions {
+            flex-shrink: 0;
+        }
+
+        .coa-toolbar-btn {
+            height: 34px;
+            padding: 0.25rem 0.7rem;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .coa-page-actions {
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+
+        .coa-page-action-btn {
+            height: 36px;
+            padding: 0.35rem 0.85rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .coa-tree-card {
+            border: 1px solid #eef0f4;
+        }
+
+        .coa-tree-container {
+            max-height: calc(100vh - 280px);
+            overflow: auto;
+        }
+
+        #accounts_tree_container > ul,
+        .jstree-container-ul .jstree-children {
             text-align: justify !important;
         }
 
-        .jstree-container-ul .jstree-children {
-            text-align: justify !important;
+        .coa-node-label-inner {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.3rem 0.55rem;
+            vertical-align: middle;
+        }
+
+        .coa-node-title {
+            line-height: 1.5;
+        }
+
+        .coa-balance-chip,
+        .coa-type-heading .coa-balance,
+        .coa-subtype-heading .coa-balance {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.12rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            line-height: 1.35;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+
+        .coa-balance-direct,
+        .coa-type-heading .coa-balance-direct,
+        .coa-subtype-heading .coa-balance-direct {
+            background-color: #e6f4ec;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .coa-balance-aggregated,
+        .coa-type-heading .coa-balance-aggregated,
+        .coa-subtype-heading .coa-balance-aggregated {
+            background-color: #e8effc;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .coa-status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            flex-shrink: 0;
+            cursor: default;
+            background: none;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        #accounts_tree_container .coa-status-icon {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+
+        #accounts_tree_container .coa-status-icon--active,
+        #accounts_tree_container .coa-status-icon--active::before {
+            color: #16a34a !important;
+        }
+
+        #accounts_tree_container .coa-status-icon--inactive,
+        #accounts_tree_container .coa-status-icon--inactive::before {
+            color: #dc2626 !important;
+        }
+
+        .coa-violation-icon {
+            cursor: help;
+            font-size: 0.85rem;
+        }
+
+        .tree-actions {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .coa-gear-btn {
+            padding: 2px 7px !important;
+            border-radius: 6px;
+            background: transparent !important;
+            border: 0 !important;
+        }
+
+        .coa-gear-btn:hover {
+            background: #f3f6f9 !important;
+        }
+
+        .coa-action-menu {
+            min-width: 175px;
+            font-size: 0.84rem;
+            padding: 0.25rem 0 !important;
+            border-radius: 8px;
+        }
+
+        .coa-action-menu .dropdown-item {
+            padding: 0.3rem 0.75rem;
+            line-height: 1.35;
+            border-radius: 0;
+        }
+
+        .coa-action-menu .dropdown-item i {
+            width: 1rem;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .coa-action-menu .dropdown-divider {
+            margin: 0.2rem 0;
+        }
+
+        .coa-action-menu form {
+            margin: 0;
+        }
+
+        .coa-action-menu .account-delete-btn {
+            width: 100%;
+            text-align: inherit;
+            border: 0;
+            background: transparent;
+            padding: 0.3rem 0.75rem;
+            line-height: 1.35;
+        }
+
+        .coa-panel-compact .card-header { min-height: auto; }
+
+        .coa-type-summary-item-compact {
+            padding: 0.4rem 0.55rem;
+            border-radius: 6px;
+            background: #f9fafb;
+            border: 1px solid #eef0f4;
         }
 
         .jstree-default .jstree-search {
@@ -21,39 +210,13 @@
             font-weight: 700 !important;
         }
 
-        .swal2-popup {
-            width: 58em !important;
-        }
-
-        .jstree-default .jstree-clicked {
-            background: rgba(233, 183, 31, 0.18) !important;
-            border-radius: 8px !important;
+        .jstree-default .jstree-clicked,
+        .jstree-default .jstree-hovered {
+            background: rgba(233, 183, 31, 0.15) !important;
+            border-radius: 6px !important;
             box-shadow: none !important;
         }
 
-        .jstree-default .jstree-anchor .jstree-hovered {
-            background: rgba(233, 183, 31, 0.18) !important;
-            border-radius: 8px !important;
-            box-shadow: none !important;
-        }
-
-        .btn.btn-secondary.show:hover {
-            background-color: transparent !important;
-        }
-
-        .select-custom {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-color: #f3f4f6;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 14px;
-            color: #333;
-        }
-
-        /* Show + / − on expand control */
         .jstree-default .jstree-ocl {
             background-image: none !important;
             width: 20px;
@@ -61,10 +224,9 @@
             line-height: 20px;
             margin-top: 2px;
             text-align: center;
-            color: #1f2937; /* darker */
+            color: #1f2937;
             background: #eef2f7;
             border-radius: 5px;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
         }
 
         .jstree-default .jstree-closed > .jstree-ocl:before {
@@ -83,15 +245,51 @@
             content: "";
         }
 
-        .jstree-default .jstree-ocl:hover {
-            background: #e5ebf5;
-            color: #111827;
+        .swal2-popup { width: 58em !important; }
+
+        .coa-status-modal {
+            border-radius: 12px;
+            overflow: hidden;
         }
 
-        .jstree-default .jstree-anchor:focus-visible + .jstree-ocl,
-        .jstree-default .jstree-ocl:focus-visible {
-            outline: 2px solid rgba(27, 132, 255, 0.35);
-            outline-offset: 1px;
+        .coa-status-modal__icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+
+        .coa-status-modal__icon--warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .coa-status-modal__icon--success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .coa-status-modal__account-box {
+            padding: 0.75rem 0.9rem;
+            border-radius: 8px;
+            background: #f9fafb;
+            border: 1px solid #eef0f4;
+        }
+
+        .coa-status-modal__points {
+            padding-inline-start: 1.15rem;
+            margin: 0;
+            color: #4b5563;
+            font-size: 0.84rem;
+            line-height: 1.55;
+        }
+
+        .coa-status-modal__points li + li {
+            margin-top: 0.35rem;
         }
     </style>
 @stop
@@ -104,24 +302,26 @@
                     <h1> @lang('accounting::lang.tree_of_accounts')</h1>
                 </div>
             </div>
-            <div class="col-6 d-flex flex-wrap justify-content-end align-items-center gap-2 gap-lg-3">
-                <a href="{{ route('tree-of-accounts-import') }}" class="btn btn-flex btn-primary h-40px fs-7 fw-bold">
+            <div class="col-6 d-flex flex-nowrap justify-content-end align-items-center gap-2 coa-page-actions">
+                <a href="{{ route('tree-of-accounts-import') }}" class="btn btn-flex btn-primary coa-page-action-btn fs-7 fw-bold">
                     @lang('accounting::lang.import_tree_of_accounts')
                 </a>
-                <form method="POST" action="{{ route('tree-of-accounts-repair-gl-codes') }}" class="d-inline"
-                    onsubmit="return confirm(@json(__('accounting::lang.repair_gl_codes_confirm')));">
-                    @csrf
-                    <button type="submit" class="btn btn-flex btn-light-primary h-40px fs-7 fw-bold">
-                        <i class="ki-outline ki-wrench fs-4 me-1"></i>
-                        @lang('accounting::lang.repair_gl_codes_button')
-                    </button>
-                </form>
-                @if (\Modules\Accounting\Utils\AccountingFullResetService::isAllowed())
+                @if (config('accounting.show_repair_gl_codes'))
+                    <form method="POST" action="{{ route('tree-of-accounts-repair-gl-codes') }}" class="d-inline"
+                        onsubmit="return confirm(@json(__('accounting::lang.repair_gl_codes_confirm')));">
+                        @csrf
+                        <button type="submit" class="btn btn-flex btn-light-primary coa-page-action-btn fs-7 fw-bold">
+                            <i class="ki-outline ki-wrench fs-6 me-1"></i>
+                            @lang('accounting::lang.repair_gl_codes_button')
+                        </button>
+                    </form>
+                @endif
+                @if (config('accounting.show_full_reset') && \Modules\Accounting\Utils\AccountingFullResetService::isAllowed())
                     <form method="POST" action="{{ route('accounting.staging-full-reset') }}" class="d-inline"
                         onsubmit="return confirm(@json(__('accounting::lang.staging_full_reset_confirm')));">
                         @csrf
                         <input type="hidden" name="confirm" value="RESET_ACCOUNTING_FULL">
-                        <button type="submit" class="btn btn-flex btn-light-warning h-40px fs-7 fw-bold">
+                        <button type="submit" class="btn btn-flex btn-light-warning coa-page-action-btn fs-7 fw-bold">
                             <span>@lang('accounting::lang.staging_full_reset_button')</span>
                             <span class="badge badge-light-danger ms-2 fs-8 fw-semibold">@lang('accounting::lang.staging_full_reset_badge')</span>
                         </button>
@@ -203,6 +403,18 @@
 
 @section('script')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+    <style>
+        /* jsTree CDN loads after page CSS — enforce status icon colors here */
+        #accounts_tree_container .coa-status-icon--active,
+        #accounts_tree_container .coa-status-icon--active::before {
+            color: #16a34a !important;
+        }
+
+        #accounts_tree_container .coa-status-icon--inactive,
+        #accounts_tree_container .coa-status-icon--inactive::before {
+            color: #dc2626 !important;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 
     <script type="text/javascript">
@@ -267,13 +479,17 @@ $('#account_nature_display_1').text(natureText)
 
 }
         function setAccount(account) {
-            sessionStorage.setItem('account_category', account.account_category);
-            sessionStorage.setItem('name_ar', account.name_ar);
-            sessionStorage.setItem('name_en', account.name_en);
-            sessionStorage.setItem('account_type', account.account_type);
-            sessionStorage.setItem('account_id', account.id);
-            sessionStorage.setItem('status', account?.status);
-            sessionStorage.setItem('gl_code', account.gl_code);
+            if (!account) {
+                return;
+            }
+
+            sessionStorage.setItem('account_category', account.account_category || '');
+            sessionStorage.setItem('name_ar', account.name_ar || '');
+            sessionStorage.setItem('name_en', account.name_en || '');
+            sessionStorage.setItem('account_type', account.account_type || '');
+            sessionStorage.setItem('account_id', account.id || '');
+            sessionStorage.setItem('status', account?.status || '');
+            sessionStorage.setItem('gl_code', account.gl_code || '');
              let natureText = '';
     let badgeClass = '';
 
@@ -304,13 +520,130 @@ $('#account_nature_display_1').text(natureText)
             waiting: "@lang('messages.select_type_first')"
         };
 
+        function coaParseAccountFromTrigger($el) {
+            const raw = $el.attr('data-account');
+            if (!raw) {
+                return null;
+            }
+
+            try {
+                return JSON.parse(raw);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function coaAccountDisplayLabel(account) {
+            if (!account) {
+                return '—';
+            }
+
+            const locale = @json(app()->getLocale());
+            const name = locale === 'ar' ? (account.name_ar || '') : (account.name_en || '');
+            const code = account.gl_code || '';
+            const parts = [];
+
+            if (code) {
+                parts.push('(' + code + ')');
+            }
+            if (name) {
+                parts.push(name);
+            }
+
+            return parts.length ? parts.join(' ') : '—';
+        }
+
+        function coaFillStatusModalAccount(selector, account) {
+            const label = account
+                ? coaAccountDisplayLabel(account)
+                : coaAccountDisplayLabel({
+                    name_ar: sessionStorage.getItem('name_ar'),
+                    name_en: sessionStorage.getItem('name_en'),
+                    gl_code: sessionStorage.getItem('gl_code'),
+                });
+
+            $(selector).text(label);
+        }
+
+        function coaPositionDropdownMenu($dropdown) {
+            const $btn = $dropdown.find('[data-bs-toggle="dropdown"]');
+            const $menu = $dropdown.find('.dropdown-menu');
+            if (!$btn.length || !$menu.length) return;
+
+            const rect = $btn[0].getBoundingClientRect();
+            const menuWidth = $menu.outerWidth() || 190;
+            const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
+            let left = isRtl ? rect.left : (rect.right - menuWidth);
+
+            $menu.css({
+                position: 'fixed',
+                top: (rect.bottom + 2) + 'px',
+                left: Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8)) + 'px',
+                zIndex: 1060,
+            });
+        }
 
         $(document).ready(function() {
-            // keep delegated handler as a backup
             $(document).on('click', '.account-delete-btn', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 window.confirmDeleteAccount(this);
+            });
+
+            $(document).on('mousedown click', '.tree-actions, .tree-actions *', function(e) {
+                e.stopPropagation();
+            });
+
+            $(document).on('click', '.coa-set-account-trigger', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const $trigger = $(this);
+                const account = coaParseAccountFromTrigger($trigger);
+                if (account) {
+                    setAccount(account);
+                }
+
+                const target = $trigger.attr('data-bs-target');
+                if (target === '#kt_modal_deactive') {
+                    coaFillStatusModalAccount('#coa_deactive_account_label', account);
+                } else if (target === '#kt_modal_active') {
+                    coaFillStatusModalAccount('#coa_active_account_label', account);
+                }
+
+                if (target) {
+                    const modalEl = document.querySelector(target);
+                    if (modalEl && window.bootstrap && window.bootstrap.Modal) {
+                        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    }
+                }
+            });
+
+            $(document).on('click', '.coa-action-edit, .coa-action-status', function(e) {
+                const raw = $(this).attr('data-account');
+                if (raw) {
+                    try { setAccount(JSON.parse(raw)); } catch (err) {}
+                }
+            });
+
+            $(document).on('click', '.coa-action-add-child, .coa-action-add-sub', function() {
+                setAccountId($(this).data('account-id'), $(this).data('account-type'));
+            });
+
+            $(document).on('click', '#accounts_tree_container a.ledger-link', function(e) {
+                e.stopPropagation();
+                const href = $(this).attr('href');
+                if (href && href !== '#') {
+                    window.location.href = href;
+                }
+            });
+
+            $(document).on('show.bs.dropdown', '.tree-actions .btn-group', function() {
+                coaPositionDropdownMenu($(this));
+            });
+
+            $(document).on('hidden.bs.dropdown', '.tree-actions .btn-group', function() {
+                $(this).find('.dropdown-menu').removeAttr('style');
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
@@ -341,12 +674,12 @@ $('#account_nature_display_1').text(natureText)
 
             $.jstree.defaults.core.themes.variant = "large";
             $('#accounts_tree_container').jstree({
-                "core": { "themes": { "responsive": true } },
-                "types": {
-                    "default": { "icon": "fa fa-folder" },
-                    "file": { "icon": "fa fa-file" },
+                core: { themes: { responsive: true } },
+                types: {
+                    default: { icon: "fa fa-folder" },
+                    file: { icon: "fa fa-file" },
                 },
-                "plugins": ["types", "search"]
+                plugins: ["types", "search"]
             });
 
             var to = false;
@@ -368,15 +701,13 @@ $('#account_nature_display_1').text(natureText)
 
             $(document).on('shown.bs.modal', '#kt_modal_deactive', function() {
                 $('#account_id_deactive').val(sessionStorage.getItem('account_id'));
+                coaFillStatusModalAccount('#coa_deactive_account_label');
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_active', function() {
                 $('#account_id_A').val(sessionStorage.getItem('account_id'));
+                coaFillStatusModalAccount('#coa_active_account_label');
             });
-        });
-
-        $(document).on('click', 'a.ledger-link', function(e) {
-            window.location.href = $(this).attr('href');
         });
     </script>
 @stop

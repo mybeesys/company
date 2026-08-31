@@ -1,48 +1,43 @@
 <div class="modal fade" id="kt_modal_deactive" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog mw-650px">
-        <div class="modal-content" @if (session()->get('locale') == 'ar') dir="rtl" @endif>
-            <div class="modal-header pb-0 border-0 justify-content-end">
-                <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
-                    <i class="ki-outline ki-cross fs-1"></i>
+    <div class="modal-dialog modal-dialog-centered mw-520px">
+        <div class="modal-content coa-status-modal" @if (app()->getLocale() == 'ar') dir="rtl" @endif>
+            <form action="{{ route('change-status-account') }}" method="POST">
+                @csrf
+                <input type="hidden" id="account_id_deactive" name="account_id" value="">
+                <div class="modal-header border-0 pb-2">
+                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                        <span class="coa-status-modal__icon coa-status-modal__icon--warning">
+                            <i class="fas fa-power-off"></i>
+                        </span>
+                        <div>
+                            <h3 class="modal-title fs-4 fw-bold mb-0">@lang('accounting::lang.coa_deactivate_modal_title')</h3>
+                            <span class="text-muted fs-7">@lang('accounting::lang.coa_deactivate_modal_subtitle')</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-icon btn-active-light-primary" data-bs-dismiss="modal"
+                        aria-label="@lang('messages.cancel')">
+                        <i class="ki-outline ki-cross fs-2"></i>
+                    </button>
                 </div>
-            </div>
-
-
-            <div class="modal-body scroll-y mx-5 mx-xl-10 pt-0 pb-10">
-
-
-                <form action="{{ route('change-status-account') }}" method="POST">
-                    @csrf
-
-                    <input type="text" hidden id="account_id_deactive" class="form-control form-control" name="account_id"
-                        value="{{ session()->get('account_id') }}">
-                    <ul class="swal2-progress-steps" style="display: none;"></ul>
-                    <div class="swal2-icon swal2-warning swal2-icon-show" style="display: flex;">
-                        <div class="swal2-icon-content">!</div>
-                    </div><img class="swal2-image" style="display: none;">
-
-
-                    <div class="text-center border-0 pt-5">
-
-                        <span class="text-muted  fw-semibold my-10 fs-4">@lang('accounting::lang.note_deactive')</span>
+                <div class="modal-body pt-2 pb-4">
+                    <div class="coa-status-modal__account-box mb-4">
+                        <span class="text-muted fs-8 d-block mb-1">@lang('accounting::lang.coa_account_name')</span>
+                        <span class="fw-semibold text-gray-800" id="coa_deactive_account_label">—</span>
                     </div>
-                    <div class="text-center py-10">
-
-                        <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">
-                            @lang('messages.No,return')
-                        </button>
-
-                        <button type="submit" class="btn btn-primary"
-                            @if (app()->getLocale() == 'ar') style="margin-right: 8px;" @endif>
-                            <span class="indicator-label">@lang('messages.Yes, deactive it!')</span>
-                            <span class="indicator-progress">
-                                Please wait... <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                            </span>
-                        </button>
-                    </div>
-                </form>
-
-            </div>
+                    <p class="text-gray-700 fs-7 mb-3">@lang('accounting::lang.coa_deactivate_modal_lead')</p>
+                    <ul class="coa-status-modal__points mb-0">
+                        <li>@lang('accounting::lang.coa_deactivate_modal_point_1')</li>
+                        <li>@lang('accounting::lang.coa_deactivate_modal_point_2')</li>
+                        <li>@lang('accounting::lang.coa_deactivate_modal_point_3')</li>
+                    </ul>
+                </div>
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">@lang('messages.cancel')</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-power-off me-1"></i>@lang('messages.deactivate')
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
