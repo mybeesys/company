@@ -130,7 +130,7 @@ return [
     'service_fee_to_date' => 'To date',
     'payment_method_fees_tab'         => 'Fees',
     'payment_method_fees'             => 'Payment method fees',
-    'payment_method_fees_hint'        => 'Fees automatically added when this payment method is selected on an invoice or POS.',
+    'payment_method_fees_hint'        => 'Fees added when this payment method is selected on an invoice or POS.',
     'payment_method_fees_empty'       => 'No fees yet. Click "Add fee" to add one.',
     'payment_method_add_fee'          => 'Add fee',
     'payment_method_fee_type'         => 'Fee type',

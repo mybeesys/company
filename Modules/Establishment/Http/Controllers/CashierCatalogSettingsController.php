@@ -58,6 +58,8 @@ class CashierCatalogSettingsController extends Controller
             'cashier_payment_rows.*.fees.*.name_en'          => ['nullable', 'string', 'max:255'],
             'cashier_payment_rows.*.fees.*.fee_type'         => ['nullable', 'in:0,1'],
             'cashier_payment_rows.*.fees.*.application_type' => ['nullable', 'in:0,1'],
+            'cashier_payment_rows.*.fees.*.calculation_method' => ['nullable', 'in:0,1'],
+            'cashier_payment_rows.*.fees.*.taxable' => ['nullable', 'boolean'],
             'cashier_payment_rows.*.fees.*.amount'           => ['nullable', 'numeric', 'min:0'],
             'cashier_payment_rows.*.fees.*.is_active'        => ['nullable', 'boolean'],
         ]);
@@ -206,7 +208,13 @@ class CashierCatalogSettingsController extends Controller
                     $active = end($active);
                 }
 
+                $taxable = $fee['taxable'] ?? false;
+                if (is_array($taxable)) {
+                    $taxable = end($taxable);
+                }
+
                 $rows[$index]['fees'][$feeIndex]['is_active'] = filter_var($active, FILTER_VALIDATE_BOOL) ? '1' : '0';
+                $rows[$index]['fees'][$feeIndex]['taxable'] = filter_var($taxable, FILTER_VALIDATE_BOOL) ? '1' : '0';
             }
         }
 

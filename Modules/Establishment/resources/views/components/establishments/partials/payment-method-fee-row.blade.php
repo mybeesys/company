@@ -3,10 +3,12 @@
   المتغيرات: $methodIndex, $feeIndex, $fee (array), $locale
 --}}
 @php
-    $feeType        = (string) ($fee['fee_type']        ?? '0');
+    $feeType = (string) ($fee['fee_type'] ?? '0');
     $applicationType = (string) ($fee['application_type'] ?? '1');
-    $isActive       = filter_var($fee['is_active'] ?? true, FILTER_VALIDATE_BOOL);
-    $prefix         = "cashier_payment_rows[{$methodIndex}][fees][{$feeIndex}]";
+    $calculationMethod = (string) ($fee['calculation_method'] ?? '0');
+    $isTaxable = filter_var($fee['taxable'] ?? false, FILTER_VALIDATE_BOOL);
+    $isActive = filter_var($fee['is_active'] ?? true, FILTER_VALIDATE_BOOL);
+    $prefix = "cashier_payment_rows[{$methodIndex}][fees][{$feeIndex}]";
 @endphp
 <div class="border border-gray-200 rounded p-3 pmf-fee-row bg-light-subtle">
     @if (!empty($fee['id']))
@@ -83,6 +85,22 @@
                 <option value="0" @selected($applicationType === '0')>@lang('establishment::fields.service_fee_app_type_item')</option>
                 <option value="1" @selected($applicationType === '1')>@lang('establishment::fields.service_fee_app_type_order')</option>
             </select>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <label class="form-label fw-semibold fs-8 mb-1">@lang('establishment::fields.service_fee_calculation_method')</label>
+            <select name="{{ $prefix }}[calculation_method]"
+                class="form-select form-select-solid form-select-sm w-100">
+                <option value="0" @selected($calculationMethod === '0')>@lang('establishment::fields.service_fee_calc_method_total')</option>
+                <option value="1" @selected($calculationMethod === '1')>@lang('establishment::fields.service_fee_calc_method_taxable')</option>
+            </select>
+        </div>
+        <div class="col-12">
+            <div class="form-check form-check-custom form-check-solid">
+                <input type="hidden" name="{{ $prefix }}[taxable]" value="0">
+                <input class="form-check-input" type="checkbox"
+                    name="{{ $prefix }}[taxable]" value="1" @checked($isTaxable)>
+                <label class="form-check-label fw-semibold fs-8">@lang('establishment::fields.service_fee_taxable')</label>
+            </div>
         </div>
     </div>
 </div>

@@ -131,7 +131,7 @@ return [
     'service_fee_to_date' => 'إلى تاريخ',
     'payment_method_fees_tab'         => 'الرسوم',
     'payment_method_fees'             => 'رسوم طريقة الدفع',
-    'payment_method_fees_hint'        => 'رسوم تُضاف تلقائياً عند اختيار هذه الطريقة في الفاتورة أو الكاشير.',
+    'payment_method_fees_hint'        => 'رسوم تُضاف عند اختيار هذه الطريقة في الفاتورة أو الكاشير.',
     'payment_method_fees_empty'       => 'لا توجد رسوم. اضغط «إضافة رسم» لإضافة رسم جديد.',
     'payment_method_add_fee'          => 'إضافة رسم',
     'payment_method_fee_type'         => 'نوع الرسم',

@@ -194,6 +194,8 @@ class EstablishmentPaymentAccountResolver
                         'fee_type'         => (string) $fee->fee_type,
                         'amount'           => (float) $fee->amount,
                         'application_type' => (string) $fee->application_type,
+                        'calculation_method' => (string) ($fee->calculation_method ?? PaymentMethodFee::CALC_BEFORE_TAX),
+                        'taxable'          => (bool) ($fee->taxable ?? false),
                         'is_active'        => (bool) $fee->is_active,
                         'sort_order'       => (int) $fee->sort_order,
                     ])->values()->all()
@@ -312,9 +314,15 @@ class EstablishmentPaymentAccountResolver
                 ? (string) $feeRow['fee_type'] : '0';
             $appType = in_array((string) ($feeRow['application_type'] ?? ''), ['0', '1'], true)
                 ? (string) $feeRow['application_type'] : '1';
+            $calcMethod = in_array((string) ($feeRow['calculation_method'] ?? ''), ['0', '1'], true)
+                ? (string) $feeRow['calculation_method'] : PaymentMethodFee::CALC_BEFORE_TAX;
             $amount = max(0, (float) ($feeRow['amount'] ?? 0));
             $isActive = filter_var(
                 is_array($feeRow['is_active'] ?? null) ? end($feeRow['is_active']) : ($feeRow['is_active'] ?? true),
+                FILTER_VALIDATE_BOOL
+            );
+            $taxable = filter_var(
+                is_array($feeRow['taxable'] ?? null) ? end($feeRow['taxable']) : ($feeRow['taxable'] ?? false),
                 FILTER_VALIDATE_BOOL
             );
 
@@ -324,6 +332,8 @@ class EstablishmentPaymentAccountResolver
                 'name_en' => $nameEn !== '' ? $nameEn : $nameAr,
                 'fee_type' => $feeType,
                 'application_type' => $appType,
+                'calculation_method' => $calcMethod,
+                'taxable' => $taxable,
                 'amount' => $amount,
                 'is_active' => $isActive,
                 'sort_order' => $sortOrder++,
