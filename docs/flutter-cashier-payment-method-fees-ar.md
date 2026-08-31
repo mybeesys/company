@@ -105,16 +105,32 @@ GET /api/payment-methods?establishment_id=1
 | `amount` | number | إن نسبة: `2.5` = 2.5٪. إن مبلغ: القيمة بالعملة |
 | `application_type` | `"0"` \| `"1"` | `0` على كل منتج — `1` على إجمالي الطلب |
 | `applies_to` | `"item"` \| `"order"` | اختصار أوضح من `application_type` |
+| `calculation_method` | `"0"` \| `"1"` | `0` قبل الضريبة — `1` بعد الضريبة (شامل) |
+| `calculated_on` | `"before_tax"` \| `"after_tax"` | مرادف أوضح لـ `calculation_method` |
+| `taxable` | bool | إن `true` تُضاف ضريبة على مبلغ الرسم |
 | `is_active` | bool | الـ API يرجع النشط فقط؛ القيمة دائماً `true` |
 | `sort_order` | int | ترتيب العرض |
+| `fee_type_label_ar/en` | string | اختياري — للعرض |
+| `calculation_method_label_ar/en` | string | اختياري — للعرض |
 
-استخدم `is_percent` + `applies_to` في الكود. الحقول `"0"`/`"1"` للتوافق مع الويب.
+استخدم `is_percent` + `applies_to` + `calculated_on` + `taxable` في الكود.  
+**فلتر التطبيق:** راجع `docs/flutter-cashier-payment-method-fees-filter-ar.md` (بدون auto-apply لرسوم الخدمة).
 
 ---
 
-## 3) كيف تُحسب (نفس منطق الويب)
+## 3) كيف تُحسب (نفس منطق رسوم الخدمة — بدون auto-apply)
 
-`orderNet` = مجموع `(سعر الوحدة الأساسي × الكمية)` **قبل** إضافة رسوم طريقة الدفع.
+`orderNet` = مجموع صافي الأصناف قبل ضريبة المنتجات.  
+`orderGross` = `orderNet` + ضريبة المنتجات.
+
+للنسبة المئوية استخدم `calculated_on`:
+
+| `calculated_on` | أساس النسبة (order) | أساس النسبة (item / سطر) |
+|-----------------|---------------------|---------------------------|
+| `before_tax` | `orderNet` | `lineNet` |
+| `after_tax` | `orderGross` | `lineGross` |
+
+إن غاب `calculated_on` / `calculation_method` → اعتبر `before_tax`.
 
 ### أ) `applies_to = item`
 
@@ -123,7 +139,7 @@ GET /api/payment-methods?establishment_id=1
 | `is_percent` | المعادلة لكل سطر |
 |--------------|-------------------|
 | `false` | `extra += amount × qty` |
-| `true` | `extra += lineNet × (amount / 100)` |
+| `true` | `extra = lineBase × (amount / 100)` حيث `lineBase` = net أو gross حسب `calculated_on` |
 
 سعر الوحدة المعروض ≈ `baseUnit + extraPerUnit`.
 
@@ -134,9 +150,16 @@ GET /api/payment-methods?establishment_id=1
 | `is_percent` | المعادلة |
 |--------------|----------|
 | `false` | `extra = amount` |
-| `true` | `extra = orderNet × (amount / 100)` |
+| `true` | `extra = orderBase × (amount / 100)` حيث `orderBase` = net أو gross حسب `calculated_on` |
 
 قرّب كل نتيجة إلى منزلتين.
+
+### ج) ضريبة الرسم (`taxable = true`)
+
+- على السطر: `feeVat += lineFee × (lineTaxRate / 100)`
+- على الطلب: `feeVat += orderFee × (productVat / orderNet)` إن `orderNet > 0`
+
+أضف `feeVat` إلى إجمالي ضريبة الفاتورة والمبلغ النهائي.
 
 ### عدة طرق دفع في نفس الفاتورة
 

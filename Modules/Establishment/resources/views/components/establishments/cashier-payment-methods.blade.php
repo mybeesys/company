@@ -61,7 +61,7 @@
     @include('establishment::components.establishments.partials.payment-method-fee-row', [
         'methodIndex' => '__METHOD_INDEX__',
         'feeIndex'    => '__FEE_INDEX__',
-        'fee'         => ['id' => null, 'name_ar' => '', 'name_en' => '', 'fee_type' => '0', 'amount' => '', 'application_type' => '1', 'is_active' => true],
+        'fee'         => ['id' => null, 'name_ar' => '', 'name_en' => '', 'fee_type' => '0', 'amount' => '', 'application_type' => '1', 'calculation_method' => '0', 'taxable' => false, 'is_active' => true],
         'locale'      => $locale,
     ])
 </template>
