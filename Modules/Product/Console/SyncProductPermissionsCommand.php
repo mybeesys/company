@@ -3,7 +3,7 @@
 namespace Modules\Product\Console;
 
 use Illuminate\Console\Command;
-use Modules\Product\Database\Seeders\ProductPermissionsSeeder;
+use Modules\Product\database\seeders\ProductPermissionsSeeder;
 
 class SyncProductPermissionsCommand extends Command
 {

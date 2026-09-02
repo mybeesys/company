@@ -3,7 +3,7 @@
 namespace Modules\Screen\Console;
 
 use Illuminate\Console\Command;
-use Modules\Screen\Database\Seeders\ScreenPermissionsSeeder;
+use Modules\Screen\database\seeders\ScreenPermissionsSeeder;
 
 class SyncScreenPermissionsCommand extends Command
 {

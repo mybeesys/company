@@ -3,7 +3,7 @@
 namespace Modules\Accounting\Console;
 
 use Illuminate\Console\Command;
-use Modules\Accounting\Database\Seeders\AccountingPermissionsSeeder;
+use Modules\Accounting\database\seeders\AccountingPermissionsSeeder;
 
 class SyncAccountingPermissionsCommand extends Command
 {
