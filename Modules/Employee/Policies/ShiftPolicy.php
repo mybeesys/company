@@ -3,29 +3,26 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Employee\Support\EmployeeAccess;
+use Modules\Employee\Support\EmployeePermissions;
 
 class ShiftPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(): bool
+    public function viewAny(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.shifts.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::SHIFTS_SHOW);
     }
 
-    public function print()
+    public function print(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.shifts.print');
+        return EmployeeAccess::allows($user, EmployeePermissions::SHIFTS_PRINT);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(): bool
+    public function update(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.shifts.update');
+        return EmployeeAccess::allows($user, EmployeePermissions::SHIFTS_UPDATE);
     }
 }

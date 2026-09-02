@@ -17,6 +17,7 @@ use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\UnitTransferConvertor;
+use Modules\Inventory\Support\InventoryAccess;
 
 class InventoryOperationController extends Controller
 {
@@ -49,6 +50,10 @@ class InventoryOperationController extends Controller
             'status' => 'required|string',
         ]);
         $transaction = Transaction::find($validated['id']);
+        InventoryAccess::authorizeTransaction($transaction, 'update');
+        if (! $transaction) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
         $transaction->status = $validated['status'];
         DB::transaction(function () use ($transaction) {
             $transaction->save();

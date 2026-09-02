@@ -1,4 +1,5 @@
-<div class="tab-pane fade show" id="inventory_costing_tab" role="tabpanel">
+@php $firstH = \Modules\General\Support\SettingAccess::firstHorizontal(); @endphp
+<div class="tab-pane fade {{ $firstH === 'costing' ? 'show active' : '' }}" id="inventory_costing_tab" role="tabpanel">
     <div class="container">
         <form id="update-prefix" method="POST" action="{{ route('update-inventory-costing-method') }}">
             @csrf
@@ -26,9 +27,11 @@
                     <div class="form-text mt-2">@lang('general::general.inventory_costing_method_help')</div>
                 </div>
             </div>
+            @dashboardcan(\Modules\General\Support\SettingPermissions::for('inventory costing', 'update'))
             <button type="submit" style="border-radius: 6px;" class="btn btn-primary w-200px">
                 @lang('messages.save')
             </button>
+            @enddashboardcan
         </form>
 
         @if (config('app.debug'))
@@ -108,10 +111,12 @@
                                 @lang('general::general.inventory_costing_rebuild_acknowledge_final')
                             </label>
                         </div>
+                        @dashboardcan(\Modules\General\Support\SettingPermissions::for('inventory costing', 'update'))
                         <button type="submit" class="btn btn-warning" id="btnExecuteRebuild">
                             <i class="bi bi-arrow-repeat me-1"></i>
                             @lang('general::general.inventory_costing_rebuild_execute_button')
                         </button>
+                        @enddashboardcan
                     </form>
                 </div>
             </div>

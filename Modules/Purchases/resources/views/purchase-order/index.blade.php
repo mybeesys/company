@@ -30,8 +30,10 @@
                         <span class="fw-bolder"> @lang('purchases::lang.no_purchase-order')</span> <br>
                         @lang('purchases::lang.create_suggestion_purchase-order')
                     </h4>
+                    @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::ORDERS_CREATE)
                     <a href="{{ route('create-purchase-order') }}"
                         class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('purchases::general.add_purchase_order')</a>
+                    @enddashboardcan
                 </div>
 
             </div>
@@ -39,7 +41,8 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="purchase_order" url="create-purchase-order" module="purchases">
+                <x-tables.table-header model="purchase_order" url="create-purchase-order" module="purchases"
+                    :addButton="dashboard_can(\Modules\Purchases\Support\PurchasesPermissions::ORDERS_CREATE)">
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>

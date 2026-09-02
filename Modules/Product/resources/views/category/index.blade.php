@@ -11,6 +11,7 @@
 	  subcategory-url="{{ json_encode(route('subcategory.store'))}}"
 	  product-url="{{ json_encode(route('product.store'))}}"
       product-permission="{{ $product_permission }}"
+      ems-can="{{ \Modules\Product\Support\ProductAccess::uiJson('category', 'subcategory', 'product') }}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"></div>
 
 @endsection

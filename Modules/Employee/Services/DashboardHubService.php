@@ -35,10 +35,6 @@ class DashboardHubService
 
     protected function userCanSeeTab(?Authenticatable $user, array $tab): bool
     {
-        if (($tab['type'] ?? '') === 'inline') {
-            return true;
-        }
-
         $permission = $tab['permission'] ?? null;
 
         if ($permission === null || $permission === '') {

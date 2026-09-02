@@ -7,6 +7,7 @@
       <div id="root" type="discount" 
 	    list-url="{{json_encode(route('discountList'))}}"
 	    discount-url="{{ json_encode(route('discount.store'))}}"
+      ems-can="{{ \Modules\Product\Support\ProductAccess::uiJson('discount') }}"
       dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  
 	  ></div>
 

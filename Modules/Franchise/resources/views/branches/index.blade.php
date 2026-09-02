@@ -10,9 +10,11 @@
             <h3 class="fw-bold">{{ __('franchise::lang.branches_mgmt') }}</h3>
         </div>
         <div class="card-toolbar">
+            @dashboardcan(\Modules\Franchise\Support\FranchisePermissions::for('Branches', 'create'))
             <button type="button" class="btn btn-primary" onclick="addBranchModal()">
                 <i class="ki-outline ki-plus fs-2"></i> {{ __('franchise::lang.add_new_branch') }}
             </button>
+            @enddashboardcan
         </div>
     </div>
     <div class="card-body py-4">

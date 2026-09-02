@@ -12,9 +12,18 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\UnitTransferConvertor;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class ModifierController extends Controller
+class ModifierController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'modifier';
+    }
     public function index()
     {
         return view('product::modifier.index');
@@ -22,6 +31,7 @@ class ModifierController extends Controller
 
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'modifier');
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',

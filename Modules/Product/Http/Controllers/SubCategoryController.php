@@ -5,11 +5,20 @@ namespace Modules\Product\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\Subcategory;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class SubCategoryController extends Controller
+class SubCategoryController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'subcategory';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -59,6 +68,7 @@ class SubCategoryController extends Controller
      */
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'subcategory');
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',

@@ -44,9 +44,11 @@
                 <button type="button" class="btn btn-sm btn-light" id="isCollapseAll">
                     @lang('accounting::lang.income_statement_collapse_all')
                 </button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::INCOME_STATEMENT_PRINT)
                 <button type="button" class="btn btn-sm btn-success" onclick="window.print()">
                     <i class="fa fa-print"></i> @lang('general.print')
                 </button>
+                @enddashboardcan
             </div>
         </div>
     </div>
@@ -112,8 +114,10 @@
             </div>
             <div class="col-md-12 col-lg-3 d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary btn-sm flex-grow-1">@lang('report::general.filter')</button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::INCOME_STATEMENT_PRINT)
                 <button type="button" id="incomeStatementExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                 <button type="button" id="incomeStatementExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
+                @enddashboardcan
             </div>
         </div>
     </form>

@@ -38,6 +38,7 @@
 	  list-url="{{json_encode(value: route('productInventoryList'))}}"
       summary-url="{{ json_encode(route('productInventorySummary')) }}"
       critical-csv-url="{{ json_encode(route('productInventoryCriticalCsv')) }}"
+      ems-can="{{ \Modules\Inventory\Support\InventoryAccess::uiJson('product') }}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"></div>
 
 @endsection

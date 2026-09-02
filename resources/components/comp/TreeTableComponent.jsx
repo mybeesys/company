@@ -9,6 +9,7 @@ import { Calendar } from "primereact/calendar";
 import AsyncSelectComponent from "./AsyncSelectComponent";
 import { io } from "socket.io-client";
 import Swal from "sweetalert2";
+import { emsCan, emsCanEditOrSave } from "../emsCan";
 const TreeTableComponent = ({
     translations,
     dir,
@@ -249,7 +250,7 @@ const TreeTableComponent = ({
     const renderTextCell = (node, col, index) => {
         const indent = node.key.toString().split("-").length;
         if (index == 0 && !!node.data.empty) {
-            if (!!canAddInline)
+            if (!!canAddInline && emsCan("create"))
                 return (
                     <a
                         href="javascript:void(0);"
@@ -419,12 +420,14 @@ const TreeTableComponent = ({
         const indent = node.key.toString().split("-").length;
         if (index == 0 && !!node.data.empty) {
             return (
+                emsCan("create") ? (
                 <a
                     href="javascript:void(0);"
                     onClick={(e) =>
                         addInline(node.key, node.data.type, node.data.parentKey)
                     }
                 >{`${translations.Add} ${translations[node.data.type]}`}</a>
+                ) : null
             );
         } else {
             return node.key == currentKey && !!col.editable ? (
@@ -479,7 +482,7 @@ const TreeTableComponent = ({
             const response = axios.get(urlList).then((response) => {
                 let result = response.data;
                 if (!!prepareData) result = prepareData(result);
-                if (!!!canAddInline) result = clearAddRow(result);
+                if (!!!canAddInline || !emsCan("create")) result = clearAddRow(result);
                 setNodes(result);
                 setExpandedKeys(getExpandedKeys(result));
             });
@@ -566,7 +569,8 @@ const TreeTableComponent = ({
             <div className="flex flex-wrap gap-2">
                 {(currentKey == "-1" ||
                     (currentKey != "-1" && node.key == currentKey)) &&
-                (!!!canEditRow || canEditRow(node.data)) ? (
+                (!!!canEditRow || canEditRow(node.data)) &&
+                emsCanEditOrSave(currentKey != "-1" && node.key == currentKey) ? (
                     <a
                         href="javascript:void(0);"
                         onClick={() => {
@@ -598,7 +602,7 @@ const TreeTableComponent = ({
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                {!!canDelete ? (
+                {!!canDelete && emsCan("delete") ? (
                     <a
                         href="javascript:void(0);"
                         onClick={() => openDeleteModel(data)}
@@ -626,7 +630,7 @@ const TreeTableComponent = ({
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
-                        {!!addUrl ? (
+                        {!!addUrl && emsCan("create") ? (
                             <a
                                 href="javascript:void(0);"
                                 class="btn btn-primary"

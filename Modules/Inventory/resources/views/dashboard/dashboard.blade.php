@@ -32,11 +32,13 @@
                     <h3 class="mb-1">{{ app()->getLocale() === 'ar' ? 'لوحة تحكم المخزون' : 'Inventory Control Dashboard' }}</h3>
                     <div class="text-muted">{{ app()->getLocale() === 'ar' ? 'مؤشرات رقابية للمخزون وحركات المستودعات مع تنبيهات المخاطر.' : 'Operational inventory KPIs with warehouse movement and risk alerts.' }}</div>
                 </div>
+                @dashboardcan(\Modules\Inventory\Support\InventoryPermissions::PRODUCT_SHOW)
                 <div class="d-flex gap-2">
                     <a href="{{ route('productInventory.index') }}" class="btn btn-primary">
                         <i class="fas fa-box me-1"></i> {{ app()->getLocale() === 'ar' ? 'فتح شاشة المخزون' : 'Open Inventory Screen' }}
                     </a>
                 </div>
+                @enddashboardcan
             </div>
         </div>
 
@@ -123,10 +125,18 @@
             <div class="card-header border-0 pt-5"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'إجراءات سريعة' : 'Quick Actions' }}</h5></div>
             <div class="card-body">
                 <div class="row g-3">
+                    @dashboardcan(\Modules\Inventory\Support\InventoryPermissions::PRODUCT_SHOW)
                     <div class="col-6 col-md-3"><a href="{{ route('productInventory.index') }}" class="inv-action"><i class="fas fa-box text-primary"></i><span>{{ app()->getLocale() === 'ar' ? 'عرض المخزون' : 'View Inventory' }}</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Inventory\Support\InventoryPermissions::WASTE_SHOW)
                     <div class="col-6 col-md-3"><a href="{{ route('waste.index') }}" class="inv-action"><i class="fas fa-dumpster text-danger"></i><span>{{ app()->getLocale() === 'ar' ? 'إدارة الإتلاف' : 'Manage Waste' }}</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Inventory\Support\InventoryPermissions::TRANSFER_SHOW)
                     <div class="col-6 col-md-3"><a href="{{ route('transfer.index') }}" class="inv-action"><i class="fas fa-exchange-alt text-info"></i><span>{{ app()->getLocale() === 'ar' ? 'إدارة التحويلات' : 'Manage Transfers' }}</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Inventory\Support\InventoryPermissions::PREP_SHOW)
                     <div class="col-6 col-md-3"><a href="{{ route('prep.index') }}" class="inv-action"><i class="fas fa-mortar-pestle text-success"></i><span>{{ app()->getLocale() === 'ar' ? 'عمليات التجهيز' : 'Prep Operations' }}</span></a></div>
+                    @enddashboardcan
                 </div>
             </div>
         </div>

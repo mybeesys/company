@@ -4,6 +4,7 @@ namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use DB;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -14,9 +15,17 @@ use Modules\Inventory\Models\ProductInventoryTotal;
 use Modules\Inventory\Models\TransactionUtil;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
+use Modules\Inventory\Support\AuthorizesInventoryPages;
+use Modules\Inventory\Support\InventoryAccess;
 
-class WasteController extends Controller
+class WasteController extends Controller implements HasMiddleware
 {
+    use AuthorizesInventoryPages;
+
+    protected static function inventoryAuthEntity(): string
+    {
+        return 'waste';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -139,6 +148,7 @@ class WasteController extends Controller
 
     public function store(Request $request)
     {
+        InventoryAccess::authorizeMutation($request, 'waste');
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'transaction_date' => 'nullable|date',
@@ -164,6 +174,7 @@ class WasteController extends Controller
 
     public function storeWaste(Request $request)
     {
+        InventoryAccess::authorizeMutation($request, 'waste');
         $result = [];
         $validated = $request->validate([
             'id' => 'sometimes|required|integer|exists:transactions,id',

@@ -336,6 +336,7 @@
                     </div>
                 </div>
 
+                @dashboardcan(\Modules\Report\Support\ReportPermissions::SALES_COMPARISON_PRINT)
                 <div class="card-toolbar d-flex flex-row align-items-center sc-export-toolbar">
                     <span class="sc-export-toolbar__label d-none d-sm-inline">@lang('report::general.export_actions_label')</span>
                     <div class="btn-group sc-export-btn-group" role="group" aria-label="@lang('report::general.export_actions_label')">
@@ -355,6 +356,7 @@
                         </button>
                     </div>
                 </div>
+                @enddashboardcan
             </x-cards.card-header>
 
             <div class="card-body border-top p-5">

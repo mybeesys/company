@@ -6,13 +6,32 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Franchise\Models\FranchiseCompanies;
+use Modules\Franchise\Services\FranchiseHubService;
+use Modules\Franchise\Support\FranchiseAccess;
+use Modules\Franchise\Support\FranchisePermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 class FranchiseCompanyController extends Controller
 {
     public function index(Request $request)
     {
+        if (! $request->ajax()) {
+            $tabs = app(FranchiseHubService::class)->visibleTabs();
+            if ($tabs === []) {
+                abort(403, __('employee::responses.permission_denied'));
+            }
+            if (! FranchiseAccess::can(FranchisePermissions::for('Companies', 'show'))) {
+                $first = $tabs[0] ?? null;
+                if (is_array($first) && ! empty($first['route'])) {
+                    return redirect()->route($first['route']);
+                }
+                abort(403, __('employee::responses.permission_denied'));
+            }
+        }
+
         if ($request->ajax()) {
+            FranchiseAccess::authorize(FranchisePermissions::for('Companies', 'show'));
+
             $query = FranchiseCompanies::query();
 
             if ($request->view_type == 'new_no_contract') {
@@ -43,19 +62,23 @@ class FranchiseCompanyController extends Controller
                     </a>
                 </div>';
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (FranchiseAccess::can(FranchisePermissions::for('Companies', 'update'))) {
+                        $actions .= '<div class="menu-item px-3">
                     <a href="javascript:void(0)" onclick="editCompany('.$row->id.')" class="menu-link px-3">
                         <i class="ki-outline ki-pencil fs-4 me-2"></i> '.__('franchise::lang.edit').'
                     </a>
                 </div>';
+                    }
 
-                    $actions .= '<div class="separator mt-3 opacity-75"></div>';
+                    if (FranchiseAccess::can(FranchisePermissions::for('Companies', 'delete'))) {
+                        $actions .= '<div class="separator mt-3 opacity-75"></div>';
 
-                    $actions .= '<div class="menu-item px-3">
+                        $actions .= '<div class="menu-item px-3">
                     <a href="javascript:void(0)" onclick="deleteCompany('.$row->id.', \''.$row->name_ar.'\')" class="menu-link px-3 text-danger">
                         <i class="ki-outline ki-trash fs-4 me-2 text-danger"></i> '.__('franchise::lang.delete').'
                     </a>
                 </div>';
+                    }
 
                     $actions .= '</div>';
 

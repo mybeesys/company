@@ -299,6 +299,14 @@
 
 @endsection
 @section('content')
+    @php
+        $screenCanPromos = dashboard_can(\Modules\Screen\Support\ScreenPermissions::for('promos', 'show'));
+        $screenCanPlaylists = dashboard_can(\Modules\Screen\Support\ScreenPermissions::for('playlists', 'show'));
+        $screenCanDevices = dashboard_can(\Modules\Screen\Support\ScreenPermissions::for('devices', 'show'));
+        $screenPromosTabActive = $screenCanPromos;
+        $screenPlaylistsTabActive = ! $screenCanPromos && $screenCanPlaylists;
+        $screenDevicesTabActive = ! $screenCanPromos && ! $screenCanPlaylists && $screenCanDevices;
+    @endphp
     <div class="d-flex flex-column flex-row-fluid gap-5">
         <div class="screen-hero">
             <h1>{{ __('menuItemLang.screen_module') }}</h1>
@@ -306,69 +314,85 @@
         </div>
 
         <div class="row g-4 screen-kpi-grid">
-            <div class="col-md-4">
-                <div class="screen-kpi-card screen-kpi-card--promos">
-                    <div class="screen-kpi-inner">
-                        <div class="screen-kpi-icon" aria-hidden="true">
-                            <i class="fas fa-photo-video"></i>
-                        </div>
-                        <div>
-                            <div class="screen-kpi-title">{{ __('screen::general.promos') }}</div>
-                            <div class="screen-kpi-value">{{ $promos->count() }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="screen-kpi-card screen-kpi-card--playlists">
-                    <div class="screen-kpi-inner">
-                        <div class="screen-kpi-icon" aria-hidden="true">
-                            <i class="fas fa-list-ol"></i>
-                        </div>
-                        <div>
-                            <div class="screen-kpi-title">{{ __('screen::general.playlists') }}</div>
-                            <div class="screen-kpi-value">{{ $playlistsCount ?? 0 }}</div>
+            @if ($screenCanPromos)
+                <div class="col-md-4">
+                    <div class="screen-kpi-card screen-kpi-card--promos">
+                        <div class="screen-kpi-inner">
+                            <div class="screen-kpi-icon" aria-hidden="true">
+                                <i class="fas fa-photo-video"></i>
+                            </div>
+                            <div>
+                                <div class="screen-kpi-title">{{ __('screen::general.promos') }}</div>
+                                <div class="screen-kpi-value">{{ $promos->count() }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="screen-kpi-card screen-kpi-card--devices">
-                    <div class="screen-kpi-inner">
-                        <div class="screen-kpi-icon" aria-hidden="true">
-                            <i class="fas fa-tv"></i>
-                        </div>
-                        <div>
-                            <div class="screen-kpi-title">{{ __('screen::general.devices') }}</div>
-                            <div class="screen-kpi-value">{{ $devices->count() }}</div>
+            @endif
+            @if ($screenCanPlaylists)
+                <div class="col-md-4">
+                    <div class="screen-kpi-card screen-kpi-card--playlists">
+                        <div class="screen-kpi-inner">
+                            <div class="screen-kpi-icon" aria-hidden="true">
+                                <i class="fas fa-list-ol"></i>
+                            </div>
+                            <div>
+                                <div class="screen-kpi-title">{{ __('screen::general.playlists') }}</div>
+                                <div class="screen-kpi-value">{{ $playlistsCount ?? 0 }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @endif
+            @if ($screenCanDevices)
+                <div class="col-md-4">
+                    <div class="screen-kpi-card screen-kpi-card--devices">
+                        <div class="screen-kpi-inner">
+                            <div class="screen-kpi-icon" aria-hidden="true">
+                                <i class="fas fa-tv"></i>
+                            </div>
+                            <div>
+                                <div class="screen-kpi-title">{{ __('screen::general.devices') }}</div>
+                                <div class="screen-kpi-value">{{ $devices->count() }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="screen-workspace">
             <ul class="nav nav-tabs nav-pills flex-row flex-md-column flex-nowrap flex-md-wrap mb-0 fs-6 screen-subtabs"
                 role="tablist">
-                <li class="nav-item w-100 me-0" role="presentation">
-                    <a class="nav-link py-3 active" data-bs-toggle="tab" href="#promos_tab" role="tab"
-                        aria-selected="true">
-                        <i class="fas fa-photo-video"></i>
-                        <span>@lang('screen::general.promos')</span>
-                    </a>
-                </li>
-                <li class="nav-item w-100 me-0" role="presentation">
-                    <a class="nav-link py-3" data-bs-toggle="tab" href="#playlists_tab" role="tab" aria-selected="false">
-                        <i class="fas fa-stream"></i>
-                        <span>@lang('screen::general.playlists')</span>
-                    </a>
-                </li>
-                <li class="nav-item w-100 me-0" role="presentation">
-                    <a class="nav-link py-3" data-bs-toggle="tab" href="#devices_tab" role="tab" aria-selected="false">
-                        <i class="fas fa-desktop"></i>
-                        <span>@lang('screen::general.devices')</span>
-                    </a>
-                </li>
+                @if ($screenCanPromos)
+                    <li class="nav-item w-100 me-0" role="presentation">
+                        <a class="nav-link py-3 {{ $screenPromosTabActive ? 'active' : '' }}" data-bs-toggle="tab"
+                            href="#promos_tab" role="tab" aria-selected="{{ $screenPromosTabActive ? 'true' : 'false' }}">
+                            <i class="fas fa-photo-video"></i>
+                            <span>@lang('screen::general.promos')</span>
+                        </a>
+                    </li>
+                @endif
+                @if ($screenCanPlaylists)
+                    <li class="nav-item w-100 me-0" role="presentation">
+                        <a class="nav-link py-3 {{ $screenPlaylistsTabActive ? 'active' : '' }}" data-bs-toggle="tab"
+                            href="#playlists_tab" role="tab"
+                            aria-selected="{{ $screenPlaylistsTabActive ? 'true' : 'false' }}">
+                            <i class="fas fa-stream"></i>
+                            <span>@lang('screen::general.playlists')</span>
+                        </a>
+                    </li>
+                @endif
+                @if ($screenCanDevices)
+                    <li class="nav-item w-100 me-0" role="presentation">
+                        <a class="nav-link py-3 {{ $screenDevicesTabActive ? 'active' : '' }}" data-bs-toggle="tab"
+                            href="#devices_tab" role="tab"
+                            aria-selected="{{ $screenDevicesTabActive ? 'true' : 'false' }}">
+                            <i class="fas fa-desktop"></i>
+                            <span>@lang('screen::general.devices')</span>
+                        </a>
+                    </li>
+                @endif
             </ul>
             <div class="screen-content-shell flex-grow-1">
                 @if (empty($hasEstablishmentColumn))
@@ -379,9 +403,15 @@
                     </div>
                 @endif
                 <div class="tab-content w-100 p-0" id="mySubTabContent">
-                    <x-screen::promo.promo-tab />
-                    <x-screen::playlist.playlist-tab />
-                    <x-screen::device.device-tab />
+                    @if ($screenCanPromos)
+                        <x-screen::promo.promo-tab :active="$screenPromosTabActive" />
+                    @endif
+                    @if ($screenCanPlaylists)
+                        <x-screen::playlist.playlist-tab :active="$screenPlaylistsTabActive" />
+                    @endif
+                    @if ($screenCanDevices)
+                        <x-screen::device.device-tab :active="$screenDevicesTabActive" />
+                    @endif
                 </div>
             </div>
         </div>
@@ -418,19 +448,25 @@
         const deviceDataUrl = '{{ route('devices.index') }}';
 
         $(document).ready(function() {
-            initPromoDataTable();
-            initDeviceDataTable();
-            playlistTab();
-            initializeStyles();
-            initializeModal();
-            renameModal();
-            addPromoModal();
-            promoTab();
-            addPlaylistModal();
-            addPlaylistForm();
-            initPlaylistDataTable();
-            addDeviceModal();
-            previewPlaylistModal()
+            @if ($screenCanPromos)
+                initPromoDataTable();
+                renameModal();
+                addPromoModal();
+                promoTab();
+            @endif
+            @if ($screenCanPlaylists)
+                initializeStyles();
+                initializeModal();
+                playlistTab();
+                addPlaylistModal();
+                addPlaylistForm();
+                initPlaylistDataTable();
+                previewPlaylistModal();
+            @endif
+            @if ($screenCanDevices)
+                initDeviceDataTable();
+                addDeviceModal();
+            @endif
         });
     </script>
 @endsection

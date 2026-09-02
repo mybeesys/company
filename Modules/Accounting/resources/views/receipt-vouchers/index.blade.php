@@ -43,10 +43,12 @@
                 <x-slot:filters>
                 </x-slot:filters>
                 <x-slot:export>
+                    @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::RECEIPT_CREATE)
                     <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-150px receipt-voucher-new-btn" data-bs-toggle="modal"
                         data-bs-target="#receipt-vouchers-Modal">
                         {{ app()->getLocale() == 'ar' ? 'إضافة سند قبض' : 'Add receipt voucher' }}
                     </a>
+                    @enddashboardcan
                     <x-tables.export-menu id="sell" />
 
                 </x-slot:export>

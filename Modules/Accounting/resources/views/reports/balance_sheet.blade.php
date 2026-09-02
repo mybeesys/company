@@ -35,9 +35,11 @@
             <div class="d-flex flex-wrap gap-2">
                 <button type="button" class="btn btn-sm btn-light-primary" id="bsExpandAll">@lang('accounting::lang.bs_expand_all')</button>
                 <button type="button" class="btn btn-sm btn-light" id="bsCollapseAll">@lang('accounting::lang.bs_collapse_all')</button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::BALANCE_SHEET_PRINT)
                 <button type="button" class="btn btn-sm btn-success" onclick="window.print()">
                     <i class="fa fa-print"></i> @lang('general.print')
                 </button>
+                @enddashboardcan
             </div>
         </div>
     </div>
@@ -95,8 +97,10 @@
             </div>
             <div class="col-md-12 col-lg-3 d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary btn-sm flex-grow-1">@lang('report::general.filter')</button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::BALANCE_SHEET_PRINT)
                 <button type="button" id="balanceSheetExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                 <button type="button" id="balanceSheetExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
+                @enddashboardcan
             </div>
         </div>
     </form>

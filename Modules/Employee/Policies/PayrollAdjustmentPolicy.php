@@ -3,40 +3,31 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Employee\Support\EmployeeAccess;
+use Modules\Employee\Support\EmployeePermissions;
 
 class PayrollAdjustmentPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(): bool
+    public function viewAny(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.allowances_deductions.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::ALLOWANCES_SHOW);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(): bool
+    public function create(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.allowance_deduction.create');
+        return EmployeeAccess::allows($user, EmployeePermissions::ALLOWANCE_CREATE);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(): bool
+    public function update(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.allowance_deduction.update');
+        return EmployeeAccess::allows($user, EmployeePermissions::ALLOWANCE_UPDATE);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(): bool
+    public function delete(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.allowance_deduction.delete');
+        return EmployeeAccess::allows($user, EmployeePermissions::ALLOWANCE_DELETE);
     }
 }

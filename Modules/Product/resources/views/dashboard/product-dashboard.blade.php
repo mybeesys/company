@@ -32,9 +32,11 @@
                     <h3 class="mb-1">{{ app()->getLocale() === 'ar' ? 'لوحة المنتجات والخدمات' : 'Products & Services Dashboard' }}</h3>
                     <div class="text-muted">{{ app()->getLocale() === 'ar' ? 'متابعة احترافية لحجم البيانات والنمو الشهري وآخر العناصر المضافة.' : 'Professional overview of entities volume, monthly growth, and recent additions.' }}</div>
                 </div>
+                @dashboardcan(\Modules\Product\Support\ProductPermissions::PRODUCT_CREATE)
                 <a href="{{ route('product.create') }}" class="btn btn-primary">
                     <i class="fas fa-plus me-1"></i> {{ __('product::dashboard.add_product') }}
                 </a>
+                @enddashboardcan
             </div>
         </div>
 
@@ -105,12 +107,24 @@
             <div class="card-header border-0 pt-5"><h5 class="card-title mb-0">{{ app()->getLocale() === 'ar' ? 'إجراءات سريعة' : 'Quick Actions' }}</h5></div>
             <div class="card-body">
                 <div class="row g-3">
+                    @dashboardcan(\Modules\Product\Support\ProductPermissions::PRODUCT_CREATE)
                     <div class="col-6 col-md-4 col-xl-2"><a href="{{ route('product.create') }}" class="pd-action"><i class="fas fa-box-open text-primary"></i><span>@lang('product::dashboard.add_product')</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Product\Support\ProductPermissions::INGREDIENT_CREATE)
                     <div class="col-6 col-md-4 col-xl-2"><a href="{{ route('ingredient.create') }}" class="pd-action"><i class="fas fa-seedling text-success"></i><span>@lang('product::dashboard.add_ingredient')</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Product\Support\ProductPermissions::MODIFIER_CREATE)
                     <div class="col-6 col-md-4 col-xl-2"><a href="{{ route('modifier.create') }}" class="pd-action"><i class="fas fa-plus-circle text-warning"></i><span>@lang('product::dashboard.add_modifier')</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Product\Support\ProductPermissions::ATTRIBUTE_SHOW)
                     <div class="col-6 col-md-4 col-xl-2"><a href="{{ route('attribute.index') }}" class="pd-action"><i class="fas fa-copy text-info"></i><span>@lang('product::dashboard.add_variant')</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Product\Support\ProductPermissions::CUSTOM_MENU_CREATE)
                     <div class="col-6 col-md-4 col-xl-2"><a href="{{ route('customMenu.create') }}" class="pd-action"><i class="fas fa-book-open text-primary"></i><span>@lang('product::dashboard.add_custom_menu')</span></a></div>
+                    @enddashboardcan
+                    @dashboardcan(\Modules\Product\Support\ProductPermissions::PRICE_TIER_SHOW)
                     <div class="col-6 col-md-4 col-xl-2"><a href="{{ route('priceTier.index') }}" class="pd-action"><i class="fas fa-tags text-danger"></i><span>@lang('product::dashboard.add_pricing')</span></a></div>
+                    @enddashboardcan
                 </div>
             </div>
         </div>
@@ -251,7 +265,9 @@
                                 <th class="text-center">{{ app()->getLocale() === 'ar' ? 'التكلفة' : 'Cost' }}</th>
                                 <th class="text-center">@lang('product::dashboard.price')</th>
                                 <th class="text-center">{{ app()->getLocale() === 'ar' ? 'فارق الربحية' : 'Margin Gap' }}</th>
+                                @dashboardcan(\Modules\Product\Support\ProductPermissions::PRODUCT_UPDATE)
                                 <th class="text-center">{{ app()->getLocale() === 'ar' ? 'إجراء' : 'Action' }}</th>
+                                @enddashboardcan
                             </tr>
                             </thead>
                             <tbody>
@@ -262,12 +278,14 @@
                                     <td class="text-center">{{ number_format((float) ($product->cost ?? 0), 2) }}</td>
                                     <td class="text-center">{{ number_format((float) ($product->price_with_tax ?? 0), 2) }}</td>
                                     <td class="text-center text-danger fw-bold">{{ number_format((float) (($product->price_with_tax ?? 0) - ($product->cost ?? 0)), 2) }}</td>
+                                    @dashboardcan(\Modules\Product\Support\ProductPermissions::PRODUCT_UPDATE)
                                     <td class="text-center">
                                         <a href="{{ route('product.edit', $product->id) }}" class="btn btn-sm btn-light-primary">
                                             <i class="fas fa-pen"></i>
                                             {{ app()->getLocale() === 'ar' ? 'تعديل السعر/التكلفة' : 'Edit Price/Cost' }}
                                         </a>
                                     </td>
+                                    @enddashboardcan
                                 </tr>
                             @endforeach
                             </tbody>

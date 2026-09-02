@@ -5,6 +5,8 @@ namespace Modules\General\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\General\Support\SettingAccess;
+use Modules\General\Support\SettingPermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\General\Database\Factories\PaymentMethodFactory;
@@ -68,6 +70,10 @@ class PaymentMethod extends Model
 
                         '.__('general::lang.default tax').' </span>';
                     } else {
+                        if (! SettingAccess::can(SettingPermissions::GENERAL_UPDATE)) {
+                            return '';
+                        }
+
                         $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
 
@@ -79,11 +85,7 @@ class PaymentMethod extends Model
                    data-account-id="'.$row->account_id.'">
                    '.__('messages.edit').'
                 </a>
-            </div>';
-
-                        $actions .= '<div class="menu-item px-3">
-                <a href="'.url("/delete-tax/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.delete').'</a>
-            </div>';
+            </div></div>';
 
                         return $actions;
                     }

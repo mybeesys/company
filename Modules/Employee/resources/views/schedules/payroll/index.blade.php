@@ -25,7 +25,7 @@
                 <div class="tab-pane fade show active" id="payroll_table_tab" role="tabpanel">
                     <x-cards.card>
                         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                            <x-tables.table-header model="payroll" module="employee" :addButton="auth()->user()->hasDashboardPermission('employees.payroll.create')">
+                            <x-tables.table-header model="payroll" module="employee" :addButton="dashboard_can(\Modules\Employee\Support\EmployeePermissions::PAYROLL_CREATE)">
                                 <x-slot:filters>
                                     <x-tables.filters-dropdown>
                                         <x-employee::payroll.filters />

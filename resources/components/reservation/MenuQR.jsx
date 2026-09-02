@@ -5,6 +5,7 @@ import { InputSwitch } from "primereact/inputswitch";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import axios from "axios";
+import { emsCan } from "../emsCan";
 
 const animatedComponents = makeAnimated();
 
@@ -993,6 +994,7 @@ const MenuQR = ({ translations, dir }) => {
                             )}
 
                             <div className="d-grid gap-2 d-md-flex">
+                                {(editingId ? emsCan("update") : emsCan("create")) ? (
                                 <button onClick={generateQR} className="btn btn-primary btn-lg flex-grow-1 shadow-sm" disabled={isSaving}>
                                     {isSaving
                                         ? (dir === "rtl" ? "جاري الحفظ..." : "Saving...")
@@ -1000,6 +1002,7 @@ const MenuQR = ({ translations, dir }) => {
                                             ? (dir === "rtl" ? "حفظ التعديلات" : "Save changes")
                                             : (translations.generateQr || "إنشاء كود QR"))}
                                 </button>
+                                ) : null}
                                 <button type="button" onClick={resetForm} className="btn btn-light btn-lg">
                                     {dir === "rtl" ? "قائمة جديدة" : "New menu"}
                                 </button>
@@ -1195,9 +1198,11 @@ const MenuQR = ({ translations, dir }) => {
                                                     >
                                                         {dir === "rtl" ? "عرض" : "View"}
                                                     </a>
+                                                    {emsCan("delete") ? (
                                                     <button type="button" className="btn btn-sm btn-light-danger" onClick={() => deleteRecord(row.id)}>
                                                         {dir === "rtl" ? "حذف" : "Delete"}
                                                     </button>
+                                                    ) : null}
                                                 </td>
                                             </tr>
                                         ))}
@@ -1375,9 +1380,11 @@ const MenuQR = ({ translations, dir }) => {
                                 <button type="button" className="btn btn-light" onClick={() => setShowScheduleModal(false)}>
                                     {dir === "rtl" ? "إلغاء" : "Cancel"}
                                 </button>
+                                {emsCan("update") ? (
                                 <button type="button" className="btn btn-primary" onClick={saveSchedule} disabled={scheduleSaving || scheduleLoading}>
                                     {scheduleSaving ? (dir === "rtl" ? "جاري الحفظ..." : "Saving...") : (dir === "rtl" ? "حفظ" : "Save")}
                                 </button>
+                                ) : null}
                             </div>
                         </div>
                     </div>

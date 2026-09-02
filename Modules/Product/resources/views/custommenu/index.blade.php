@@ -10,6 +10,7 @@
 	  application-type-url = "{{json_encode(route('application-type-values'))}}"
     mode-url = "{{json_encode(route('mode-values'))}}"
     station-url ="{{json_encode(route('stationList'))}}"
+    ems-can="{{ \Modules\Product\Support\ProductAccess::uiJson('customMenu') }}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"></div>
 
 @endsection

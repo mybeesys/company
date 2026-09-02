@@ -45,7 +45,9 @@ class FranchiseServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Franchise\Console\SyncFranchisePermissionsCommand::class,
+        ]);
     }
 
     /**

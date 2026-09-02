@@ -22,8 +22,10 @@
         <div class="separator d-flex flex-center m-5">
             <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
         </div>
+        @dashboardcan(\Modules\General\Support\SettingPermissions::for('modules', 'update'))
         <button type="submit" style="border-radius: 6px;" class="btn btn-primary w-200px">
             @lang('messages.save')
         </button>
+        @enddashboardcan
     </form>
 </div>

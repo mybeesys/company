@@ -28,9 +28,19 @@ use Modules\Product\Models\RecipeModifier;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\UnitTransferConvertor;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
+use Modules\Product\Support\ProductPermissions;
 
-class ProductController extends Controller
+class ProductController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'product';
+    }
     protected $requetsValidator = [
         'name_ar' => 'required|string|max:255',
         'name_en' => 'required|string',
@@ -272,6 +282,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'product');
         error_log(json_encode($request->all()));
 
         $validated = $request->validate($this->requetsValidator);
@@ -1268,6 +1279,7 @@ class ProductController extends Controller
 
     public function productFastSave(Request $request)
     {
+        ProductAccess::authorize(ProductPermissions::PRODUCT_CREATE);
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string|max:255',

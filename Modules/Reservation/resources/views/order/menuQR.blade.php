@@ -32,7 +32,8 @@
     @viteReactRefresh
     @vite('resources/components/App.jsx')
    						
-      <div id="root" type="menuQR" 
+      <div id="root" type="menuQR"
+      ems-can="{{ \Modules\General\Support\SettingAccess::uiJson('menu_qr') }}"
       list-url="{{json_encode(route('order.products'))}}"
       custom-menus-url="{{ json_encode(route('reservation.menuQr.customMenus')) }}"
       custom-menu-schedule-url-template="{{ json_encode(url('/menu-qr/custom-menus/__ID__/schedule')) }}"

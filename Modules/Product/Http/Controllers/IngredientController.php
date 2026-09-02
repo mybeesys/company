@@ -14,9 +14,18 @@ use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class IngredientController extends Controller
+class IngredientController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'ingredient';
+    }
     private const PRODUCT_TYPE = 'ingredint';
 
     public function getIngredientsTree()
@@ -97,6 +106,7 @@ class IngredientController extends Controller
 
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'ingredient');
         $validated = $request->all();
         if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $validateUsing = $this->validateInUse($validated['id']);

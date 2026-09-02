@@ -75,7 +75,7 @@ class Setting extends Model
         }
 
         $user = $user ?? auth()->user();
-        if ($user && method_exists($user, 'can') && $user->can(self::PERMISSION_ALLOW_SALE_WITHOUT_STOCK)) {
+        if ($user && \Modules\Sales\Support\SalesAccess::allowsSaleWithoutStock($user)) {
             return false;
         }
 

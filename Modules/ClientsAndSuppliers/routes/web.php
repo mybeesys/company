@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientController;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientsAndSuppliersController;
 use Modules\ClientsAndSuppliers\Http\Controllers\ClientSupplierSettingController;
+use Modules\Purchases\Support\PurchasesPermissions;
+use Modules\Sales\Support\SalesPermissions;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -27,10 +29,18 @@ Route::middleware([
 
     // Route::middleware(AuthenticateJWT::class)->group(function () {
     Route::middleware(['auth'])->group(function () {
-        Route::get('clients', [ClientController::class, 'index'])->name('clients');
-        Route::get('suppliers', [ClientController::class, 'index'])->name('suppliers');
-        Route::get('client-create', [ClientController::class, 'create'])->name('client-create');
-        Route::get('supplier-create', [ClientController::class, 'create'])->name('supplier-create');
+        Route::get('clients', [ClientController::class, 'index'])
+            ->middleware('dashboard.perm:'.SalesPermissions::CUSTOMERS_SHOW)
+            ->name('clients');
+        Route::get('suppliers', [ClientController::class, 'index'])
+            ->middleware('dashboard.perm:'.PurchasesPermissions::SUPPLIERS_SHOW)
+            ->name('suppliers');
+        Route::get('client-create', [ClientController::class, 'create'])
+            ->middleware('dashboard.perm:'.SalesPermissions::CUSTOMERS_CREATE)
+            ->name('client-create');
+        Route::get('supplier-create', [ClientController::class, 'create'])
+            ->middleware('dashboard.perm:'.PurchasesPermissions::SUPPLIERS_CREATE)
+            ->name('supplier-create');
         Route::post('client-save', [ClientController::class, 'store'])->name('client-save');
         Route::get('client-show/{id}', [ClientController::class, 'show'])->name('client-show');
         Route::get('client-edit/{id}', [ClientController::class, 'edit'])->name('client-edit');

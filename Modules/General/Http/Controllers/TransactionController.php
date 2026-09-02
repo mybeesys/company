@@ -10,6 +10,8 @@ use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Support\UnifiedInvoicePrintPresenter;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Sales\Support\SalesAccess;
 use Modules\Zatca\Models\ZatcaInvoiceSync;
 use Mpdf\Mpdf;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -38,6 +40,7 @@ class TransactionController extends Controller
             $transaction->tax_amount
         );
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -75,6 +78,9 @@ class TransactionController extends Controller
             return redirect()->back();
         }
 
+        SalesAccess::authorizeTransaction($transaction, 'show');
+        PurchasesAccess::authorizeTransaction($transaction, 'show');
+
         // SVG avoids Imagick (PNG backend); safe for HTML and mPDF via print/export views
         $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
@@ -94,6 +100,9 @@ class TransactionController extends Controller
         if (! $transaction) {
             return redirect()->back();
         }
+
+        SalesAccess::authorizeReceipt($transaction, 'show');
+        PurchasesAccess::authorizeReceipt($transaction, 'show');
         $transactionUtil = new TransactionUtils;
         $txDate = $transaction->paid_on ?? now();
         $amount = (float) ($transaction->amount ?? 0);
@@ -125,6 +134,9 @@ class TransactionController extends Controller
         if (! $transaction) {
             return redirect()->back();
         }
+
+        SalesAccess::authorizeReceipt($transaction, 'print');
+        PurchasesAccess::authorizeReceipt($transaction, 'print');
 
         $transactionUtil = new TransactionUtils;
         $txDate = $transaction->paid_on ?? now();
@@ -166,6 +178,8 @@ class TransactionController extends Controller
     {
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transaction = Transaction::query()->findOrFail($id);
+        SalesAccess::authorizeTransaction($transaction, 'print');
+        PurchasesAccess::authorizeTransaction($transaction, 'print');
         $qrCode = QrCode::format('svg')->size(150)->margin(1)->generate(
             $this->resolveInvoiceQrPayload($transaction, $company)
         );
@@ -186,6 +200,8 @@ class TransactionController extends Controller
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
+        SalesAccess::authorizeTransaction($transaction, 'print');
+        PurchasesAccess::authorizeTransaction($transaction, 'print');
         $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         return view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'));
@@ -195,6 +211,8 @@ class TransactionController extends Controller
     {
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transaction = Transaction::query()->findOrFail($id);
+        SalesAccess::authorizeTransaction($transaction, 'print');
+        PurchasesAccess::authorizeTransaction($transaction, 'print');
         $qrCode = QrCode::format('svg')->size(150)->margin(1)->generate(
             $this->resolveInvoiceQrPayload($transaction, $company)
         );
@@ -255,6 +273,8 @@ class TransactionController extends Controller
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
         $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
+        SalesAccess::authorizeTransaction($transaction, 'print');
+        PurchasesAccess::authorizeTransaction($transaction, 'print');
         $qrCode = QrCode::format('svg')->size(150)->generate($this->resolveInvoiceQrPayload($transaction, $company));
 
         $html = view('general::transactions.print-payments', compact('transaction', 'qrCode', 'company'))->render();
@@ -278,6 +298,8 @@ class TransactionController extends Controller
 
         $transactionUtil = new TransactionUtils;
         $transaction = Transaction::with(['payment.account', 'payment.paymentMethod'])->find($id);
+        SalesAccess::authorizeShowPayments($transaction);
+        PurchasesAccess::authorizeShowPayments($transaction);
         $accounts = AccountingAccount::forDropdown();
         $paid_amount = $transactionUtil->getTotalPaid($id);
         $amount = $transaction->final_total - $paid_amount;
@@ -300,6 +322,8 @@ class TransactionController extends Controller
         $transactionUtil = new TransactionUtils;
 
         $transaction = Transaction::find($request->id);
+        SalesAccess::authorizeAddPayment($transaction);
+        PurchasesAccess::authorizeAddPayment($transaction);
         if ($request->paid_amount) {
             $transactionUtil->addPaymentLines_journalEntry($transaction, $request);
         }

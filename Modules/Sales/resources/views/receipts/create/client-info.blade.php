@@ -26,9 +26,19 @@
                     </option>
                 @endforeach
             </select>
+            @if ($supplier)
+            @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::SUPPLIERS_CREATE)
             <a class="link flex-shrink-0" id="addNewAccountBtn" href="#" role="button">
                 <i class="ki-outline ki-plus-square toggle-off fs-1 me-0 mx-2"></i>
             </a>
+            @enddashboardcan
+            @else
+            @dashboardcan(\Modules\Sales\Support\SalesPermissions::CUSTOMERS_CREATE)
+            <a class="link flex-shrink-0" id="addNewAccountBtn" href="#" role="button">
+                <i class="ki-outline ki-plus-square toggle-off fs-1 me-0 mx-2"></i>
+            </a>
+            @enddashboardcan
+            @endif
         </div>
 
         <div class="d-flex align-items-center mb-5">

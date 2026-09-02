@@ -3,24 +3,21 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Employee\Support\EmployeeAccess;
+use Modules\Employee\Support\EmployeePermissions;
 
 class TimeSheetRulePolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(): bool
+    public function viewAny(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.time_sheet_rules.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::TIME_SHEET_RULES_SHOW);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(): bool
+    public function update(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.time_sheet_rules.update');
+        return EmployeeAccess::allows($user, EmployeePermissions::TIME_SHEET_RULES_UPDATE);
     }
 }

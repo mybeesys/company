@@ -44,7 +44,7 @@
                 :fields="$sms_fields" :sms_notification_setting="$general_sms_notification_setting" :notification_name="$notification_name" :receiver_hint="$sms_receiver_hint" />
         @endif
 
-        <x-form.form-buttons cancelUrl="{{ url('/employee') }}" id="{{ $notification_name }}_notifications_settings" />
+        <x-form.form-buttons cancelUrl="{{ url('/employee') }}" id="{{ $notification_name }}_notifications_settings" :showSubmit="\Modules\General\Support\SettingAccess::canTab('notifications', 'update')" />
     </form>
 </div>
 <script>

@@ -44,7 +44,9 @@ class AccountingServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Accounting\Console\SyncAccountingPermissionsCommand::class,
+        ]);
     }
 
     /**

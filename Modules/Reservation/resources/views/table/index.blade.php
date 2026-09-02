@@ -6,6 +6,7 @@
 
      <div id="root"
      type="table"
+     ems-can="{{ \Modules\General\Support\SettingAccess::uiJson('tables') }}"
 
      establishment-url="{{ json_encode(route('table.store')) }}"
      table-url="{{ json_encode(route('table.store')) }}"

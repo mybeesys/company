@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Modules\Screen\Models\Device;
 use Modules\Screen\Services\ScreenEstablishmentService;
+use Modules\Screen\Support\ScreenAccess;
+use Modules\Screen\Support\ScreenPermissions;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -32,16 +34,20 @@ class DeviceController extends Controller
                         $actions = '<div class="justify-content-center d-flex">';
                         $establishmentId = (int) ($row->establishment_id ?? 0);
                         $hasPin = ! empty($row->pin_hash);
-                        $actions .= '
+                        if (ScreenAccess::can(ScreenPermissions::for('devices', 'update'))) {
+                            $actions .= '
                             <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-primary w-35px h-35px device-edit-btn me-1" data-id="'.$row->id.'" data-code="'.e($row->code).'" data-establishment-id="'.$establishmentId.'" data-has-pin="'.($hasPin ? '1' : '0').'"
                                 title="'.e(__('screen::general.edit')).'" aria-label="'.e(__('screen::general.edit')).'">
                                 <i class="fas fa-pen fs-6 text-gray-600"></i>
                             </a>';
-                        $actions .= '
+                        }
+                        if (ScreenAccess::can(ScreenPermissions::for('devices', 'delete'))) {
+                            $actions .= '
                             <a class="btn btn-icon btn-sm btn-light border border-gray-300 btn-active-light-danger w-35px h-35px device-delete-btn me-1" data-id="'.$row->id.'"
                                 title="'.e(__('screen::general.delete')).'" aria-label="'.e(__('screen::general.delete')).'">
                                 <i class="fas fa-trash-alt fs-6 text-gray-600"></i>
                             </a>';
+                        }
 
                         $actions .= '</div>';
 

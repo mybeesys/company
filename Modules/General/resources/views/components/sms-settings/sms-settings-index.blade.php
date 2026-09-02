@@ -1,5 +1,6 @@
 @props(['notifications_settings_parameters'])
-<div class="tab-pane fade" id="sms_settings_tab" role="tabpanel">
+@php $firstH = \Modules\General\Support\SettingAccess::firstHorizontal(); @endphp
+<div class="tab-pane fade {{ $firstH === 'sms' ? 'show active' : '' }}" id="sms_settings_tab" role="tabpanel">
     {{-- <x-cards.card class="shadow-sm pb-5 px-5">
         <form class="d-flex flex-column gap-5 w-100 mt-10" action="#" id="sms_settings_form">
             @csrf

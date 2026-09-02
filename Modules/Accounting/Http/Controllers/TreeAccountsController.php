@@ -832,6 +832,8 @@ class TreeAccountsController extends Controller
             return redirect()->back()->with('error', __('accounting::lang.account_not_found'));
         }
 
+        \Modules\Accounting\Support\AccountingAccess::authorizeAccountToggle($account);
+
         $account->status = $account->status === 'active' ? 'inactive' : 'active';
         $account->save();
 

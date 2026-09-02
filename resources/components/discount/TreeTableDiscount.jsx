@@ -5,6 +5,7 @@ import DeleteModal from '../product/DeleteModal';
 import axios from 'axios';
 import SweetAlert2 from 'react-sweetalert2';
 import { defaultMenuTime } from '../comp/DefaultTimesSlots';
+import { emsCan, emsCanEditOrSave } from '../emsCan';
 
 
 const defaultValue = {function_id: 0, discount_type: 0, auto_apply: 0, item_level: 0, qualification: 0, dates: defaultMenuTime[0]}
@@ -191,7 +192,7 @@ const TreeTableDiscount = ({ urlList, rootElement, translations, discountTypes, 
     const renderTextCell = (node, key, autoFocus) => {
         const indent = (node.key).toString().split('-').length;
         if (key == 'name_en' && !!node.data.empty) {
-            return <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a>
+            return emsCan('create') ? <a href='#' onClick={e => addInline(node.key, node.data.type, node.data.parentKey)}>{`${translations.Add} ${translations[node.data.type]}`}</a> : null
         }
         else {
             return (
@@ -296,7 +297,8 @@ const TreeTableDiscount = ({ urlList, rootElement, translations, discountTypes, 
             (!!!node.data.empty && node.data.empty != 'Y') ?
                 <div className="flex flex-wrap gap-2">
 
-                    {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) ?
+                    {((currentKey == '-1') || (currentKey != '-1' && node.key == currentKey)) &&
+                    emsCanEditOrSave(currentKey != '-1' && node.key == currentKey) ?
                         <a href="#" onClick={() => {
                             if (currentKey == '-1')
                                 editRow(data, node.key)
@@ -311,9 +313,11 @@ const TreeTableDiscount = ({ urlList, rootElement, translations, discountTypes, 
                         {currentKey != '-1' ? <a href="#" onClick={(e) => cancelEdit(currentKey)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-cross fs-2"></i>
                             </a> : null}
+                    {emsCan('delete') ? (
                     <a href="#" onClick={() => openDeleteModel(data)} class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i class="ki-outline ki-trash fs-2"></i>
                     </a>
+                    ) : null}
                     <button id="btnSubmit" type="submit" style={{display:"none"}}></button>
                 </div> : <></>
         );
@@ -329,8 +333,10 @@ const TreeTableDiscount = ({ urlList, rootElement, translations, discountTypes, 
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                    {emsCan('create') ? (
                     <a href="#" class="btn btn-primary" 
                                   onClick={() => openAddServiceFee()}>{translations.Add}</a>
+                    ) : null}
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}

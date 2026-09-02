@@ -1,5 +1,11 @@
 @extends('layouts.app')
 
+@php
+    $h = \Modules\General\Support\SettingAccess::horizontalFlags();
+    $firstH = \Modules\General\Support\SettingAccess::firstHorizontal();
+    $v = \Modules\General\Support\SettingAccess::verticalFlags();
+@endphp
+
 @section('title', __('menuItemLang.general_setting'))
 @section('css')
     <style>
@@ -154,37 +160,51 @@
     </div> --}}
     <div class="d-flex flex-column flex-row-fluid gap-5">
         <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-4 border-0 fw-bold">
+            @if ($h['general'])
             <li class="nav-item nav-link-taxes">
-                <a class="nav-link justify-content-center text-active-gray-800 active" data-bs-toggle="tab"
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'general' ? 'active' : '' }}" data-bs-toggle="tab"
                     href="#general_setting_tab">@lang('menuItemLang.general_setting')</a>
             </li>
+            @endif
 
+            @if ($h['notifications'])
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'notifications' ? 'active' : '' }}" data-bs-toggle="tab"
                     href="#notifications_tab">@lang('general::general.notifications_templates')</a>
             </li>
+            @endif
+            @if ($h['mail'])
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'mail' ? 'active' : '' }}" data-bs-toggle="tab"
                     href="#mail_settings_tab">@lang('general::general.mail_settings')</a>
             </li>
+            @endif
+            @if ($h['sms'])
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'sms' ? 'active' : '' }}" data-bs-toggle="tab"
                     href="#sms_settings_tab">@lang('general::general.sms_settings')</a>
             </li>
+            @endif
+            @if ($h['prefix'])
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'prefix' ? 'active' : '' }}" data-bs-toggle="tab"
                     href="#prefix_settings_tab">@lang('general::general.Prefix Settings')</a>
             </li>
+            @endif
 
+            @if ($h['invoice'])
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'invoice' ? 'active' : '' }}" data-bs-toggle="tab"
                     href="#invoice_settings_tab">@lang('general::general.invoice_settings')</a>
             </li>
+            @endif
 
+            @if ($h['costing'])
             <li class="nav-item">
-                <a class="nav-link justify-content-center text-active-gray-800" data-bs-toggle="tab"
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'costing' ? 'active' : '' }}" data-bs-toggle="tab"
                     href="#inventory_costing_tab">@lang('general::general.inventory_costing')</a>
             </li>
+            @endif
 
 
 
@@ -199,17 +219,30 @@
         </ul>
         <div class="tab-content" id="myTabContent">
 
+            @if ($h['notifications'])
             <x-general::notifications.notification-settings-index :employees="$employees" :notifications_settings="$notifications_settings" />
+            @endif
 
+            @if ($h['mail'])
             <x-general::mail-settings.mail-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
+            @endif
 
+            @if ($h['sms'])
             <x-general::sms-settings.sms-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
+            @endif
 
+            @if ($h['prefix'])
             @include('general::prefix-settings.prefix-settings')
+            @endif
+            @if ($h['general'])
             @include('general::general-setting.invoice-tab')
-            {{-- @include('general::establishments.establishments-tab') --}}
+            @endif
+            @if ($h['costing'])
             @include('general::inventory_costing.inventory_costing')
+            @endif
+            @if ($h['invoice'])
             @include('general::invoice-setting.general-invoice-setting.invoice-tab')
+            @endif
 
         </div>
 
@@ -248,6 +281,7 @@
             $('#currency').select2();
 
 
+            @if (!empty($h['notifications']))
             @php
                 $notification_names = ['new_sell', 'created_emp', 'payment_received', 'payments', 'new_booking', 'new_quotation', 'new_order', 'payment_paid', 'items_received', 'items_pending', 'purchase_order', 'low_stock_alert_notification'];
             @endphp
@@ -258,7 +292,12 @@
                 handleNotificationsSettingsForm_{{ $notification_name }}();
                 initElements_{{ $notification_name }}();
             @endforeach
-            mailSettingsForm();
+            @endif
+            @if (!empty($h['mail']))
+            if (typeof mailSettingsForm === 'function') {
+                mailSettingsForm();
+            }
+            @endif
             if (methodTable.length) {
                 initMethodDatatable();
                 exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_payment_methods_table', "{{ session('locale') }}", [], [],
@@ -272,6 +311,7 @@
                 });
             }
 
+            if (taxesTable.length) {
             initTaxesDatatable();
             exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_tax_table', "{{ session('locale') }}", [], [], 'A4',
                 taxesTable, taxesDataTable);
@@ -284,6 +324,7 @@
                 event.preventDefault();
                 $('#kt_modal_create_add_tax').modal('show');
             });
+            }
 
 
               $(document).on('click', '.edit-payment-method', function() {

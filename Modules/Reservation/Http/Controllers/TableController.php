@@ -4,6 +4,7 @@ namespace Modules\Reservation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\General\Support\SettingAccess;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Reservation\Models\Table;
 
@@ -41,6 +42,8 @@ class TableController extends Controller
      */
     public function store(Request $request)
     {
+        SettingAccess::authorizeTableMutation($request);
+
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'code' => 'required|string',

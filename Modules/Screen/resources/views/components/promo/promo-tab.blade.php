@@ -1,12 +1,15 @@
-<div class="tab-pane fade show active screen-tab-pane" id="promos_tab" role="tabpanel">
+@props(['active' => false])
+<div class="tab-pane fade {{ $active ? 'show active' : '' }} screen-tab-pane" id="promos_tab" role="tabpanel">
     <div class="screen-tab-header">
         <div>
             <h2>@lang('screen::general.tab_materials_title')</h2>
             <p class="screen-tab-desc">@lang('screen::general.tab_materials_desc')</p>
         </div>
-        <a href="#" id="add_promo_button" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>@lang('screen::general.add_promo')
-        </a>
+        @dashboardcan(\Modules\Screen\Support\ScreenPermissions::for('promos', 'create'))
+            <a href="#" id="add_promo_button" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>@lang('screen::general.add_promo')
+            </a>
+        @enddashboardcan
     </div>
     <div class="screen-table-card">
         <div class="table-responsive rounded-3 bg-white">

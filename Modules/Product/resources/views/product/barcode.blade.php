@@ -22,6 +22,6 @@
 @section('content')
 
    						
-      <div id="root" type="productBarcode"></div>
+      <div id="root" type="productBarcode" ems-can="{{ json_encode(['print' => \Modules\Product\Support\ProductAccess::can(\Modules\Product\Support\ProductPermissions::BARCODE_PRINT)]) }}"></div>
 
 @endsection

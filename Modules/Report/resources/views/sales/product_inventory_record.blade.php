@@ -125,9 +125,15 @@
 
                 <div class="card-toolbar flex-row-fluid justify-content-end gap-5">
                     <x-tables.table-header model="ProductSales" url="create-purchases-invoice" :addButton="false" module="report">
+                        @if (dashboard_can([
+                            \Modules\Report\Support\ReportPermissions::PRODUCT_INVENTORY_PRINT,
+                            \Modules\Report\Support\ReportPermissions::PRODUCT_INVENTORY_SUMMARY_PRINT,
+                            \Modules\Report\Support\ReportPermissions::PRODUCT_STOCK_PRINT,
+                        ]))
                         <x-slot:export>
                             <x-tables.export-menu id="purchases" />
                         </x-slot:export>
+                        @endif
                     </x-tables.table-header>
                 </div>
             </x-cards.card-header>

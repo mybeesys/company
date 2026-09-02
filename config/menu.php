@@ -6,7 +6,7 @@ return [
         'name' => 'dashboard',
         'url' => '/dashboard',
         'icon' => 'fas fa-home',
-        'permission' => '',
+        'permission' => \Modules\Employee\Support\DashboardHubPermissions::menuShowAny(),
         'subMenu' => [],
     ],
 
@@ -14,7 +14,7 @@ return [
         'name' => 'my_companies',
         'url' => '/my-companies',
         'icon' => 'fas fa-building',
-        'permission' => '',
+        'permission' => \Modules\Employee\Support\MyCompaniesPermissions::SHOW,
         'subMenu' => [],
     ],
 
@@ -22,7 +22,7 @@ return [
         'name' => 'referrals',
         'url' => '/referrals',
         'icon' => 'fas fa-gift',
-        'permission' => '',
+        'permission' => \Modules\Employee\Support\ReferralsPermissions::SHOW,
         'subMenu' => [],
     ],
 
@@ -30,7 +30,7 @@ return [
         'name' => 'franchise',
         'url' => '/franchise/companies',
         'icon' => 'fas fa-certificate',
-        'permission' => 'Franchise Companies.all.show',
+        'permission' => \Modules\Franchise\Support\FranchisePermissions::menuShowAny(),
         'subMenu' => [
             // Temporarily hidden — unified hub at franchise/companies with horizontal tabs
             // [
@@ -150,7 +150,7 @@ return [
     [
         'name' => 'inventory_module',
         'url' => '#',
-        'permission' => '',
+        'permission' => 'inventory.all.show',
         'icon' => 'fas fa-warehouse',
         'subMenu' => [
             [
@@ -292,7 +292,7 @@ return [
             [
                 'name' => 'expenses_manage',
                 'url' => 'expenses/manage',
-                'permission' => ['accounting.all.show', 'accounting.Payment vouchers.show'],
+                'permission' => 'accounting.Expenses.show',
             ],
             [
                 'name' => 'costCenter',
@@ -302,17 +302,17 @@ return [
             [
                 'name' => 'periodic',
                 'url' => 'inventory/periodic-inventory',
-                'permission' => 'accounting.Payment vouchers.show',
+                'permission' => 'accounting.Periodic inventory.show',
             ],
             [
                 'name' => 'accounting_settings',
                 'url' => 'accounting-settings',
-                'permission' => 'accounting.all.show',
+                'permission' => ['accounting.Settings.show', 'accounting.Accounts routing.show'],
             ],
             [
                 'name' => 'accounting_reports',
                 'url' => 'accounting-reports',
-                'permission' => 'accountingReports.all.show',
+                'permission' => \Modules\Accounting\Support\AccountingPermissions::reportShowAny(),
             ],
         ],
     ],
@@ -369,7 +369,7 @@ return [
         'name' => 'employees_management_module',
         'url' => '',
         'icon' => 'fas fa-id-card',
-        'permission' => '',
+        'permission' => \Modules\Employee\Support\EmployeePermissions::menuShowAny(),
         'subMenu' => [
             [
                 'name' => 'employees',
@@ -424,26 +424,26 @@ return [
         'name' => 'screen_module',
         'url' => 'main',
         'icon' => 'fas fa-desktop',
-        'permission' => 'screen_module.all.show',
+        'permission' => \Modules\Screen\Support\ScreenPermissions::menuShowAny(),
         'subMenu' => [],
     ],
     [
         'name' => 'reports_module',
         'url' => 'payment-reports',
         'icon' => 'fas fa-bar-chart',
-        'permission' => 'reports_module.all.show',
+        'permission' => \Modules\Report\Support\ReportPermissions::menuShowAny(),
         'subMenu' => [],
     ],
     [
         'name' => 'setting',
         'url' => '',
         'icon' => 'fas fa-cog',
-        'permission' => 'setting.all.show',
+        'permission' => \Modules\General\Support\SettingPermissions::menuShowAny(),
         'subMenu' => [
             [
                 'name' => 'general_setting',
                 'url' => 'general-setting',
-                'permission' => 'setting.General setting.show',
+                'permission' => \Modules\General\Support\SettingPermissions::pageShowAny(),
 
             ],
             ...(config('zatca.show_in_menu', true) ? [[
@@ -454,7 +454,7 @@ return [
             [
                 'name' => 'establishments',
                 'url' => 'establishment',
-                'permission' => 'establishments.establishments.show',
+                'permission' => ['establishments.establishments.show', 'establishments.establishment.show'],
             ],
             [
                 'name' => 'cashier_payment_methods',
@@ -479,7 +479,13 @@ return [
             [
                 'name' => 'tables',
                 'url' => 'table',
-                'permission' => '',
+                'permission' => [
+                    'setting.tables.show',
+                    'setting.tables_qr.show',
+                    'setting.menu_qr.show',
+                    'setting.menu_feedback.show',
+                    'establishments.establishments.show',
+                ],
                 'subMenu' => [
                     [
                         'name' => 'tables',
@@ -489,7 +495,7 @@ return [
                     [
                         'name' => 'areas',
                         'url' => 'area',
-                        'permission' => 'establishments.establishments.show',
+                        'permission' => ['establishments.establishments.show', 'setting.tables.show'],
                     ],
                     [
                         'name' => 'tables_qr',
@@ -504,7 +510,7 @@ return [
                     [
                         'name' => 'menu_feedback',
                         'url' => 'menu-feedback',
-                        'permission' => 'setting.menu_qr.show',
+                        'permission' => \Modules\General\Support\SettingPermissions::for('menu_feedback', 'show'),
                     ],
                 ],
 

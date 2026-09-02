@@ -179,7 +179,7 @@
 
     </form>
 
-    @include('sales::sell.create.add-client')
+    @include('purchases::purchases.create.add-client')
 
 
 

@@ -11,9 +11,18 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\TreeData;
 use Modules\Product\Models\TreeObject;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class ModifierClassController extends Controller
+class ModifierClassController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'modifierClass';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -83,6 +92,7 @@ class ModifierClassController extends Controller
      */
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'modifierClass');
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',

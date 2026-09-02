@@ -53,7 +53,7 @@
         let filterFormat;
         let copyShiftFlatpickrInstance;
         let tableType;
-        let hasPermissionToUpdate = "{{ auth()->user()->hasDashboardPermission('employees.shifts.update') }}";
+        let hasPermissionToUpdate = "{{ dashboard_can(\Modules\Employee\Support\EmployeePermissions::SHIFTS_UPDATE) ? '1' : '' }}";
         const tableUrl = '{{ route('schedules.shifts.index') }}'
         const table = $('#kt_shift_table');
 

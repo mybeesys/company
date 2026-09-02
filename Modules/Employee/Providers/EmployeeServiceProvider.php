@@ -3,7 +3,26 @@
 namespace Modules\Employee\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\Employee\Models\DashboardRole;
+use Modules\Employee\Models\Employee;
+use Modules\Employee\Models\Payroll;
+use Modules\Employee\Models\PayrollAdjustment;
+use Modules\Employee\Models\PayrollGroup;
+use Modules\Employee\Models\PosRole;
+use Modules\Employee\Models\Shift;
+use Modules\Employee\Models\TimeCard;
+use Modules\Employee\Models\TimeSheetRule;
+use Modules\Employee\Policies\DashboardRolePolicy;
+use Modules\Employee\Policies\EmployeePolicy;
+use Modules\Employee\Policies\PayrollAdjustmentPolicy;
+use Modules\Employee\Policies\PayrollGroupPolicy;
+use Modules\Employee\Policies\PayrollPolicy;
+use Modules\Employee\Policies\PosRolePolicy;
+use Modules\Employee\Policies\ShiftPolicy;
+use Modules\Employee\Policies\TimeCardPolicy;
+use Modules\Employee\Policies\TimeSheetRulePolicy;
 use Nwidart\Modules\Traits\PathNamespace;
 
 class EmployeeServiceProvider extends ServiceProvider
@@ -25,6 +44,17 @@ class EmployeeServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+
+        $this->app['router']->aliasMiddleware(
+            'dashboard.perm',
+            \Modules\Employee\Http\Middleware\EnsureDashboardPermission::class
+        );
+
+        Blade::if('dashboardcan', function (string|array $permissions) {
+            return \Modules\Employee\Support\DashboardAccess::allows(auth()->user(), $permissions);
+        });
+
+        $this->registerPolicies();
     }
 
     /**
@@ -41,7 +71,22 @@ class EmployeeServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Employee\Console\SyncEmployeePermissionsCommand::class,
+        ]);
+    }
+
+    protected function registerPolicies(): void
+    {
+        Gate::policy(Employee::class, EmployeePolicy::class);
+        Gate::policy(PosRole::class, PosRolePolicy::class);
+        Gate::policy(DashboardRole::class, DashboardRolePolicy::class);
+        Gate::policy(PayrollAdjustment::class, PayrollAdjustmentPolicy::class);
+        Gate::policy(TimeSheetRule::class, TimeSheetRulePolicy::class);
+        Gate::policy(TimeCard::class, TimeCardPolicy::class);
+        Gate::policy(Shift::class, ShiftPolicy::class);
+        Gate::policy(Payroll::class, PayrollPolicy::class);
+        Gate::policy(PayrollGroup::class, PayrollGroupPolicy::class);
     }
 
     /**

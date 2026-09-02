@@ -49,7 +49,9 @@
         </div>
     </div>
 
+    @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::ROUTING_UPDATE)
     <button type="submit" style="border-radius: 6px;" class="btn btn-primary w-200px mt-5">
         @lang('messages.save')
     </button>
+    @enddashboardcan
 </form>

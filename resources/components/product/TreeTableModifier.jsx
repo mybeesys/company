@@ -6,6 +6,7 @@ import axios from "axios";
 import SweetAlert2 from "react-sweetalert2";
 import { getRowName } from "../lang/Utils";
 import Swal from "sweetalert2";
+import { emsCan, emsCanEditOrSave } from "../emsCan";
 
 const defaultObjectValue = { active: 1, for_sell: 1 };
 
@@ -28,8 +29,13 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
     const [expandedKeys, setExpandedKeys] = useState({});
     const [globalFilter, setGlobalFilter] = useState(null);
 
-    const canAdd =
+    const franchiseCanAdd =
         productPermission === "absolute" || productPermission === "request";
+
+    const entityOf = (type) => (type === "variable" ? "product" : type);
+
+    const canAddType = (type) =>
+        franchiseCanAdd && emsCan("create", entityOf(type));
 
     const isEditingNode = (nodeKey) =>
         normalizeKey(nodeKey) === normalizeKey(currentKey);
@@ -282,6 +288,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         : parentNode.data.name_en;
                 addText = `${translations.Add} ${translations.product} ${translations.under} ${parentName}`;
                 return (
+                    canAddType("product") && (
                     <a
                         href="javascript:void(0);"
                         onClick={(e) => {
@@ -302,13 +309,14 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     >
                         {addText}
                     </a>
+                    )
                 );
             }
 
             if (parentNode && parentNode.data.type === "subcategory") {
                 addText = `${translations.Add} ${translations.product}`;
                 return (
-                    canAdd && (
+                    canAddType("product") && (
                         <a
                             href="javascript:void(0);"
                             onClick={(e) => {
@@ -335,7 +343,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
 
             addText = `${translations.Add} ${translations[node.data.type]}`;
             return (
-                canAdd && (
+                canAddType(newType) && (
                     <a
                         href="javascript:void(0);"
                         onClick={(e) => {
@@ -485,11 +493,15 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         const data = node.data;
         if (!!data.empty) return <></>;
 
+        const entity = entityOf(data.type);
+        const isEditing = isEditingNode(node.key);
+
         return (
             <div className="flex flex-wrap gap-2">
                 {(currentKey === "-1" ||
-                    (currentKey !== "-1" && isEditingNode(node.key))) &&
-                    data.type !== "variable" && (
+                    (currentKey !== "-1" && isEditing)) &&
+                    data.type !== "variable" &&
+                    emsCanEditOrSave(isEditing, entity) && (
                     <a
                         href="javascript:void(0);"
                         onClick={() =>
@@ -501,7 +513,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     >
                         <i
                             className={
-                                currentKey !== "-1" && isEditingNode(node.key)
+                                currentKey !== "-1" && isEditing
                                     ? "ki-outline ki-check fs-2"
                                     : "ki-outline ki-pencil fs-2"
                             }
@@ -509,7 +521,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                     </a>
                 )}
                 {currentKey !== "-1" &&
-                    isEditingNode(node.key) &&
+                    isEditing &&
                     data.type !== "variable" && (
                     <a
                         href="javascript:void(0);"
@@ -519,7 +531,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                         <i className="ki-outline ki-cross fs-2"></i>
                     </a>
                 )}
-                {!data.isNew && data.id && (
+                {!data.isNew && data.id && emsCan("delete", entity) && (
                     <a href="javascript:void(0);" onClick={() => openDeleteModel({ ...data, type: data.type === "variable" ? "product" : data.type })} className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
                         <i className="ki-outline ki-trash fs-2"></i>
                     </a>
@@ -558,7 +570,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 </h3>
                 <div className="card-toolbar">
                     <div className="d-flex align-items-center gap-2 gap-lg-3">
-                        {canAdd && (
+                        {canAddType("product") && (
                             <a href="javascript:void(0);" className="btn btn-primary" onClick={() => window.location.href = productCrudList + "/create"}>
                                 <i className="ki-outline ki-plus fs-2"></i>
                                 {productPermission === "request" ? translations.RequestAdd : translations.Add}

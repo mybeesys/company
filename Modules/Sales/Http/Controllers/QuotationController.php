@@ -115,7 +115,7 @@ class QuotationController extends Controller
         }])->get();
 
         $sellWithModifiersCombos = WebSellModifiersCombosService::isEnabled();
-        $allowSaleWithoutStock = Auth::user() && Auth::user()->can(\Modules\General\Models\Setting::PERMISSION_ALLOW_SALE_WITHOUT_STOCK);
+        $allowSaleWithoutStock = \Modules\Sales\Support\SalesAccess::allowsSaleWithoutStock();
         $invoicePrecheckConfig = [];
 
         return view('sales::quotation.create', compact('clients', 'transaction', 'quotation', 'isQuotationForm', 'taxes', 'establishments', 'countries', 'payment_terms', 'orderStatuses', 'products', 'paymentMethods', 'accounts', 'cost_centers', 'isDuplicate', 'sellWithModifiersCombos', 'allowSaleWithoutStock', 'invoicePrecheckConfig'));

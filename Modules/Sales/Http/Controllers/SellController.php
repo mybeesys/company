@@ -22,7 +22,6 @@ use Modules\ClientsAndSuppliers\utils\ContactUtils;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
 use Modules\Establishment\Services\EstablishmentServiceFeeResolver;
-use Modules\Sales\Services\InvoiceServiceFeeCalculator;
 use Modules\General\Models\Actions;
 use Modules\General\Models\Country;
 use Modules\General\Models\Setting;
@@ -37,6 +36,7 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Sales\Models\Coupon;
 use Modules\Sales\Services\ApplyCouponService;
+use Modules\Sales\Services\InvoiceServiceFeeCalculator;
 use Modules\Sales\Services\WebSellModifiersCombosService;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
@@ -635,6 +635,10 @@ class SellController extends Controller
         $duplicateFrom = (int) $request->input('duplicate_from', 0);
         $quotationId = (int) $request->input('quotation_id', 0);
 
+        if ($quotationId > 0) {
+            \Modules\Sales\Support\SalesAccess::authorize(\Modules\Sales\Support\SalesPermissions::CONVERT_QUOTATION);
+        }
+
         $sellLineRelations = [
             'sell_lines' => fn ($q) => $q->where('is_show', 1)
                 ->where(function ($query) {
@@ -670,7 +674,7 @@ class SellController extends Controller
         }
 
         $settings = Setting::getNotesAndTermsConditions();
-        $allowSaleWithoutStock = Auth::user() && Auth::user()->can(Setting::PERMISSION_ALLOW_SALE_WITHOUT_STOCK);
+        $allowSaleWithoutStock = \Modules\Sales\Support\SalesAccess::allowsSaleWithoutStock();
         $invoicePrecheckConfig = $this->buildSalesInvoicePrecheckConfig();
 
         $products = Product::with(['unitTransfers' => function ($query) {
@@ -773,7 +777,7 @@ class SellController extends Controller
         $isDuplicate = false;
         $isEditDraft = true;
         $settings = Setting::getNotesAndTermsConditions();
-        $allowSaleWithoutStock = Auth::user() && Auth::user()->can(Setting::PERMISSION_ALLOW_SALE_WITHOUT_STOCK);
+        $allowSaleWithoutStock = \Modules\Sales\Support\SalesAccess::allowsSaleWithoutStock();
         $invoicePrecheckConfig = $this->buildSalesInvoicePrecheckConfig();
         $products = Product::productsForSell();
         $Latest_event = Actions::where('user_id', Auth::user()->id)->where('type', 'save_sell')->first();
@@ -1368,37 +1372,37 @@ class SellController extends Controller
             ]);
             TransactionSellLine::where('transaction_id', $existingTransaction->id)->delete();
         } else {
-        $transaction = Transaction::create([
-            'type' => 'sell',
-            'purpose' => $purpose,
-            'internal_consumption_type_id' => $isInternalConsumption
-                ? (int) $request->internal_consumption_type_id
-                : null,
-            'invoice_type' => $request->invoice_type,
-            'due_date' => $request->due_date,
-            'transaction_date' => $request->transaction_date,
-            'contact_id' => $request->client_id,
-            'cost_center' => $request->cost_center ?? null,
-            'discount_amount' => $request->invoice_discount,
-            'discount_type' => $invoiced_discount_type,
-            'total_before_tax' => $request->totalBeforeVat,
-            'totalAfterDiscount' => $request->totalAfterDiscount,
-            'tax_amount' => $request->totalVat,
-            'service_fee_amount' => $serviceFeeResult['fee_amount'],
-            'service_fee_tax' => $serviceFeeResult['fee_tax'],
-            'service_fees_payload' => $serviceFeeResult['lines'] ?: null,
-            'final_total' => $request->totalAfterVat,
-            'created_by' => Auth::user()->id,
-            'description' => $request->invoice_note,
-            'ref_no' => $ref_no,
-            'status' => $request->status,
-            'notice' => $request->notice,
-            'establishment_id' => $establishment_id,
-            'settings_terms_notes' => $termsNotesData,
+            $transaction = Transaction::create([
+                'type' => 'sell',
+                'purpose' => $purpose,
+                'internal_consumption_type_id' => $isInternalConsumption
+                    ? (int) $request->internal_consumption_type_id
+                    : null,
+                'invoice_type' => $request->invoice_type,
+                'due_date' => $request->due_date,
+                'transaction_date' => $request->transaction_date,
+                'contact_id' => $request->client_id,
+                'cost_center' => $request->cost_center ?? null,
+                'discount_amount' => $request->invoice_discount,
+                'discount_type' => $invoiced_discount_type,
+                'total_before_tax' => $request->totalBeforeVat,
+                'totalAfterDiscount' => $request->totalAfterDiscount,
+                'tax_amount' => $request->totalVat,
+                'service_fee_amount' => $serviceFeeResult['fee_amount'],
+                'service_fee_tax' => $serviceFeeResult['fee_tax'],
+                'service_fees_payload' => $serviceFeeResult['lines'] ?: null,
+                'final_total' => $request->totalAfterVat,
+                'created_by' => Auth::user()->id,
+                'description' => $request->invoice_note,
+                'ref_no' => $ref_no,
+                'status' => $request->status,
+                'notice' => $request->notice,
+                'establishment_id' => $establishment_id,
+                'settings_terms_notes' => $termsNotesData,
 
-            'parent_id' => $quotation_id,
+                'parent_id' => $quotation_id,
 
-        ]);
+            ]);
         }
 
         $isDraft = (string) $transaction->status === 'draft';

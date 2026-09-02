@@ -43,10 +43,12 @@
                 <x-slot:filters>
                 </x-slot:filters>
                 <x-slot:export>
+                    @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::PAYMENT_CREATE)
                     <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-150px payment-voucher-new-btn" data-bs-toggle="modal"
                         data-bs-target="#payment-vouchers-Modal">
                         {{ app()->getLocale() == 'ar' ? 'إضافة سند صرف' : 'Add payment voucher' }}
                     </a>
+                    @enddashboardcan
                     <x-tables.export-menu id="sell" />
 
                 </x-slot:export>

@@ -68,6 +68,7 @@
     <div class="card card-flush">
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
             <x-tables.table-header model="journalEntry" url="journal-entry-create" module="accounting" :addButton="false">
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::JOURNAL_CREATE)
                 <a href="{{ route('journal-entry-import') }}" class="btn btn-light-primary fv-row flex-md-root min-w-150px mw-250px">
                     @lang('accounting::lang.import_journal_entries')
                 </a>
@@ -78,6 +79,7 @@
                     class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
                     @lang('accounting::general.add_journalEntry')
                 </a>
+                @enddashboardcan
             </x-tables.table-header>
         </x-cards.card-header>
 

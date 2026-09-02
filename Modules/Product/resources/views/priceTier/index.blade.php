@@ -8,6 +8,7 @@
 	  list-url="{{json_encode(value: route('priceTierlist'))}}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"
     priceTier-url="{{ json_encode(route('priceTier.store'))}}"
+    ems-can="{{ \Modules\Product\Support\ProductAccess::uiJson('priceTier') }}"
     ></div>
 
 @endsection

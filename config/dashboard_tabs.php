@@ -9,7 +9,7 @@ return [
         'type' => 'inline',
         'label' => 'menuItemLang.dashboard',
         'icon' => 'fas fa-home',
-        'permission' => null,
+        'permission' => \Modules\Employee\Support\DashboardHubPermissions::DASHBOARD_SHOW,
     ],
     [
         'id' => 'sales',
@@ -17,7 +17,7 @@ return [
         'label' => 'menuItemLang.sales-dashbord',
         'icon' => 'fas fa-chart-line',
         'route' => 'sales-dashbord',
-        'permission' => 'sales.all.show',
+        'permission' => 'sales.Dashboard.show',
     ],
     [
         'id' => 'purchases',
@@ -25,7 +25,7 @@ return [
         'label' => 'menuItemLang.purchase-dashbord',
         'icon' => 'fas fa-shopping-cart',
         'route' => 'purchase-dashbord',
-        'permission' => 'purchases.all.show',
+        'permission' => 'purchases.Dashboard.show',
     ],
     [
         'id' => 'products',

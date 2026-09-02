@@ -1,4 +1,5 @@
-<div class="tab-pane fade show" id="invoice_settings_tab" role="tabpanel">
+@php $firstH = \Modules\General\Support\SettingAccess::firstHorizontal(); @endphp
+<div class="tab-pane fade {{ $firstH === 'invoice' ? 'show active' : '' }}" id="invoice_settings_tab" role="tabpanel">
     <div class="container">
 
 
@@ -31,7 +32,7 @@
                     <div class="card card-flush border-0 shadow-sm">
                         <div class="card-body">
                             <div class="form-check form-switch d-flex align-items-center gap-3">
-                                <input class="form-check-input" type="checkbox" id="toggleCouponInvoiceSales">
+                                <input class="form-check-input" type="checkbox" id="toggleCouponInvoiceSales" @disabled(! \Modules\General\Support\SettingAccess::canTab('invoice', 'update'))>
                                 <label class="form-check-label fw-semibold" for="toggleCouponInvoiceSales">
                                     @lang('sales::lang.toggleCoupon')
                                 </label>

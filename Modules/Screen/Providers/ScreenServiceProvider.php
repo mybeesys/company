@@ -45,7 +45,9 @@ class ScreenServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Screen\Console\SyncScreenPermissionsCommand::class,
+        ]);
     }
 
     /**

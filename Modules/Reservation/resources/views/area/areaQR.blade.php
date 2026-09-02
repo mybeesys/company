@@ -42,7 +42,8 @@
     @viteReactRefresh
     @vite('resources/components/App.jsx')
    						
-      <div id="root" type="areaQR" 
+      <div id="root" type="areaQR"
+      ems-can="{{ \Modules\General\Support\SettingAccess::uiJson('tables_qr') }}"
       list-url="{{json_encode(route('areaMiniList'))}}"
 	    dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"  
 	  ></div>

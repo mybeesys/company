@@ -303,9 +303,12 @@
                 </div>
             </div>
             <div class="col-6 d-flex flex-nowrap justify-content-end align-items-center gap-2 coa-page-actions">
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_CREATE)
                 <a href="{{ route('tree-of-accounts-import') }}" class="btn btn-flex btn-primary coa-page-action-btn fs-7 fw-bold">
                     @lang('accounting::lang.import_tree_of_accounts')
                 </a>
+                @enddashboardcan
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_UPDATE)
                 @if (config('accounting.show_repair_gl_codes'))
                     <form method="POST" action="{{ route('tree-of-accounts-repair-gl-codes') }}" class="d-inline"
                         onsubmit="return confirm(@json(__('accounting::lang.repair_gl_codes_confirm')));">
@@ -316,6 +319,8 @@
                         </button>
                     </form>
                 @endif
+                @enddashboardcan
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::SETTINGS_UPDATE)
                 @if (config('accounting.show_full_reset') && \Modules\Accounting\Utils\AccountingFullResetService::isAllowed())
                     <form method="POST" action="{{ route('accounting.staging-full-reset') }}" class="d-inline"
                         onsubmit="return confirm(@json(__('accounting::lang.staging_full_reset_confirm')));">
@@ -327,6 +332,7 @@
                         </button>
                     </form>
                 @endif
+                @enddashboardcan
             </div>
         </div>
     </div>

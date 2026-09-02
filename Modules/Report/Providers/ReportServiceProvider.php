@@ -43,7 +43,9 @@ class ReportServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Report\Console\SyncReportPermissionsCommand::class,
+        ]);
     }
 
     /**

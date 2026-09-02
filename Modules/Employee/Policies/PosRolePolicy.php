@@ -3,48 +3,36 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Employee\Support\EmployeeAccess;
+use Modules\Employee\Support\EmployeePermissions;
 
 class PosRolePolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(): bool
+    public function viewAny(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.pos_roles.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::POS_ROLES_SHOW);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(): bool
+    public function view(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.pos_role.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::POS_ROLE_SHOW);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(): bool
+    public function create(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.pos_role.create');
+        return EmployeeAccess::allows($user, EmployeePermissions::POS_ROLE_CREATE);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(): bool
+    public function update(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.pos_role.update');
+        return EmployeeAccess::allows($user, EmployeePermissions::POS_ROLE_UPDATE);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(): bool
+    public function delete(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.pos_role.delete');
+        return EmployeeAccess::allows($user, EmployeePermissions::POS_ROLE_DELETE);
     }
 }

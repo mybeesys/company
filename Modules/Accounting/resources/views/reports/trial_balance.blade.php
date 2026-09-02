@@ -24,9 +24,11 @@
             <div class="d-flex flex-wrap gap-2 flex-shrink-0">
                 <button type="button" class="btn btn-sm btn-light-primary" id="tbExpandAll">@lang('accounting::lang.tb_expand_all')</button>
                 <button type="button" class="btn btn-sm btn-light-primary" id="tbCollapseAll">@lang('accounting::lang.tb_collapse_all')</button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TRIAL_BALANCE_PRINT)
                 <button type="button" class="btn btn-sm btn-light-primary" onclick="window.print()">
                     <i class="fa fa-print"></i> @lang('general.print')
                 </button>
+                @enddashboardcan
             </div>
         </div>
     </div>
@@ -93,8 +95,10 @@
             </div>
             <div class="col-12 d-flex flex-wrap gap-2">
                 <button type="button" class="btn btn-primary btn-sm" id="tbApplyFilters">@lang('report::general.filter')</button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TRIAL_BALANCE_PRINT)
                 <button type="button" id="trialBalanceExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                 <button type="button" id="trialBalanceExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
+                @enddashboardcan
             </div>
         </div>
     </div>

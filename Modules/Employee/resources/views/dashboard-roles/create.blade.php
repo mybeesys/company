@@ -2,13 +2,8 @@
 
 @section('title', __('employee::general.add_role'))
 
-@section('css')
-    <style>
-
-    </style>
-@endsection
 @section('content')
-    <form id="add_role_form" class="form d-flex flex-column flex-lg-row" method="POST" enctype="multipart/form-data"
+    <form id="add_role_form" class="form" method="POST" enctype="multipart/form-data"
         action="{{ route('dashboard-roles.store') }}">
         @csrf
         <x-employee::dashboard-roles.form :modules=$modules formId="add_role_form" />

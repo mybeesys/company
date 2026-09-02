@@ -7,17 +7,25 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-6">
             <a href="{{ route('expenses.manage') }}" class="btn btn-light btn-sm">← @lang('expense::lang.nav_manage')</a>
             <div class="d-flex flex-wrap gap-2">
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::EXPENSES_UPDATE)
                 <a href="{{ route('expenses.manage.edit', $expense->id) }}" class="btn btn-sm btn-light-primary">@lang('messages.edit')</a>
+                @enddashboardcan
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::EXPENSES_CREATE)
                 <a href="{{ route('expenses.manage.create', ['duplicate_from' => $expense->id]) }}" class="btn btn-sm btn-light-info">@lang('messages.duplicate')</a>
+                @enddashboardcan
                 @if ($expense->acc_trans_mapping_id)
+                    @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::JOURNAL_SHOW)
                     <a href="{{ route('journal-entry-show', $expense->acc_trans_mapping_id) }}" class="btn btn-sm btn-light" target="_blank" rel="noopener">@lang('accounting::lang.view_journalEntry')</a>
+                    @enddashboardcan
                 @endif
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::EXPENSES_DELETE)
                 <form method="post" action="{{ route('expenses.manage.destroy', $expense->id) }}" class="d-inline"
                     onsubmit="return confirm(@json(__('messages.are_you_sure')));">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-light-danger">@lang('employee::fields.delete')</button>
                 </form>
+                @enddashboardcan
             </div>
         </div>
 

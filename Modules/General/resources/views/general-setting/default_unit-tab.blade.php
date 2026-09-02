@@ -33,9 +33,11 @@
                 <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
             </div>
 
+            @dashboardcan(\Modules\General\Support\SettingPermissions::for('default unit', 'update'))
             <button type="submit" class="btn btn-primary w-200px" style="border-radius: 6px;">
                 {{ __('messages.save') }}
             </button>
+            @enddashboardcan
         </form>
     </div>
 </div>

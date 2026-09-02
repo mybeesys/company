@@ -32,21 +32,28 @@ class PayrollGroupTable
             ->addColumn(
                 'actions',
                 function ($row) {
-                    $row->state === 'draft' ?
-                        $actions = '
-                    <div class="justify-content-center d-flex text-nowrap"> 
+                    $actions = '<div class="justify-content-center d-flex text-nowrap">';
+                    if ($row->state === 'draft') {
+                        if (\Modules\Employee\Support\EmployeeAccess::can(\Modules\Employee\Support\EmployeePermissions::PAYROLLS_GROUP_UPDATE)) {
+                            $actions .= '
                 <a class="btn btn-icon btn-bg-light btn-active-color-primary h-35px w-100 px-2 confirm-btn me-1" data-id="'.$row->id.'">
 					<span class="fs-6" >'.__('employee::general.confirm_payroll_group').'</span>
-				</a>                    
+				</a>';
+                        }
+                        if (\Modules\Employee\Support\EmployeeAccess::can(\Modules\Employee\Support\EmployeePermissions::PAYROLLS_GROUP_DELETE)) {
+                            $actions .= '
                 <a class="btn btn-icon btn-bg-light btn-active-color-primary min-w-35px h-35px delete-btn me-1" data-id="'.$row->id.'">
 					<i class="ki-outline ki-trash fs-3"></i>
-				</a>      
+				</a>';
+                        }
+                        if (\Modules\Employee\Support\EmployeeAccess::can(\Modules\Employee\Support\EmployeePermissions::PAYROLLS_GROUP_UPDATE)) {
+                            $actions .= '
                 <a href="'.url("schedule/payroll-group/{$row->id}/edit").'" class="btn btn-icon btn-bg-light btn-active-color-primary min-w-35px h-35px me-1 edit-btn" data-id="'.$row->id.'" >
 					<i class="ki-outline ki-pencil fs-2"></i>
-				</a>' : $actions = '';
-
-                    $actions .= '                
-                </div>';
+				</a>';
+                        }
+                    }
+                    $actions .= '</div>';
 
                     return $actions;
                 }

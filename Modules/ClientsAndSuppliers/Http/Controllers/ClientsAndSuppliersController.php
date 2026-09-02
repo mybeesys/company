@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Transaction;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Sales\Support\SalesAccess;
 
 class ClientsAndSuppliersController extends Controller
 {
@@ -20,6 +22,9 @@ class ClientsAndSuppliersController extends Controller
     public function updateStatus($id)
     {
         $contact = Contact::find($id);
+        $action = $contact?->status === 'active' ? 'deactivate' : 'activate';
+        SalesAccess::authorizeCustomer($contact, $action);
+        PurchasesAccess::authorizeSupplier($contact, $action);
         $contact->status = $contact->status == 'active' ? 'inactive' : 'active';
         $contact->save();
 
@@ -74,6 +79,8 @@ class ClientsAndSuppliersController extends Controller
         $count = Transaction::where('contact_id', $id)
             ->count();
         $contact = Contact::findOrFail($id);
+        SalesAccess::authorizeCustomer($contact, 'delete');
+        PurchasesAccess::authorizeSupplier($contact, 'delete');
 
         if ($count == 0) {
             if (! $contact->is_default) {

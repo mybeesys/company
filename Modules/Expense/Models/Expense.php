@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
+use Modules\Accounting\Support\AccountingAccess;
+use Modules\Accounting\Support\AccountingPermissions;
 use Modules\General\Models\Tax;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -166,9 +168,15 @@ class Expense extends Model
                 $actions .= e(__('employee::fields.actions')).'<i class="ki-outline ki-down fs-5 ms-1"></i></a>';
                 $actions .= '<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-175px py-4" data-kt-menu="true">';
                 $actions .= '<div class="menu-item px-3"><a href="'.e($showUrl).'" class="menu-link px-3">'.e(__('accounting::lang.voucher_show')).'</a></div>';
-                $actions .= '<div class="menu-item px-3"><a href="'.e($editUrl).'" class="menu-link px-3">'.e(__('employee::fields.edit')).'</a></div>';
-                $actions .= '<div class="menu-item px-3"><a href="'.e($dupUrl).'" class="menu-link px-3">'.e(__('accounting::fields.duplication')).'</a></div>';
-                $actions .= '<div class="menu-item px-3"><a href="#" class="menu-link px-3 text-danger expense-manage-delete" data-url="'.e($destroyUrl).'">'.e(__('accounting::lang.voucher_delete')).'</a></div>';
+                if (AccountingAccess::can(AccountingPermissions::EXPENSES_UPDATE)) {
+                    $actions .= '<div class="menu-item px-3"><a href="'.e($editUrl).'" class="menu-link px-3">'.e(__('employee::fields.edit')).'</a></div>';
+                }
+                if (AccountingAccess::can(AccountingPermissions::EXPENSES_CREATE)) {
+                    $actions .= '<div class="menu-item px-3"><a href="'.e($dupUrl).'" class="menu-link px-3">'.e(__('accounting::fields.duplication')).'</a></div>';
+                }
+                if (AccountingAccess::can(AccountingPermissions::EXPENSES_DELETE)) {
+                    $actions .= '<div class="menu-item px-3"><a href="#" class="menu-link px-3 text-danger expense-manage-delete" data-url="'.e($destroyUrl).'">'.e(__('accounting::lang.voucher_delete')).'</a></div>';
+                }
                 $actions .= '</div>';
 
                 return $actions;

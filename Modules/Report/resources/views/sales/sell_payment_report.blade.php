@@ -106,6 +106,7 @@
                             title="@lang('report::general.Remove filter')">
                             <i class="bi bi-x-lg"></i>
                         </button>
+                        @dashboardcan(\Modules\Report\Support\ReportPermissions::SELL_PAYMENT_PRINT)
                         <button type="button" class="btn btn-sm btn-export-excel" id="sellPaymentExportExcelBtn"
                             title="@lang('report::general.sell_payment_export_full_hint')">
                             <i class="bi bi-file-earmark-excel fs-5"></i>
@@ -116,6 +117,7 @@
                             <i class="bi bi-file-earmark-pdf fs-5"></i>
                             @lang('report::general.export_pdf_btn')
                         </button>
+                        @enddashboardcan
                         <div class="dropdown">
                             <button class="btn btn-sm btn-icon spay-gear-btn" type="button"
                                 id="spayColumnPickerToggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"

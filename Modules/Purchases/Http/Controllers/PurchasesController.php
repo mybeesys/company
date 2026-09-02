@@ -4,7 +4,6 @@ namespace Modules\Purchases\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +28,8 @@ use Modules\General\Utils\ActionUtil;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\UnitTransfer;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Purchases\Support\PurchasesPermissions;
 use Modules\Sales\Utils\SalesUtile;
 use Mpdf\Mpdf;
 
@@ -456,6 +457,10 @@ class PurchasesController extends Controller
         $duplicateFrom = (int) $request->input('duplicate_from', 0);
         $poInputId = (int) $request->input('po_id', 0);
 
+        if ($poInputId > 0) {
+            PurchasesAccess::authorize(PurchasesPermissions::CONVERT_PO);
+        }
+
         $purchaseLineRelations = [
             'purchases_lines' => fn ($q) => $q->orderBy('id'),
             'purchases_lines.product.unitTransfers' => fn ($q) => $q->whereNull('unit2'),
@@ -720,6 +725,10 @@ class PurchasesController extends Controller
     {
         $isUpdatingDraft = $existingTransaction && $this->isEditablePurchaseDraft($existingTransaction);
         $isDraftSave = (string) $request->input('status') === 'draft';
+
+        if (! $isUpdatingDraft && $request->filled('po_id')) {
+            PurchasesAccess::authorize(PurchasesPermissions::CONVERT_PO);
+        }
 
         $actionUtil = new ActionUtil;
         if ($request->filled('action')) {

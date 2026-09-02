@@ -27,11 +27,13 @@
                 @endif
             </div>
             <div class="jr-entry-actions no-print">
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::JOURNAL_LEDGER_PRINT)
                 <button type="button" class="btn btn-sm btn-light-primary"
                     onclick="printJournalCard('journal-card-{{ $journal->id }}')"
                     title="{{ __('general.print') }}">
                     <i class="fas fa-print me-1"></i>{{ __('general.print') }}
                 </button>
+                @enddashboardcan
             </div>
         </div>
 

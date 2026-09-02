@@ -3,24 +3,26 @@
 namespace Modules\Establishment\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Modules\Establishment\Support\EstablishmentAccess;
+use Modules\Establishment\Support\EstablishmentPermissions;
 
 class CompanyPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.company.show');
+        return EstablishmentAccess::can([
+            EstablishmentPermissions::COMPANY_SHOW,
+            \Modules\General\Support\SettingPermissions::GENERAL_SHOW,
+        ]);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.company.update');
+        return EstablishmentAccess::can([
+            EstablishmentPermissions::COMPANY_UPDATE,
+            \Modules\General\Support\SettingPermissions::GENERAL_UPDATE,
+        ]);
     }
 }

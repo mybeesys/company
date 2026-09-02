@@ -48,13 +48,16 @@
                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
                                         style="padding: 8px 15px;">
                                         @if ($costCenter->isLeaf())
+                                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_TRANSACTIONS)
                                             <li><a class="ledger-link"
                                                     href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
                                                     style="margin: 2px;">
                                                     <i class="fas fa-file-alt"></i><span
                                                         style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
                                             </li>
+                                            @enddashboardcan
                                         @endif
+                                        @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_UPDATE)
                                         <li>
                                             <a class="btn-xs btn-default text-primary" style="margin: 2px;"
                                                 onclick="setCostCenter({{ $costCenter }})" data-bs-toggle="modal"
@@ -63,17 +66,21 @@
                                                     @lang('messages.edit')
                                             </a>
                                         </li>
+                                        @enddashboardcan
                                         @if ($costCenter->is_main)
+                                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_CREATE)
                                             <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
                                                     data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
                                                     data-bs-target="#kt_modal_create_cost_center">
                                                     <i class="fas fa-plus"></i><span
                                                         style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
                                                 </a></li>
+                                            @enddashboardcan
                                         @endif
 
                                         <li>
                                             @if ($costCenter->active)
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_DEACTIVATE)
                                                 <a class="btn-xs btn-default text-danger" style="margin: 2px;"
                                                     data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
                                                     data-bs-target="#kt_modal_deactive">
@@ -81,13 +88,16 @@
                                                         @lang('messages.deactivate')
 
                                                 </a>
+                                                @enddashboardcan
                                             @else
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_ACTIVATE)
                                                 <a class="btn-xs btn-default text-success" style="margin: 2px;"
                                                     data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
                                                     data-bs-target="#kt_modal_active">
                                                     <i class="fas fa-power-off"></i><span style="margin-left: 5px;">
                                                         @lang('messages.activate')
                                                 </a>
+                                                @enddashboardcan
                                             @endif
                                         </li>
                                     </ul>
@@ -129,13 +139,16 @@
                                         @if (app()->getLocale() == 'ar') dir="rtl" @endif role="menu"
                                         style="padding: 8px 15px;">
                                         @if ($costCenter->isLeaf())
+                                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_TRANSACTIONS)
                                             <li><a class="ledger-link"
                                                     href="{{ action('Modules\Accounting\Http\Controllers\CostCenterConrollerController@transactions', $costCenter->id) }}"
                                                     style="margin: 2px;">
                                                     <i class="fas fa-file-alt"></i><span
                                                         style="margin-left: 5px;">@lang('accounting::lang.cost_center_transactions')</a>
                                             </li>
+                                            @enddashboardcan
                                         @endif
+                                        @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_UPDATE)
                                         <li>
                                             <a class="btn-xs btn-default text-primary" style="margin: 2px;"
                                                 onclick="setCostCenter({{ $costCenter }})" data-bs-toggle="modal"
@@ -144,17 +157,21 @@
                                                     @lang('messages.edit')
                                             </a>
                                         </li>
+                                        @enddashboardcan
                                         @if ($costCenter->is_main)
+                                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_CREATE)
                                             <li><a class="btn-xs btn-default text-primary" style="margin: 2px;"
                                                     data-bs-toggle="modal" onclick="setCostCenter({{ $costCenter }})"
                                                     data-bs-target="#kt_modal_create_cost_center">
                                                     <i class="fas fa-plus"></i><span
                                                         style="margin-left: 5px;">@lang('accounting::lang.add_cost_center')
                                                 </a></li>
+                                            @enddashboardcan
                                         @endif
 
                                         <li>
                                             @if ($costCenter->active)
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_DEACTIVATE)
                                                 <a class="btn-xs btn-default text-danger" style="margin: 2px;"
                                                     data-bs-toggle="modal"
                                                     onclick="setCostCenter({{ $costCenter }})"
@@ -163,7 +180,9 @@
                                                         @lang('messages.deactivate')
 
                                                 </a>
+                                                @enddashboardcan
                                             @else
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_ACTIVATE)
                                                 <a class="btn-xs btn-default text-success" style="margin: 2px;"
                                                     data-bs-toggle="modal"
                                                     onclick="setCostCenter({{ $costCenter }})"
@@ -171,6 +190,7 @@
                                                     <i class="fas fa-power-off"></i><span style="margin-left: 5px;">
                                                         @lang('messages.activate')
                                                 </a>
+                                                @enddashboardcan
                                             @endif
                                         </li>
                                     </ul>

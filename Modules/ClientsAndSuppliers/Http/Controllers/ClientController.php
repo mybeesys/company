@@ -14,6 +14,10 @@ use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Country;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Purchases\Support\PurchasesPermissions;
+use Modules\Sales\Support\SalesAccess;
+use Modules\Sales\Support\SalesPermissions;
 use Modules\Sales\Utils\SalesUtile;
 
 class ClientController extends Controller
@@ -29,6 +33,11 @@ class ClientController extends Controller
 
         $businessType = $business_type == 'clients' ? 'customer' : 'supplier';
         $create_url = $business_type == 'clients' ? 'client-create' : 'supplier-create';
+        if ($businessType === 'customer') {
+            SalesAccess::authorize(SalesPermissions::CUSTOMERS_SHOW);
+        } elseif ($businessType === 'supplier') {
+            PurchasesAccess::authorize(PurchasesPermissions::SUPPLIERS_SHOW);
+        }
         if ($request->ajax()) {
             $contacts = Contact::where('business_type', $businessType)->select('id', 'name', 'mobile_number', 'email', 'commercial_register', 'tax_number', 'status');
 
@@ -54,7 +63,13 @@ class ClientController extends Controller
         $account_category = AccountingUtil::account_category();
         $create_page = Route::currentRouteName();
 
+        if ($create_page == 'client-create') {
+            SalesAccess::authorize(SalesPermissions::CUSTOMERS_CREATE);
+        }
+
         if ($create_page == 'supplier-create') {
+            PurchasesAccess::authorize(PurchasesPermissions::SUPPLIERS_CREATE);
+
             return view('clientsandsuppliers::Client.create.supplier', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
         }
 
@@ -69,6 +84,8 @@ class ClientController extends Controller
         $accounts = AccountingAccount::forDropdown();
 
         $contact = Contact::find($id);
+        SalesAccess::authorizeCustomer($contact, 'update');
+        PurchasesAccess::authorizeSupplier($contact, 'update');
 
         $parents_account = AccountingAccount::all();
         $account_main_types = AccountingUtil::account_type();
@@ -85,6 +102,12 @@ class ClientController extends Controller
 
         // return $request;
         $this->validateRequiredAccountingAccount($request);
+
+        if (($request->business_type ?? '') === 'customer') {
+            SalesAccess::authorize(SalesPermissions::CUSTOMERS_CREATE);
+        } elseif (($request->business_type ?? '') === 'supplier') {
+            PurchasesAccess::authorize(PurchasesPermissions::SUPPLIERS_CREATE);
+        }
 
         try {
             DB::beginTransaction();
@@ -285,6 +308,9 @@ class ClientController extends Controller
             return redirect()->route('clients')->with('error', __('clientsandsuppliers::general.reach-non-existent-customer'));
         }
 
+        SalesAccess::authorizeCustomer($contact, 'show');
+        PurchasesAccess::authorizeSupplier($contact, 'show');
+
         $isSupplier = $contact->business_type !== 'customer';
         $invoiceTypes = $isSupplier ? ['purchases', 'purchases-return'] : ['sell', 'sell-return'];
 
@@ -389,6 +415,8 @@ class ClientController extends Controller
             }
 
             $contact = Contact::find($request->id);
+            SalesAccess::authorizeCustomer($contact, 'update');
+            PurchasesAccess::authorizeSupplier($contact, 'update');
             DB::beginTransaction();
             $contact->update([
                 'name' => $request->client_name,

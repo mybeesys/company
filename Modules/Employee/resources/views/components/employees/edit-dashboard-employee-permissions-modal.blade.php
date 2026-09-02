@@ -1,6 +1,6 @@
 @props(['permissions', 'modules','dashboardRoles'])
 <x-general.modal module="employee" id='employee_dashboard_permissions_edit' body_class="pt-0" title='edit_permissions' class='mw-1000px'>
-    <div class="d-flex flex-column me-n7">
+    <div class="d-flex flex-column">
         <div class="mb-4">
             <label for="dashboard_role_ids" class="form-label">@lang('employee::fields.dashboard_roles')</label>
             <select class="form-select" id="dashboard_role_ids" name="dashboard_role_ids[]" multiple data-control="select2" data-allow-clear="true">
@@ -10,6 +10,6 @@
                 @endforeach
             </select>
         </div>
-        <x-employee::dashboard-roles.permissions-input :modules=$modules />
+        <x-employee::dashboard-roles.permissions-input :modules=$modules embedded />
     </div>
 </x-general.modal>

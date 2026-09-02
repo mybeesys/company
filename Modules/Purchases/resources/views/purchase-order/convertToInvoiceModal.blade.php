@@ -26,9 +26,11 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('messages.cancel')</button>
                     @if ($poes->isEmpty())
+                        @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::ORDERS_CREATE)
                         <a href="{{ route('create-purchase-order') }}" class="btn btn-primary">
                             @lang('purchases::general.add_purchase_order')
                         </a>
+                        @enddashboardcan
                     @else
                         <button type="submit" class="btn btn-primary">@lang('purchases::lang.Create a sales invoice')</button>
                     @endif

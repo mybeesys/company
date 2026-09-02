@@ -97,8 +97,10 @@
                         <br>
                         @lang('expense::lang.empty_manage_hint')
                     </h4>
+                    @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::EXPENSES_CREATE)
                     <a href="{{ route('expenses.manage.create') }}"
                         class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('expense::general.add_expense')</a>
+                    @enddashboardcan
                 </div>
             </div>
         </div>
@@ -159,8 +161,10 @@
                                 </button>
                                 <x-tables.export-menu id="expense" />
                                 <div id="kt_expense_table_buttons" class="d-none"></div>
+                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::EXPENSES_CREATE)
                                 <a href="{{ route('expenses.manage.create') }}" id="add_expense_button"
                                     class="btn btn-primary min-w-150px mw-250px">@lang('expense::general.add_expense')</a>
+                                @enddashboardcan
                             </div>
                         </div>
                     </div>
