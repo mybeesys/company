@@ -3,7 +3,7 @@
 namespace Modules\Purchases\Console;
 
 use Illuminate\Console\Command;
-use Modules\Purchases\Database\Seeders\PurchasesPermissionsSeeder;
+use Modules\Purchases\database\seeders\PurchasesPermissionsSeeder;
 
 class SyncPurchasesPermissionsCommand extends Command
 {

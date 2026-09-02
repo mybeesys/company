@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Screen\Database\Seeders;
+namespace Modules\Screen\database\seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Employee\Models\Employee;

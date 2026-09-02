@@ -3,7 +3,7 @@
 namespace Modules\Inventory\Console;
 
 use Illuminate\Console\Command;
-use Modules\Inventory\Database\Seeders\InventoryPermissionsSeeder;
+use Modules\Inventory\database\seeders\InventoryPermissionsSeeder;
 
 class SyncInventoryPermissionsCommand extends Command
 {

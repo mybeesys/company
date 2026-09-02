@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Purchases\Database\Seeders;
+namespace Modules\Purchases\database\seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Employee\Models\DashboardRole;

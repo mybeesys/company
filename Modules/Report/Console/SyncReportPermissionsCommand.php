@@ -3,7 +3,7 @@
 namespace Modules\Report\Console;
 
 use Illuminate\Console\Command;
-use Modules\Report\Database\Seeders\ReportPermissionsSeeder;
+use Modules\Report\database\seeders\ReportPermissionsSeeder;
 
 class SyncReportPermissionsCommand extends Command
 {
