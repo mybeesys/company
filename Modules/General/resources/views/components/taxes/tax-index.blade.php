@@ -1,8 +1,9 @@
 @props(['taxesColumns'])
-<div class="tab-pane fade show " id="taxes_tab" role="tabpanel">
+@php $firstV = \Modules\General\Support\SettingAccess::firstVertical(); @endphp
+<div class="tab-pane fade {{ $firstV === 'taxes' ? 'show active' : '' }}" id="taxes_tab" role="tabpanel">
     <div class="card card-flush" style="box-shadow: none;border: none;">
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="tax" url="#" module="general">
+            <x-tables.table-header model="tax" url="#" module="general" :addButton="\Modules\General\Support\SettingAccess::canTab('taxes', 'create')">
                 <x-slot:filters>
                 </x-slot:filters>
                 <x-slot:export>

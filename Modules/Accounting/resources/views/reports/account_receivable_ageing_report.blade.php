@@ -20,9 +20,11 @@
                     <h3 class="card-title">
                         @lang('accounting::lang.account_recievable_ageing_report')
                     </h3>
+                    @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::RECEIVABLES_AGING_PRINT)
                     <button class="btn btn-primary py-4 my-5 float-left" style="height: max-content" onclick="printReport()" id="print-btn">
                         @lang('general.print')
                     </button>
+                    @enddashboardcan
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('account-receivable-ageing-report') }}" class="row g-3 mb-4">
@@ -49,8 +51,10 @@
                         </div>
                         <div class="col-md-12 d-flex gap-2">
                             <button class="btn btn-primary" type="submit">@lang('report::general.filter')</button>
+                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::RECEIVABLES_AGING_PRINT)
                             <a class="btn btn-export-pdf" href="{{ route('account-receivable-ageing-report-export-pdf', request()->query()) }}">PDF</a>
                             <a class="btn btn-export-excel" href="{{ route('account-receivable-ageing-report-export-excel', request()->query()) }}">Excel</a>
+                            @enddashboardcan
                         </div>
                     </form>
                     <div class="box box-warning mt-4">

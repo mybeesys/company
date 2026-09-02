@@ -49,6 +49,9 @@ return [
     'zatca_management_module' => 'Tax connection',
     'reports_module_management_module' => 'General Reports',
     'Franchise Companies_management_module' => 'Franchise',
+    'dashboard_management_module' => 'Dashboard',
+    'my_companies_management_module' => 'My companies',
+    'referrals_management_module' => 'Share and earn',
 
     'notifications_settings' => 'Notifications settings',
     'system_settings' => 'System settings',

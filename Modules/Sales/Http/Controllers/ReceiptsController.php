@@ -17,6 +17,10 @@ use Modules\General\Models\Country;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Purchases\Support\PurchasesPermissions;
+use Modules\Sales\Support\SalesAccess;
+use Modules\Sales\Support\SalesPermissions;
 
 class ReceiptsController extends Controller
 {
@@ -85,6 +89,12 @@ class ReceiptsController extends Controller
         $contact = Contact::find($validated['client_id']);
         if (! $contact) {
             return redirect()->back()->withInput()->with('error', __('messages.something_went_wrong'));
+        }
+
+        if ($contact->business_type === 'supplier') {
+            PurchasesAccess::authorize(PurchasesPermissions::VOUCHERS_CREATE);
+        } else {
+            SalesAccess::authorize(SalesPermissions::RECEIPTS_CREATE);
         }
 
         try {
@@ -206,6 +216,12 @@ class ReceiptsController extends Controller
         $transactionUtil = new TransactionUtils;
 
         $scope = (string) $request->query('scope', 'customer');
+        if ($scope === 'supplier') {
+            PurchasesAccess::authorize(PurchasesPermissions::VOUCHERS_CREATE);
+        } else {
+            SalesAccess::authorize(SalesPermissions::RECEIPTS_CREATE);
+        }
+
         $types = $scope === 'supplier' ? ['purchases', 'purchase'] : ['sell'];
 
         $transactions = Transaction::where('contact_id', $clientId)
@@ -238,6 +254,8 @@ class ReceiptsController extends Controller
     {
         $payment->load(['transaction', 'client']);
         $transaction = $this->assertEligibleReceiptPayment($payment);
+        SalesAccess::authorizeReceipt($payment, 'update');
+        PurchasesAccess::authorizeReceipt($payment, 'update');
 
         $supplier = in_array($transaction->type, ['purchases', 'purchase'], true);
         $accounts = AccountingAccount::forDropdown();
@@ -272,6 +290,8 @@ class ReceiptsController extends Controller
     public function updatePayment(Request $request, TransactionPayments $payment)
     {
         $transaction = $this->assertEligibleReceiptPayment($payment);
+        SalesAccess::authorizeReceipt($payment, 'update');
+        PurchasesAccess::authorizeReceipt($payment, 'update');
 
         $validated = $request->validate([
             'client_id' => ['required', 'integer', 'min:1'],
@@ -319,6 +339,8 @@ class ReceiptsController extends Controller
     public function destroyPayment(TransactionPayments $payment)
     {
         $transaction = $this->assertEligibleReceiptPayment($payment);
+        SalesAccess::authorizeReceipt($payment, 'delete');
+        PurchasesAccess::authorizeReceipt($payment, 'delete');
         $redirectRoute = in_array($transaction->type, ['purchases', 'purchase'], true)
             ? 'suppliers-receipts'
             : 'receipts';
@@ -350,6 +372,8 @@ class ReceiptsController extends Controller
     public function duplicatePayment(TransactionPayments $payment)
     {
         $transaction = $this->assertEligibleReceiptPayment($payment);
+        SalesAccess::authorizeReceipt($payment, 'create');
+        PurchasesAccess::authorizeReceipt($payment, 'create');
         $targetRoute = in_array($transaction->type, ['purchases', 'purchase'], true)
             ? 'create-suppliers-receipts'
             : 'create-receipts';

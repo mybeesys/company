@@ -4,6 +4,7 @@ namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\DB;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
@@ -14,9 +15,17 @@ use Modules\Inventory\Models\TransactionUtil;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Product\Models\UnitTransfer;
+use Modules\Inventory\Support\AuthorizesInventoryPages;
+use Modules\Inventory\Support\InventoryAccess;
 
-class PrepController extends Controller
+class PrepController extends Controller implements HasMiddleware
 {
+    use AuthorizesInventoryPages;
+
+    protected static function inventoryAuthEntity(): string
+    {
+        return 'prep';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -83,6 +92,7 @@ class PrepController extends Controller
 
     public function store(Request $request)
     {
+        InventoryAccess::authorizeMutation($request, 'prep');
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'transaction_date' => 'nullable|date',

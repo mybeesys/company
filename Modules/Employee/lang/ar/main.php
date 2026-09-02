@@ -48,6 +48,9 @@ return [
     'setting_management_module' => 'الإعدادات',
     'zatca_management_module' => 'الربط الضريبي',
     'Franchise Companies_management_module' => 'الإمتياز التجاري',
+    'dashboard_management_module' => 'لوحة التحكم',
+    'my_companies_management_module' => 'شركاتي',
+    'referrals_management_module' => 'شارك واربح',
     //
 
     'notifications_settings' => 'إعدادات الإشعارات',

@@ -29,8 +29,10 @@
                         <span class="fw-bolder"> @lang('purchases::lang.no_purchases_return')</span> <br>
                         @lang('purchases::lang.suggestion_purchases_return')
                     </h4>
+                            @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::RETURNS_CREATE)
                             <a href="{{ route('create-purchases-return-invoice') }}"
                         class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('purchases::general.add_purchases-retrun')</a>
+                            @enddashboardcan
 
                 </div>
 
@@ -39,7 +41,8 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="purchases-retrun" url="create-purchases-return-invoice" module="purchases" >
+                <x-tables.table-header model="purchases-retrun" url="create-purchases-return-invoice" module="purchases"
+                    :addButton="dashboard_can(\Modules\Purchases\Support\PurchasesPermissions::RETURNS_CREATE)">
 
 
                     <x-slot:filters>

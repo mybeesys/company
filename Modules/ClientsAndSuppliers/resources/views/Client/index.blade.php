@@ -15,7 +15,8 @@
 
     <div class="card card-flush">
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="{{ $business_type }}" url="{{ $create_url }}" module="clientsandsuppliers">
+            <x-tables.table-header model="{{ $business_type }}" url="{{ $create_url }}" module="clientsandsuppliers"
+                :addButton="($business_type === 'clients' && dashboard_can(\Modules\Sales\Support\SalesPermissions::CUSTOMERS_CREATE)) || ($business_type !== 'clients' && dashboard_can(\Modules\Purchases\Support\PurchasesPermissions::SUPPLIERS_CREATE))">
                 <x-slot:filters>
                     {{-- <x-tables.filters-dropdown /> --}}
                 </x-slot:filters>

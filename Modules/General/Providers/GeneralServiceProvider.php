@@ -45,7 +45,9 @@ class GeneralServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\General\Console\SyncSettingPermissionsCommand::class,
+        ]);
     }
 
     /**

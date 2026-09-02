@@ -19,7 +19,7 @@
             <div class="tab-pane fade show active" id="adjustment_tab" role="tabpanel">
                 <x-cards.card>
                     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                        <x-tables.table-header :search="false" model="adjustment" :addButton="auth()->user()->hasDashboardPermission('employees.allowance_deduction.create')" module="employee">
+                        <x-tables.table-header :search="false" model="adjustment" :addButton="dashboard_can(\Modules\Employee\Support\EmployeePermissions::ALLOWANCE_CREATE)" module="employee">
                             <x-slot:filters>
                                 <x-tables.filters-dropdown submitButtonClass="adjustment_submit_button"
                                     resetButtonClass="adjustment_reset_button">
@@ -36,7 +36,7 @@
             <div class="tab-pane fade show" id="adjustment_type_tab" role="tabpanel">
                 <x-cards.card>
                     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                        <x-tables.table-header :search="false" model="adjustment_type" :addButton="auth()->user()->hasDashboardPermission('employees.allowance_deduction.create')"
+                        <x-tables.table-header :search="false" model="adjustment_type" :addButton="dashboard_can(\Modules\Employee\Support\EmployeePermissions::ALLOWANCE_CREATE)"
                             module="employee">
                             <x-slot:filters>
                                 <x-tables.filters-dropdown submitButtonClass="adjustment_type_submit_button"

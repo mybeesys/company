@@ -341,12 +341,14 @@
             <div class="col-md-9 d-flex align-items-end mt-4 ledger-filter-actions">
                 <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
                 <a href="{{ route('ledger', ['account_id' => $account->id]) }}" class="btn btn-light">@lang('sales::lang.Remove filter')</a>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::ACCOUNT_STATEMENT_PRINT)
                 <a href="{{ url('/ledger-export-pdf', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
                     class="btn btn-export-pdf btn-sm ledger-export-link"
                     data-ledger-export-base="{{ url('/ledger-export-pdf', $account->id) }}">@lang('general.export_as_pdf')</a>
                 <a href="{{ url('/ledger-export-excel', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
                     class="btn btn-export-excel btn-sm ledger-export-link"
                     data-ledger-export-base="{{ url('/ledger-export-excel', $account->id) }}">@lang('general.export_as_excel')</a>
+                @enddashboardcan
             </div>
         </div>
     </form>
@@ -498,11 +500,13 @@
                             </li>
 
                             <li>
+                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::ACCOUNT_STATEMENT_PRINT)
                                 <div class="menu-item-custom ">
                                     <a href="{{ url('/print-ledger', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
                                         class="btn ledger-export-link"
                                         data-ledger-export-base="{{ url('/print-ledger', $account->id) }}">@lang('accounting::fields.print')</a>
                                 </div>
+                                @enddashboardcan
                             </li>
                         </ul>
                     </div>

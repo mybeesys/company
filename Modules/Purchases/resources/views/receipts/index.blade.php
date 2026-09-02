@@ -36,8 +36,10 @@
                         <span class="fw-bolder"> @lang('sales::lang.You do not have any Receipts')</span> <br>
                         @lang('sales::lang.create_suggestion_Receipts')
                     </h4>
+                    @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::VOUCHERS_CREATE)
                     <a href="{{ route('create-suppliers-receipts') }}"
                         class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_receipts')</a>
+                    @enddashboardcan
                 </div>
 
             </div>
@@ -45,7 +47,8 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="receipts" url="create-suppliers-receipts" module="sales">
+                <x-tables.table-header model="receipts" url="create-suppliers-receipts" module="sales"
+                    :addButton="dashboard_can(\Modules\Purchases\Support\PurchasesPermissions::VOUCHERS_CREATE)">
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>

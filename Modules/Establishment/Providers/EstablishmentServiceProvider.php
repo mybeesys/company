@@ -3,7 +3,10 @@
 namespace Modules\Establishment\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\Establishment\Models\Establishment;
+use Modules\Establishment\Policies\EstablishmentPolicy;
 use Nwidart\Modules\Traits\PathNamespace;
 
 class EstablishmentServiceProvider extends ServiceProvider
@@ -25,6 +28,7 @@ class EstablishmentServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+        $this->registerPolicies();
     }
 
     /**
@@ -41,7 +45,14 @@ class EstablishmentServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Establishment\Console\SyncEstablishmentPermissionsCommand::class,
+        ]);
+    }
+
+    protected function registerPolicies(): void
+    {
+        Gate::policy(Establishment::class, EstablishmentPolicy::class);
     }
 
     /**

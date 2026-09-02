@@ -160,6 +160,10 @@ class PayrollTable
         });
 
         $datatable->addColumn('actions', function ($row) {
+            if (! \Modules\Employee\Support\EmployeeAccess::can(\Modules\Employee\Support\EmployeePermissions::PAYROLL_PRINT)) {
+                return '';
+            }
+
             return '
             <div class="text-center text-nowrap ">   
                 <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 payroll-print-btn" data-id="'.$row->id.'" >

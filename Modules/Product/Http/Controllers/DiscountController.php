@@ -11,9 +11,18 @@ use Modules\Product\Models\DiscountItem;
 use Modules\Product\Models\DiscountTime;
 use Modules\Product\Models\DiscountTimeDetail;
 use Modules\Product\Models\TreeBuilder;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class DiscountController extends Controller
+class DiscountController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'discount';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -33,6 +42,7 @@ class DiscountController extends Controller
 
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'discount');
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',

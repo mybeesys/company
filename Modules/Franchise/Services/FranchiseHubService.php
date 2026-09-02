@@ -45,6 +45,12 @@ class FranchiseHubService
             return false;
         }
 
+        if (is_array($permission)) {
+            return collect($permission)->contains(
+                fn (string $perm) => $user->hasDashboardPermission($perm)
+            );
+        }
+
         return $user->hasDashboardPermission($permission);
     }
 

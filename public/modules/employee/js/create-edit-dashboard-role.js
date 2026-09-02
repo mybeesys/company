@@ -1,3 +1,23 @@
+function initDashboardPermissionHints(root) {
+    if (typeof bootstrap === 'undefined' || !bootstrap.Popover) {
+        return;
+    }
+
+    const scope = root && root.querySelectorAll ? root : document;
+    scope.querySelectorAll('[data-ems-perm-hint]').forEach(function (el) {
+        const existing = bootstrap.Popover.getInstance(el);
+        if (existing) {
+            existing.dispose();
+        }
+        new bootstrap.Popover(el, {
+            container: 'body',
+            trigger: 'hover focus',
+            html: true,
+            sanitize: true
+        });
+    });
+}
+
 function dashboardRolePermissionsForm() {
 
     $(`input[name*="dashboard_permissions["][name*=".all."]`).on('change', function () {
@@ -8,6 +28,13 @@ function dashboardRolePermissionsForm() {
 
         // Toggle checkboxes for the specific action
         $(`input[name^="dashboard_permissions[${moduleName}"]`).filter(`[name*=".${action}"]`).not(':disabled').prop('checked', isChecked);
+
+        if (moduleName === 'screens') {
+            $(this).closest('[data-ems-perm-root]')
+                .find(`input[data-ems-companion][name="dashboard_permissions[screen_module.all.${action}]"]`)
+                .not(':disabled')
+                .prop('checked', isChecked);
+        }
 
         const dependenciesMap = {
             delete: { enable: ['update', 'create', 'print', 'show', 'delete'], disable: [] },
@@ -133,65 +160,314 @@ function dashboardRolePermissionsForm() {
 
     $(`input[name*="dashboard_permissions["]:checked`).trigger('change');
 
+    initDashboardPermissionHints();
+    emsPermissionsUi();
 }
-function fixedTableHeader() {
-    let table = $("#dashboard-permissions-table").DataTable({
-        paging: false,
-        info: false,
-        fixedHeader: {
-            header: true,
-            headerOffset: 100
-        },
-        responsive: true,
-        ordering: false,
-        autoWidth: false,
+
+function emsPermissionsUi() {
+    document.querySelectorAll('[data-ems-perm-root]').forEach(function (shell) {
+        bindEmsPermissionShell(shell);
+        refreshEmsPermissionCounts(shell);
+    });
+    bindRoleStatusCard();
+}
+
+function bindRoleStatusCard() {
+    document.querySelectorAll('[data-ems-role-status]').forEach(function (card) {
+        if (card.dataset.emsBound === '1') {
+            return;
+        }
+        const input = card.querySelector('input[name="is_active"][type="checkbox"]');
+        const label = card.querySelector('[data-ems-role-status-label]');
+        if (!input) {
+            return;
+        }
+        card.dataset.emsBound = '1';
+        const sync = function () {
+            card.classList.toggle('is-on', input.checked);
+            if (label) {
+                label.textContent = input.checked
+                    ? (card.getAttribute('data-label-on') || '')
+                    : (card.getAttribute('data-label-off') || '');
+            }
+        };
+        input.addEventListener('change', sync);
+        sync();
+    });
+}
+
+function refreshEmsPermissionCounts(root) {
+    const shells = root && root.matches && root.matches('[data-ems-perm-root]')
+        ? [root]
+        : (root && root.querySelectorAll
+            ? Array.from(root.querySelectorAll('[data-ems-perm-root]'))
+            : Array.from(document.querySelectorAll('[data-ems-perm-root]')));
+
+    shells.forEach(function (shell) {
+        const tpl = shell.getAttribute('data-ems-selected-tpl') || ':count';
+        let total = 0;
+
+        shell.querySelectorAll('[data-ems-module]').forEach(function (mod) {
+            const count = emsCountablePermissionInputs(mod).filter(function (box) { return box.checked; }).length;
+            total += count;
+            const badge = mod.querySelector('[data-ems-module-count]');
+            if (badge) {
+                badge.textContent = String(count);
+                badge.classList.toggle('has-selected', count > 0);
+            }
+            const id = mod.getAttribute('data-ems-module');
+            const chip = shell.querySelector('[data-ems-chip="' + id + '"]');
+            if (chip) {
+                const chipCount = chip.querySelector('[data-ems-chip-count]');
+                if (chipCount) {
+                    chipCount.textContent = String(count);
+                }
+                chip.classList.toggle('has-selected', count > 0);
+            }
+            syncModuleSelectAll(mod);
+        });
+
+        const totalEl = shell.querySelector('[data-ems-total]');
+        if (totalEl) {
+            totalEl.textContent = tpl.replace(':count', String(total));
+        }
+    });
+}
+
+function bindPermissionLegend(shell) {
+    const legend = shell.querySelector('[data-ems-legend]');
+    if (!legend) {
+        return;
+    }
+
+    const storageKey = 'emsPermLegendSeen';
+    let seen = false;
+    try {
+        seen = window.localStorage.getItem(storageKey) === '1';
+    } catch (e) {
+        seen = false;
+    }
+
+    if (seen) {
+        legend.remove();
+        return;
+    }
+
+    legend.hidden = false;
+    legend.classList.add('is-visible');
+    try {
+        window.localStorage.setItem(storageKey, '1');
+    } catch (e) {
+        // ignore quota / private mode
+    }
+
+    const close = legend.querySelector('[data-ems-legend-close]');
+    if (close) {
+        close.addEventListener('click', function () {
+            legend.classList.remove('is-visible');
+            legend.hidden = true;
+        });
+    }
+}
+
+function bindEmsPermissionShell(shell) {
+    if (shell.dataset.emsBound === '1') {
+        return;
+    }
+    shell.dataset.emsBound = '1';
+    bindPermissionLegend(shell);
+
+    const search = shell.querySelector('[data-ems-perm-search]');
+    const empty = shell.querySelector('[data-ems-empty]');
+    const expandAll = shell.querySelector('[data-ems-expand-all]');
+    const collapseAll = shell.querySelector('[data-ems-collapse-all]');
+
+    function setModuleOpen(mod, open) {
+        const body = mod.querySelector('.ems-perm-module__body');
+        const head = mod.querySelector('.ems-perm-module__head');
+        if (!body || typeof bootstrap === 'undefined' || !bootstrap.Collapse) {
+            return;
+        }
+        const instance = bootstrap.Collapse.getOrCreateInstance(body, { toggle: false });
+        if (open) {
+            instance.show();
+            head && head.classList.remove('collapsed');
+        } else {
+            instance.hide();
+            head && head.classList.add('collapsed');
+        }
+    }
+
+    function applySearch() {
+        const q = (search && search.value ? search.value : '').trim().toLowerCase();
+        let visibleModules = 0;
+
+        shell.querySelectorAll('[data-ems-module]').forEach(function (mod) {
+            const moduleHay = mod.getAttribute('data-ems-haystack') || '';
+            const moduleMatch = !q || moduleHay.indexOf(q) !== -1;
+            let visibleRows = 0;
+
+            mod.querySelectorAll('[data-ems-row]').forEach(function (row) {
+                const hay = row.getAttribute('data-ems-haystack') || '';
+                const show = !q || moduleMatch || hay.indexOf(q) !== -1;
+                row.classList.toggle('is-hidden', !show);
+                if (show) {
+                    visibleRows += 1;
+                }
+            });
+
+            const showModule = visibleRows > 0;
+            mod.classList.toggle('is-hidden', !showModule);
+            const id = mod.getAttribute('data-ems-module');
+            const chip = shell.querySelector('[data-ems-chip="' + id + '"]');
+            if (chip) {
+                chip.classList.toggle('d-none', !showModule);
+            }
+            if (showModule) {
+                visibleModules += 1;
+                if (q) {
+                    setModuleOpen(mod, true);
+                }
+            }
+        });
+
+        if (empty) {
+            empty.classList.toggle('is-visible', visibleModules === 0);
+        }
+    }
+
+    if (search) {
+        search.addEventListener('input', applySearch);
+    }
+
+    if (expandAll) {
+        expandAll.addEventListener('click', function () {
+            shell.querySelectorAll('[data-ems-module]:not(.is-hidden)').forEach(function (mod) {
+                setModuleOpen(mod, true);
+            });
+        });
+    }
+
+    if (collapseAll) {
+        collapseAll.addEventListener('click', function () {
+            shell.querySelectorAll('[data-ems-module]').forEach(function (mod) {
+                setModuleOpen(mod, false);
+            });
+        });
+    }
+
+    shell.querySelectorAll('[data-ems-chip]').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            const id = chip.getAttribute('data-ems-chip');
+            const mod = shell.querySelector('[data-ems-module="' + id + '"]');
+            if (!mod || mod.classList.contains('is-hidden')) {
+                return;
+            }
+            shell.querySelectorAll('[data-ems-chip]').forEach(function (other) {
+                other.classList.toggle('is-active', other === chip);
+            });
+            setModuleOpen(mod, true);
+            mod.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
     });
 
-    const targetNode = $("#dashboard-permissions-table")[0];
-    const config = {
-        childList: true,
-        subtree: true
-    };
-
-    const observer = new MutationObserver(function (mutationsList) {
-        mutationsList.forEach(function (mutation) {
-            const floatingParent = $('.dtfh-floatingparent');
-            const floatingParentChild = $('.dtfh-floatingparent > div');
-            floatingParentChild.css('padding-right', '0');
-            $('.dtfh-floatingparent').addClass('rounded-start rounded-end');
-            if (window.innerWidth < 990) {
-                floatingParent.css('top', '75px');
+    shell.querySelectorAll('.ems-perm-module__head').forEach(function (head) {
+        head.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                head.click();
             }
         });
     });
-    observer.observe(targetNode, config);
 
-    $(window).on('scroll', function () {
-        if (window.innerWidth < 990) {
-            const floatingParent = $('.dtfh-floatingparent');
-            floatingParent.css('top', '65px');
+    shell.addEventListener('change', function (e) {
+        if (e.target && e.target.matches('input.form-check-input')) {
+            refreshEmsPermissionCounts(shell);
         }
     });
 
-
-    $('#kt_app_sidebar_toggle').on('click', function () {
-        setTimeout(function () {
-            $('#dashboard-permissions-table').DataTable().fixedHeader.adjust();
-        }, 300);
+    shell.addEventListener('shown.bs.collapse', function () {
+        initDashboardPermissionHints(shell);
     });
 
-    $(window).on('resize', function () {
-        const newIsMobile = window.innerWidth < 500;
-        const floatingParentChild = $('.dtfh-floatingparent > div');
-        const floatingParent = $('.dtfh-floatingparent');
+    bindModuleSelectAll(shell);
+}
 
-        if (newIsMobile && table.fixedHeader) {
-            table.fixedHeader.disable();
-            floatingParentChild.css('padding-right', '0');
-        } else if (!newIsMobile) {
-            table.fixedHeader.enable();
-            table.fixedHeader.adjust();
-            floatingParentChild.css('padding-right', '0');
+function emsCountablePermissionInputs(mod) {
+    return Array.from(mod.querySelectorAll('input.form-check-input:not(:disabled):not([data-ems-master]):not([data-ems-companion])'));
+}
+
+function syncModuleSelectAll(mod) {
+    const master = mod.querySelector('[data-ems-module-select-all]');
+    if (!master) {
+        return;
+    }
+    const boxes = emsCountablePermissionInputs(mod);
+    if (boxes.length === 0) {
+        master.checked = false;
+        master.indeterminate = false;
+        return;
+    }
+    const checked = boxes.filter(function (box) { return box.checked; }).length;
+    master.checked = checked === boxes.length;
+    master.indeterminate = checked > 0 && checked < boxes.length;
+}
+
+function setModulePermissions(mod, want) {
+    const allBoxes = Array.from(mod.querySelectorAll('input[name*=".all."]:not(:disabled):not([data-ems-master])'));
+    const order = want
+        ? ['show', 'print', 'create', 'update', 'delete']
+        : ['delete', 'update', 'create', 'print', 'show'];
+
+    if (allBoxes.length) {
+        order.forEach(function (action) {
+            allBoxes.forEach(function (input) {
+                if (input.name.indexOf('.all.' + action + ']') === -1) {
+                    return;
+                }
+                if (input.checked !== want) {
+                    input.checked = want;
+                    $(input).trigger('change');
+                }
+            });
+        });
+        return;
+    }
+
+    mod.querySelectorAll('input.form-check-input:not(:disabled):not([data-ems-master])').forEach(function (input) {
+        if (input.checked !== want) {
+            input.checked = want;
+            $(input).trigger('change');
         }
     });
+}
+
+function bindModuleSelectAll(shell) {
+    shell.querySelectorAll('[data-ems-select-all-wrap]').forEach(function (wrap) {
+        wrap.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+        wrap.addEventListener('mousedown', function (e) {
+            e.stopPropagation();
+        });
+    });
+
+    shell.querySelectorAll('[data-ems-module-select-all]').forEach(function (master) {
+        master.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+        master.addEventListener('change', function (e) {
+            e.stopPropagation();
+            const mod = master.closest('[data-ems-module]');
+            if (!mod) {
+                return;
+            }
+            setModulePermissions(mod, master.checked);
+            refreshEmsPermissionCounts(shell);
+        });
+    });
+}
+
+function fixedTableHeader() {
+    emsPermissionsUi();
 }

@@ -51,9 +51,11 @@
             <div class="d-flex flex-wrap gap-2 flex-shrink-0">
                 <button type="button" class="btn btn-sm btn-light-primary" id="cssCollapseGroups">@lang('accounting::lang.css_collapse_all')</button>
                 <button type="button" class="btn btn-sm btn-light" id="cssExpandGroups">@lang('accounting::lang.css_expand_all')</button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::CUSTOMERS_SUPPLIERS_PRINT)
                 <button type="button" class="btn btn-sm btn-light-primary" onclick="window.print()">
                     <i class="fa fa-print"></i> @lang('general.print')
                 </button>
+                @enddashboardcan
             </div>
         </div>
     </div>
@@ -160,8 +162,10 @@
             </div>
             <div class="col-12 d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary btn-sm">@lang('report::general.filter')</button>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::CUSTOMERS_SUPPLIERS_PRINT)
                 <button type="button" id="statementExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                 <button type="button" id="statementExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
+                @enddashboardcan
             </div>
         </div>
     </form>

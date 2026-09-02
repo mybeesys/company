@@ -4,6 +4,7 @@ import SweetAlert2 from "react-sweetalert2";
 import DropdownMenu from "../../comp/DropdownMenu";
 import TreeTableComponent from "../../comp/TreeTableComponent";
 import { getName } from "../../lang/Utils";
+import { emsCan } from "../../emsCan";
 const PrepTable = ({ dir, translations }) => {
     const [showAlert, setShowAlert] = useState(false);
     const [currentRow, setCurrentRow] = useState({});
@@ -280,6 +281,7 @@ const PrepTable = ({ dir, translations }) => {
         };
 
         return (
+            emsCan("create") ? (
             <button
                 onClick={handlePrepare}
                 className="btn btn-warning"
@@ -296,6 +298,7 @@ const PrepTable = ({ dir, translations }) => {
                 ></i>
                 {translations.prepare_recipe}
             </button>
+            ) : null
         );
     };
 

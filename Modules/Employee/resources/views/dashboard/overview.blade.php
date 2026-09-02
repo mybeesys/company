@@ -24,6 +24,7 @@
     </div>
 
     @if (($linkedCompanies ?? collect())->isNotEmpty())
+        @dashboardcan(\Modules\Employee\Support\MyCompaniesPermissions::SHOW)
         <div class="card dash-card mb-6">
             <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div>
@@ -36,6 +37,7 @@
                 </a>
             </div>
         </div>
+        @enddashboardcan
     @endif
 
     <div class="row g-4 mb-6">
@@ -122,12 +124,20 @@
                     <div class="kpi-title">{{ app()->getLocale() === 'ar' ? 'إجراءات سريعة' : 'Quick Actions' }}</div>
                     <div class="row g-2">
                         @if ($canSales ?? false)
+                            @dashboardcan(\Modules\Sales\Support\SalesPermissions::INVOICES_CREATE)
                             <div class="col-6"><a href="create-invoice" class="quick-action-btn"><i class="fas fa-file-invoice text-primary"></i><span>@lang('employee::main.new_sales_invoice')</span></a></div>
+                            @enddashboardcan
+                            @dashboardcan(\Modules\Sales\Support\SalesPermissions::CUSTOMERS_CREATE)
                             <div class="col-6"><a href="client-create" class="quick-action-btn"><i class="fas fa-user-plus text-info"></i><span>@lang('employee::main.new_client')</span></a></div>
+                            @enddashboardcan
                         @endif
                         @if ($canPurchases ?? false)
+                            @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::INVOICES_CREATE)
                             <div class="col-6"><a href="create-purchases-invoice" class="quick-action-btn"><i class="fas fa-file-invoice text-success"></i><span>@lang('employee::main.new_purchase_invoice')</span></a></div>
+                            @enddashboardcan
+                            @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::SUPPLIERS_CREATE)
                             <div class="col-6"><a href="supplier-create" class="quick-action-btn"><i class="fas fa-truck text-warning"></i><span>@lang('employee::main.new_supplier')</span></a></div>
+                            @enddashboardcan
                         @endif
                     </div>
                 </div>

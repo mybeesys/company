@@ -16,17 +16,22 @@
         </button>
         <div class="dropdown-menu dropdown-menu-end coa-action-menu"
             @if (app()->getLocale() == 'ar') dir="rtl" @endif>
+            @dashboardcan([\Modules\Accounting\Support\AccountingPermissions::LEDGER_SHOW, \Modules\Accounting\Support\AccountingPermissions::ACCOUNT_STATEMENT_SHOW])
             <a class="dropdown-item ledger-link"
                 href="{{ $ledgerUrl }}"
                 onclick="event.stopPropagation();">
                 <i class="fas fa-file-alt me-2"></i>@lang('accounting::lang.ledger')
             </a>
+            @enddashboardcan
+            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_UPDATE)
                 <a class="dropdown-item coa-set-account-trigger"
                     href="#"
                     data-account='@json($accountPayload)'
                     data-bs-target="#kt_modal_edit_account">
                 <i class="fas fa-edit me-2"></i>@lang('messages.edit')
             </a>
+            @enddashboardcan
+            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_CREATE)
             @if ($canAddChild)
                 <a class="dropdown-item"
                     href="#"
@@ -41,22 +46,28 @@
                     <i class="fas fa-lock me-2"></i>@lang('accounting::lang.add_account')
                 </span>
             @endif
+            @enddashboardcan
             <div class="dropdown-divider"></div>
             @if ($account->status == 'active')
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_DEACTIVATE)
                 <a class="dropdown-item text-danger coa-set-account-trigger coa-status-modal-trigger"
                     href="#"
                     data-account='@json($accountPayload)'
                     data-bs-target="#kt_modal_deactive">
                     <i class="fas fa-power-off me-2"></i>@lang('messages.deactivate')
                 </a>
+                @enddashboardcan
             @else
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_ACTIVATE)
                 <a class="dropdown-item text-success coa-set-account-trigger coa-status-modal-trigger"
                     href="#"
                     data-account='@json($accountPayload)'
                     data-bs-target="#kt_modal_active">
                     <i class="fas fa-power-off me-2"></i>@lang('messages.activate')
                 </a>
+                @enddashboardcan
             @endif
+            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_DELETE)
             <form action="{{ route('delete-account') }}" method="POST" class="m-0"
                 onclick="event.stopPropagation();">
                 @csrf
@@ -66,6 +77,7 @@
                     <i class="fas fa-trash me-2"></i>@lang('messages.delete')
                 </button>
             </form>
+            @enddashboardcan
         </div>
     </div>
 </span>

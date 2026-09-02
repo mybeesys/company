@@ -13,9 +13,11 @@
             </ul>
         </div>
         <div class="card-toolbar">
+            @dashboardcan(\Modules\Franchise\Support\FranchisePermissions::for('Companies', 'create'))
             <button type="button" class="btn btn-primary" onclick="addCompanyModal()">
                 <i class="ki-outline ki-plus fs-2"></i> {{ __('franchise::lang.add_new') }}
             </button>
+            @enddashboardcan
         </div>
     </div>
     <table class="table align-middle table-row-dashed fs-6 gy-5" id="companies_table">

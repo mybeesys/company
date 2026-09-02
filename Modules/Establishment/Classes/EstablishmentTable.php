@@ -2,6 +2,8 @@
 
 namespace Modules\Establishment\Classes;
 
+use Modules\Establishment\Support\EstablishmentAccess;
+use Modules\Establishment\Support\EstablishmentPermissions;
 use Yajra\DataTables\DataTables;
 
 class EstablishmentTable
@@ -46,17 +48,40 @@ class EstablishmentTable
             ->addColumn(
                 'actions',
                 function ($row) {
+                    $html = '<div class="d-flex align-items-center gap-2">';
+                    $name = e($row->{get_name_by_lang()} ?? $row->name ?? '');
+
                     if ($row->deleted_at) {
-                        return '';
+                        if (EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_UPDATE)) {
+                            $html .= '<a href="#" class="btn btn-sm btn-light-success restore-btn" data-id="'.$row->id.'">'
+                                .e(__('establishment::fields.restore'))
+                                .'</a>';
+                        }
+                        if (EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_DELETE)) {
+                            $html .= '<a href="#" class="btn btn-sm btn-light-danger delete-btn" data-id="'.$row->id.'" data-deleted="1" data-name="'.$name.'">'
+                                .e(__('establishment::fields.delete'))
+                                .'</a>';
+                        }
+
+                        return $html === '<div class="d-flex align-items-center gap-2">' ? '' : $html.'</div>';
                     }
 
-                    $editUrl = url("/establishment/{$row->id}/edit");
-                    $label = e(__('establishment::general.branch_settings'));
+                    if (EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_UPDATE)) {
+                        $editUrl = url("/establishment/{$row->id}/edit");
+                        $label = e(__('establishment::general.branch_settings'));
+                        $html .= '<a href="'.$editUrl.'" class="btn btn-sm btn-light-primary btn-flex btn-center">'
+                            .'<i class="ki-outline ki-setting-2 fs-5 text-primary me-1"></i>'
+                            .'<span class="text-primary">'.$label.'</span>'
+                            .'</a>';
+                    }
 
-                    return '<a href="'.$editUrl.'" class="btn btn-sm btn-light-primary btn-flex btn-center">'
-                        .'<i class="ki-outline ki-setting-2 fs-5 text-primary me-1"></i>'
-                        .'<span class="text-primary">'.$label.'</span>'
-                        .'</a>';
+                    if (EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_DELETE)) {
+                        $html .= '<a href="#" class="btn btn-sm btn-light-danger delete-btn" data-id="'.$row->id.'" data-deleted="" data-name="'.$name.'">'
+                            .e(__('establishment::fields.delete'))
+                            .'</a>';
+                    }
+
+                    return $html === '<div class="d-flex align-items-center gap-2">' ? '' : $html.'</div>';
                 }
             )
             ->editColumn('is_active', function ($row) {
@@ -93,6 +118,10 @@ class EstablishmentTable
                 return app()->getLocale() === 'ar' ? $row->establishment->name : $row->establishment->name_en;
             })
             ->addColumn('actions', function ($row) {
+                if (! EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_UPDATE)) {
+                    return '';
+                }
+
                 return '
         <button class="btn btn-warning" onclick="deleteDevice('.$row->id.')">
             '.__('establishment::fields.delete').'

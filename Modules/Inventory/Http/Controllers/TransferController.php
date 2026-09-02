@@ -4,15 +4,24 @@ namespace Modules\Inventory\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\DB;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Inventory\Models\TransactionUtil;
+use Modules\Inventory\Support\AuthorizesInventoryPages;
+use Modules\Inventory\Support\InventoryAccess;
 
-class TransferController extends Controller
+class TransferController extends Controller implements HasMiddleware
 {
+    use AuthorizesInventoryPages;
+
+    protected static function inventoryAuthEntity(): string
+    {
+        return 'transfer';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -49,6 +58,7 @@ class TransferController extends Controller
 
     public function store(Request $request)
     {
+        InventoryAccess::authorizeMutation($request, 'transfer');
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'transaction_date' => 'nullable|date',

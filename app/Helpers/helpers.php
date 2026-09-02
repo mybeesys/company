@@ -157,12 +157,12 @@ if (! function_exists('tenant_public_storage_url_for_db_path')) {
         try {
             $generated = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
         } catch (\Throwable $e) {
-            $generated = '/storage/' . $path;
+            $generated = '/storage/'.$path;
         }
 
         $urlPath = parse_url((string) $generated, PHP_URL_PATH);
         if (! is_string($urlPath) || $urlPath === '') {
-            $urlPath = '/storage/' . $path;
+            $urlPath = '/storage/'.$path;
         }
 
         // Stancl: files live under storage/{suffix_base}{tenant_id}/…; URLs must include that segment
@@ -170,9 +170,9 @@ if (! function_exists('tenant_public_storage_url_for_db_path')) {
         if (function_exists('tenancy') && tenancy()->tenant) {
             $suffixBase = (string) config('tenancy.filesystem.suffix_base', 'tenant');
             $tenantKey = (string) tenant('id');
-            $tenantSeg = $suffixBase . $tenantKey;
-            if ($tenantSeg !== '' && preg_match('#^/storage/(?!' . preg_quote($tenantSeg, '#') . '/)(.+)$#', $urlPath, $m)) {
-                $urlPath = '/storage/' . $tenantSeg . '/' . $m[1];
+            $tenantSeg = $suffixBase.$tenantKey;
+            if ($tenantSeg !== '' && preg_match('#^/storage/(?!'.preg_quote($tenantSeg, '#').'/)(.+)$#', $urlPath, $m)) {
+                $urlPath = '/storage/'.$tenantSeg.'/'.$m[1];
             }
         }
 
@@ -180,7 +180,7 @@ if (! function_exists('tenant_public_storage_url_for_db_path')) {
             return asset($urlPath);
         }
 
-        return $host . $urlPath;
+        return $host.$urlPath;
     }
 }
 
@@ -207,7 +207,7 @@ if (! function_exists('central_public_storage_url_for_path')) {
 
         $base = rtrim((string) config('app.url'), '/');
 
-        return $base . '/storage/' . $path;
+        return $base.'/storage/'.$path;
     }
 }
 
@@ -273,7 +273,7 @@ if (! function_exists('embed_url')) {
             return $url;
         }
 
-        return $url . $separator . 'embed=1';
+        return $url.$separator.'embed=1';
     }
 }
 
@@ -294,14 +294,14 @@ if (! function_exists('menu_hub_is_active')) {
 
         if (! empty($hub['path_prefix'])) {
             $prefix = ltrim((string) $hub['path_prefix'], '/');
-            if (request()->is($prefix) || request()->is($prefix . '/*')) {
+            if (request()->is($prefix) || request()->is($prefix.'/*')) {
                 return true;
             }
         }
 
         foreach ($hub['path_prefixes'] ?? [] as $prefix) {
             $prefix = ltrim((string) $prefix, '/');
-            if ($prefix !== '' && (request()->is($prefix) || request()->is($prefix . '/*'))) {
+            if ($prefix !== '' && (request()->is($prefix) || request()->is($prefix.'/*'))) {
                 return true;
             }
         }
@@ -328,5 +328,17 @@ if (! function_exists('menu_hub_is_active')) {
         }
 
         return false;
+    }
+}
+
+if (! function_exists('dashboard_can')) {
+    /**
+     * EMS dashboard permission check (OR if an array / comma-separated list is given).
+     *
+     * @param  string|list<string>  $permissions
+     */
+    function dashboard_can(string|array $permissions): bool
+    {
+        return \Modules\Employee\Support\DashboardAccess::allows(auth()->user(), $permissions);
     }
 }

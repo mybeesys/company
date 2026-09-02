@@ -5,6 +5,7 @@ namespace Modules\Reservation\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Support\SettingAccess;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Reservation\Models\Area;
 use Modules\Reservation\Models\Table;
@@ -119,6 +120,8 @@ class AreaController extends Controller
      */
     public function store(Request $request)
     {
+        SettingAccess::authorizeAreaMutation($request);
+
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',

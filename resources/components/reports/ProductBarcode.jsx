@@ -7,6 +7,7 @@ import { InputSwitch } from "primereact/inputswitch";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import { getRowName } from "../lang/Utils";
+import { emsCan } from "../emsCan";
 
 const animatedComponents = makeAnimated();
 
@@ -54,6 +55,7 @@ const ProductBarcode = ({ translations, dir }) => {
             translations={translations}
             submitTitle={translations.print}
             submitAction={handlePrint}
+            showSubmit={emsCan("print")}
             defaultMenu={[
                 {
                     size: 3,

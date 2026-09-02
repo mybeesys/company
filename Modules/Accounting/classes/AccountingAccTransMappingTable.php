@@ -2,6 +2,8 @@
 
 namespace Modules\Accounting\classes;
 
+use Modules\Accounting\Support\AccountingAccess;
+use Modules\Accounting\Support\AccountingPermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 class AccountingAccTransMappingTable
@@ -78,30 +80,30 @@ class AccountingAccTransMappingTable
                             <a href="'.url("/journal-entry-show/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.show').'</a>
                         </div>';
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (AccountingAccess::can(AccountingPermissions::JOURNAL_UPDATE)) {
+                        $actions .= '<div class="menu-item px-3">
                             <a href="'.url("/journal-entry-edit/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.edit').'</a>
                         </div>';
+                    }
 
-                    if ($row->is_manual) {
+                    if ($row->is_manual && AccountingAccess::can(AccountingPermissions::JOURNAL_DUPLICATE)) {
                         $actions .= '<div class="menu-item px-3">
                         <a href="'.url("/journal-entry-duplication/{$row->id}").'" class="menu-link px-3">'.__('accounting::fields.duplication').'</a>
                     </div>';
                     }
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (AccountingAccess::can(AccountingPermissions::JOURNAL_PRINT)) {
+                        $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/journal-entry-print/{$row->id}").'" class="menu-link px-3">'.__('accounting::fields.print').'</a>
                 </div>';
+                    }
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (AccountingAccess::can(AccountingPermissions::JOURNAL_DELETE)) {
+                        $actions .= '<div class="menu-item px-3">
                                     <a class="menu-link px-3 delete-btn" href="'.url("/journal-entry-destroy/{$row->id}").'" data-id="'.$row->id.'"  data-ref_no="'.$row->ref_no.'">'.__('employee::fields.delete').'</a>
                                 </div>';
+                    }
 
-                    // $row->deleted_at ? $actions .=
-                    //     '<div class="menu-item px-3">
-                    //             <a class="menu-link px-3 restore-btn" data-id="' . $row->id . '">' . __('employee::fields.restore') . '</a>
-                    //         </div></div>' : $actions .= '<div class="menu-item px-3">
-                    //             <a href="' . url("/employee/show/{$row->id}") . '" class="menu-link px-3 show-btn" data-id="' . $row->id . '">' . __('employee::fields.show') . '</a>
-                    //         </div></div>';
                     return $actions;
                 }
             )

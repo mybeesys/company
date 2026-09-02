@@ -3,58 +3,46 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Employee\Support\EmployeeAccess;
+use Modules\Employee\Support\EmployeePermissions;
 
 class PayrollPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(): bool
+    public function viewAny(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_SHOW);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(): bool
+    public function view(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payroll.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_SHOW);
     }
 
-    public function printAll()
+    public function printAll(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls.print');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_PRINT);
     }
 
-    public function print()
+    public function print(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payroll.print');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLL_PRINT);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(): bool
+    public function create(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payroll.create');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLL_CREATE);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(): bool
+    public function update(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payroll.update');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLL_CREATE);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(): bool
+    public function delete(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payroll.delete');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_GROUP_DELETE);
     }
 }

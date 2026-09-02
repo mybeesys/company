@@ -9,9 +9,18 @@ use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\Attribute;
 use Modules\Product\Models\AttributeClass;
 use Modules\Product\Models\TreeBuilder;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class AttributesClassController extends Controller
+class AttributesClassController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'attributeClass';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -51,6 +60,7 @@ class AttributesClassController extends Controller
      */
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'attributeClass');
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',

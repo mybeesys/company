@@ -6,6 +6,7 @@ import axios from "axios";
 import SweetAlert2 from "react-sweetalert2";
 import { defaultMenuTime } from "./DefaultTimesSlots";
 import Select from "react-select";
+import { emsCan, emsCanEditOrSave } from "../emsCan";
 
 const defaultValue = {
     application_type: 0,
@@ -205,12 +206,14 @@ const TreeTableCustomMenu = ({
         const indent = node.key.toString().split("-").length;
         if (key == "name_ar" && !!node.data.empty) {
             return (
+                emsCan("create") ? (
                 <a
                     href="#"
                     onClick={(e) =>
                         addInline(node.key, node.data.type, node.data.parentKey)
                     }
                 >{`${translations.Add} ${translations[node.data.type]}`}</a>
+                ) : null
             );
         } else {
             return node.key == currentKey ? (
@@ -431,6 +434,7 @@ const TreeTableCustomMenu = ({
             <div className="flex flex-wrap gap-2">
                 {currentKey == "-1" ||
                 (currentKey != "-1" && node.key == currentKey) ? (
+                    emsCanEditOrSave(currentKey != "-1" && node.key == currentKey) ? (
                     <a
                         href="#"
                         onClick={() => {
@@ -452,6 +456,9 @@ const TreeTableCustomMenu = ({
                             }
                         ></i>
                     </a>
+                    ) : (
+                    <></>
+                    )
                 ) : (
                     <></>
                 )}
@@ -464,7 +471,7 @@ const TreeTableCustomMenu = ({
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                {!data.isNew && data.id && (
+                {!data.isNew && data.id && emsCan("delete") && (
                     <a
                         href="javascript:void(0);"
                         onClick={() => openDeleteModel(data)}
@@ -496,6 +503,7 @@ const TreeTableCustomMenu = ({
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                        {emsCan("create") ? (
                         <a
                             href="#"
                             class="btn btn-primary"
@@ -503,6 +511,7 @@ const TreeTableCustomMenu = ({
                         >
                             {translations.Add}
                         </a>
+                        ) : null}
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}

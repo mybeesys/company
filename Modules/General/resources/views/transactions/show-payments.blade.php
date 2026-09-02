@@ -144,7 +144,7 @@
 
 
 
-    @if ($amount != 0)
+    @if ($amount != 0 && \Modules\Sales\Support\SalesAccess::canAddPayment($transaction) && \Modules\Purchases\Support\PurchasesAccess::canAddPayment($transaction))
         <div class="card-header border-0 p-0">
             <h3 class="card-title align-items-start flex-column mb-3">
                 <span class="card-label fw-bold fs-3 mb-1 px-3">@lang('general::lang.add_payment') </span>

@@ -240,9 +240,11 @@
                 <a href="{{ url('Register-Report') }}" class="btn btn-light border">
                     <i class="bi bi-arrow-left me-1"></i>@lang('accounting::lang.back')
                 </a>
+                @dashboardcan(\Modules\Report\Support\ReportPermissions::REGISTER_PRINT)
                 <a href="{{ route('register-report.print', $register->id) }}" target="_blank" rel="noopener" class="btn btn-primary">
                     <i class="bi bi-printer me-1"></i>@lang('report::fields.print')
                 </a>
+                @enddashboardcan
             </div>
         </div>
     </div>

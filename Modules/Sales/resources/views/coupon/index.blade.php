@@ -22,7 +22,8 @@
             <div class="tab-pane fade show active" id="coupons_tab" role="tabpanel">
                 <x-cards.card>
                     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                        <x-tables.table-header :search="false" model="coupon" module="sales">
+                        <x-tables.table-header :search="false" model="coupon" module="sales"
+                            :addButton="dashboard_can(\Modules\Sales\Support\SalesPermissions::COUPON_CREATE)">
                             <x-slot:filters>
                                 <x-tables.filters-dropdown submitButtonClass="coupon_submit_button"
                                     resetButtonClass="coupon_reset_button">

@@ -48,7 +48,9 @@ class PurchasesServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Purchases\Console\SyncPurchasesPermissionsCommand::class,
+        ]);
     }
 
     /**

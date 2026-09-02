@@ -88,7 +88,9 @@
         <div class="tab-pane fade" id="devices_table_tab" role="tabpanel">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3>@lang('establishment::general.devices')</h3>
-                <button id="addDeviceBtn" class="btn btn-primary">@lang('establishment::general.add_device')</button>
+                @if (dashboard_can(\Modules\Establishment\Support\EstablishmentPermissions::ESTABLISHMENT_UPDATE))
+                    <button id="addDeviceBtn" class="btn btn-primary">@lang('establishment::general.add_device')</button>
+                @endif
             </div>
             <div id="devicesTableContent">
                 <x-establishment::devices.table :columns=$deviceColumns />
@@ -195,6 +197,10 @@
             }
         });
         function appendEstTreeSettingsLinks() {
+            const canUpdateBranch = @json(dashboard_can(\Modules\Establishment\Support\EstablishmentPermissions::ESTABLISHMENT_UPDATE));
+            if (! canUpdateBranch) {
+                return;
+            }
             const branchSettingsLabel = @json(__('establishment::general.branch_settings'));
             const tree = $('#est_tree').jstree(true);
 

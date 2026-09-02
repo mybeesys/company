@@ -167,6 +167,7 @@
                 </div>
             </div>
 
+            @dashboardcan(\Modules\Employee\Support\ReferralsPermissions::CREATE)
             <div class="card dash-card mb-6">
                 <div class="card-body">
                     <h4 class="mb-4">@lang('employee::referrals.send_email')</h4>
@@ -188,6 +189,7 @@
                     </form>
                 </div>
             </div>
+            @enddashboardcan
 
             <div class="row g-4">
                 <div class="col-lg-6">

@@ -27,4 +27,5 @@ return [
     'company_not_found' => 'Company not found.',
     'no_subscription_found' => 'No subscription found.',
     'subscription_expired' => 'Subscription has expired.',
+    'permission_denied' => 'You do not have permission to perform this action.',
 ];

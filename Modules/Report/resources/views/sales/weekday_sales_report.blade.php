@@ -60,6 +60,7 @@
                     <h3 class="mb-0">@lang('menuItemLang.weekday-sales-report')</h3>
                     <div class="text-muted fs-7 mt-1">@lang('report::general.weekday_sales_hub_card_hint')</div>
                 </div>
+                @dashboardcan(\Modules\Report\Support\ReportPermissions::WEEKDAY_SALES_PRINT)
                 <div class="card-toolbar sc-export-toolbar">
                     <span class="sc-export-toolbar__label d-none d-sm-inline">@lang('report::general.export_actions_label')</span>
                     <div class="btn-group sc-export-btn-group" role="group" aria-label="@lang('report::general.export_actions_label')">
@@ -79,6 +80,7 @@
                         </button>
                     </div>
                 </div>
+                @enddashboardcan
             </x-cards.card-header>
 
             <div class="card-body border-top p-5">

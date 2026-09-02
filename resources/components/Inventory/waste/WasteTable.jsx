@@ -4,6 +4,7 @@ import SweetAlert2 from "react-sweetalert2";
 import DropdownMenu from "../../comp/DropdownMenu";
 import TreeTableComponent from "../../comp/TreeTableComponent";
 import Swal from "sweetalert2";
+import { emsCan } from "../../emsCan";
 
 const WasteTable = ({ dir, translations }) => {
     const rootElement = document.getElementById("root");
@@ -44,7 +45,7 @@ const WasteTable = ({ dir, translations }) => {
 
     const dropdownCell = (data, key, editMode, editable, refreshTree) => {
         let actions = [];
-        if (data.status !== "approved") {
+        if (data.status !== "approved" && emsCan("update")) {
             actions.push({
                 key: "approved",
                 action: (data, afterExecute) => {

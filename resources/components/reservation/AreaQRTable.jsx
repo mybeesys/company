@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { getRowName } from "../lang/Utils";
+import { emsCan } from "../emsCan";
 
 const AreaQRTable = ({translations, dir }) => {
     const rootElement = document.getElementById('root');
@@ -79,7 +80,7 @@ const AreaQRTable = ({translations, dir }) => {
                                 marginTop: "10px",
                             }}
                         >
-                            {/* Download Button */}
+                            {emsCan("print") ? (
                             <button
                                 onClick={(e)=>downloadQRCode(table.data.code)}
                                 style={{
@@ -94,6 +95,7 @@ const AreaQRTable = ({translations, dir }) => {
                             >
                                 📥
                             </button>
+                            ) : null}
 
                             {/* Visit Link Button */}
                             <a

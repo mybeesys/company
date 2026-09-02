@@ -130,7 +130,7 @@ return [
     'product-sales-report' => 'Product sales report',
     'product-purchase-report' => 'Product purchases report',
     'purchase-payment-report' => 'Purchase report',
-    'payment-reports' => 'Reports hub',
+    'payment-reports' => 'General reports',
     'Register-Report' => 'Cash register report',
     'sell-payment-report' => 'Sell report',
     'product-inventory-report' => 'Inventory operations report',

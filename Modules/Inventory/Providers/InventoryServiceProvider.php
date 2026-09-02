@@ -48,7 +48,9 @@ class InventoryServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Inventory\Console\SyncInventoryPermissionsCommand::class,
+        ]);
     }
 
     /**

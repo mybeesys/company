@@ -277,4 +277,4 @@
         <div class="text-muted fs-7">{{ __('Allowed file types: png, jpg, jpeg.') }}</div>
     </div>
 </div>
-<x-form.form-buttons id="company_settings_form" />
+<x-form.form-buttons id="company_settings_form" :showSubmit="dashboard_can([\Modules\Establishment\Support\EstablishmentPermissions::COMPANY_UPDATE, \Modules\General\Support\SettingPermissions::GENERAL_UPDATE])" />

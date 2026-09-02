@@ -3,45 +3,41 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Employee\Support\EmployeeAccess;
+use Modules\Employee\Support\EmployeePermissions;
 
 class PayrollGroupPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(): bool
+    public function viewAny(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls_groups.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_GROUPS_SHOW);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(): bool
+    public function view(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls_group.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_GROUP_SHOW);
     }
 
-    public function print()
+    public function print(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls_groups.print');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_GROUPS_PRINT);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(): bool
+    public function printAll(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls_group.update');
+        return $this->print($user);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(): bool
+    public function update(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.payrolls_group.delete');
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_GROUP_UPDATE);
+    }
+
+    public function delete(?Authenticatable $user): bool
+    {
+        return EmployeeAccess::allows($user, EmployeePermissions::PAYROLLS_GROUP_DELETE);
     }
 }

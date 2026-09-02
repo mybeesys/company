@@ -23,13 +23,13 @@
             'url' => '/payment-reports',
             'label' => __('menuItemLang.reports_module'),
             'icon' => 'ki-outline ki-chart-simple',
-            'permission' => 'reports_module.all.show',
+            'permission' => \Modules\Report\Support\ReportPermissions::menuShowAny(),
         ],
         [
             'url' => '/accounting-reports',
             'label' => __('general.accounting_reports'),
             'icon' => 'ki-outline ki-chart-line-up',
-            'permission' => 'accountingReports.all.show',
+            'permission' => \Modules\Accounting\Support\AccountingPermissions::reportShowAny(),
         ],
         [
             'url' => route('inventory.dashboard'),
@@ -41,13 +41,13 @@
             'url' => route('sales-dashbord'),
             'label' => __('general.sales_dashboard'),
             'icon' => 'ki-outline ki-dollar',
-            'permission' => 'sales.all.show',
+            'permission' => 'sales.Dashboard.show',
         ],
         [
             'url' => '/main',
             'label' => __('general.screens'),
             'icon' => 'ki-outline ki-screen',
-            'permission' => 'screen_module.all.show',
+            'permission' => \Modules\Screen\Support\ScreenPermissions::menuShowAny(),
         ],
         [
             'url' => '/general-setting',
@@ -351,10 +351,12 @@
                         </div>
 
                         <div class="user-workspace-links">
+                            @dashboardcan(\Modules\Employee\Support\MyCompaniesPermissions::SHOW)
                             <a href="{{ route('my-companies.index') }}" class="user-workspace-link">
                                 <i class="ki-outline ki-element-11 fs-5"></i>
                                 <span>@lang('employee::my_companies.menu')</span>
                             </a>
+                            @enddashboardcan
                             <a href="{{ url('/subscription') }}" class="user-workspace-link">
                                 <i class="ki-outline ki-crown fs-5"></i>
                                 <span>@lang('general.subscriptions')</span>

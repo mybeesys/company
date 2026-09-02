@@ -66,6 +66,13 @@ class PayrollAdjustmentTypeController extends Controller
         ]);
     }
 
+    public function update(Request $request, PayrollAdjustmentType $adjustmentType)
+    {
+        $request->merge(['id' => $adjustmentType->id]);
+
+        return $this->store($request);
+    }
+
     public function destroy(PayrollAdjustmentType $adjustmentType)
     {
         try {

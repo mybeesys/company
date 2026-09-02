@@ -27,9 +27,11 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('messages.cancel')</button>
                     @if ($quotations->isEmpty())
+                        @dashboardcan(\Modules\Sales\Support\SalesPermissions::QUOTATIONS_CREATE)
                         <a href="{{ route('create-quotation') }}" class="btn btn-primary">
                             @lang('sales::general.add_quotation')
                         </a>
+                        @enddashboardcan
                     @else
                         <button type="submit" class="btn btn-primary">
                             @lang('sales::lang.Create a sales invoice')

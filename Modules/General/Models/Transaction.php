@@ -3,15 +3,19 @@
 namespace Modules\General\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Builder;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Utils\TransactionUtils;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Purchases\Support\PurchasesPermissions;
+use Modules\Sales\Support\SalesAccess;
+use Modules\Sales\Support\SalesPermissions;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Zatca\Models\ZatcaInvoiceSync;
 use Modules\Zatca\Support\ZatcaTransactionListBadge;
@@ -314,7 +318,7 @@ class Transaction extends Model
                     $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">';
 
-                    if ($isSellDraft) {
+                    if ($isSellDraft && SalesAccess::can(SalesPermissions::INVOICES_CREATE)) {
                         $actions .= '<div class="menu-item px-3">
                     <a href="'.route('edit-invoice', $row->id).'" class="menu-link px-3">'.e(__('employee::fields.edit')).'</a>
                 </div>';
@@ -327,7 +331,7 @@ class Transaction extends Model
                         $actions .= '<div class="separator my-2"></div>';
                     }
 
-                    if ($isPurchasesDraft) {
+                    if ($isPurchasesDraft && PurchasesAccess::can(PurchasesPermissions::INVOICES_CREATE)) {
                         $actions .= '<div class="menu-item px-3">
                     <a href="'.route('edit-purchases-invoice', $row->id).'" class="menu-link px-3">'.e(__('employee::fields.edit')).'</a>
                 </div>';
@@ -340,33 +344,37 @@ class Transaction extends Model
                         $actions .= '<div class="separator my-2"></div>';
                     }
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canTransaction($row, 'show') && PurchasesAccess::canTransaction($row, 'show')) {
+                        $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/transaction-show/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.show').'</a>
                 </div>';
+                    }
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canTransaction($row, 'print') && PurchasesAccess::canTransaction($row, 'print')) {
+                        $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/transaction-print/{$row->id}").'" class="menu-link px-3">'.__('general.print').'</a>
             </div>';
+                    }
 
-                    if ($row->type === 'sell' && ! $isSellDraft) {
+                    if ($row->type === 'sell' && ! $isSellDraft && SalesAccess::can(SalesPermissions::INVOICES_CREATE)) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.route('create-invoice', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
             </div>';
                     }
 
-                    if ($row->type === 'purchases' && ! $isPurchasesDraft) {
+                    if ($row->type === 'purchases' && ! $isPurchasesDraft && PurchasesAccess::can(PurchasesPermissions::INVOICES_CREATE)) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.route('create-purchases-invoice', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
             </div>';
                     }
 
-                    if ($row->type === 'quotation') {
+                    if ($row->type === 'quotation' && SalesAccess::can(SalesPermissions::QUOTATIONS_CREATE)) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.route('create-quotation', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
             </div>';
                     }
 
-                    if ($row->type === 'purchases-order') {
+                    if ($row->type === 'purchases-order' && PurchasesAccess::can(PurchasesPermissions::ORDERS_CREATE)) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.route('create-purchase-order', ['duplicate_from' => $row->id, 'type' => 'duplication']).'" class="menu-link px-3">'.e(__('messages.duplicate')).'</a>
             </div>';
@@ -374,31 +382,41 @@ class Transaction extends Model
 
                     $completedReturn = Transaction::where('parent_id', $row->id)->where('type', 'sell-return')->where('po_status', 'completed')->first();
 
-                    if ($isFinalizedSell && ! $completedReturn) {
+                    if ($isFinalizedSell && ! $completedReturn && SalesAccess::can([SalesPermissions::CREATE_INVOICE_RETURN, SalesPermissions::RETURNS_CREATE])) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/create-sell-return/{$row->id}").'" class="menu-link px-3">'.__('general::lang.sell-return').'</a>
             </div>';
                     }
 
-                    if ($row->type == 'purchases' && ! $isPurchasesDraft) {
+                    if ($row->type == 'purchases' && ! $isPurchasesDraft && PurchasesAccess::can([PurchasesPermissions::CREATE_INVOICE_RETURN, PurchasesPermissions::RETURNS_CREATE])) {
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/create-purchases-return/{$row->id}").'" class="menu-link px-3">'.__('general::lang.purchases-return').'</a>
             </div>';
                     }
 
                     if (($row->type == 'sell-return' || $row->type == 'purchases-return') && $row->parent_id) {
-                        $actions .= '<div class="menu-item px-3">
+                        $canReference = $row->type === 'sell-return'
+                            ? SalesAccess::can(SalesPermissions::REFERENCE_INVOICE_SHOW)
+                            : PurchasesAccess::can(PurchasesPermissions::REFERENCE_INVOICE_SHOW);
+                        if ($canReference) {
+                            $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/transaction-print/{$row->parent_id}").'" class="menu-link px-3">'.__('general::lang.transaction-parent').'</a>
             </div>';
+                        }
                     }
 
                     if ($row->type != 'quotation' && $row->type != 'purchases-order' && ! $isSellDraft && ! $isPurchasesDraft) {
                         if ($row->payment_status == 'due' || $row->payment_status == 'partial') {
-                            $actions .= '<div class="menu-item px-3">
+                            if (SalesAccess::canAddPayment($row) && PurchasesAccess::canAddPayment($row)) {
+                                $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/transaction-show-payments/{$row->id}").'" class="menu-link px-3">'.__('general::lang.add_payment').'</a>
                 </div>';
-                        } else {
-
+                            } elseif (SalesAccess::canShowPayments($row) && PurchasesAccess::canShowPayments($row)) {
+                                $actions .= '<div class="menu-item px-3">
+                    <a href="'.url("/transaction-show-payments/{$row->id}").'" class="menu-link px-3">'.__('general::lang.show_payment').'</a>
+                </div>';
+                            }
+                        } elseif (SalesAccess::canShowPayments($row) && PurchasesAccess::canShowPayments($row)) {
                             $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/transaction-show-payments/{$row->id}").'" class="menu-link px-3">'.__('general::lang.show_payment').'</a>
                 </div>';

@@ -330,6 +330,12 @@ class CostCenterConrollerController extends Controller
         try {
             $costCenter = AccountingCostCenter::find($request->cost_center_id);
 
+            if (! $costCenter) {
+                return redirect()->route('cost-center-index')->with('error', __('messages.something_went_wrong'));
+            }
+
+            \Modules\Accounting\Support\AccountingAccess::authorizeCostCenterToggle($costCenter);
+
             $costCenter->active = $costCenter->active == 1 ? 0 : 1;
             $costCenter->save();
 

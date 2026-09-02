@@ -29,8 +29,10 @@
                         <span class="fw-bolder"> @lang('sales::lang.no_quotation')</span> <br>
                         @lang('sales::lang.create_suggestion_quotation')
                     </h4>
+                    @dashboardcan(\Modules\Sales\Support\SalesPermissions::QUOTATIONS_CREATE)
                     <a href="{{ route('create-quotation') }}"
                         class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_quotation')</a>
+                    @enddashboardcan
                 </div>
 
             </div>
@@ -38,7 +40,8 @@
     @else
         <div class="card card-flush">
             <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-                <x-tables.table-header model="quotation" url="create-quotation" module="sales">
+                <x-tables.table-header model="quotation" url="create-quotation" module="sales"
+                    :addButton="dashboard_can(\Modules\Sales\Support\SalesPermissions::QUOTATIONS_CREATE)">
                     <x-slot:filters>
                     </x-slot:filters>
                     <x-slot:export>

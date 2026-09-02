@@ -8,6 +8,7 @@
       data-type = "openInventory"
 	  base-url="{{ json_encode(route('productInventory.index'))}}"
     template-url="{{'/assets/media/svg/files/inventories.xlsx'}}"
+    ems-can="{{ \Modules\Inventory\Support\InventoryAccess::uiJson('import') }}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"></div>
 
 @endsection

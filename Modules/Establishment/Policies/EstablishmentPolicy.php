@@ -3,69 +3,53 @@
 namespace Modules\Establishment\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Modules\Establishment\Support\EstablishmentAccess;
+use Modules\Establishment\Support\EstablishmentPermissions;
 
 class EstablishmentPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishments.show');
+        return EstablishmentAccess::can([
+            EstablishmentPermissions::ESTABLISHMENTS_SHOW,
+            EstablishmentPermissions::ESTABLISHMENT_SHOW,
+        ]);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishment.show');
+        return EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_SHOW);
     }
 
-    public function print()
+    public function print(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishments.print');
+        return EstablishmentAccess::can(EstablishmentPermissions::ALL_PRINT);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishment.create');
+        return EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_CREATE);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishment.update');
+        return EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_UPDATE);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishment.delete');
+        return EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_DELETE);
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishment.update');
+        return EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_UPDATE);
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(): bool
     {
-        return auth()->user()->hasDashboardPermission('establishments.establishment.delete');
+        return EstablishmentAccess::can(EstablishmentPermissions::ESTABLISHMENT_DELETE);
     }
 }

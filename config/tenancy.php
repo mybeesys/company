@@ -200,11 +200,12 @@ return [
             'Modules/ClientsAndSuppliers/database/migrations/tenant',
             'Modules/Sales/database/migrations/tenant',
             'Modules/General/database/migrations/tenant',
-            'Modules/purchases/database/migrations/tenant',
+            'Modules/Purchases/database/migrations/tenant',
             'Modules/Screen/database/migrations/tenant',
             'Modules/Reservation/database/migrations/tenant',
             'Modules/Expense/database/migrations/tenant',
             'Modules/Zatca/database/migrations/tenant',
+            'Modules/Report/database/migrations/tenant',
         ],
 
         '--realpath' => true,

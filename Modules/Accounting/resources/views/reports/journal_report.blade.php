@@ -115,11 +115,13 @@
                                 <i class="fas fa-search me-1"></i>{{ __('accounting::lang.search') }}
                             </button>
                             <a href="{{ route('journal-report') }}" class="btn btn-light btn-sm">{{ __('accounting::lang.clear_filters') }}</a>
+                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::JOURNAL_LEDGER_PRINT)
                             <button type="button" class="btn btn-light-primary btn-sm" onclick="window.print()">
                                 <i class="fas fa-print me-1"></i>{{ __('accounting::lang.print_full_report') }}
                             </button>
                             <button type="button" id="journalExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                             <button type="button" id="journalExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
+                            @enddashboardcan
                         </div>
                     </div>
                 </form>

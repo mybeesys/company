@@ -1,4 +1,5 @@
-<div class="tab-pane fade show" id="prefix_settings_tab" role="tabpanel">
+@php $firstH = \Modules\General\Support\SettingAccess::firstHorizontal(); @endphp
+<div class="tab-pane fade {{ $firstH === 'prefix' ? 'show active' : '' }}" id="prefix_settings_tab" role="tabpanel">
     <div class="container">
         <form id="update-prefix" method="POST" action="{{ route('update-prefix') }}">
             @csrf
@@ -58,9 +59,11 @@
             <div class="separator d-flex flex-center m-5">
                 <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
             </div>
+            @dashboardcan(\Modules\General\Support\SettingPermissions::for('prefix', 'update'))
             <button type="submit" style="border-radius: 6px;" class="btn btn-primary w-200px">
                 @lang('messages.save')
             </button>
+            @enddashboardcan
         </form>
 
     </div>

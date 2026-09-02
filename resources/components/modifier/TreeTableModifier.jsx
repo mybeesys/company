@@ -5,6 +5,7 @@ import DeleteModal from "../product/DeleteModal";
 import axios from "axios";
 import SweetAlert2 from "react-sweetalert2";
 import { getRowName } from "../lang/Utils";
+import { emsCan, emsCanEditOrSave } from "../emsCan";
 
 const defaultObjectValue = { active: 1 };
 const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
@@ -287,6 +288,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
         }
         if (key == "name_ar" && !!node.data.empty) {
             return (
+                emsCan("create") ? (
                 <a
                     href="javascript:void(0);"
                     onClick={(e) =>
@@ -304,6 +306,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                           ? translations.AddNewmodifierClass
                           : `${translations.Add} ${translations[node.data.type]}`
                 }</a>
+                ) : null
             );
         } else {
             return node.key == currentKey ? (
@@ -424,6 +427,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
             <div className="flex flex-wrap gap-2">
                 {currentKey == "-1" ||
                 (currentKey != "-1" && node.key == currentKey) ? (
+                    emsCanEditOrSave(currentKey != "-1" && node.key == currentKey) ? (
                     <a
                         href="javascript:void(0);"
                         onClick={() => {
@@ -445,6 +449,9 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                             }
                         ></i>
                     </a>
+                    ) : (
+                    <></>
+                    )
                 ) : (
                     <></>
                 )}
@@ -457,7 +464,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                {!data.isNew && data.id && (
+                {!data.isNew && data.id && emsCan("delete") && (
                     <a
                         href="javascript:void(0);"
                         onClick={() => openDeleteModel(data)}
@@ -529,6 +536,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                        {emsCan("create") ? (
                         <a
                             href="javascript:void(0);"
                             class="btn btn-primary"
@@ -536,6 +544,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                         >
                             {translations.Add}
                         </a>
+                        ) : null}
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}

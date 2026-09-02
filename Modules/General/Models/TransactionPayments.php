@@ -2,12 +2,14 @@
 
 namespace Modules\General\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Sales\Support\SalesAccess;
 use Modules\Sales\Utils\SalesUtile;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -147,6 +149,7 @@ class TransactionPayments extends Model
                 if (! $tx) {
                     return '--';
                 }
+
                 return '<a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6" href="'.url("/transaction-show/{$tx->id}").'">'.$tx->ref_no.'</a>';
             })
             ->editColumn('client', function ($row) {
@@ -163,9 +166,11 @@ class TransactionPayments extends Model
                     $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">';
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canReceipt($row, 'show') && PurchasesAccess::canReceipt($row, 'show')) {
+                        $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/show-receipts-payments/{$row->id}").'" class="menu-link px-3">'.__('messages.view').'</a>
             </div>';
+                    }
 
                     $editUrl = route('receipts-payments.edit', $row);
                     $dupUrl = route('receipts-payments.duplicate', $row);
@@ -176,13 +181,18 @@ class TransactionPayments extends Model
                     $swalConfirm = e(__('sales::lang.delete_receipt_confirm_btn'));
                     $swalCancel = e(__('messages.cancel'));
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canReceipt($row, 'update') && PurchasesAccess::canReceipt($row, 'update')) {
+                        $actions .= '<div class="menu-item px-3">
                 <a href="'.$editUrl.'" class="menu-link px-3">'.__('messages.edit').'</a>
             </div>';
-                    $actions .= '<div class="menu-item px-3">
+                    }
+                    if (SalesAccess::canReceipt($row, 'create') && PurchasesAccess::canReceipt($row, 'create')) {
+                        $actions .= '<div class="menu-item px-3">
                 <a href="'.$dupUrl.'" class="menu-link px-3">'.__('messages.duplicate').'</a>
             </div>';
-                    $actions .= '<div class="menu-item px-3">
+                    }
+                    if (SalesAccess::canReceipt($row, 'delete') && PurchasesAccess::canReceipt($row, 'delete')) {
+                        $actions .= '<div class="menu-item px-3">
                 <form method="post" action="'.$delUrl.'" class="px-0 js-delete-receipt-payment-form">'
                         .'<input type="hidden" name="_token" value="'.$csrf.'">'
                         .'<input type="hidden" name="_method" value="DELETE">'
@@ -195,6 +205,7 @@ class TransactionPayments extends Model
                         .__('messages.delete').'</button>'
                     .'</form>
             </div>';
+                    }
 
                     $actions .= '</div>';
 

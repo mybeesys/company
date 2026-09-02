@@ -17,8 +17,10 @@
             <h4 class="fw-semibold text-gray-800 text-center  lh-lg">
                 <span class="fw-bolder"> @lang('product::lang.no_typeOfServices')</span> <br>
             </h4>
+            @dashboardcan(\Modules\Product\Support\ProductPermissions::TYPE_SERVICE_CREATE)
             <a href="{{ route('typeService.create') }}"
                 class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('product::lang.add_type_of_services')</a>
+            @enddashboardcan
         </div>
 
     </div>
@@ -26,7 +28,7 @@
 @else
 <div class="card card-flush">
     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-        <x-tables.table-header model="typeService" url="type-service-create" module="product">
+        <x-tables.table-header model="typeService" url="type-service-create" module="product" :addButton="dashboard_can(\Modules\Product\Support\ProductPermissions::TYPE_SERVICE_CREATE)">
             <x-slot:filters>
             </x-slot:filters>
             <x-slot:export>

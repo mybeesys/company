@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
+use Modules\Purchases\Support\PurchasesAccess;
+use Modules\Sales\Support\SalesAccess;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\ClientsAndSuppliers\Database\Factories\ContactFactory;
@@ -125,23 +127,32 @@ class Contact extends Model
                     $actions = '<a href="#" class="btn btn-sm btn-light btn-flex btn-center btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">'.__('employee::fields.actions').'<i class="ki-outline ki-down fs-5 ms-1"></i></a>
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-125px py-4" data-kt-menu="true">';
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canCustomer($row, 'show') && PurchasesAccess::canSupplier($row, 'show')) {
+                        $actions .= '<div class="menu-item px-3">
                             <a href="'.url("/client-show/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.show').'</a>
                         </div>';
+                    }
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canCustomer($row, 'update') && PurchasesAccess::canSupplier($row, 'update')) {
+                        $actions .= '<div class="menu-item px-3">
                         <a href="'.url("/client-edit/{$row->id}").'" class="menu-link px-3">'.__('messages.edit').'</a>
                     </div>';
+                    }
 
                     $status = $row->status == 'active' ? __('messages.deactivate') : __('messages.activate');
+                    $statusAction = $row->status == 'active' ? 'deactivate' : 'activate';
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canCustomer($row, $statusAction) && PurchasesAccess::canSupplier($row, $statusAction)) {
+                        $actions .= '<div class="menu-item px-3">
                         <a href="'.url("/client-update-status/{$row->id}").'" class="menu-link px-3">'.$status.'</a>
                     </div>';
+                    }
 
-                    $actions .= '<div class="menu-item px-3">
+                    if (SalesAccess::canCustomer($row, 'delete') && PurchasesAccess::canSupplier($row, 'delete')) {
+                        $actions .= '<div class="menu-item px-3">
                     <a href="'.url("/client-destroy/{$row->id}").'" class="menu-link px-3">'.__('employee::fields.delete').'</a>
                 </div>';
+                    }
 
                     // $actions .= '<div class="menu-item px-3">
                     //                 <a class="menu-link px-3 delete-btn" href="' . url("/client-destroy/{$row->id}") . '" data-id="' . $row->id . '"  data-ref_no="' . $row->name . '">'. __('employee::fields.delete') . '</a>

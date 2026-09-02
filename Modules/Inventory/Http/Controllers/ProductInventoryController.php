@@ -17,6 +17,8 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\TreeBuilder;
 use Modules\Product\Models\UnitTransfer;
 use Modules\Product\Models\UnitTransferConvertor;
+use Modules\Inventory\Support\InventoryAccess;
+use Modules\Inventory\Support\InventoryPermissions;
 
 use function Laravel\Prompts\error;
 
@@ -388,6 +390,7 @@ class ProductInventoryController extends Controller
      */
     public function index()
     {
+        InventoryAccess::authorize(InventoryPermissions::PRODUCT_SHOW);
         $inventoryPolicy = Setting::getInventoryTrackingPolicy();
         $lastPeriodicSnapshot = null;
         if ($inventoryPolicy === 'periodic') {
@@ -538,6 +541,7 @@ class ProductInventoryController extends Controller
      */
     public function store(Request $request)
     {
+        InventoryAccess::authorizeMutation($request, 'product');
         $validated = $request->validate([
             'threshold' => 'nullable|numeric',
             'product_id' => 'required|numeric',
@@ -588,6 +592,7 @@ class ProductInventoryController extends Controller
      */
     public function edit($id)
     {
+        InventoryAccess::authorize(InventoryPermissions::PRODUCT_UPDATE);
         $product = Product::with(['inventory' => function ($query) {
             $query->with('vendor');
             $query->with('vendorUnit');

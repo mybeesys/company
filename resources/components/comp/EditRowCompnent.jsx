@@ -15,6 +15,7 @@ const EditRowCompnent = ({
     handleError,
     submitTitle,
     submitAction,
+    showSubmit = true,
 }) => {
     const [disableSubmitButton, setSubmitdisableButton] = useState(false);
     const [menu, setMenu] = useState([]);
@@ -144,6 +145,7 @@ const EditRowCompnent = ({
                         class="col-6"
                         style={{ "justify-content": "end", display: "flex" }}
                     >
+                        {showSubmit ? (
                         <div class="flex-center" style={{ display: "flex" }}>
                             <button
                                 onClick={
@@ -158,6 +160,7 @@ const EditRowCompnent = ({
                                     : submitTitle}
                             </button>
                         </div>
+                        ) : null}
                     </div>
                 </div>
             </div>

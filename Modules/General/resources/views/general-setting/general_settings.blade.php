@@ -37,9 +37,11 @@
 
         </div>
 
+        @dashboardcan(\Modules\General\Support\SettingPermissions::for('general', 'update'))
         <button type="submit" style="border-radius: 6px;" class="btn btn-primary w-200px">
             @lang('messages.save')
         </button>
+        @enddashboardcan
     </form>
 
 

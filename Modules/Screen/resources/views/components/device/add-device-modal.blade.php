@@ -135,11 +135,13 @@
                     <label class="form-check-label" for="device_clear_pin">{{ __('screen::general.device_clear_pin') }}</label>
                 </div>
             </div>
-            <div class="col-12 device-regenerate-wrap d-none">
-                <button type="button" class="btn btn-light-primary btn-sm" id="device_regenerate_pairing_btn">
-                    <i class="fas fa-qrcode me-1"></i>{{ __('screen::general.device_regenerate_pairing') }}
-                </button>
-            </div>
+            @dashboardcan(\Modules\Screen\Support\ScreenPermissions::for('devices', 'update'))
+                <div class="col-12 device-regenerate-wrap d-none">
+                    <button type="button" class="btn btn-light-primary btn-sm" id="device_regenerate_pairing_btn">
+                        <i class="fas fa-qrcode me-1"></i>{{ __('screen::general.device_regenerate_pairing') }}
+                    </button>
+                </div>
+            @enddashboardcan
         </div>
     </div>
 </x-general.modal>

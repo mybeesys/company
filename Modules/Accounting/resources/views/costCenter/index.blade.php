@@ -80,10 +80,12 @@
                 </div>
             </div>
             <div class="col-6" style="justify-content: end;display: flex;">
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_CREATE)
                 <a href="#" class="btn btn-flex btn-primary h-40px fs-7 fw-bold" data-bs-toggle="modal"
                     data-bs-target="#kt_modal_create_main_cost_center">
                     <i class="fas fa-plus"></i> @lang('accounting::lang.add_main_cost_center')
                 </a>
+                @enddashboardcan
             </div>
         </div>
     </div>
@@ -140,25 +142,31 @@
                         </li>
 
                         <li>
+                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_PRINT)
                             <div class="menu-item ">
                                 <a href= "{{ url('/cost-center-print') }}"
                                     style="width: 100%;text-align: start; padding: 0;" class="btn">@lang('accounting::fields.print')</a>
                             </div>
+                            @enddashboardcan
                         </li>
 
                         <li>
+                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_PRINT)
                             <div class="menu-item ">
                                 <a href= "{{ url('/cost-center-export-pdf') }}"
                                     style="width: 100%;text-align: start; padding: 0;" class="btn btn-export-pdf">@lang('general.export_as_pdf')</a>
                             </div>
+                            @enddashboardcan
                         </li>
 
 
                         <li>
+                            @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::COST_CENTER_PRINT)
                             <div class="menu-item ">
                                 <a href= "{{ url('/cost-center-export-excel') }}"
                                     style="width: 100%;text-align: start; padding: 0;" class="btn btn-export-excel">@lang('general.export_as_excel')</a>
                             </div>
+                            @enddashboardcan
                         </li>
 
 

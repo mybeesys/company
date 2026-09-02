@@ -31,6 +31,11 @@ class SalesServiceProvider extends ServiceProvider
         ], 'public');
 
         $this->app['router']->pushMiddlewareToGroup('web', \App\Http\Middleware\LocalizationMiddleware::class);
+
+        \Illuminate\Support\Facades\Gate::policy(
+            \Modules\Sales\Models\Coupon::class,
+            \Modules\Sales\Policies\CouponPolicy::class
+        );
     }
 
     /**
@@ -49,6 +54,7 @@ class SalesServiceProvider extends ServiceProvider
     {
         $this->commands([
             \Modules\Sales\Console\RepairSellReturnsCommand::class,
+            \Modules\Sales\Console\SyncSalesPermissionsCommand::class,
         ]);
     }
 

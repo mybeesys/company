@@ -4,12 +4,21 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\Subcategory;
 use Modules\Product\Models\TreeBuilder;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class CategoryController extends Controller
+class CategoryController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'category';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -98,6 +107,7 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'category');
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',

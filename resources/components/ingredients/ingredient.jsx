@@ -4,6 +4,7 @@ import { Column } from "primereact/column";
 import SweetAlert2 from "react-sweetalert2";
 import DeleteModal from "../product/DeleteModal";
 import { TreeTable } from "primereact/treetable";
+import { emsCan, emsCanEditOrSave } from "../emsCan";
 
 const defaultObjectValue = { active: 1 };
 const Ingredient = ({ translations, dir }) => {
@@ -147,12 +148,14 @@ const Ingredient = ({ translations, dir }) => {
         const indent = node.key.toString().split("-").length;
         if (key == "name_ar" && !!node.data.empty) {
             return (
+                emsCan("create") ? (
                 <a
                     href="#"
                     onClick={(e) =>
                         addInline(node.key, node.data.type, node.data.parentKey)
                     }
                 >{`${translations.Add} ${translations[node.data.type]}`}</a>
+                ) : null
             );
         } else {
             return node.key == currentKey ? (
@@ -379,6 +382,7 @@ const Ingredient = ({ translations, dir }) => {
             <div className="flex flex-wrap gap-2">
                 {currentKey == "-1" ||
                 (currentKey != "-1" && node.key == currentKey) ? (
+                    emsCanEditOrSave(currentKey != "-1" && node.key == currentKey) ? (
                     <a
                         href="#"
                         onClick={() => {
@@ -400,6 +404,9 @@ const Ingredient = ({ translations, dir }) => {
                             }
                         ></i>
                     </a>
+                    ) : (
+                    <></>
+                    )
                 ) : (
                     <></>
                 )}
@@ -412,6 +419,7 @@ const Ingredient = ({ translations, dir }) => {
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
+                {emsCan("delete") ? (
                 <a
                     href="#"
                     onClick={() => openDeleteModel(data)}
@@ -419,6 +427,7 @@ const Ingredient = ({ translations, dir }) => {
                 >
                     <i class="ki-outline ki-trash fs-2"></i>
                 </a>
+                ) : null}
                 <button
                     id="btnSubmit"
                     type="submit"
@@ -441,6 +450,7 @@ const Ingredient = ({ translations, dir }) => {
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                        {emsCan("create") ? (
                         <a
                             href="#"
                             class="btn btn-primary"
@@ -448,6 +458,7 @@ const Ingredient = ({ translations, dir }) => {
                         >
                             {translations.Add}
                         </a>
+                        ) : null}
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}

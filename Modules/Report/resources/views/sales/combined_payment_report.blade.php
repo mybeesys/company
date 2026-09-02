@@ -11,24 +11,28 @@
                 'icon' => 'bi bi-graph-up-arrow',
                 'items' => [
                     [
+                        'entity' => 'sell_payment',
                         'title' => __('menuItemLang.sell-payment-report'),
                         'route' => route('sell-payment-report'),
                         'hint' => __('report::purchase.sell_payment_report_details'),
                         'icon' => 'bi bi-cash-coin',
                     ],
                     [
+                        'entity' => 'product_sales',
                         'title' => __('menuItemLang.product-sales-report'),
                         'route' => route('product-sales-report'),
                         'hint' => __('report::purchase.product_sales_report_details'),
                         'icon' => 'bi bi-basket2-fill',
                     ],
                     [
+                        'entity' => 'sales_comparison',
                         'title' => __('menuItemLang.sales-comparison-report'),
                         'route' => route('sales-comparison-report'),
                         'hint' => __('report::general.sales_comparison_hub_card_hint'),
                         'icon' => 'bi bi-bar-chart-steps',
                     ],
                     [
+                        'entity' => 'weekday_sales',
                         'title' => __('menuItemLang.weekday-sales-report'),
                         'route' => route('weekday-sales-report'),
                         'hint' => __('report::general.weekday_sales_hub_card_hint'),
@@ -42,12 +46,14 @@
                 'icon' => 'bi bi-cart-check',
                 'items' => [
                     [
+                        'entity' => 'purchase_payment',
                         'title' => __('menuItemLang.purchase-payment-report'),
                         'route' => route('purchase-payment-report'),
                         'hint' => __('report::purchase.purchase_payment_report_details'),
                         'icon' => 'bi bi-wallet2',
                     ],
                     [
+                        'entity' => 'product_purchase',
                         'title' => __('menuItemLang.product-purchase-report'),
                         'route' => route('product-purchase-report'),
                         'hint' => __('report::purchase.product_purchase_report_details'),
@@ -61,12 +67,14 @@
                 'icon' => 'bi bi-boxes',
                 'items' => [
                     [
+                        'entity' => 'product_inventory',
                         'title' => __('menuItemLang.product-inventory-report'),
                         'route' => route('product-inventory-report'),
                         'hint' => __('report::purchase.product_inventory_report_details'),
                         'icon' => 'bi bi-clipboard-data',
                     ],
                     [
+                        'entity' => 'product_inventory_summary',
                         'title' => __('menuItemLang.product-inventory-summary'),
                         'route' => route('product-inventory-summary'),
                         'hint' => __('report::purchase.product-inventory-summary_details'),
@@ -80,6 +88,7 @@
                     //     'icon' => 'bi bi-arrow-left-right',
                     // ],
                     [
+                        'entity' => 'product_stock',
                         'title' => __('menuItemLang.product-inventory'),
                         'route' => route('Product-Stock-Report'),
                         'hint' => __('report::purchase.product_stock_report_details'),
@@ -93,18 +102,21 @@
                 'icon' => 'bi bi-file-earmark-richtext',
                 'items' => [
                     [
+                        'entity' => 'profit_loss',
                         'title' => __('menuItemLang.Profit-Loss'),
                         'route' => route('Profit-Loss'),
                         'hint' => __('report::purchase.profit-loss_details'),
                         'icon' => 'bi bi-activity',
                     ],
                     [
+                        'entity' => 'purchase_sell',
                         'title' => __('menuItemLang.purchase-sell'),
                         'route' => route('purchase-sell'),
                         'hint' => __('report::purchase.purchase_sell_details'),
                         'icon' => 'bi bi-arrow-left-right',
                     ],
                     [
+                        'entity' => 'register',
                         'title' => __('report::fields.register_report'),
                         'route' => url('Register-Report'),
                         'hint' => __('report::fields.register_report_details'),
@@ -113,6 +125,14 @@
                 ],
             ],
         ];
+        $reportSections = array_values(array_filter(array_map(static function (array $section): array {
+            $section['items'] = array_values(array_filter(
+                $section['items'],
+                static fn (array $item): bool => dashboard_can(\Modules\Report\Support\ReportPermissions::for($item['entity'], 'show'))
+            ));
+
+            return $section;
+        }, $reportSections), static fn (array $section): bool => $section['items'] !== []));
         $totalReports = collect($reportSections)->sum(fn($section) => count($section['items']));
     @endphp
 

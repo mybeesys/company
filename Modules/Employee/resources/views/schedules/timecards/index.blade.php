@@ -5,7 +5,7 @@
 @section('content')
     <x-cards.card>
         <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-            <x-tables.table-header model="timecard" url="schedule/timecard/create" :addButton="auth()->user()->hasDashboardPermission('employees.timecard.create')" module="employee" :search=false>
+            <x-tables.table-header model="timecard" url="schedule/timecard/create" :addButton="dashboard_can(\Modules\Employee\Support\EmployeePermissions::TIMECARD_CREATE)" module="employee" :search=false>
                 <x-slot:filters>
                     <x-tables.filters-dropdown>
                         <x-employee::timecards.filters />

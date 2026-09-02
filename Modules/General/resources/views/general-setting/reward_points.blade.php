@@ -93,7 +93,9 @@
 
             <div class="separator d-flex flex-center m-5"></div>
 
+            @dashboardcan(\Modules\General\Support\SettingPermissions::for('reward points', 'update'))
             <button type="submit" class="btn btn-primary w-200px">@lang('messages.save')</button>
+            @enddashboardcan
         </form>
     </div>
 </div>

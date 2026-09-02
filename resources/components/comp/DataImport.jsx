@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import TreeTableComponentLocal from "../comp/TreeTableComponentLocal";
 import SweetAlert2 from 'react-sweetalert2';
 import { getRowName } from '../lang/Utils';
+import { emsCan } from '../emsCan';
 
 const DataImport = ({ translations, dir }) => {
   const rootElement = document.getElementById('root');
@@ -116,9 +117,13 @@ const DataImport = ({ translations, dir }) => {
         <div class="card-toolbar">
           <div class="d-flex align-items-center gap-2 gap-lg-3">
             <a href={templateUrl} style={{"width" : "10rem"}}>{translations.downloadTemplate}</a>
+            {emsCan("create") ? (
+              <>
             <input id="uploadProduct" className="form-control" type="file" accept=".xlsx, .xls, .csv"
               onChange={handleFileChange} />
             <button class="btn btn-primary" onClick={handleFileUpload}>{translations.import1}</button>
+              </>
+            ) : null}
           </div>
         </div>
       </div>

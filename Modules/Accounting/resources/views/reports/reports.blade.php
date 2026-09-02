@@ -38,7 +38,7 @@
                         'icon' => 'fas fa-book',
                         'translation' => 'menuItemLang.ledger',
                         'url' => 'ledger',
-                        'permission' => 'accountingReports.Journal ledger.show',
+                        'permission' => 'accountingReports.Account statement.show',
                     ],
                     [
                         'name' => 'balance_sheet',
@@ -59,7 +59,7 @@
                         'icon' => 'fas fa-receipt',
                         'translation' => 'menuItemLang.expense-report',
                         'url' => 'expense-report',
-                        'permission' => 'accounting.Payment vouchers.show',
+                        'permission' => 'accountingReports.Expense report.show',
                     ],
                     [
                         'name' => 'cash-flow',
@@ -87,14 +87,14 @@
                         'icon' => 'fas fa-user-tag',
                         'translation' => 'menuItemLang.account-receivable-ageing-details',
                         'url' => 'account-receivable-ageing-details',
-                        'permission' => 'accountingReports.Payables aging.show',
+                        'permission' => 'accountingReports.Receivables age report.show',
                     ],
                     [
                         'name' => 'account-payable-ageing-report',
                         'icon' => 'fas fa-business-time',
                         'translation' => 'menuItemLang.account-payable-ageing-report',
                         'url' => 'account-payable-ageing-report',
-                        'permission' => 'accountingReports.Payables age report.show',
+                        'permission' => 'accountingReports.Payables aging.show',
                     ],
                     [
                         'name' => 'account-payable-ageing-details',

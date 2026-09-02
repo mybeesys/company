@@ -12,9 +12,18 @@ use Modules\Product\Models\CustomMenuItem;
 use Modules\Product\Models\CustomMenuTime;
 use Modules\Product\Models\CustomMenuTimeDetail;
 use Modules\Product\Models\TreeBuilder;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class CustomMenuController extends Controller
+class CustomMenuController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'customMenu';
+    }
     public function index()
     {
         return view('product::custommenu.index');
@@ -78,6 +87,7 @@ class CustomMenuController extends Controller
 
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'customMenu');
 
         $request->merge(['active' => $request->input('active', 0)]);
         $validated = $request->validate([

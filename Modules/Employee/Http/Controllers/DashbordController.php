@@ -22,6 +22,9 @@ class DashbordController extends Controller
     {
         $hubService = app(DashboardHubService::class);
         $dashboardTabs = $hubService->visibleTabs();
+        if ($dashboardTabs === []) {
+            abort(403, __('employee::responses.permission_denied'));
+        }
         $activeDashboardTab = $hubService->resolveActiveTab($dashboardTabs, $request);
 
         if ($redirectUrl = $hubService->fullPageUrlForTab($activeDashboardTab, $dashboardTabs)) {

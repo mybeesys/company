@@ -70,8 +70,10 @@
             </div>
         </div>
 
+        @dashboardcan(\Modules\General\Support\SettingPermissions::for('inventory policy', 'update'))
         <button type="submit" class="btn btn-primary w-200px" style="border-radius: 6px;">
             @lang('messages.save')
         </button>
+        @enddashboardcan
     </form>
 </div>

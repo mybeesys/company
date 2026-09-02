@@ -73,7 +73,9 @@
                 @endforeach
             </x-form.form-card>
 
+            @dashboardcan(\Modules\Employee\Support\EmployeePermissions::TIME_SHEET_RULES_UPDATE)
             <x-form.form-buttons cancelUrl="{{ url('/dashboard-role') }}" id="timesheet_rules_form" />
+            @enddashboardcan
         </div>
     </form>
 @endsection

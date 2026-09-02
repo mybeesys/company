@@ -6,6 +6,7 @@
    						
       <div id="root" type="prep" 
 	  list-url="{{json_encode(value: route('prepList'))}}"
+      ems-can="{{ \Modules\Inventory\Support\InventoryAccess::uiJson('prep') }}"
 	  dir = "{{ app()->getLocale() == 'en'? 'ltr' : 'rtl'}}"></div>
 
 @endsection

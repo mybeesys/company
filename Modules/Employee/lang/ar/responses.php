@@ -27,4 +27,5 @@ return [
     'company_not_found' => 'الشركة غير موجودة',
     'no_subscription_found' => 'لا يوجد اشتراك',
     'subscription_expired' => 'انتهت مدة الاشتراك يرجى تجديد الاشتراك لتسطيع تسجيل الدخول',
+    'permission_denied' => 'ليست لديك صلاحية لتنفيذ هذا الإجراء.',
 ];

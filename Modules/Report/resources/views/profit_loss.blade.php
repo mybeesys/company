@@ -36,9 +36,11 @@
                 </div>
             </div>
             <div class="card-toolbar no-print">
+                @dashboardcan(\Modules\Report\Support\ReportPermissions::PROFIT_LOSS_PRINT)
                 <button type="button" class="btn btn-sm btn-light-primary" onclick="window.print()">
                     <i class="fas fa-print me-1"></i> @lang('report::general.Print')
                 </button>
+                @enddashboardcan
             </div>
         </x-cards.card-header>
 

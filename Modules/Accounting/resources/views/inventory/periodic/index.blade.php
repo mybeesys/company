@@ -19,14 +19,18 @@
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
+                        @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::PERIODIC_PRINT)
                         <a href="{{ $exportListUrl }}" class="btn btn-export-excel d-inline-flex align-items-center gap-2">
                             <i class="fa-solid fa-file-excel"></i>
                             <span>@lang('accounting::lang.periodic_export_list_excel')</span>
                         </a>
+                        @enddashboardcan
+                        @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::PERIODIC_CREATE)
                         <a href="{{ route('periodic-inventory.create') }}" class="btn btn-primary d-inline-flex align-items-center gap-2">
                             <i class="fa-solid fa-plus"></i>
                             <span>@lang('accounting::lang.new_inventory')</span>
                         </a>
+                        @enddashboardcan
                     </div>
                 </div>
             </div>
@@ -133,10 +137,12 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header border-0 d-flex flex-wrap align-items-center justify-content-between gap-2 pt-5 pb-0 bg-transparent">
                 <div class="fw-bold fs-5">@lang('accounting::lang.periodic_inventory_records')</div>
+                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::PERIODIC_PRINT)
                 <a href="{{ $exportListUrl }}" class="btn btn-sm btn-light-success d-inline-flex align-items-center gap-2">
                     <i class="fa-solid fa-file-excel text-success"></i>
                     @lang('accounting::lang.periodic_export_list_excel')
                 </a>
+                @enddashboardcan
             </div>
             <div class="card-body pt-4">
                 <div class="table-responsive rounded-3 border">
@@ -199,21 +205,26 @@
                                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-225px py-4"
                                             data-kt-menu="true">
                                             <div class="menu-item px-3">
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::PERIODIC_PRINT)
                                                 <a href="{{ route('periodic-inventory-detail-export-excel', ['id' => $inventory->id]) }}"
                                                     class="menu-link px-3">
                                                     <i class="fa-solid fa-file-excel text-success me-2"></i>
                                                     @lang('accounting::lang.periodic_export_row_excel')
                                                 </a>
+                                                @enddashboardcan
                                             </div>
                                             @if (($inventory->status ?? 'in_review') === 'approved')
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::PERIODIC_PRINT)
                                                 <div class="menu-item px-3">
                                                     <a href="{{ route('periodic-inventory-export-pdf', ['id' => $inventory->id]) }}" class="menu-link px-3">
                                                         <i class="fa-solid fa-file-pdf text-danger me-2"></i>
                                                         @lang('accounting::lang.period_approval_report')
                                                     </a>
                                                 </div>
+                                                @enddashboardcan
                                             @endif
                                             @if (($inventory->status ?? 'in_review') === 'in_review')
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::PERIODIC_UPDATE)
                                                 <div class="menu-item px-3">
                                                     <a href="{{ route('periodic-inventory.edit', ['periodic_inventory' => $inventory->id]) }}" class="menu-link px-3">
                                                         <i class="fa-solid fa-pen-to-square text-primary me-2"></i>
@@ -230,20 +241,25 @@
                                                         </button>
                                                     </form>
                                                 </div>
+                                                @enddashboardcan
                                             @endif
                                             @if ($hasAdjustmentEntry)
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::JOURNAL_SHOW)
                                                 <div class="menu-item px-3">
                                                     <a href="{{ route('journal-entry-show', ['id' => $inventory->adjustment_entry_id]) }}" class="menu-link px-3">
                                                         <i class="fa-solid fa-eye text-info me-2"></i>
                                                         @lang('accounting::lang.view_journalEntry')
                                                     </a>
                                                 </div>
+                                                @enddashboardcan
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::JOURNAL_PRINT)
                                                 <div class="menu-item px-3">
                                                     <a href="{{ route('journal-entry-print', ['id' => $inventory->adjustment_entry_id]) }}" class="menu-link px-3">
                                                         <i class="fa-solid fa-print text-dark me-2"></i>
                                                         @lang('accounting::lang.print_journalEntry')
                                                     </a>
                                                 </div>
+                                                @enddashboardcan
                                             @endif
                                         </div>
                                     </td>

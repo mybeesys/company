@@ -253,6 +253,10 @@ function setDashboardPermissionsFromList(permissionIds) {
             .find(`input[value="${id}"]`)
             .prop("checked", true);
     });
+
+    if (typeof refreshEmsPermissionCounts === "function") {
+        refreshEmsPermissionCounts(permissionsCheckboxContainer[0]);
+    }
 }
 function assignDashboardPermissionsToEmployee(getDataUrl, assignUrl) {
     const permissionsCheckboxContainer = $(
@@ -325,6 +329,9 @@ function assignDashboardPermissionsToEmployee(getDataUrl, assignUrl) {
             permissionsCheckboxContainer
                 .find('input[type="checkbox"]')
                 .prop("checked", false);
+            if (typeof refreshEmsPermissionCounts === "function") {
+                refreshEmsPermissionCounts(permissionsCheckboxContainer[0]);
+            }
         }
     });
 }

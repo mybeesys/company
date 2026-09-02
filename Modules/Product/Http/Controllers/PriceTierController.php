@@ -11,9 +11,18 @@ use Modules\Product\Models\PriceTier;
 use Modules\Product\Models\Product;
 use Modules\Product\Models\ProductPriceTier;
 use Modules\Product\Models\TreeBuilder;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class PriceTierController extends Controller
+class PriceTierController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'priceTier';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -57,6 +66,7 @@ class PriceTierController extends Controller
      */
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'priceTier');
         $validated = $request->validate([
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string',

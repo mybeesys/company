@@ -5,6 +5,8 @@ namespace Modules\Product\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
+use Modules\Product\Support\ProductAccess;
+use Modules\Product\Support\ProductPermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 // use Modules\Product\Database\Factories\TypesOfServiceFactory;
@@ -50,21 +52,22 @@ class TypesOfService extends Model
                 $editUrl = url("/type-service-edit/{$row->id}");
                 $deleteUrl = url("/type-service-destroy/{$row->id}");
 
-                $actions = '
-        <div class="d-flex justify-content-center gap-2">
-          <a href="'.$editUrl.'"
+                $actions = '<div class="d-flex justify-content-center gap-2">';
+                if (ProductAccess::can(ProductPermissions::TYPE_SERVICE_UPDATE)) {
+                    $actions .= '<a href="'.$editUrl.'"
                class="btn btn-icon btn-light btn-sm"
                title="'.__('messages.edit').'">
                 <i class="ki-outline ki-pencil fs-4"></i>
-            </a>
-        <a href="'.$deleteUrl.'"
+            </a>';
+                }
+                if (ProductAccess::can(ProductPermissions::TYPE_SERVICE_DELETE)) {
+                    $actions .= '<a href="'.$deleteUrl.'"
                class="btn btn-icon btn-light btn-sm"
                title="'.__('general::lang.delete').'">
                 <i class="ki-outline ki-trash fs-4"></i>
-            </a>
-
-        </div>
-    ';
+            </a>';
+                }
+                $actions .= '</div>';
 
                 return $actions;
             })

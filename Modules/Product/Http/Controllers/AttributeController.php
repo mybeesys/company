@@ -9,9 +9,18 @@ use Illuminate\Support\Facades\DB;
 use Modules\Product\Models\Attribute;
 use Modules\Product\Models\Modifier;
 use Modules\Product\Models\Product_Attribute;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Modules\Product\Support\AuthorizesProductPages;
+use Modules\Product\Support\ProductAccess;
 
-class AttributeController extends Controller
+class AttributeController extends Controller implements HasMiddleware
 {
+    use AuthorizesProductPages;
+
+    protected static function productAuthEntity(): string
+    {
+        return 'attribute';
+    }
     public function index()
     {
         return view('product::attribute.index');
@@ -34,6 +43,7 @@ class AttributeController extends Controller
 
     public function store(Request $request)
     {
+        ProductAccess::authorizeMutation($request, 'attribute');
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'name_ar' => 'required|string|max:255',

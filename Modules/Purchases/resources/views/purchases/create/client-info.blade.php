@@ -56,9 +56,11 @@
             </option>
         @endforeach
     </select>
+    @dashboardcan(\Modules\Purchases\Support\PurchasesPermissions::SUPPLIERS_CREATE)
     <a class="link" id="addNewAccountBtn">
         <i class="ki-outline ki-plus-square toggle-off fs-1 me-0 mx-2"></i>
     </a>
+    @enddashboardcan
 </div>
 
 <div class="d-flex align-items-center mb-5 d-none" id="dev-costCenter">

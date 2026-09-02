@@ -36,6 +36,7 @@ use Modules\Product\Http\Controllers\TypeServiceController;
 use Modules\Product\Http\Controllers\UnitController;
 use Modules\Product\Http\Controllers\UnitTransferController;
 use Modules\Product\Http\Controllers\VendorController;
+use Modules\Product\Support\ProductPermissions;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -57,6 +58,7 @@ Route::middleware([
 ])->group(function () {
 
     Route::middleware(['auth'])->group(function () {
+        $perm = fn (string ...$names) => 'dashboard.perm:'.implode(',', $names);
 
         Route::resource('product', ProductController::class)->names('product');
         Route::get('/products/details', [ProductController::class, 'getProductsDetails'])->name('products.details');
@@ -64,9 +66,15 @@ Route::middleware([
         Route::resource('subcategory', SubCategoryController::class)->names('subcategory');
         Route::get('categories', [CategoryController::class, 'getCategories'])->name('categoryList');
         Route::get('categories/{id}/subcategories', [CategoryController::class, 'getsubCategories'])->name('subcategoryList');
-        Route::get('product-dashboard', [ProductDashboardController::class, 'index'])->name('product.dashboard');
-        Route::get('product-dashboard/export/latest-products-csv', [ProductDashboardController::class, 'exportLatestProductsCsv'])->name('product.dashboard.export.latest-products-csv');
-        Route::get('product-dashboard/export/latest-menus-csv', [ProductDashboardController::class, 'exportLatestMenusCsv'])->name('product.dashboard.export.latest-menus-csv');
+        Route::get('product-dashboard', [ProductDashboardController::class, 'index'])
+            ->middleware($perm(ProductPermissions::DASHBOARD_SHOW))
+            ->name('product.dashboard');
+        Route::get('product-dashboard/export/latest-products-csv', [ProductDashboardController::class, 'exportLatestProductsCsv'])
+            ->middleware($perm(ProductPermissions::DASHBOARD_SHOW))
+            ->name('product.dashboard.export.latest-products-csv');
+        Route::get('product-dashboard/export/latest-menus-csv', [ProductDashboardController::class, 'exportLatestMenusCsv'])
+            ->middleware($perm(ProductPermissions::DASHBOARD_SHOW))
+            ->name('product.dashboard.export.latest-menus-csv');
 
         Route::get('categories/categorylist', [CategoryController::class, 'getminicategorylist'])->name('minicategorylist');
         Route::get('categories/subcategories/{id?}', [CategoryController::class, 'getminisubcategorylist'])->name('minisubcategorylist');
@@ -148,16 +156,34 @@ Route::middleware([
 
         Route::get('modifierLOVs/{id?}', [ModifierLOVController::class, 'getModifierLOVs'])->name('modifierLOVs');
 
-        Route::post('/importProduct/upload', [ProductImportController::class, 'upload']);
-        Route::post('/importProduct/readData', [ProductImportController::class, 'readData']);
-        Route::get('/importProduct/import', [ProductImportController::class, 'import'])->name('productImport.import');
-        Route::get('/productBarcode/barcode', [ProductController::class, 'barcode'])->name('productBarcode.barcode');
+        Route::post('/importProduct/upload', [ProductImportController::class, 'upload'])
+            ->middleware($perm(ProductPermissions::IMPORT_CREATE));
+        Route::post('/importProduct/readData', [ProductImportController::class, 'readData'])
+            ->middleware($perm(ProductPermissions::IMPORT_CREATE));
+        Route::get('/importProduct/import', [ProductImportController::class, 'import'])
+            ->middleware($perm(ProductPermissions::IMPORT_SHOW))
+            ->name('productImport.import');
+        Route::get('/productBarcode/barcode', [ProductController::class, 'barcode'])
+            ->middleware($perm(ProductPermissions::BARCODE_SHOW))
+            ->name('productBarcode.barcode');
 
-        Route::get('/type-service', [TypeServiceController::class, 'index'])->name('type-service');
-        Route::post('/type-service-store', [TypeServiceController::class, 'store'])->name('typeService.store');
-        Route::get('/type-service-create', [TypeServiceController::class, 'create'])->name('typeService.create');
-        Route::get('/type-service-edit/{id}', [TypeServiceController::class, 'edit'])->name('typeService.edit');
-        Route::get('/type-service-destroy/{id}', [TypeServiceController::class, 'destroy'])->name('typeService.destroy');
-        Route::put('/type-service-update', [TypeServiceController::class, 'update'])->name('typeService.update');
+        Route::get('/type-service', [TypeServiceController::class, 'index'])
+            ->middleware($perm(ProductPermissions::TYPE_SERVICE_SHOW))
+            ->name('type-service');
+        Route::post('/type-service-store', [TypeServiceController::class, 'store'])
+            ->middleware($perm(ProductPermissions::TYPE_SERVICE_CREATE))
+            ->name('typeService.store');
+        Route::get('/type-service-create', [TypeServiceController::class, 'create'])
+            ->middleware($perm(ProductPermissions::TYPE_SERVICE_CREATE))
+            ->name('typeService.create');
+        Route::get('/type-service-edit/{id}', [TypeServiceController::class, 'edit'])
+            ->middleware($perm(ProductPermissions::TYPE_SERVICE_UPDATE))
+            ->name('typeService.edit');
+        Route::get('/type-service-destroy/{id}', [TypeServiceController::class, 'destroy'])
+            ->middleware($perm(ProductPermissions::TYPE_SERVICE_DELETE))
+            ->name('typeService.destroy');
+        Route::put('/type-service-update', [TypeServiceController::class, 'update'])
+            ->middleware($perm(ProductPermissions::TYPE_SERVICE_UPDATE))
+            ->name('typeService.update');
     });
 });

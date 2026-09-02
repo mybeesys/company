@@ -20,6 +20,7 @@
                     </div>
                 </div>
                 <div class="d-flex gap-3">
+                    @dashboardcan(\Modules\Franchise\Support\FranchisePermissions::for('Menus', 'update'))
                     <button id="save_btn" class="btn btn-primary d-none shadow-sm">
                         <span class="indicator-label">
                             <i class="ki-outline ki-check-circle fs-2 me-2"></i>{{ __('franchise::lang.save') }}
@@ -28,6 +29,7 @@
                             {{ __('franchise::lang.please_wait') }} <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                         </span>
                     </button>
+                    @enddashboardcan
                 </div>
             </div>
 

@@ -58,12 +58,14 @@
                         onclick="toggleAllAccordions(true)">{{ app()->getLocale() == 'ar' ? 'فتح الكل' : 'Expand All' }}</button>
                     <button type="button" class="btn btn-light-danger btn-sm"
                         onclick="toggleAllAccordions(false)">{{ app()->getLocale() == 'ar' ? 'إغلاق الكل' : 'Collapse All' }}</button>
+                    @dashboardcan(\Modules\Franchise\Support\FranchisePermissions::for('Products', 'update'))
                     <button type="button" class="btn btn-primary" id="save_permissions" disabled>
                         <span class="indicator-label"><i class="ki-outline ki-check fs-2"></i>
                             {{ __('franchise::lang.save') }}</span>
                         <span class="indicator-progress"><span
                                 class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
                     </button>
+                    @enddashboardcan
                 </div>
             </div>
 

@@ -2,6 +2,8 @@
 
 namespace Modules\Sales\Classes;
 
+use Modules\Sales\Support\SalesAccess;
+use Modules\Sales\Support\SalesPermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 class CouponTable
@@ -40,23 +42,29 @@ class CouponTable
                 function ($row) {
                     $actions = '<div class="justify-content-center d-flex">';
                     if (! $row->deleted_at) {
-                        $actions .= '
+                        if (SalesAccess::can(SalesPermissions::COUPON_DELETE)) {
+                            $actions .= '
                         <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px coupon-delete-btn me-1" data-id="'.$row->id.'">
                             <i class="ki-outline ki-trash fs-3"></i>
                         </a>';
+                        }
                     } else {
-                        $actions .= '
+                        if (SalesAccess::can(SalesPermissions::COUPON_DELETE)) {
+                            $actions .= '
                         <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px coupon-delete-btn me-1" data-deleted="'.$row->deleted_at.'" data-id="'.$row->id.'">
                             <i class="ki-outline ki-trash fs-3"></i>
-                        </a>
-
+                        </a>';
+                        }
+                        if (SalesAccess::can(SalesPermissions::COUPON_UPDATE)) {
+                            $actions .= '
                          <a class="btn btn-icon btn-bg-light w-75px h-35px coupon-restore-btn me-1 text-gray-600 hover-primary" data-id="'.$row->id.'">
                             '.__('employee::fields.restore').'
                         </a>
                         ';
+                        }
                     }
 
-                    if (! $row->deleted_at) {
+                    if (! $row->deleted_at && SalesAccess::can(SalesPermissions::COUPON_UPDATE)) {
                         $actions .= '
                         <a class="btn btn-icon btn-bg-light btn-active-color-primary w-35px h-35px me-1 coupon-edit-btn" data-id="'.$row->id.'">
                             <i class="ki-outline ki-pencil fs-2"></i>

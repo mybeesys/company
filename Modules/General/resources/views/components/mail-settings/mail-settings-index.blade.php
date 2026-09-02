@@ -1,5 +1,6 @@
 @props(['notifications_settings_parameters'])
-<div class="tab-pane fade" id="mail_settings_tab" role="tabpanel">
+@php $firstH = \Modules\General\Support\SettingAccess::firstHorizontal(); @endphp
+<div class="tab-pane fade {{ $firstH === 'mail' ? 'show active' : '' }}" id="mail_settings_tab" role="tabpanel">
     <x-cards.card class="shadow-sm pb-5 px-5">
         <form class="d-flex flex-column gap-5 w-100 mt-10" action="#" id="mail_settings_form">
             @csrf
@@ -56,7 +57,7 @@
                         name="key[MAIL_FROM_NAME]" label="MAIL_FROM_NAME" />
                 </x-form.input-div>
             </div>
-            <x-form.form-buttons id="mail_settings_form" />
+            <x-form.form-buttons id="mail_settings_form" :showSubmit="\Modules\General\Support\SettingAccess::canTab('mail', 'update')" />
         </form>
     </x-cards.card>
 </div>

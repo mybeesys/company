@@ -43,7 +43,9 @@ class ProductServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // $this->commands([]);
+        $this->commands([
+            \Modules\Product\Console\SyncProductPermissionsCommand::class,
+        ]);
     }
 
     /**

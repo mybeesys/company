@@ -1,5 +1,6 @@
 @props(['employees', 'notifications_settings'])
-<div class="tab-pane fade" id="notifications_tab" role="tabpanel">
+@php $firstH = \Modules\General\Support\SettingAccess::firstHorizontal(); @endphp
+<div class="tab-pane fade {{ $firstH === 'notifications' ? 'show active' : '' }}" id="notifications_tab" role="tabpanel">
     <div class="d-flex flex-row-fluid gap-5">
         <ul
             class="nav nav-tabs nav-pills rounded shadow-sm p-5 flex-row flex-md-column me-5 mb-3 mb-md-0 fs-6 min-h-750px">

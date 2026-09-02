@@ -1,10 +1,66 @@
 @extends('employee::layouts.master')
 
 @section('title', __('menuItemLang.employees'))
+@section('css')
+@parent
+<style>
+    #kt_employee_table thead th {
+        font-size: 0.78rem;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+
+    #kt_employee_table tbody td {
+        vertical-align: middle;
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+        height: auto !important;
+        line-height: 1.35;
+    }
+
+    #kt_employee_table tbody tr {
+        height: auto !important;
+    }
+
+    #kt_employee_table .emp-row-profile {
+        max-width: 260px;
+    }
+
+    #kt_employee_table .emp-row-profile .symbol {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+
+    #kt_employee_table .emp-row-profile .emp-avatar {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        display: block;
+    }
+
+    #kt_employee_table .emp-row-profile .d-flex.flex-column {
+        min-width: 0;
+    }
+
+    #kt_employee_table .emp-contact {
+        display: inline-block;
+        font-variant-numeric: tabular-nums;
+    }
+
+    #kt_employee_table .emp-period {
+        min-width: 110px;
+    }
+
+    #kt_employee_table .dataTables_empty {
+        padding: 2rem 1rem;
+    }
+</style>
+@endsection
 @section('content')
 <x-cards.card>
     <x-cards.card-header class="align-items-center py-5 gap-2 gap-md-5">
-        <x-tables.table-header model="employee" url="employee/create" :addButton="auth()->user()->hasDashboardPermission('employees.employee.create')" module="employee">
+        <x-tables.table-header model="employee" url="employee/create" :addButton="dashboard_can(\Modules\Employee\Support\EmployeePermissions::EMPLOYEE_CREATE)" module="employee">
             <x-slot:filters>
                 <x-tables.filters-dropdown>
                     <x-employee::employees.filters />
@@ -19,7 +75,7 @@
     </x-cards.card-header>
 
     <x-cards.card-body class="table-responsive">
-        <x-tables.table :columns=$columns model="employee" module="employee" />
+        <x-tables.table :columns=$columns model="employee" module="employee" :idColumn="false" />
     </x-cards.card-body>
 </x-cards.card>
 <div id="print-area" style="display: none;"></div>
@@ -44,7 +100,7 @@
 
         if (!table.length) return;
         initDatatable();
-        exportButtons([0, 1, 2, 3, 4, 5, 6], '#kt_employee_table', "{{ session('locale') }}", [1], [0]);
+        exportButtons([0, 1, 2, 3], '#kt_employee_table', "{{ session('locale') }}", [], []);
         handleSearchDatatable();
         handleFormFiltersDatatable();
         $('[name="status"], [name="deleted_records"]').select2({
@@ -56,22 +112,13 @@
         assignDashboardPermissionsToEmployee("{{ url('/permission/get-employee-dashboard-permissions/') }}",
             "{{ url('/permission/:id/assign-dashboard-permissions') }}");
 
-        let tableElement = $("#dashboard-permissions-table");
-        let modalTable = tableElement.DataTable({
-            paging: false,
-            info: false,
-            responsive: true,
-            ordering: false,
-            autoWidth: false,
-            scrollY: '400px',
-            scrollCollapse: true,
-        });
-
         $('#employee_dashboard_permissions_edit').on('shown.bs.modal', function() {
-            modalTable.columns.adjust();
-            $(window).on('resize', function() {
-                modalTable.columns.adjust();
-            });
+            if (typeof emsPermissionsUi === 'function') {
+                emsPermissionsUi();
+            }
+            if (typeof initDashboardPermissionHints === 'function') {
+                initDashboardPermissionHints(this);
+            }
         });
 
 
@@ -112,46 +159,31 @@
             ajax: dataUrl,
             info: false,
             columns: [{
-                    data: 'id',
-                    name: 'id',
+                    data: 'employee',
+                    name: 'name',
                 },
                 {
-                    data: 'name',
-                    name: 'name'
+                    data: 'contact',
+                    name: 'phone_number',
                 },
                 {
-                    data: 'name_en',
-                    name: 'name_en'
-                },
-                {
-                    data: 'employee_image',
-                    name: 'employee_image'
-                },
-                {
-                    data: 'phone_number',
-                    name: 'phone_number'
-                },
-                {
-                    data: 'employment_start_date',
-                    name: 'employment_start_date'
-                },
-                {
-                    data: 'employment_end_date',
-                    name: 'employment_end_date'
+                    data: 'employment_period',
+                    name: 'employment_start_date',
                 },
                 {
                     data: 'pos_is_active',
-                    name: 'pos_is_active'
+                    name: 'pos_is_active',
+                    className: 'text-center',
                 },
                 {
                     data: 'actions',
                     name: 'actions',
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    className: 'text-center',
                 }
             ],
-            order: [],
-            scrollX: true,
+            order: [[0, 'asc']],
             pageLength: 10,
             drawCallback: function() {
                 KTMenu.createInstances(); // Reinitialize KTMenu for the action buttons
@@ -173,7 +205,7 @@
             })).load();
 
             const statusValue = status.val();
-            dataTable.column(6).search(statusValue).draw();
+            dataTable.column(3).search(statusValue).draw();
         });
 
         resetButton.on('click', function(e) {

@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Middleware\CentralAppAuthenticate;
-use App\Http\Middleware\DetectEmbedRequest;
-use App\Http\Middleware\VerifySocketInternalSecret;
 use App\Http\Middleware\CleanJsonNoiseMiddleware;
+use App\Http\Middleware\DetectEmbedRequest;
 use App\Http\Middleware\EnsureHasSubscription;
 use App\Http\Middleware\LocalizationMiddleware;
 use App\Http\Middleware\SetApiLocale;
+use App\Http\Middleware\VerifySocketInternalSecret;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth-central' => CentralAppAuthenticate::class,
             'socket.internal' => VerifySocketInternalSecret::class,
+            'dashboard.perm' => \Modules\Employee\Http\Middleware\EnsureDashboardPermission::class,
         ]);
         $middleware->web(append: [
             DetectEmbedRequest::class,

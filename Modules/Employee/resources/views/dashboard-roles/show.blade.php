@@ -14,6 +14,7 @@
         "use strict";
         $(document).ready(function() {
             dashboardRolePermissionsForm();
+            emsPermissionsUi();
         });
     </script>
 @endsection

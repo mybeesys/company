@@ -100,10 +100,12 @@
                         @endphp
 
                         @if (!$hasActiveContract)
+                            @dashboardcan(\Modules\Franchise\Support\FranchisePermissions::for('Companies', 'create'))
                             <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
                                 data-bs-target="#kt_modal_add_contract">
                                 <i class="ki-outline ki-plus fs-2"></i> {{ __('franchise::lang.add_new_contract') }}
                             </button>
+                            @enddashboardcan
                         @else
                             <span class="badge badge-light-warning fw-bold px-4 py-3">
                                 <i class="ki-outline ki-information fs-7 me-1 text-warning"></i>
@@ -139,6 +141,7 @@
                                                 <i class="ki-outline ki-file fs-2"></i>
                                             </a>
                                         @endif
+                                        @dashboardcan(\Modules\Franchise\Support\FranchisePermissions::for('Companies', 'update'))
                                         <button type="button" class="btn btn-icon btn-light-warning btn-sm edit-contract-btn me-1"
                                             data-id="{{ $contract->id }}" title="{{ __('franchise::lang.edit') }}">
                                             <i class="ki-outline ki-pencil fs-2"></i>
@@ -149,6 +152,7 @@
                                             title="{{ __('franchise::lang.extend_contract') }}">
                                             <i class="ki-outline ki-arrows-loop fs-2"></i>
                                         </button>
+                                        @enddashboardcan
                                         <button type="button" class="btn btn-icon btn-light-info btn-sm view-history-btn"
                                             data-id="{{ $contract->id }}" title="{{ __('franchise::lang.view_history') }}">
                                             <i class="ki-outline ki-time fs-2"></i>

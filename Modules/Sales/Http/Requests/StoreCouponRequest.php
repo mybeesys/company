@@ -48,6 +48,10 @@ class StoreCouponRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $permission = $this->filled('id')
+            ? \Modules\Sales\Support\SalesPermissions::COUPON_UPDATE
+            : \Modules\Sales\Support\SalesPermissions::COUPON_CREATE;
+
+        return \Modules\Sales\Support\SalesAccess::can($permission);
     }
 }

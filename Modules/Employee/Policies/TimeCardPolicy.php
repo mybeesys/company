@@ -3,53 +3,41 @@
 namespace Modules\Employee\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Modules\Employee\Support\EmployeeAccess;
+use Modules\Employee\Support\EmployeePermissions;
 
 class TimeCardPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(): bool
+    public function viewAny(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.timecards.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::TIMECARDS_SHOW);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(): bool
+    public function view(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.timecard.show');
+        return EmployeeAccess::allows($user, EmployeePermissions::TIMECARDS_SHOW);
     }
 
-    public function print()
+    public function print(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.timecards.print');
+        return EmployeeAccess::allows($user, [EmployeePermissions::TIMECARDS_PRINT, EmployeePermissions::TIMECARD_PRINT]);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(): bool
+    public function create(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.timecard.create');
+        return EmployeeAccess::allows($user, EmployeePermissions::TIMECARD_CREATE);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(): bool
+    public function update(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.timecard.update');
+        return EmployeeAccess::allows($user, EmployeePermissions::TIMECARD_UPDATE);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(): bool
+    public function delete(?Authenticatable $user): bool
     {
-        return auth()->user()->hasDashboardPermission('employees.timecard.delete');
+        return EmployeeAccess::allows($user, EmployeePermissions::TIMECARD_DELETE);
     }
 }

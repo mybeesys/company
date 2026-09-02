@@ -4,6 +4,7 @@ import { Column } from "primereact/column";
 import DeleteModal from "../product/DeleteModal";
 import axios from "axios";
 import SweetAlert2 from "react-sweetalert2";
+import { emsCan, emsCanEditOrSave } from "../emsCan";
 
 const defaultObjectValue = { active: 1 };
 const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
@@ -190,12 +191,14 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
         const indent = node.key.toString().split("-").length;
         if (key == "name_ar" && !!node.data.empty) {
             return (
+                emsCan("create") ? (
                 <a
                     href="#"
                     onClick={(e) =>
                         addInline(node.key, node.data.type, node.data.parentKey)
                     }
                 >{`${translations.Add} ${translations[node.data.type]}`}</a>
+                ) : null
             );
         } else {
             return node.key == currentKey ? (
@@ -295,6 +298,7 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
             <div className="flex flex-wrap gap-2">
                 {currentKey == "-1" ||
                 (currentKey != "-1" && node.key == currentKey) ? (
+                    emsCanEditOrSave(currentKey != "-1" && node.key == currentKey) ? (
                     <a
                         href="#"
                         onClick={() => {
@@ -316,6 +320,9 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                             }
                         ></i>
                     </a>
+                    ) : (
+                    <></>
+                    )
                 ) : (
                     <></>
                 )}
@@ -328,7 +335,7 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                         <i class="ki-outline ki-cross fs-2"></i>
                     </a>
                 ) : null}
-                {data.id && (
+                {data.id && emsCan("delete") && (
                     <a
                         href="#"
                         onClick={() => openDeleteModel(data)}

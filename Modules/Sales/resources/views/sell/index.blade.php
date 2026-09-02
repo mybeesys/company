@@ -30,8 +30,10 @@
                         <span class="fw-bolder"> @lang('sales::lang.no_invoice')</span> <br>
                         @lang('sales::lang.create_suggestion_invoice')
                     </h4>
+                    @dashboardcan(\Modules\Sales\Support\SalesPermissions::INVOICES_CREATE)
                     <a href="{{ route('create-invoice') }}"
                         class="btn btn-primary fv-row flex-md-root my-3 min-w-150px mw-250px">@lang('sales::general.add_sell')</a>
+                    @enddashboardcan
                 </div>
 
             </div>
@@ -56,15 +58,24 @@
 
                         <div class="btn-group">
                             @if ($Latest_event->action != '#')
+                                @dashboardcan(\Modules\Sales\Support\SalesPermissions::INVOICES_CREATE)
                                 <a href="{{ url('/create-invoice') }}"
                                     class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
                                     @lang('sales::general.add_sell')
                                 </a>
-                            @else
+                                @enddashboardcan
+                            @elseif (dashboard_can(\Modules\Sales\Support\SalesPermissions::CONVERT_QUOTATION) && dashboard_can(\Modules\Sales\Support\SalesPermissions::INVOICES_CREATE))
                                 <a class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px" data-bs-toggle="modal"
                                     data-bs-target="#convertToInvoiceModal">
                                     @lang('sales::general.convert-to-invoice')
                                 </a>
+                            @else
+                                @dashboardcan(\Modules\Sales\Support\SalesPermissions::INVOICES_CREATE)
+                                <a href="{{ url('/create-invoice') }}"
+                                    class="btn btn-primary fv-row flex-md-root min-w-150px mw-250px">
+                                    @lang('sales::general.add_sell')
+                                </a>
+                                @enddashboardcan
                             @endif
 
 
@@ -74,17 +85,21 @@
                             </button>
 
                             <ul class="dropdown-menu p-5">
+                                @dashboardcan(\Modules\Sales\Support\SalesPermissions::INVOICES_CREATE)
                                 <li>
                                     <a href="{{ url('/create-invoice') }}" class="dropdown-item">
                                         @lang('sales::general.add_sell')
                                     </a>
                                 </li>
+                                @enddashboardcan
+                                @if (dashboard_can(\Modules\Sales\Support\SalesPermissions::CONVERT_QUOTATION) && dashboard_can(\Modules\Sales\Support\SalesPermissions::INVOICES_CREATE))
                                 <li>
                                     <a href="#" class="dropdown-item" data-bs-toggle="modal"
                                         data-bs-target="#convertToInvoiceModal">
                                         @lang('sales::general.convert-to-invoice')
                                     </a>
                                 </li>
+                                @endif
                             </ul>
                         </div>
 

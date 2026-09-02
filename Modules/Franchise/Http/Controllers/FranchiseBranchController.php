@@ -7,6 +7,8 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Storage;
 use Modules\Establishment\Models\Establishment;
 use Modules\Franchise\Models\FranchiseCompanies;
+use Modules\Franchise\Support\FranchiseAccess;
+use Modules\Franchise\Support\FranchisePermissions;
 use Yajra\DataTables\Facades\DataTables;
 
 class FranchiseBranchController extends Controller
@@ -35,15 +37,22 @@ class FranchiseBranchController extends Controller
                         '<span class="badge badge-light-danger">'.$inactive.'</span>';
                 })
                 ->addColumn('actions', function ($row) {
-                    return '
-                    <div class="d-flex justify-content-end">
+                    $actions = '<div class="d-flex justify-content-end">';
+                    if (FranchiseAccess::can(FranchisePermissions::for('Branches', 'update'))) {
+                        $actions .= '
                         <button onclick="editBranch('.$row->id.')" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                             <i class="ki-outline ki-pencil fs-2"></i>
-                        </button>
+                        </button>';
+                    }
+                    if (FranchiseAccess::can(FranchisePermissions::for('Branches', 'delete'))) {
+                        $actions .= '
                         <button onclick="deleteBranch('.$row->id.')" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
                             <i class="ki-outline ki-trash fs-2"></i>
-                        </button>
-                    </div>';
+                        </button>';
+                    }
+                    $actions .= '</div>';
+
+                    return $actions;
                 })
                 ->rawColumns(['status_label', 'actions'])
                 ->make(true);

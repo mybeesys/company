@@ -4,6 +4,7 @@ import SweetAlert2 from "react-sweetalert2";
 import DropdownMenu from "../../comp/DropdownMenu";
 import TreeTableComponent from "../../comp/TreeTableComponent";
 import React from "react";
+import { emsCan } from "../../emsCan";
 
 const TransferTable = ({ dir, translations }) => {
     const rootElement = document.getElementById("root");
@@ -93,14 +94,14 @@ const TransferTable = ({ dir, translations }) => {
             });
         }
 
-        return (
+        return emsCan("update") ? (
             <DropdownMenu
                 actions={actions}
                 data={data}
                 translations={translations}
                 afterExecute={refreshTree}
             />
-        );
+        ) : null;
     };
 
     const canEditRow = (data) => {

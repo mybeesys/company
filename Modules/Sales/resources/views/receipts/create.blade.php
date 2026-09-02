@@ -169,7 +169,11 @@
 
     </form>
 
-    @include('sales::sell.create.add-client')
+    @if ($supplier)
+        @include('purchases::purchases.create.add-client')
+    @else
+        @include('sales::sell.create.add-client')
+    @endif
 
 
 

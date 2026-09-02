@@ -26,6 +26,10 @@ use Modules\Employee\Models\PosRole;
 use Modules\Employee\Models\Shift;
 use Modules\Employee\Models\TimeCard;
 use Modules\Employee\Models\TimeSheetRule;
+use Modules\Employee\Support\DashboardHubPermissions;
+use Modules\Employee\Support\EmployeePermissions;
+use Modules\Employee\Support\MyCompaniesPermissions;
+use Modules\Employee\Support\ReferralsPermissions;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -49,19 +53,31 @@ Route::middleware([
 ])->group(function () {
 
     Route::middleware(['auth'])->group(function () {
+        $perm = fn (string ...$names) => 'dashboard.perm:'.implode(',', $names);
 
-        Route::get('/dashboard', [DashbordController::class, 'index'])->name('dashboard');
-        Route::get('/', [DashbordController::class, 'index']);
+        Route::get('/dashboard', [DashbordController::class, 'index'])
+            ->middleware($perm(...DashboardHubPermissions::menuShowAny()))
+            ->name('dashboard');
+        Route::get('/', [DashbordController::class, 'index'])
+            ->middleware($perm(...DashboardHubPermissions::menuShowAny()));
 
-        Route::get('/my-companies', [MyCompaniesController::class, 'index'])->name('my-companies.index');
+        Route::get('/my-companies', [MyCompaniesController::class, 'index'])
+            ->middleware($perm(MyCompaniesPermissions::SHOW))
+            ->name('my-companies.index');
         Route::get('/my-companies/{tenantId}/switch', [MyCompaniesController::class, 'switchUrl'])->name('my-companies.switch');
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-        Route::get('/referrals', [ReferralController::class, 'index'])->name('referrals.index');
-        Route::post('/referrals/copy', [ReferralController::class, 'recordCopy'])->name('referrals.copy');
-        Route::post('/referrals/send', [ReferralController::class, 'sendInvites'])->name('referrals.send');
+        Route::get('/referrals', [ReferralController::class, 'index'])
+            ->middleware($perm(ReferralsPermissions::SHOW))
+            ->name('referrals.index');
+        Route::post('/referrals/copy', [ReferralController::class, 'recordCopy'])
+            ->middleware($perm(ReferralsPermissions::SHOW))
+            ->name('referrals.copy');
+        Route::post('/referrals/send', [ReferralController::class, 'sendInvites'])
+            ->middleware($perm(ReferralsPermissions::CREATE))
+            ->name('referrals.send');
 
         Route::controller(EmployeeController::class)->name('employees.')->prefix('employee')->group(function () {
 
@@ -79,17 +95,21 @@ Route::middleware([
                 return view('employee::employee.print', compact('employee'))->render();
             })->can('print', Employee::class);
 
-            Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
-            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
+            Route::post('/create/validate', 'createLiveValidation')->name('create.validation')->can('create', Employee::class);
+            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation')->can('update', Employee::class);
 
             Route::get('/generate-pin', 'generatePin')->name('generate.pin')->can('create', Employee::class);
         });
 
-        Route::controller(PermissionController::class)->name('permissions.')->prefix('permission')->group(function () {
-            Route::patch('/{employee}/assign-pos-permissions', 'assignPosPermissionsToEmployee')->name('assign.employee')->can('update', PosRole::class);
-            Route::get('/get-employee-pos-permissions/{id}', 'getEmployeePosPermissions')->can('view', PosRole::class);
-            Route::patch('/{employee}/assign-dashboard-permissions', 'assignDashboardPermissionsToUser')->name('assign.user')->can('update', DashboardRole::class);
-            Route::get('/get-employee-dashboard-permissions/{id}', 'getEmployeeDashboardPermissions')->can('view', DashboardRole::class);
+        Route::controller(PermissionController::class)->name('permissions.')->prefix('permission')->group(function () use ($perm) {
+            Route::patch('/{employee}/assign-pos-permissions', 'assignPosPermissionsToEmployee')->name('assign.employee')
+                ->middleware($perm(EmployeePermissions::POS_ROLE_UPDATE, EmployeePermissions::EMPLOYEE_UPDATE));
+            Route::get('/get-employee-pos-permissions/{id}', 'getEmployeePosPermissions')
+                ->middleware($perm(EmployeePermissions::POS_ROLE_SHOW, EmployeePermissions::POS_ROLE_UPDATE, EmployeePermissions::POS_ROLES_SHOW));
+            Route::patch('/{employee}/assign-dashboard-permissions', 'assignDashboardPermissionsToUser')->name('assign.user')
+                ->middleware($perm(EmployeePermissions::DASHBOARD_ROLE_UPDATE, EmployeePermissions::EMPLOYEE_UPDATE));
+            Route::get('/get-employee-dashboard-permissions/{id}', 'getEmployeeDashboardPermissions')
+                ->middleware($perm(EmployeePermissions::DASHBOARD_ROLE_SHOW, EmployeePermissions::DASHBOARD_ROLE_UPDATE, EmployeePermissions::DASHBOARD_ROLES_SHOW));
         });
 
         Route::controller(PosRoleController::class)->name('roles.')->prefix('pos-role')->group(function () {
@@ -101,11 +121,23 @@ Route::middleware([
             Route::patch('/{role}', 'update')->name('update')->can('update', PosRole::class);
             Route::delete('/{role}', 'destroy')->name('delete')->can('delete', PosRole::class);
 
-            Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
-            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
+            Route::post('/create/validate', 'createLiveValidation')->name('create.validation')->can('create', PosRole::class);
+            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation')->can('update', PosRole::class);
         });
-        Route::get('/permission/get-pos-role-permissions/{role}', [PosRoleController::class, 'getPermissions']);
-        Route::get('/permission/get-dashboard-role-permissions/{roleId}', [PosRoleController::class, 'getDashboardRolePermissions']);
+        Route::get('/permission/get-pos-role-permissions/{role}', [PosRoleController::class, 'getPermissions'])
+            ->middleware($perm(
+                EmployeePermissions::POS_ROLE_SHOW,
+                EmployeePermissions::POS_ROLES_SHOW,
+                EmployeePermissions::EMPLOYEE_CREATE,
+                EmployeePermissions::EMPLOYEE_UPDATE,
+            ));
+        Route::get('/permission/get-dashboard-role-permissions/{roleId}', [PosRoleController::class, 'getDashboardRolePermissions'])
+            ->middleware($perm(
+                EmployeePermissions::DASHBOARD_ROLE_SHOW,
+                EmployeePermissions::DASHBOARD_ROLES_SHOW,
+                EmployeePermissions::EMPLOYEE_CREATE,
+                EmployeePermissions::EMPLOYEE_UPDATE,
+            ));
         Route::controller(DashboardRoleController::class)->name('dashboard-roles.')->prefix('dashboard-role')->group(function () {
             Route::get('', 'index')->name('index')->can('viewAny', DashboardRole::class);
             Route::get('/create', 'create')->name('create')->can('create', DashboardRole::class);
@@ -115,29 +147,35 @@ Route::middleware([
             Route::patch('/{dashboardRole}', 'update')->name('update')->can('update', DashboardRole::class);
             Route::delete('/{dashboardRole}', 'destroy')->name('delete')->can('delete', DashboardRole::class);
 
-            Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
-            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
+            Route::post('/create/validate', 'createLiveValidation')->name('create.validation')->can('create', DashboardRole::class);
+            Route::post('/update/validate', 'updateLiveValidation')->name('update.validation')->can('update', DashboardRole::class);
         });
 
-        Route::controller(PayrollAdjustmentController::class)->name('adjustments.')->prefix('/adjustment')->group(function () {
+        Route::controller(PayrollAdjustmentController::class)->name('adjustments.')->prefix('/adjustment')->group(function () use ($perm) {
             Route::get('', 'index')->name('index')->can('viewAny', PayrollAdjustment::class);
 
-            Route::post('/store', 'store')->name('store')->can('create', PayrollAdjustment::class);
+            Route::post('/store', 'store')->name('store')
+                ->middleware($perm(EmployeePermissions::ALLOWANCE_CREATE, EmployeePermissions::ALLOWANCE_UPDATE));
 
             Route::delete('/{adjustment}', 'destroy')->name('delete')->can('delete', PayrollAdjustment::class);
 
-            Route::post('/store-payroll-allowance', 'storeAllowanceCache')->name('store-allowance-cache');
-            Route::post('/store-payroll-deduction', 'storeDeductionCache')->name('store-deduction-cache');
+            Route::post('/store-payroll-allowance', 'storeAllowanceCache')->name('store-allowance-cache')
+                ->can('create', Payroll::class);
+            Route::post('/store-payroll-deduction', 'storeDeductionCache')->name('store-deduction-cache')
+                ->can('create', Payroll::class);
         });
 
-        Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/adjustment-type')->group(function () {
+        Route::controller(PayrollAdjustmentTypeController::class)->name('adjustment_types.')->prefix('/adjustment-type')->group(function () use ($perm) {
             Route::get('', 'index')->name('index')->can('viewAny', PayrollAdjustment::class);
 
             Route::delete('/{adjustmentType}', 'destroy')->name('delete')->can('delete', PayrollAdjustment::class);
 
-            Route::get('get-types', 'getAdjustmentsTypes')->name('get-types');
-            Route::post('/store', 'store')->name('store');
-            Route::post('/{adjustmentType}', 'update')->name('update');
+            Route::get('get-types', 'getAdjustmentsTypes')->name('get-types')
+                ->middleware($perm(...EmployeePermissions::adjustmentTypeHelperAny()));
+            Route::post('/store', 'store')->name('store')
+                ->middleware($perm(...EmployeePermissions::adjustmentTypeHelperAny()));
+            Route::post('/{adjustmentType}', 'update')->name('update')
+                ->can('update', PayrollAdjustment::class);
         });
 
         Route::name('schedules.')->prefix('schedule')->group(function () {
@@ -145,8 +183,8 @@ Route::middleware([
                 Route::get('', 'index')->name('index')->can('viewAny', TimeSheetRule::class);
                 Route::post('/store', 'store')->name('store')->can('update', TimeSheetRule::class);
 
-                Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
-                Route::post('/update/validate', 'updateLiveValidation')->name('update.validation');
+                Route::post('/create/validate', 'createLiveValidation')->name('create.validation')->can('update', TimeSheetRule::class);
+                Route::post('/update/validate', 'updateLiveValidation')->name('update.validation')->can('update', TimeSheetRule::class);
             });
 
             Route::controller(TimeCardController::class)->name('timecards.')->prefix('timecard')->group(function () {
@@ -159,14 +197,14 @@ Route::middleware([
                 });
                 Route::delete('/{timecard}', 'destroy')->name('delete')->can('delete', TimeCard::class);
 
-                Route::post('/create/validate', 'createLiveValidation')->name('create.validation');
+                Route::post('/create/validate', 'createLiveValidation')->name('create.validation')->can('create', TimeCard::class);
             });
 
             Route::controller(ShiftController::class)->middleware([EnureTimeSheetRulesExists::class])->name('shifts.')->prefix('/shift')->group(function () {
                 Route::get('', 'index')->name('index')->can('viewAny', Shift::class);
                 Route::post('/store', 'store')->name('store')->can('update', Shift::class);
 
-                Route::get('/get-shift', 'getShift')->name('getShift');
+                Route::get('/get-shift', 'getShift')->name('getShift')->can('viewAny', Shift::class);
 
                 Route::post('/copy-shifts', 'copy_shifts')->name('copy-shifts')->can('update', Shift::class);
             });
@@ -184,17 +222,17 @@ Route::middleware([
                 Route::get('', 'index')->name('index')->can('viewPayrolls');
                 Route::get('/save', 'create')->name('create')->can('create', Payroll::class);
                 Route::post('/store', 'store')->name('store')->can('create', Payroll::class);
-                Route::get('/payroll-columns', 'getColumns')->name('get-columns');
+                Route::get('/payroll-columns', 'getColumns')->name('get-columns')->can('viewPayrolls');
 
-                Route::post('/extend-lock', 'extendLock')->name('extendLock');
+                Route::post('/extend-lock', 'extendLock')->name('extendLock')->can('create', Payroll::class);
 
-                Route::get('/export-pdf-all', 'exportPdfAll')->name('export-pdf-all');
+                Route::get('/export-pdf-all', 'exportPdfAll')->name('export-pdf-all')->can('printAll', Payroll::class);
 
                 Route::get('/print-all', function () {
                     $payrolls = Payroll::all();
 
                     return view('employee::schedules.payroll.print-all', compact('payrolls'))->render();
-                })->name('print-all');
+                })->name('print-all')->can('printAll', Payroll::class);
 
                 Route::get('/{payroll}/print', function (Payroll $payroll) {
                     return view('employee::schedules.payroll.print', compact('payroll'))->render();
