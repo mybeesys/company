@@ -4,6 +4,7 @@ namespace Modules\Accounting\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 // use Modules\Accounting\Database\Factories\AccountingAccountFactory;
 
@@ -17,6 +18,10 @@ class AccountingAccount extends Model
     protected $guarded = ['id'];
 
     protected $table = 'accounting_accounts';
+
+    protected $casts = [
+        'allow_direct_posting' => 'boolean',
+    ];
     // protected $connection = 'tenant';
 
     public function scopeForTenant($query)
@@ -60,6 +65,13 @@ class AccountingAccount extends Model
 
             if ($parentAccountIds->isNotEmpty()) {
                 $query->whereNotIn('accounting_accounts.id', $parentAccountIds);
+            }
+
+            if (Schema::hasColumn('accounting_accounts', 'allow_direct_posting')) {
+                $query->where(function ($inner) {
+                    $inner->where('allow_direct_posting', 1)
+                        ->orWhereNull('allow_direct_posting');
+                });
             }
         }
 

@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
+use Modules\Accounting\Support\CoaColorSystem;
 use Modules\Accounting\Utils\AccountingUtil;
 
 class ChartOfAccountsTreePresenter
@@ -23,14 +24,22 @@ class ChartOfAccountsTreePresenter
         }
     }
 
-    public static function enrichAccount(AccountingAccount $account): void
+    public static function enrichAccount(AccountingAccount $account, int $inferredLevel = 3): void
     {
         $children = $account->relationLoaded('child_accounts')
             ? $account->child_accounts
             : collect();
 
+        $level = (int) ($account->coa_level ?: $inferredLevel);
+        $tone = CoaColorSystem::resolve($account->account_primary_type, $level);
+        $account->setAttribute('coa_resolved_level', $tone['level']);
+        $account->setAttribute('coa_tone_class', $tone['class']);
+        $account->setAttribute('coa_tone_accent', $tone['accent']);
+        $account->setAttribute('coa_tone_bg', $tone['background']);
+        $account->setAttribute('coa_tone_fg', $tone['color']);
+
         foreach ($children as $child) {
-            self::enrichAccount($child);
+            self::enrichAccount($child, $level + 1);
         }
 
         $hasChildren = $children->isNotEmpty();

@@ -7,11 +7,15 @@
             </h3>
         </div>
         <div class="card-body pt-3 pb-4 px-4">
-            <div class="d-flex flex-column gap-2">
+                    <div class="d-flex flex-column gap-2">
                 @foreach ($primaryTypeSummary ?? [] as $typeKey => $row)
+                    @php $legendTone = \Modules\Accounting\Support\CoaColorSystem::resolve($typeKey, 1); @endphp
                     <div class="coa-type-summary-item coa-type-summary-item-compact">
                         <div class="d-flex justify-content-between align-items-center gap-2">
-                            <span class="fw-semibold text-gray-700 fs-7">{{ $row['label'] }}</span>
+                            <span class="fw-semibold text-gray-700 fs-7 d-inline-flex align-items-center gap-2">
+                                <span class="coa-legend-dot" style="background-color: {{ $legendTone['accent'] }};"></span>
+                                {{ $row['label'] }}
+                            </span>
                             <span class="fw-bold text-gray-900 fs-7">@format_currency($row['balance'])</span>
                         </div>
                     </div>

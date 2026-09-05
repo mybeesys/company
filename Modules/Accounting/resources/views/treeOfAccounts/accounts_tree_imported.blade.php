@@ -8,9 +8,12 @@
                     <div id="accounts_tree_container" class="coa-tree-container">
                         <ul>
                             @foreach ($account_types as $key => $value)
-                                <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif>
-                                    <span class="coa-type-heading">
-                                        <span class="text-muted">({{ $account_GLC[$key] ?? '' }})</span>
+                                @php $typeTone = \Modules\Accounting\Support\CoaColorSystem::resolve($key, 1); @endphp
+                                <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif
+                                    style="--coa-accent: {{ $typeTone['accent'] }};">
+                                    <span class="coa-type-heading {{ $typeTone['class'] }}"
+                                        style="--coa-accent: {{ $typeTone['accent'] }};">
+                                        <span class="coa-tone-code">({{ $account_GLC[$key] ?? '' }})</span>
                                         <span class="fw-bold">{{ $value }}</span>
                                         @php $typeSummary = $primaryTypeSummary[$key] ?? null; @endphp
                                         @if ($typeSummary)

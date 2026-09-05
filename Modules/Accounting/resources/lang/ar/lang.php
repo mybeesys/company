@@ -21,6 +21,7 @@ return [
     'no_accounts' => 'لا توجد لديك أي حسابات حالياً.',
     'create_suggestion_tree_of_accounts' => 'هل ترغب في إنشاء حسابات افتراضية؟ يمكنك تعديل أو حذف هذه الحسابات لاحقاً بعد إنشائها.',
     'create_defulte_accounts' => 'إنشاء حسابات افتراضية',
+    'coa_already_exists' => 'دليل الحسابات موجود مسبقاً لهذه الشركة. لم يتم استبداله.',
     'Current Assets' => 'الأصول المتداولة',
     'Bank Accounts and Cash on Hand' => 'حسابات البنوك والنقد في الصندوق',
     'Accounts Receivable' => 'الحسابات المستحقة',

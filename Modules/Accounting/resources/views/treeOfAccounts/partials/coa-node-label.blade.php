@@ -3,10 +3,12 @@
     $displayBalance = (float) ($account->coa_display_balance ?? $account->balance ?? 0);
     $isAggregated = (bool) ($account->coa_balance_is_aggregated ?? false);
     $isViolation = (bool) ($account->coa_is_structure_violation ?? false);
+    $toneClass = $account->coa_tone_class ?? '';
+    $toneAccent = $account->coa_tone_accent ?? $account->coa_tone_bg ?? null;
 @endphp
-
 <span class="coa-node-label-inner">
-    <span class="coa-node-title">
+    <span class="coa-node-title {{ $toneClass }}"
+        @if ($toneAccent) style="--coa-accent: {{ $toneAccent }};" @endif>
         @if (app()->getLocale() == 'ar')
             @if (!empty($account->gl_code))
                 ({{ $account->gl_code }}) -
