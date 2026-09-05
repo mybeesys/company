@@ -3,8 +3,12 @@
 @section('title', __('accounting::lang.tree_of_accounts'))
 @section('css')
     <style>
-        .fa-folder:before {
-            color: #d1a400 !important;
+        #accounts_tree_container .fa-folder:before,
+        #accounts_tree_container .jstree-themeicon,
+        #accounts_tree_container .jstree-themeicon:before,
+        #accounts_tree_container .jstree-themeicon.ki-outline,
+        #accounts_tree_container .jstree-themeicon.ki-fasten {
+            color: var(--coa-accent, #64748b) !important;
         }
 
         .coa-page { margin-top: 1rem; }
@@ -78,6 +82,25 @@
 
         .coa-node-title {
             line-height: 1.5;
+            color: #1e293b;
+        }
+
+        .coa-type-heading,
+        .coa-subtype-heading {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.5rem;
+            color: #1e293b;
+        }
+
+        .coa-type-heading {
+            font-weight: 700;
+        }
+
+        .coa-tone-code {
+            color: #64748b;
+            font-weight: 500;
         }
 
         .coa-balance-chip,
@@ -138,9 +161,12 @@
             color: #dc2626 !important;
         }
 
-        .coa-violation-icon {
-            cursor: help;
-            font-size: 0.85rem;
+        .coa-legend-dot {
+            width: 0.65rem;
+            height: 0.65rem;
+            border-radius: 999px;
+            display: inline-block;
+            flex-shrink: 0;
         }
 
         .tree-actions {
@@ -420,6 +446,12 @@
         #accounts_tree_container .coa-status-icon--inactive::before {
             color: #dc2626 !important;
         }
+
+        #accounts_tree_container .fa-folder:before,
+        #accounts_tree_container .jstree-themeicon,
+        #accounts_tree_container .jstree-themeicon:before {
+            color: var(--coa-accent, #64748b) !important;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 
@@ -686,6 +718,17 @@ $('#account_nature_display_1').text(natureText)
                     file: { icon: "fa fa-file" },
                 },
                 plugins: ["types", "search"]
+            }).on('ready.jstree', function () {
+                $('#accounts_tree_container li').each(function () {
+                    var tone = this.querySelector(':scope > a .coa-type-heading, :scope > a .coa-subtype-heading, :scope > a .coa-node-title');
+                    if (!tone) {
+                        return;
+                    }
+                    var accent = window.getComputedStyle(tone).getPropertyValue('--coa-accent').trim();
+                    if (accent) {
+                        this.style.setProperty('--coa-accent', accent);
+                    }
+                });
             });
 
             var to = false;

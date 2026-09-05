@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounting\classes\LedgerExport;
 use Modules\Accounting\classes\TreeAccountsExcelImport;
@@ -20,6 +21,7 @@ use Modules\Accounting\Support\AccountingOpeningBalanceScope;
 use Modules\Accounting\Support\LedgerStatementPresenter;
 use Modules\Accounting\Support\AccountingReportDateResolver;
 use Modules\Accounting\Support\ImportedAccountTypeSync;
+use Modules\Accounting\Services\ChartOfAccounts\MyBeeMasterCoaInstaller;
 use Modules\Accounting\Services\ChartOfAccountsTreeBuilder;
 use Modules\Accounting\Services\ChartOfAccountsTreePresenter;
 use Modules\Accounting\Utils\AccountingUtil;
@@ -417,49 +419,26 @@ class TreeAccountsController extends Controller
         }
     }
 
-    public function createDefaultAccounts()
+    public function createDefaultAccounts(Request $request)
     {
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
-
-        $business_type = $company->business_type ?? 'general';
-
-        // $utils = [
-        //     "contractors" => ContractorsAccUtil::class,
-        //     "e-commerce" => E_commerceAccUtil::class,
-        //     "restaurant-cafe" => RestaurantCafeAccUtil::class,
-        //     "services" => ServicesAccUtil::class,
-        //     "general" => GeneralTreeAccUtil::class,
-        // ];
-
-        // $utilClass = $utils[$business_type] ?? $utils['general'];
-
-        // $default_accounting_account_types = $utilClass::default_accounting_account_types();
-        $default_accounting_account_types = AccountingUtil::default_accounting_account_types();
-        if (AccountingAccountTypes::count() === 0) {
-            AccountingAccountTypes::insert($default_accounting_account_types);
+        if (AccountingAccount::query()->exists()) {
+            return redirect()->back()->with('status', [
+                'success' => 0,
+                'msg' => __('accounting::lang.coa_already_exists'),
+            ]);
         }
 
-        $default_accounts = AccountingUtil::Default_Accounts();
-        // $default_accounts = $utilClass::Default_Accounts();
-        if (AccountingAccount::doesntExist()) {
-            AccountingAccount::insert($default_accounts);
+        try {
+            app(MyBeeMasterCoaInstaller::class)->install();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->back()->with('status', [
+                'success' => 0,
+                'msg' => config('app.debug') ? $e->getMessage() : __('messages.something_went_wrong'),
+            ]);
         }
 
-        // $utilClass::default_accounting_route();
-        AccountingUtil::default_accounting_route();
-
-        // $default_accounting_account_types = AccountingUtil::default_accounting_account_types();
-        // $accountingAccountType = AccountingAccountTypes::all();
-        // if (count($accountingAccountType) == 0) {
-        //     AccountingAccountTypes::insert($default_accounting_account_types);
-        // }
-        // $default_accounts = AccountingUtil::Default_Accounts();
-        // if (AccountingAccount::doesntExist()) {
-        //     AccountingAccount::insert($default_accounts);
-        // }
-        // AccountingUtil::default_accounting_route();
-
-        // redirect back
         $output = [
             'success' => 1,
             'msg' => __('lang_v1.added_success'),
@@ -526,7 +505,17 @@ class TreeAccountsController extends Controller
                 $input['gl_code'] = AccountingUtil::next_GLC($parent->id);
             }
 
-            AccountingAccount::create($input);
+            $child = AccountingAccount::create($input);
+
+            if (Schema::hasColumn('accounting_accounts', 'allow_direct_posting')) {
+                $parent->forceFill(['allow_direct_posting' => false])->save();
+                $child->forceFill(['allow_direct_posting' => true])->save();
+            }
+            if (Schema::hasColumn('accounting_accounts', 'coa_level')) {
+                $child->forceFill([
+                    'coa_level' => max(3, (int) ($parent->coa_level ?? 2) + 1),
+                ])->save();
+            }
 
             DB::commit();
 
@@ -552,7 +541,7 @@ class TreeAccountsController extends Controller
 
         $account_sub_account = AccountingAccountTypes::find($input['sub_account_id']);
 
-        $account = AccountingAccount::create([
+        $payload = [
             'name_en' => $input['name_ar'],
             'name_ar' => $input['name_ar'],
             'account_primary_type' => $account_sub_account->account_primary_type,
@@ -564,7 +553,15 @@ class TreeAccountsController extends Controller
             'created_by' => Auth::user()->id,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
-        ]);
+        ];
+        if (Schema::hasColumn('accounting_accounts', 'allow_direct_posting')) {
+            $payload['allow_direct_posting'] = true;
+        }
+        if (Schema::hasColumn('accounting_accounts', 'coa_level')) {
+            $payload['coa_level'] = 3;
+        }
+
+        $account = AccountingAccount::create($payload);
 
         DB::commit();
 

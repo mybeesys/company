@@ -8,9 +8,12 @@
                     <div id="accounts_tree_container" class="coa-tree-container">
                         <ul>
                             @foreach ($account_types as $key => $value)
-                                <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif>
-                                    <span class="coa-type-heading">
-                                        <span class="text-muted">({{ $account_GLC[$key] ?? '' }})</span>
+                                @php $typeTone = \Modules\Accounting\Support\CoaColorSystem::resolve($key, 1); @endphp
+                                <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif
+                                    style="--coa-accent: {{ $typeTone['accent'] }};">
+                                    <span class="coa-type-heading {{ $typeTone['class'] }}"
+                                        style="--coa-accent: {{ $typeTone['accent'] }};">
+                                        <span class="coa-tone-code">({{ $account_GLC[$key] ?? '' }})</span>
                                         <span class="fw-bold">{{ $value }}</span>
                                         @php $typeSummary = $primaryTypeSummary[$key] ?? null; @endphp
                                         @if ($typeSummary)
@@ -25,10 +28,13 @@
                                             @php
                                                 $subAccounts = $accounts->where('account_sub_type_id', $sub_type->id);
                                                 $subTypeBalance = (float) $subAccounts->sum(fn ($a) => (float) ($a->coa_display_balance ?? 0));
+                                                $subTone = \Modules\Accounting\Support\CoaColorSystem::resolve($sub_type->account_primary_type, 2);
                                             @endphp
-                                            <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif>
-                                                <span class="coa-subtype-heading">
-                                                    <span class="text-muted">({{ $sub_type->gl_code }})</span>
+                                            <li @if ($loop->index == 0) data-jstree='{ "opened" : true }' @endif
+                                                style="--coa-accent: {{ $subTone['accent'] }};">
+                                                <span class="coa-subtype-heading {{ $subTone['class'] }}"
+                                                    style="--coa-accent: {{ $subTone['accent'] }};">
+                                                    <span class="coa-tone-code">({{ $sub_type->gl_code }})</span>
                                                     <span class="fw-semibold">
                                                         {{ app()->getLocale() == 'ar' ? $sub_type->name_ar : $sub_type->name_en }}
                                                     </span>
