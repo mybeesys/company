@@ -400,13 +400,17 @@ class AccountingReportsController extends Controller
 
     private function enrichIncomeAccountsWithAmountsAndDepth(Collection $accounts): Collection
     {
-        $byId = $accounts->keyBy('id');
         $childCountByParent = $accounts
             ->pluck('parent_account_id')
             ->filter()
             ->countBy();
 
-        return $accounts->map(function ($account) use ($byId, $childCountByParent) {
+        // Depth must walk the full chart parents — IS only loads accounts with period
+        // postings, so parent headers are usually absent from $accounts. Using only that
+        // subset made every leaf look like depth 0 and disabled level_filter.
+        $parentById = $this->loadAccountParentIdMap();
+
+        return $accounts->map(function ($account) use ($parentById, $childCountByParent) {
             $debit = (float) $account->debit_balance;
             $credit = (float) $account->credit_balance;
 
@@ -418,20 +422,42 @@ class AccountingReportsController extends Controller
                 $account->amount = $debit - $credit;
             }
 
-            $depth = 0;
-            $parentId = $account->parent_account_id;
-            $guard = 0;
-            while ($parentId && $byId->has($parentId) && $guard < 12) {
-                $depth++;
-                $parentId = $byId->get($parentId)->parent_account_id;
-                $guard++;
-            }
-
-            $account->depth = $depth;
+            $account->depth = $this->resolveAccountTreeDepth(
+                $account->parent_account_id ?? null,
+                $parentById
+            );
             $account->has_children = $childCountByParent->get($account->id, 0) > 0;
 
             return $account;
         });
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int|string, int|null>
+     */
+    private function loadAccountParentIdMap(): Collection
+    {
+        return AccountingAccount::query()->pluck('parent_account_id', 'id');
+    }
+
+    /**
+     * Tree depth from the chart root: depth 0 = top-level account (level 1 in filters).
+     *
+     * @param  \Illuminate\Support\Collection<int|string, int|null>  $parentById
+     */
+    private function resolveAccountTreeDepth(mixed $parentId, Collection $parentById): int
+    {
+        $depth = 0;
+        $guard = 0;
+        $current = $parentId;
+
+        while ($current && $parentById->has($current) && $guard < 12) {
+            $depth++;
+            $current = $parentById->get($current);
+            $guard++;
+        }
+
+        return $depth;
     }
 
     private function resolveIncomeComparePeriod(string $start_date, string $end_date, string $compare_mode): array

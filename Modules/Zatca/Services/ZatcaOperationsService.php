@@ -2,6 +2,7 @@
 
 namespace Modules\Zatca\Services;
 
+use App\Support\Zatca\FatooraZatcaPackage;
 use Illuminate\Support\Facades\DB;
 use Modules\Zatca\Models\ZatcaInvoiceSync;
 use Modules\Zatca\Models\ZatcaSetting;
@@ -62,7 +63,7 @@ class ZatcaOperationsService
      */
     public function purgeSandboxSyncs(ZatcaSetting $setting): array
     {
-        $env = (string) $setting->zatca_environment;
+        $env = FatooraZatcaPackage::environment();
         if (! in_array($env, self::SANDBOX_ENVIRONMENTS, true)) {
             throw new RuntimeException(__('zatca::lang.ops_purge_production_blocked'));
         }

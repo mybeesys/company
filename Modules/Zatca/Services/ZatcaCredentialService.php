@@ -2,6 +2,7 @@
 
 namespace Modules\Zatca\Services;
 
+use App\Support\Zatca\FatooraZatcaPackage;
 use Bl\FatooraZatca\Classes\InvoiceReportType;
 use Bl\FatooraZatca\Objects\Setting as FatooraSetting;
 use Bl\FatooraZatca\Zatca;
@@ -15,13 +16,15 @@ class ZatcaCredentialService
     /**
      * Persist form values, optionally call ZATCA onboarding (CSR → CSID).
      *
+     * Environment + production app key always come from .env when lock is enabled.
+     *
      * @param  array<string, mixed>  $data
      * @return array{setting: ZatcaSetting, generated: bool, message: string}
      */
     public function save(ZatcaSetting $setting, array $data, bool $generateCertificates = true): array
     {
         $payload = [
-            'zatca_environment' => $data['zatca_environment'],
+            'zatca_environment' => $this->environmentFromConfig(),
             'seller_name' => $data['seller_name'],
             'vat_number' => $data['vat_number'],
             'commercial_registration_number' => $data['commercial_registration_number'],
@@ -42,7 +45,10 @@ class ZatcaCredentialService
             'invoice_type' => $data['invoice_type'] ?? InvoiceReportType::BOTH,
         ];
 
-        if (! empty($data['zatca_app_key'])) {
+        $envAppKey = FatooraZatcaPackage::appKey();
+        if ($envAppKey !== null) {
+            $payload['zatca_app_key'] = $envAppKey;
+        } elseif (! $this->connectionLockedFromEnv() && ! empty($data['zatca_app_key'])) {
             $payload['zatca_app_key'] = $data['zatca_app_key'];
         }
 
@@ -69,6 +75,7 @@ class ZatcaCredentialService
             throw new RuntimeException(__('zatca::lang.package_missing'));
         }
 
+        $this->assertProductionPackageReady();
         $this->applyRuntimeConfig($setting);
 
         try {
@@ -100,10 +107,21 @@ class ZatcaCredentialService
 
     public function applyRuntimeConfig(ZatcaSetting $setting): void
     {
-        Config::set('zatca.app.environment', $setting->zatca_environment ?: 'local');
+        $environment = $this->environmentFromConfig();
+        Config::set('zatca.app.environment', $environment);
 
-        if ($setting->zatca_environment === 'production' && $setting->zatca_app_key) {
-            Config::set('zatca.app.key', $setting->zatca_app_key);
+        // Keep tenant row aligned with deployment env (for sync history / badges).
+        if ((string) $setting->zatca_environment !== $environment) {
+            $setting->zatca_environment = $environment;
+            $setting->save();
+        }
+
+        $appKey = FatooraZatcaPackage::appKey() ?: $setting->zatca_app_key;
+        if ($environment === 'production') {
+            if (! filled($appKey)) {
+                throw new RuntimeException(__('zatca::lang.app_key_required_production'));
+            }
+            Config::set('zatca.app.key', $appKey);
         }
     }
 
@@ -111,7 +129,8 @@ class ZatcaCredentialService
     {
         $vat = (string) $setting->vat_number;
         $otp = (string) ($setting->otp ?: '');
-        $envPrefix = match ($setting->zatca_environment) {
+        $environment = $this->environmentFromConfig();
+        $envPrefix = match ($environment) {
             'production' => 'PRD',
             'simulation' => 'SIM',
             default => 'TST',
@@ -142,6 +161,33 @@ class ZatcaCredentialService
             (string) ($setting->invoice_type ?: InvoiceReportType::BOTH),
             (string) ($setting->country_code ?: 'SA')
         );
+    }
+
+    public function environmentFromConfig(): string
+    {
+        return FatooraZatcaPackage::environment();
+    }
+
+    public function connectionLockedFromEnv(): bool
+    {
+        return (bool) config('zatca.app.lock_connection_from_env', true);
+    }
+
+    public function assertProductionPackageReady(): void
+    {
+        if (! FatooraZatcaPackage::isProduction()) {
+            return;
+        }
+
+        if (! is_dir(FatooraZatcaPackage::srcPath())) {
+            throw new RuntimeException(__('zatca::lang.production_package_missing', [
+                'path' => 'packages/fatoora-zatca-production',
+            ]));
+        }
+
+        if (! filled(FatooraZatcaPackage::appKey())) {
+            throw new RuntimeException(__('zatca::lang.app_key_required_production'));
+        }
     }
 
     /**

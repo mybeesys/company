@@ -2,6 +2,7 @@
 
 namespace Modules\Zatca\Http\Requests;
 
+use App\Support\Zatca\FatooraZatcaPackage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,12 +15,14 @@ class UpdateZatcaSettingRequest extends FormRequest
 
     public function rules(): array
     {
-        $environment = (string) $this->input('zatca_environment', 'local');
+        $environment = FatooraZatcaPackage::environment();
+        $locked = (bool) config('zatca.app.lock_connection_from_env', true);
 
         return [
+            // Always validated against deployment env when locked; otherwise accept form.
             'zatca_environment' => ['required', Rule::in(['local', 'simulation', 'production'])],
             'zatca_app_key' => [
-                Rule::requiredIf($environment === 'production'),
+                Rule::requiredIf($environment === 'production' && ! $locked && ! filled(FatooraZatcaPackage::appKey())),
                 'nullable',
                 'string',
                 'max:255',
@@ -72,13 +75,21 @@ class UpdateZatcaSettingRequest extends FormRequest
             $postal = strlen($postal) > 5 ? substr($postal, 0, 5) : str_pad($postal, 5, '0', STR_PAD_LEFT);
         }
 
-        $this->merge([
+        $merge = [
             'vat_number' => $vat,
             'organization_unit' => $ou,
             'building_number' => $building,
             'postal_code' => $postal,
             'country_code' => strtoupper((string) ($this->input('country_code') ?: 'SA')),
             'generate_certificates' => $this->boolean('generate_certificates'),
-        ]);
+        ];
+
+        // Deployment env wins — ignore posted environment/key when locked.
+        if ((bool) config('zatca.app.lock_connection_from_env', true)) {
+            $merge['zatca_environment'] = FatooraZatcaPackage::environment();
+            $merge['zatca_app_key'] = FatooraZatcaPackage::appKey();
+        }
+
+        $this->merge($merge);
     }
 }

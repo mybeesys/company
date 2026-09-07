@@ -2,6 +2,16 @@
     $formValues = $formValues ?? [];
     $appliedFromCompany = $appliedFromCompany ?? [];
     $companyDefaults = $companyDefaults ?? ['values' => [], 'available' => false, 'company_name' => null];
+    $connectionLockedFromEnv = $connectionLockedFromEnv ?? true;
+    $effectiveEnvironment = $deploymentEnvironment
+        ?? old('zatca_environment', $setting->zatca_environment ?: 'local');
+    $environmentLabel = $environments[$effectiveEnvironment] ?? $effectiveEnvironment;
+    $isProductionEnv = $effectiveEnvironment === 'production';
+    $envTone = match ($effectiveEnvironment) {
+        'production' => 'production',
+        'simulation' => 'simulation',
+        default => 'local',
+    };
     $fv = static function (string $key, mixed $fallback = '') use ($formValues) {
         if (array_key_exists($key, $formValues)) {
             return old($key, $formValues[$key]);
@@ -22,9 +32,23 @@
 
 @include('zatca::settings.partials.setup-readiness', ['readiness' => $readiness])
 
+<div class="z-env-status z-env-status--{{ $envTone }}" id="zatca-env-status" role="status" aria-live="polite">
+    <div class="z-env-status__icon" aria-hidden="true">
+        <i class="fa {{ $isProductionEnv ? 'fa-shield-alt' : ($envTone === 'simulation' ? 'fa-sync-alt' : 'fa-flask') }}"></i>
+    </div>
+    <div class="z-env-status__copy">
+        <div class="z-env-status__kicker">{{ __('zatca::lang.env_status_kicker') }}</div>
+        <div class="z-env-status__title">{{ $environmentLabel }}</div>
+        @if ($isProductionEnv && ! ($envAppKeyConfigured ?? false))
+            <div class="z-env-status__alert">{{ __('zatca::lang.env_status_prod_key_missing') }}</div>
+        @endif
+    </div>
+    <span class="z-env-status__badge">{{ __('zatca::lang.env_status_badge_'.$envTone) }}</span>
+</div>
+
 <div class="z-banner d-flex flex-wrap justify-content-between align-items-center gap-3">
     <div>
-        <div class="fw-semibold mb-1">{{ __('zatca::lang.env_help') }}</div>
+        <div class="fw-semibold mb-1">{{ __('zatca::lang.connection_fill_help') }}</div>
         @if (! empty($companyDefaults['available']))
             <div class="small opacity-75">
                 {{ __('zatca::lang.company_defaults_hint', [
@@ -52,32 +76,37 @@
     @csrf
     @method('PUT')
     <input type="hidden" name="active_tab" value="connection">
+    @if ($connectionLockedFromEnv)
+        <input type="hidden" name="zatca_environment" value="{{ $effectiveEnvironment }}">
+    @endif
 
-    <div class="z-card">
-        <div class="z-card-header">
-            <h2 class="z-card-title">{{ __('zatca::lang.section_environment') }}</h2>
-        </div>
-        <div class="z-card-body">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <label class="form-label required" for="zatca_environment">{{ __('zatca::lang.section_environment') }}</label>
-                    <select name="zatca_environment" id="zatca_environment" class="form-select form-select-solid select-2" required>
-                        @foreach ($environments as $value => $label)
-                            <option value="{{ $value }}" @selected(old('zatca_environment', $setting->zatca_environment) === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-6" id="zatca_app_key_wrap">
-                    <label class="form-label" for="zatca_app_key">{{ __('zatca::lang.app_key') }}</label>
-                    <input type="password" name="zatca_app_key" id="zatca_app_key" class="form-control form-control-solid"
-                           value="{{ old('zatca_app_key') }}"
-                           autocomplete="new-password"
-                           placeholder="••••••••">
-                    <div class="z-help">{{ __('zatca::lang.app_key_help') }}</div>
+    @unless ($connectionLockedFromEnv)
+        <div class="z-card">
+            <div class="z-card-header">
+                <h2 class="z-card-title">{{ __('zatca::lang.section_environment') }}</h2>
+            </div>
+            <div class="z-card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label required" for="zatca_environment">{{ __('zatca::lang.section_environment') }}</label>
+                        <select name="zatca_environment" id="zatca_environment" class="form-select form-select-solid select-2" required>
+                            @foreach ($environments as $value => $label)
+                                <option value="{{ $value }}" @selected(old('zatca_environment', $setting->zatca_environment) === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6" id="zatca_app_key_wrap" @class(['is-visible' => $isProductionEnv])>
+                        <label class="form-label" for="zatca_app_key">{{ __('zatca::lang.app_key') }}</label>
+                        <input type="password" name="zatca_app_key" id="zatca_app_key" class="form-control form-control-solid"
+                               value="{{ old('zatca_app_key') }}"
+                               autocomplete="new-password"
+                               placeholder="••••••••">
+                        <div class="z-help">{{ __('zatca::lang.app_key_help') }}</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endunless
 
     <div class="z-card">
         <div class="z-card-header">

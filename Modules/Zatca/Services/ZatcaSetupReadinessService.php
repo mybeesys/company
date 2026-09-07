@@ -100,6 +100,9 @@ class ZatcaSetupReadinessService
     {
         $env = (string) ($setting->zatca_environment ?: '');
         $isProd = $env === 'production';
+        $appKeyOk = ! $isProd
+            || filled($setting->zatca_app_key)
+            || filled(config('zatca.app.key'));
 
         return [
             'key' => 'environment',
@@ -111,14 +114,14 @@ class ZatcaSetupReadinessService
                     __('zatca::lang.section_environment'),
                     in_array($env, ['local', 'simulation', 'production'], true),
                     __('zatca::lang.readiness_hint_environment'),
-                    '#zatca_environment'
+                    '#zatca-env-status'
                 ),
                 $this->item(
                     'zatca_app_key',
                     __('zatca::lang.app_key'),
-                    ! $isProd || filled($setting->zatca_app_key),
+                    $appKeyOk,
                     __('zatca::lang.readiness_hint_app_key'),
-                    '#zatca_app_key'
+                    '#zatca-env-status'
                 ),
             ],
         ];
@@ -256,9 +259,10 @@ class ZatcaSetupReadinessService
         $vat = preg_replace('/\D+/', '', (string) $setting->vat_number) ?: '';
         $ou = preg_replace('/\D+/', '', (string) $setting->organization_unit) ?: '';
         $isProd = $setting->zatca_environment === 'production';
+        $hasAppKey = filled($setting->zatca_app_key) || filled(config('zatca.app.key'));
 
         return in_array((string) $setting->zatca_environment, ['local', 'simulation', 'production'], true)
-            && (! $isProd || filled($setting->zatca_app_key))
+            && (! $isProd || $hasAppKey)
             && filled(trim((string) $setting->seller_name))
             && filled(trim((string) $setting->organization_name))
             && (bool) preg_match('/^3\d{13}3$/', $vat)

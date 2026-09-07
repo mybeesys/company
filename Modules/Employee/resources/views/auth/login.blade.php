@@ -103,21 +103,7 @@
                 </div>
 
                 <div class="col-12 col-lg-6 login-auth-panel login-auth-panel--form">
-                    @if ($errors->any())
-                        <div class="alert alert-danger mb-8" role="alert" aria-live="polite">
-                            <ul class="mb-0 ps-4 small">
-                                @foreach ($errors->all() as $error)
-                                    <li>
-                                        @if ($error === 'subscription_expired')
-                                            {{ __('employee::responses.subscription_expired') }}
-                                        @else
-                                            {{ $error }}
-                                        @endif
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                    @include('employee::auth.partials.auth-notice')
 
                     <div class="login-auth-divider">
                         <span>@lang('employee::general.login_to_your_company')</span>
@@ -188,11 +174,9 @@
                 }, 300);
             }
 
-            var alertEl = document.querySelector('.login-auth-card .alert-danger');
+            var alertEl = document.querySelector('.login-auth-notice');
             if (alertEl) {
-                setTimeout(function() {
-                    alertEl.style.display = 'none';
-                }, 14000);
+                alertEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
 
             var pw = document.getElementById('password');

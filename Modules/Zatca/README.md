@@ -4,8 +4,10 @@
 
 - Module `Modules/Zatca` with tenant table `zatca_settings`
 - Admin page: `/zatca-settings` (also linked from General Settings cards)
-- Package path: `packages/fatoora-zatca` (`Bl\FatooraZatca\`)
-- Runtime config: `config/zatca.php` + tenant environment / app key override before CSR generation
+- Dual package trees:
+  - Sandbox: `packages/fatoora-zatca` (`Bl\FatooraZatca\`) — used for `local` / `simulation`
+  - Production: `packages/fatoora-zatca-production` — used only when `ZATCA_ENVIRONMENT=production`
+- Runtime config: `config/zatca.php` + env-owned environment / app key
 
 ## Setup on each tenant DB
 
@@ -14,14 +16,36 @@ php artisan tenants:migrate
 # or your usual tenant migrate command
 ```
 
-## Environment (.env)
+## Environment (.env) — source of truth
 
 ```
 ZATCA_ENVIRONMENT=local
 ZATCA_APP_KEY=
+ZATCA_LOCK_CONNECTION_FROM_ENV=true
 ```
 
-Production requires a valid `ZATCA_APP_KEY` (also enterable on the settings page; stored encrypted).
+| Value | Package used | Portal |
+|-------|--------------|--------|
+| `local` | `packages/fatoora-zatca` | developer-portal |
+| `simulation` | `packages/fatoora-zatca` | simulation |
+| `production` | `packages/fatoora-zatca-production` | core |
+
+Production requires a valid `ZATCA_APP_KEY` in `.env` (not editable from the UI when lock is on).
+
+After changing these values:
+
+```bash
+php artisan config:clear
+# or for production deploys:
+php artisan config:cache
+```
+
+## Going live (safe checklist)
+
+1. Keep `ZATCA_ENVIRONMENT=local` while testing — current sandbox invoices stay on the sandbox package.
+2. Place the vendor production ZIP under `packages/fatoora-zatca-production` (already done if you received the licensed build).
+3. Set `ZATCA_APP_KEY=...` in `.env`.
+4. When ready: set `ZATCA_ENVIRONMENT=production`, run `php artisan config:cache`, then regenerate certificates for that tenant on production OTP.
 
 ## Flow
 
@@ -56,3 +80,4 @@ Production requires a valid `ZATCA_APP_KEY` (also enterable on the settings page
 Services:
 - `ZatcaInvoiceMapper` — ERP sell → Seller / Client / Invoice / InvoiceItem
 - `ZatcaSellSyncService` — report via `B2C` / `B2B`, persist result, lock hash chain
+- `App\Support\Zatca\FatooraZatcaPackage` — picks sandbox vs production package from `.env`

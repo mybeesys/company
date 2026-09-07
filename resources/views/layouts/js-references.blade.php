@@ -87,6 +87,12 @@
         "hideMethod": "fadeOut"
     };
 
+    @php
+        $toastValidationErrors = request()->routeIs('login', 'password.request', 'password.reset')
+            ? []
+            : ($errors->any() ? $errors->all() : []);
+    @endphp
+
     (function showFlashedToasts() {
         if (window.__appToastsShown || typeof toastr === 'undefined') {
             return;
@@ -96,7 +102,7 @@
         const successMessages = @json(array_values(array_filter([session('success')])));
         const errorMessages = @json(array_values(array_unique(array_filter(array_merge(
             session('error') ? [session('error')] : [],
-            $errors->any() ? $errors->all() : []
+            $toastValidationErrors
         )))));
 
         successMessages.forEach(function (msg) {

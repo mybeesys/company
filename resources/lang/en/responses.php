@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'no_subscription_found' => 'Sorry, this company does not have any active subscription',
+    'no_subscription_found' => 'Your company account does not have an active subscription plan. Please contact our support team to activate the right plan.',
 ];

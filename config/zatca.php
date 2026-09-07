@@ -5,8 +5,14 @@ return [
     /**
      * Zatca Phase 2
      *
-     * we will consider some config data for zatca v2 in this file.
-     * the mode of zatca app is by default the same as app environment.
+     * Environment + production app key are owned by .env (not the settings UI)
+     * so operators cannot accidentally flip sandbox ↔ production.
+     *
+     * Package trees:
+     * - local|simulation → packages/fatoora-zatca (sandbox build)
+     * - production       → packages/fatoora-zatca-production (licensed production build)
+     *
+     * Do NOT fall back to APP_ENV — a production Laravel deploy may still be on ZATCA sandbox.
      */
     'portals'       => [
         'local'         => env('ZATCA_LOCAL', 'https://gw-fatoora.zatca.gov.sa/e-invoicing/developer-portal'),
@@ -14,8 +20,14 @@ return [
         'production'    => env('ZATCA_PRODUCTION', 'https://gw-fatoora.zatca.gov.sa/e-invoicing/core'),
     ],
     'app' => [
-        'environment'   => env('ZATCA_ENVIRONMENT', env('APP_ENV', 'local')), # local|simulation|production
+        'environment'   => env('ZATCA_ENVIRONMENT', 'local'), // local|simulation|production
         'key'           => env('ZATCA_APP_KEY'),
+        // When true: UI shows env/key as read-only; saves always use .env values.
+        'lock_connection_from_env' => filter_var(env('ZATCA_LOCK_CONNECTION_FROM_ENV', true), FILTER_VALIDATE_BOOLEAN),
+    ],
+    'packages' => [
+        'sandbox' => base_path('packages/fatoora-zatca'),
+        'production' => base_path('packages/fatoora-zatca-production'),
     ],
 
     /**
