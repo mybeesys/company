@@ -33,6 +33,7 @@ use Modules\Expense\Models\Expense;
 use Modules\Expense\Support\ExpenseLedgerAccounts;
 use Modules\Accounting\Services\CashFlowReportService;
 use Modules\Accounting\Services\CustomerSupplierStatementReportService;
+use Modules\Accounting\Services\IncomeStatementAccountClassifier;
 use Modules\Accounting\Services\TrialBalanceReportService;
 use Modules\Expense\Services\ExpenseReportService;
 use Modules\Expense\Support\TreasuryAccounts;
@@ -71,7 +72,9 @@ class AccountingReportsController extends Controller
         $gross_revenue = 0;
         $sales_returns = 0;
         $cost_of_revenue = 0;
-        $total_expense = 0;
+        $total_operating_expense = 0;
+        $total_selling_expense = 0;
+        $total_administrative_expense = 0;
         $total_other_income = 0;
         $total_other_expense = 0;
 
@@ -93,9 +96,17 @@ class AccountingReportsController extends Controller
                     $cost_of_revenue += $debit - $credit;
                     break;
 
-                case 'expenses':
                 case 'operating_expense':
-                    $total_expense += $debit - $credit;
+                    $total_operating_expense += $debit - $credit;
+                    break;
+
+                case 'selling_expense':
+                    $total_selling_expense += $debit - $credit;
+                    break;
+
+                case 'administrative_expense':
+                case 'expenses':
+                    $total_administrative_expense += $debit - $credit;
                     break;
 
                 case 'other_income':
@@ -109,8 +120,10 @@ class AccountingReportsController extends Controller
         }
 
         $net_sales = $gross_revenue - $sales_returns;
-        $gross_profit = $net_sales - $cost_of_revenue;
-        $operation_income = $gross_profit - $total_expense;
+        // Operating expenses sit under cost of revenue and before gross profit (multi-step IS).
+        $gross_profit = $net_sales - $cost_of_revenue - $total_operating_expense;
+        $post_gross_expenses = $total_selling_expense + $total_administrative_expense;
+        $operation_income = $gross_profit - $post_gross_expenses;
         $income_before_tax = $operation_income + $total_other_income - $total_other_expense;
 
         $taxPercent = (float) (Tax::query()->value('amount') ?? 0);
@@ -118,7 +131,10 @@ class AccountingReportsController extends Controller
         $tax_amount = ($taxPercent * $taxableBase) / 100;
         $net_profit = $income_before_tax - $tax_amount;
 
-        $total_expenses_all = $cost_of_revenue + $total_expense + $total_other_expense;
+        $total_expenses_all = $cost_of_revenue
+            + $total_operating_expense
+            + $post_gross_expenses
+            + $total_other_expense;
         $profit_margin = abs($net_sales) > 0.0001 ? ($net_profit / $net_sales) * 100 : null;
 
         return [
@@ -134,8 +150,12 @@ class AccountingReportsController extends Controller
             'tax_percent' => $taxPercent,
             'net_profit' => $net_profit,
             'cost_of_revenue' => $cost_of_revenue,
-            'total_expense' => $total_expense,
-            'total_operating_expenses' => $total_expense,
+            'total_operating_expense' => $total_operating_expense,
+            'total_operating_expenses' => $total_operating_expense,
+            'total_selling_expense' => $total_selling_expense,
+            'total_administrative_expense' => $total_administrative_expense,
+            // Legacy key: post-GP opex band (selling + admin) for older consumers.
+            'total_expense' => $post_gross_expenses,
             'total_other_income' => $total_other_income,
             'total_other_expense' => $total_other_expense,
             'total_expenses_all' => $total_expenses_all,
@@ -187,6 +207,9 @@ class AccountingReportsController extends Controller
                 'grossRevenueAccounts' => $incomeDataset['grossRevenueAccounts'],
                 'salesReturnAccounts' => $incomeDataset['salesReturnAccounts'],
                 'cogsAccounts' => $incomeDataset['cogsAccounts'],
+                'operatingExpenseAccounts' => $incomeDataset['operatingExpenseAccounts'],
+                'sellingExpenseAccounts' => $incomeDataset['sellingExpenseAccounts'],
+                'administrativeExpenseAccounts' => $incomeDataset['administrativeExpenseAccounts'],
                 'expenseAccounts' => $incomeDataset['expenseAccounts'],
                 'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
                 'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
@@ -232,6 +255,9 @@ class AccountingReportsController extends Controller
             'grossRevenueAccounts' => $incomeDataset['grossRevenueAccounts'],
             'salesReturnAccounts' => $incomeDataset['salesReturnAccounts'],
             'cogsAccounts' => $incomeDataset['cogsAccounts'],
+            'operatingExpenseAccounts' => $incomeDataset['operatingExpenseAccounts'],
+            'sellingExpenseAccounts' => $incomeDataset['sellingExpenseAccounts'],
+            'administrativeExpenseAccounts' => $incomeDataset['administrativeExpenseAccounts'],
             'expenseAccounts' => $incomeDataset['expenseAccounts'],
             'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
             'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
@@ -286,6 +312,8 @@ class AccountingReportsController extends Controller
         bool $hide_zero_lines = true,
         mixed $level_filter = null
     ): array {
+        $classifier = new IncomeStatementAccountClassifier($this->loadIncomeStatementCoaMap());
+
         $accounts = AccountingAccount::query()
             ->join('accounting_accounts_transactions as AAT', 'AAT.accounting_account_id', '=', 'accounting_accounts.id')
             ->leftJoin('accounting_account_types as acc_subtype', 'acc_subtype.id', '=', 'accounting_accounts.account_sub_type_id')
@@ -304,6 +332,7 @@ class AccountingReportsController extends Controller
                 'accounting_accounts.name_en',
                 'accounting_accounts.gl_code',
                 'accounting_accounts.account_type',
+                'accounting_accounts.account_primary_type',
                 'acc_subtype.name_en as account_sub_type_name_en',
                 DB::raw("SUM(IF(AAT.type = 'credit' , AAT.amount, 0)) as credit_balance"),
                 DB::raw("SUM(IF(AAT.type = 'debit' , AAT.amount, 0)) as debit_balance"),
@@ -315,12 +344,13 @@ class AccountingReportsController extends Controller
                 'accounting_accounts.name_en',
                 'accounting_accounts.gl_code',
                 'accounting_accounts.account_type',
+                'accounting_accounts.account_primary_type',
                 'acc_subtype.name_en',
             )
             ->orderBy('accounting_accounts.gl_code')
             ->get()
-            ->map(function ($account) {
-                $account->acc_type = $this->resolveIncomeAccountCategory($account);
+            ->map(function ($account) use ($classifier) {
+                $account->acc_type = $classifier->categorize($account);
 
                 return $account;
             });
@@ -336,7 +366,14 @@ class AccountingReportsController extends Controller
         $grossRevenueAccounts = $visibleAccounts->where('acc_type', 'gross_revenue')->filter($filterZero)->values();
         $salesReturnAccounts = $visibleAccounts->where('acc_type', 'sales_returns')->filter($filterZero)->values();
         $cogsAccounts = $visibleAccounts->where('acc_type', 'cost_of_sales')->filter($filterZero)->values();
-        $expenseAccounts = $visibleAccounts->whereIn('acc_type', ['expenses', 'operating_expense'])->filter($filterZero)->values();
+        $operatingExpenseAccounts = $visibleAccounts->where('acc_type', 'operating_expense')->filter($filterZero)->values();
+        $sellingExpenseAccounts = $visibleAccounts->where('acc_type', 'selling_expense')->filter($filterZero)->values();
+        $administrativeExpenseAccounts = $visibleAccounts
+            ->whereIn('acc_type', ['administrative_expense', 'expenses'])
+            ->filter($filterZero)
+            ->values();
+        // Legacy combined post-GP band (selling + admin).
+        $expenseAccounts = $sellingExpenseAccounts->concat($administrativeExpenseAccounts)->values();
         $otherIncomeAccounts = $visibleAccounts->where('acc_type', 'other_income')->filter($filterZero)->values();
         $otherExpenseAccounts = $visibleAccounts->where('acc_type', 'other_expenses')->filter($filterZero)->values();
 
@@ -347,37 +384,41 @@ class AccountingReportsController extends Controller
             'salesReturnAccounts' => $salesReturnAccounts,
             'revenueAccounts' => $grossRevenueAccounts,
             'cogsAccounts' => $cogsAccounts,
+            'operatingExpenseAccounts' => $operatingExpenseAccounts,
+            'sellingExpenseAccounts' => $sellingExpenseAccounts,
+            'administrativeExpenseAccounts' => $administrativeExpenseAccounts,
             'expenseAccounts' => $expenseAccounts,
             'otherIncomeAccounts' => $otherIncomeAccounts,
             'otherExpenseAccounts' => $otherExpenseAccounts,
         ];
     }
 
+    /**
+     * @return array<int, array{gl_code:?string,name_ar:?string,name_en:?string,parent_account_id:?int}>
+     */
+    private function loadIncomeStatementCoaMap(): array
+    {
+        $map = [];
+
+        foreach (
+            AccountingAccount::query()
+                ->select(['id', 'gl_code', 'name_ar', 'name_en', 'parent_account_id'])
+                ->get() as $row
+        ) {
+            $map[(int) $row->id] = [
+                'gl_code' => $row->gl_code,
+                'name_ar' => $row->name_ar,
+                'name_en' => $row->name_en,
+                'parent_account_id' => $row->parent_account_id !== null ? (int) $row->parent_account_id : null,
+            ];
+        }
+
+        return $map;
+    }
+
     private function resolveIncomeAccountCategory(object $account): string
     {
-        $isIncome = $account->account_type === 'income'
-            || ($account->account_primary_type ?? null) === 'income';
-
-        if ($isIncome) {
-            if ($this->isSalesReturnAccount($account)) {
-                return 'sales_returns';
-            }
-            if ($this->isOtherIncomeAccount($account)) {
-                return 'other_income';
-            }
-
-            return 'gross_revenue';
-        }
-
-        if ($account->account_sub_type_name_en === 'Cost Of Sales') {
-            return 'cost_of_sales';
-        }
-
-        if ($account->account_sub_type_name_en === 'Other Expenses') {
-            return 'other_expenses';
-        }
-
-        return 'operating_expense';
+        return (new IncomeStatementAccountClassifier($this->loadIncomeStatementCoaMap()))->categorize($account);
     }
 
     private function isSalesReturnAccount(object $account): bool
@@ -517,9 +558,22 @@ class AccountingReportsController extends Controller
         $rows->push([__('accounting::lang.income_statement_net_sales'), $fmt($data['net_sales'] ?? 0)]);
         $pushAccounts(__('accounting::lang.income_statement_cost_of_revenue'), $incomeDataset['cogsAccounts']);
         $rows->push([__('accounting::lang.income_statement_total_cost_of_revenue'), $fmt($data['cost_of_revenue'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_operating_expenses'), $incomeDataset['operatingExpenseAccounts']);
+        if (($incomeDataset['operatingExpenseAccounts'] ?? collect())->isNotEmpty()
+            || abs((float) ($data['total_operating_expense'] ?? 0)) > 0.0001) {
+            $rows->push([__('accounting::lang.income_statement_total_operating_expenses'), $fmt($data['total_operating_expense'] ?? 0)]);
+        }
         $rows->push([__('report::general.gross_profit'), $fmt($data['gross_profit'] ?? 0)]);
-        $pushAccounts(__('accounting::lang.income_statement_operating_expenses'), $incomeDataset['expenseAccounts']);
-        $rows->push([__('accounting::lang.income_statement_total_operating_expenses'), $fmt($data['total_expense'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_selling_expenses'), $incomeDataset['sellingExpenseAccounts']);
+        if (($incomeDataset['sellingExpenseAccounts'] ?? collect())->isNotEmpty()
+            || abs((float) ($data['total_selling_expense'] ?? 0)) > 0.0001) {
+            $rows->push([__('accounting::lang.income_statement_total_selling_expenses'), $fmt($data['total_selling_expense'] ?? 0)]);
+        }
+        $pushAccounts(__('accounting::lang.income_statement_administrative_expenses'), $incomeDataset['administrativeExpenseAccounts']);
+        if (($incomeDataset['administrativeExpenseAccounts'] ?? collect())->isNotEmpty()
+            || abs((float) ($data['total_administrative_expense'] ?? 0)) > 0.0001) {
+            $rows->push([__('accounting::lang.income_statement_total_administrative_expenses'), $fmt($data['total_administrative_expense'] ?? 0)]);
+        }
         $rows->push([__('accounting::lang.income_statement_operating_profit'), $fmt($data['operating_profit'] ?? 0)]);
         $pushAccounts(__('accounting::lang.income_statement_other_income'), $incomeDataset['otherIncomeAccounts']);
         $pushAccounts(__('accounting::lang.income_statement_other_expenses'), $incomeDataset['otherExpenseAccounts']);

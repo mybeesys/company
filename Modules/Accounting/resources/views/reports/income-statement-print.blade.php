@@ -92,11 +92,27 @@
             <tr class="section"><td colspan="2">{{ __('accounting::lang.income_statement_cost_of_revenue') }}</td></tr>
             @php $renderAccountRows($cogsAccounts ?? collect()); @endphp
             @php $renderSummary(__('accounting::lang.income_statement_total_cost_of_revenue'), $data['cost_of_revenue'] ?? 0); @endphp
+
+            @if(($operatingExpenseAccounts ?? collect())->isNotEmpty() || abs((float) ($data['total_operating_expense'] ?? 0)) > 0.0001)
+                <tr class="section"><td colspan="2">{{ __('accounting::lang.income_statement_operating_expenses') }}</td></tr>
+                @php $renderAccountRows($operatingExpenseAccounts); @endphp
+                @php $renderSummary(__('accounting::lang.income_statement_total_operating_expenses'), $data['total_operating_expense'] ?? 0); @endphp
+            @endif
+
             @php $renderSummary(__('report::general.gross_profit'), $data['gross_profit'] ?? 0, 'profit'); @endphp
 
-            <tr class="section"><td colspan="2">{{ __('accounting::lang.income_statement_operating_expenses') }}</td></tr>
-            @php $renderAccountRows($expenseAccounts ?? collect()); @endphp
-            @php $renderSummary(__('accounting::lang.income_statement_total_operating_expenses'), $data['total_expense'] ?? 0); @endphp
+            @if(($sellingExpenseAccounts ?? collect())->isNotEmpty() || abs((float) ($data['total_selling_expense'] ?? 0)) > 0.0001)
+                <tr class="section"><td colspan="2">{{ __('accounting::lang.income_statement_selling_expenses') }}</td></tr>
+                @php $renderAccountRows($sellingExpenseAccounts); @endphp
+                @php $renderSummary(__('accounting::lang.income_statement_total_selling_expenses'), $data['total_selling_expense'] ?? 0); @endphp
+            @endif
+
+            @if(($administrativeExpenseAccounts ?? collect())->isNotEmpty() || abs((float) ($data['total_administrative_expense'] ?? 0)) > 0.0001)
+                <tr class="section"><td colspan="2">{{ __('accounting::lang.income_statement_administrative_expenses') }}</td></tr>
+                @php $renderAccountRows($administrativeExpenseAccounts); @endphp
+                @php $renderSummary(__('accounting::lang.income_statement_total_administrative_expenses'), $data['total_administrative_expense'] ?? 0); @endphp
+            @endif
+
             @php $renderSummary(__('accounting::lang.income_statement_operating_profit'), $data['operating_profit'] ?? 0, 'grand'); @endphp
 
             @if(($otherIncomeAccounts ?? collect())->isNotEmpty())
