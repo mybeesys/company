@@ -510,8 +510,8 @@
                 aria-label="@lang('employee::general.close')">
                 <i class="ki-outline ki-cross"></i>
             </button>
-        </div>
-    </div>
+                            </div>
+                        </div>
 
     <div class="ems-perm-toolbar">
         <div class="ems-perm-search">
@@ -528,8 +528,8 @@
                 <i class="ki-outline ki-minus-square fs-5"></i>
                 @lang('employee::permissions.collapse_all')
             </button>
-        </div>
-    </div>
+                        </div>
+                    </div>
 
     <nav class="ems-perm-chips" aria-label="@lang('employee::permissions.modules_nav')">
         @foreach ($modules as $moduleName => $module)
@@ -548,7 +548,7 @@
     <div class="ems-perm-list" data-ems-list>
         <div class="ems-perm-empty" data-ems-empty>@lang('employee::permissions.no_results')</div>
 
-        @foreach ($modules as $moduleName => $module)
+            @foreach ($modules as $moduleName => $module)
             @php
                 $moduleHint = $hint::module($moduleName);
                 $labelKey = "employee::main.{$moduleName}_management_module";
@@ -586,7 +586,7 @@
                         </label>
                     @endunless
                     <i class="ki-outline ki-down ems-perm-module__chevron"></i>
-                </div>
+                                </div>
 
                 <div id="ems_mod_{{ $collapseId }}" class="collapse ems-perm-module__body {{ $isOpen ? 'show' : '' }}">
                     <div class="ems-perm-scroll">
@@ -598,7 +598,7 @@
                                     <div class="ems-perm-col">
                                         <span>{{ $actionTitles[$action] }}</span>
                                         <x-form.permission-hint :title="$col['title']" :body="$col['body']" placement="bottom" />
-                                    </div>
+                                </div>
                                 @endforeach
                             </div>
 
@@ -617,14 +617,14 @@
                                             <div class="ems-perm-cell {{ $allValue ? '' : 'is-na' }}">
                                                 <span class="ems-perm-cell__label">{{ $actionTitles[$action] }}</span>
                                                 <x-form.input-div class="form-check form-check-custom form-check-solid mb-0" :row="false">
-                                                    <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                        :disabled=$disabled
+                                            <x-form.input :errors=$errors class="form-check-input" type="checkbox"
+                                                :disabled=$disabled
                                                         value="{{ $allValue }}"
-                                                        name="dashboard_permissions[{{ $moduleName }}.all.{{ $action }}]"
+                                                name="dashboard_permissions[{{ $moduleName }}.all.{{ $action }}]"
                                                         checked="{{ $allValue ? $rolePermissions?->contains($allValue) : false }}"
-                                                        :form_control="false"
-                                                        attribute="data-select-all={{ $moduleName }}-all-{{ $action }}" />
-                                                </x-form.input-div>
+                                                :form_control="false"
+                                                attribute="data-select-all={{ $moduleName }}-all-{{ $action }}" />
+                                        </x-form.input-div>
                                                 @if ($allValue)
                                                     <x-form.permission-hint :title="$allHint['title']" :body="$allHint['body']" />
                                                 @else
@@ -646,7 +646,7 @@
                                                         :form_control="false"
                                                         attribute="data-ems-companion=1" />
                                                 @endif
-                                            @endforeach
+                                    @endforeach
                                         </div>
                                     @endif
                                 </div>
@@ -683,13 +683,13 @@
                                             <div class="ems-perm-cell {{ $isAvailable ? '' : 'is-na' }}">
                                                 <span class="ems-perm-cell__label">{{ $actionTitles[$action] }}</span>
                                                 <x-form.input-div class="fv-row form-check form-check-custom form-check-solid mb-0" :row="false">
-                                                    <x-form.input :errors=$errors class="form-check-input" type="checkbox"
-                                                        value="{{ $isAvailable }}"
-                                                        name="dashboard_permissions[{{ $moduleName . '.' . $name_en . '.' . $action }}]"
-                                                        :form_control="false"
-                                                        checked="{{ $rolePermissions?->contains($isAvailable) }}"
-                                                        disabled="{{ $disabled ? true : ($isAvailable ? false : true) }}" />
-                                                </x-form.input-div>
+                                                <x-form.input :errors=$errors class="form-check-input" type="checkbox"
+                                                    value="{{ $isAvailable }}"
+                                                    name="dashboard_permissions[{{ $moduleName . '.' . $name_en . '.' . $action }}]"
+                                                    :form_control="false"
+                                                    checked="{{ $rolePermissions?->contains($isAvailable) }}"
+                                                    disabled="{{ $disabled ? true : ($isAvailable ? false : true) }}" />
+                                            </x-form.input-div>
                                                 @if ($permHint)
                                                     <x-form.permission-hint :title="$permHint['title']" :body="$permHint['body']" />
                                                 @else
@@ -704,6 +704,6 @@
                     </div>
                 </div>
             </article>
-        @endforeach
+            @endforeach
     </div>
 </div>

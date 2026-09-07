@@ -84,35 +84,35 @@ class EnsureHasSubscription
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => __('company_not_found'),
+                'message' => __('employee::responses.company_not_found'),
             ], 403);
         }
         auth()->logout();
 
         return redirect()->route('login')
             ->withInput()
-            ->withErrors(['company' => __('company_not_found')]);
+            ->withErrors(['company' => __('employee::responses.company_not_found')]);
     }
 
     protected function handleNoSubscription(Request $request)
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => __('no_subscription_found'),
+                'message' => __('employee::responses.no_subscription_found'),
             ], 403);
         }
         auth()->logout();
 
         return redirect()->route('login')
             ->withInput()
-            ->withErrors(['subscription' => __('no_subscription_found')]);
+            ->withErrors(['subscription_missing' => __('employee::responses.no_subscription_found')]);
     }
 
     protected function handleExpiredSubscription(Request $request)
     {
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => __('subscription_expired'),
+                'message' => __('employee::responses.subscription_expired'),
             ], 403);
         }
         auth()->logout();
@@ -121,6 +121,6 @@ class EnsureHasSubscription
 
         return redirect()->route('login')
             ->withInput()
-            ->withErrors(['subscription' => __('subscription_expired')]);
+            ->withErrors(['subscription_expired' => __('employee::responses.subscription_expired')]);
     }
 }

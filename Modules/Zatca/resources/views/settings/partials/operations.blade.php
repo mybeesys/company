@@ -126,7 +126,7 @@
                 </div>
 
                 <div class="mt-auto">
-                    @if (in_array((string) $setting->zatca_environment, ['local', 'simulation'], true))
+                    @if (in_array((string) ($deploymentEnvironment ?? $setting->zatca_environment), ['local', 'simulation'], true))
                         @if ($canPurgeSandbox ?? false)
                             <form method="POST"
                                   action="{{ route('zatca.settings.purge-sandbox') }}"

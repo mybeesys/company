@@ -137,15 +137,21 @@
     const $appKeyWrap = $('#zatca_app_key_wrap');
     const $appKeyInput = $('#zatca_app_key');
     const $regenerateBtn = $('#btn-zatca-regenerate');
+    const connectionLockedFromEnv = @json($connectionLockedFromEnv ?? true);
 
     function syncAppKeyVisibility() {
+        if (connectionLockedFromEnv || ! $envSelect.length) {
+            return;
+        }
         const isProduction = $envSelect.val() === 'production';
         $appKeyWrap.toggleClass('is-visible', isProduction);
         $appKeyInput.prop('required', isProduction);
     }
 
-    $envSelect.on('change', syncAppKeyVisibility);
-    syncAppKeyVisibility();
+    if (! connectionLockedFromEnv && $envSelect.length) {
+        $envSelect.on('change', syncAppKeyVisibility);
+        syncAppKeyVisibility();
+    }
 
     $regenerateBtn.on('click', function () {
         const form = $form.get(0);
@@ -186,6 +192,9 @@
         options = options || {};
         const onlyEmpty = !!options.onlyEmpty;
         Object.keys(sample).forEach(function (key) {
+            if (connectionLockedFromEnv && (key === 'zatca_environment' || key === 'zatca_app_key')) {
+                return;
+            }
             const $field = $('#' + key);
             if (!$field.length) return;
             const current = String($field.val() || '').trim();

@@ -40,6 +40,82 @@
         color: #115e59;
         margin-bottom: 1.25rem;
     }
+    .zatca-settings .z-env-status {
+        --z-env-fg: #115e59;
+        --z-env-bg: #ecfdf5;
+        --z-env-border: #99f6e4;
+        --z-env-badge-bg: #ccfbf1;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        border: 1px solid var(--z-env-border);
+        background: var(--z-env-bg);
+        color: var(--z-env-fg);
+        border-radius: var(--z-radius);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: var(--z-shadow);
+    }
+    .zatca-settings .z-env-status--simulation {
+        --z-env-fg: #92400e;
+        --z-env-bg: #fffbeb;
+        --z-env-border: #fcd34d;
+        --z-env-badge-bg: #fef3c7;
+    }
+    .zatca-settings .z-env-status--production {
+        --z-env-fg: #9f1239;
+        --z-env-bg: #fff1f2;
+        --z-env-border: #fda4af;
+        --z-env-badge-bg: #ffe4e6;
+    }
+    .zatca-settings .z-env-status__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border: 1px solid var(--z-env-border);
+        color: var(--z-env-fg);
+        flex: 0 0 auto;
+    }
+    .zatca-settings .z-env-status__copy {
+        min-width: 0;
+        flex: 1 1 220px;
+    }
+    .zatca-settings .z-env-status__kicker {
+        font-size: .78rem;
+        font-weight: 600;
+        opacity: .85;
+        margin-bottom: .15rem;
+    }
+    .zatca-settings .z-env-status__title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+    .zatca-settings .z-env-status__alert {
+        margin-top: .45rem;
+        font-size: .82rem;
+        font-weight: 600;
+        color: #be123c;
+    }
+    .zatca-settings .z-env-status__badge {
+        margin-inline-start: auto;
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: .35rem .85rem;
+        border-radius: 999px;
+        background: var(--z-env-badge-bg);
+        border: 1px solid var(--z-env-border);
+        font-size: .78rem;
+        font-weight: 800;
+        letter-spacing: .01em;
+        white-space: nowrap;
+    }
     .zatca-settings .z-status-row {
         display: flex;
         flex-wrap: wrap;

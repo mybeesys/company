@@ -42,20 +42,20 @@ class CompanyAuthController extends Controller
 
         $companies = $this->memberships->companiesForEmail($user->email);
         if ($companies->isEmpty()) {
-            return response()->json(['message' => __('company_not_found')], 403);
+            return response()->json(['message' => __('employee::responses.company_not_found')], 403);
         }
 
         $tenantId = trim((string) ($validated['tenant_id'] ?? ''));
         if ($tenantId !== '') {
             if (! $this->memberships->userCanAccessTenant($user->email, $tenantId)) {
-                return response()->json(['message' => __('company_not_found')], 403);
+                return response()->json(['message' => __('employee::responses.company_not_found')], 403);
             }
         } else {
             $tenantId = (string) ($companies->first()->tenant_id ?? '');
         }
 
         if ($tenantId === '') {
-            return response()->json(['message' => __('company_not_found')], 403);
+            return response()->json(['message' => __('employee::responses.company_not_found')], 403);
         }
 
         $revokePrevious = array_key_exists('revoke_previous', $validated)

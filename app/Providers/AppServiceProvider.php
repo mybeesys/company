@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Company;
+use App\Support\Zatca\FatooraZatcaPackage;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
@@ -24,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->bindAppLangPath();
+        FatooraZatcaPackage::registerAutoload();
     }
 
     /**

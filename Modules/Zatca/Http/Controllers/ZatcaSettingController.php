@@ -3,6 +3,7 @@
 namespace Modules\Zatca\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Support\Zatca\FatooraZatcaPackage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -72,6 +73,13 @@ class ZatcaSettingController extends Controller
             }
         }
 
+        $deploymentEnvironment = FatooraZatcaPackage::environment();
+        $connectionLockedFromEnv = (bool) config('zatca.app.lock_connection_from_env', true);
+        $readinessSetting->zatca_environment = $deploymentEnvironment;
+        if ($deploymentEnvironment === 'production' && filled(FatooraZatcaPackage::appKey())) {
+            $readinessSetting->zatca_app_key = FatooraZatcaPackage::appKey();
+        }
+
         return view('zatca::settings.edit', [
             'setting' => $setting,
             'formValues' => $mergedForm['values'],
@@ -87,6 +95,10 @@ class ZatcaSettingController extends Controller
             'canRegenerate' => $user && $user->hasDashboardPermission(ZatcaPermissions::REGENERATE_CREATE),
             'canPurgeSandbox' => $user && $user->hasDashboardPermission(ZatcaPermissions::PURGE_SANDBOX_CREATE),
             'canEinvoicingShow' => $user && $user->hasDashboardPermission(ZatcaPermissions::EINVOICING_SHOW),
+            'deploymentEnvironment' => $deploymentEnvironment,
+            'connectionLockedFromEnv' => $connectionLockedFromEnv,
+            'packageVariant' => FatooraZatcaPackage::variant(),
+            'envAppKeyConfigured' => filled(FatooraZatcaPackage::appKey()),
             'environments' => [
                 'local' => __('zatca::lang.env_local'),
                 'simulation' => __('zatca::lang.env_simulation'),

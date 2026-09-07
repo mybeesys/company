@@ -297,6 +297,88 @@
         margin: 1.15rem 0 1.35rem;
     }
 
+    .login-auth-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 0.95rem 1rem;
+        border-radius: 0.85rem;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.72);
+        box-shadow: 0 10px 24px -16px rgba(15, 23, 42, 0.35);
+    }
+
+    [data-bs-theme="dark"] .login-auth-notice {
+        background: rgba(15, 23, 42, 0.55);
+    }
+
+    .login-auth-notice--warning {
+        border-color: rgba(245, 158, 11, 0.35);
+        background: linear-gradient(135deg, rgba(255, 251, 235, 0.95) 0%, rgba(255, 247, 237, 0.92) 100%);
+    }
+
+    [data-bs-theme="dark"] .login-auth-notice--warning {
+        border-color: rgba(245, 158, 11, 0.28);
+        background: linear-gradient(135deg, rgba(120, 53, 15, 0.35) 0%, rgba(69, 26, 3, 0.28) 100%);
+    }
+
+    .login-auth-notice--danger {
+        border-color: rgba(239, 68, 68, 0.28);
+        background: linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(255, 241, 242, 0.92) 100%);
+    }
+
+    [data-bs-theme="dark"] .login-auth-notice--danger {
+        border-color: rgba(239, 68, 68, 0.24);
+        background: linear-gradient(135deg, rgba(127, 29, 29, 0.35) 0%, rgba(69, 10, 10, 0.28) 100%);
+    }
+
+    .login-auth-notice__icon {
+        flex-shrink: 0;
+        width: 2.35rem;
+        height: 2.35rem;
+        border-radius: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+
+    .login-auth-notice--warning .login-auth-notice__icon {
+        color: #b45309;
+        background: rgba(245, 158, 11, 0.14);
+    }
+
+    .login-auth-notice--danger .login-auth-notice__icon {
+        color: #b91c1c;
+        background: rgba(239, 68, 68, 0.12);
+    }
+
+    .login-auth-notice__content {
+        min-width: 0;
+    }
+
+    .login-auth-notice__title {
+        margin: 0 0 0.25rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--login-text);
+        line-height: 1.35;
+    }
+
+    .login-auth-notice__message,
+    .login-auth-notice__hint {
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.55;
+        color: var(--login-muted);
+    }
+
+    .login-auth-notice__hint {
+        margin-top: 0.55rem;
+        padding-top: 0.55rem;
+        border-top: 1px dashed rgba(100, 116, 139, 0.28);
+    }
+
     .login-auth-actions .form-check {
         margin: 0;
         padding-inline-start: 0;
