@@ -203,21 +203,47 @@
                         'amount' => $data['cost_of_revenue'] ?? 0,
                     ])
 
+                    {{-- المصاريف التشغيلية (قبل إجمالي الربح) --}}
+                    @if(($operatingExpenseAccounts ?? collect())->isNotEmpty() || abs((float) ($data['total_operating_expense'] ?? 0)) > 0.0001)
+                        <tr class="is-section">
+                            <td colspan="2">@lang('accounting::lang.income_statement_operating_expenses')</td>
+                        </tr>
+                        @include('accounting::reports.partials.income-statement-account-rows', ['accounts' => $operatingExpenseAccounts ?? collect()])
+                        @include('accounting::reports.partials.income-statement-summary-row', [
+                            'label' => __('accounting::lang.income_statement_total_operating_expenses'),
+                            'amount' => $data['total_operating_expense'] ?? 0,
+                        ])
+                    @endif
+
                     @include('accounting::reports.partials.income-statement-summary-row', [
                         'label' => __('report::general.gross_profit'),
                         'amount' => $data['gross_profit'] ?? 0,
                         'rowClass' => 'is-profit-row',
                     ])
 
-                    {{-- المصاريف التشغيلية --}}
-                    <tr class="is-section">
-                        <td colspan="2">@lang('accounting::lang.income_statement_operating_expenses')</td>
-                    </tr>
-                    @include('accounting::reports.partials.income-statement-account-rows', ['accounts' => $expenseAccounts])
-                    @include('accounting::reports.partials.income-statement-summary-row', [
-                        'label' => __('accounting::lang.income_statement_total_operating_expenses'),
-                        'amount' => $data['total_expense'] ?? 0,
-                    ])
+                    {{-- مصاريف البيع والتوزيع --}}
+                    @if(($sellingExpenseAccounts ?? collect())->isNotEmpty() || abs((float) ($data['total_selling_expense'] ?? 0)) > 0.0001)
+                        <tr class="is-section">
+                            <td colspan="2">@lang('accounting::lang.income_statement_selling_expenses')</td>
+                        </tr>
+                        @include('accounting::reports.partials.income-statement-account-rows', ['accounts' => $sellingExpenseAccounts ?? collect()])
+                        @include('accounting::reports.partials.income-statement-summary-row', [
+                            'label' => __('accounting::lang.income_statement_total_selling_expenses'),
+                            'amount' => $data['total_selling_expense'] ?? 0,
+                        ])
+                    @endif
+
+                    {{-- المصاريف الإدارية والعمومية --}}
+                    @if(($administrativeExpenseAccounts ?? collect())->isNotEmpty() || abs((float) ($data['total_administrative_expense'] ?? 0)) > 0.0001)
+                        <tr class="is-section">
+                            <td colspan="2">@lang('accounting::lang.income_statement_administrative_expenses')</td>
+                        </tr>
+                        @include('accounting::reports.partials.income-statement-account-rows', ['accounts' => $administrativeExpenseAccounts ?? collect()])
+                        @include('accounting::reports.partials.income-statement-summary-row', [
+                            'label' => __('accounting::lang.income_statement_total_administrative_expenses'),
+                            'amount' => $data['total_administrative_expense'] ?? 0,
+                        ])
+                    @endif
 
                     @include('accounting::reports.partials.income-statement-summary-row', [
                         'label' => __('accounting::lang.income_statement_operating_profit'),
