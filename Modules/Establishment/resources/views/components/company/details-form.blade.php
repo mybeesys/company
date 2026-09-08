@@ -27,9 +27,11 @@
     <div class="px-6 pb-6">
     <div class="row g-6 mb-1">
         <div class="col-md-4 fv-row">
-            <label class="fs-6 fw-semibold mb-2">{{ __('establishment::fields.name') }}</label>
+            <label class="fs-6 fw-semibold mb-2 required">{{ __('establishment::fields.name') }}</label>
             <input type="text" class="form-control form-control-solid" name="name"
-                value="{{ $company?->name }}" readonly placeholder="{{ __('establishment::fields.name') }}" />
+                value="{{ old('name', $company?->name) }}" required maxlength="255"
+                autocomplete="organization"
+                placeholder="{{ __('establishment::fields.name') }}" />
         </div>
 
         <div class="col-md-4 fv-row">

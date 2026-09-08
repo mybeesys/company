@@ -98,14 +98,6 @@
                 </select>
             </div>
             <div class="col-md-6 col-lg-2">
-                <label class="form-label small mb-1" for="compare_mode">@lang('accounting::lang.income_statement_growth')</label>
-                <select name="compare_mode" id="compare_mode" class="form-select form-select-sm">
-                    <option value="none" @selected(($compare_mode ?? 'none') === 'none')>@lang('accounting::lang.income_statement_compare_none')</option>
-                    <option value="previous_period" @selected(($compare_mode ?? '') === 'previous_period')>@lang('accounting::lang.income_statement_compare_previous_period')</option>
-                    <option value="previous_year" @selected(($compare_mode ?? '') === 'previous_year')>@lang('accounting::lang.income_statement_compare_previous_year')</option>
-                </select>
-            </div>
-            <div class="col-md-6 col-lg-2">
                 <label class="form-label small mb-1" for="hide_zero_lines">@lang('accounting::lang.balance')</label>
                 <select name="hide_zero_lines" id="hide_zero_lines" class="form-select form-select-sm">
                     <option value="1" @selected(($hide_zero_lines ?? 1) == 1)>@lang('accounting::lang.income_statement_hide_zero')</option>
@@ -314,12 +306,10 @@
         const startDate = $('input[name="start_date"]').val();
         const endDate = $('input[name="end_date"]').val();
         const costCenters = $('#choose_cost_center_select').val() || [];
-        const compareMode = $('#compare_mode').val();
         const hideZero = $('#hide_zero_lines').val();
 
         if (startDate) params.append('start_date', startDate);
         if (endDate) params.append('end_date', endDate);
-        if (compareMode) params.append('compare_mode', compareMode);
         if (hideZero !== null) params.append('hide_zero_lines', hideZero);
         const levelFilter = $('#level_filter').val();
         if (levelFilter !== undefined && levelFilter !== null && levelFilter !== '') {
@@ -343,7 +333,7 @@
 
     $(document).ready(function() {
         $('#choose_cost_center_select').select2({ width: '100%' });
-        $('#compare_mode, #hide_zero_lines, #level_filter').select2({ minimumResultsForSearch: Infinity, width: '100%' });
+        $('#hide_zero_lines, #level_filter').select2({ minimumResultsForSearch: Infinity, width: '100%' });
 
         $('#incomeStatementExportPdf').on('click', function() {
             window.open(incomeExportPdfUrl + '?' + buildIncomeQuery(), '_blank');

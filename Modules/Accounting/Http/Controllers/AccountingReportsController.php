@@ -637,18 +637,15 @@ class AccountingReportsController extends Controller
             return $account;
         });
 
-        $accounts = TrialBalanceReportService::withAccordionGroups($detailRows);
-
         if (request()->ajax()) {
-            $accountsCollection = $accounts instanceof Collection ? $accounts : collect($accounts);
-            $analytics = TrialBalanceReportService::buildAnalytics($accountsCollection, false);
-            $plWarning = TrialBalanceReportService::plOpeningWarning($detailRows, $start_date);
-
             $compareMode = $request->input('compare_mode', 'none');
+            $comparePeriod = null;
             $compareAnalytics = null;
-            if (in_array($compareMode, ['previous_period', 'previous_year'], true)) {
+            $compareEnabled = in_array($compareMode, ['previous_period', 'previous_year'], true);
+
+            if ($compareEnabled) {
                 $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compareMode);
-                $compareRows = $this->queryTrialBalanceAccountRows(
+                $compareDetailRows = $this->queryTrialBalanceAccountRows(
                     $comparePeriod['start'],
                     $comparePeriod['end'],
                     $with_zero_balances,
@@ -662,8 +659,20 @@ class AccountingReportsController extends Controller
 
                     return $account;
                 });
-                $compareAnalytics = TrialBalanceReportService::buildAnalytics($compareRows, false);
+
+                $detailRows = TrialBalanceReportService::mergeWithComparePeriod($detailRows, $compareDetailRows);
+                $compareAnalytics = TrialBalanceReportService::buildAnalytics($compareDetailRows, false);
+            } else {
+                $detailRows->each(fn ($account) => TrialBalanceReportService::attachCompareMetrics($account, null));
             }
+
+            $accounts = TrialBalanceReportService::withAccordionGroups($detailRows);
+            $accountsCollection = $accounts instanceof Collection ? $accounts : collect($accounts);
+            $analytics = TrialBalanceReportService::buildAnalytics($accountsCollection, false);
+            $plWarning = TrialBalanceReportService::plOpeningWarning(
+                $detailRows->filter(fn ($a) => ! ($a->is_group ?? false)),
+                $start_date
+            );
 
             $totalDebitOpeningBalance = $analytics['kpis']['total_debit_opening'];
             $totalCreditOpeningBalance = $analytics['kpis']['total_credit_opening'];
@@ -753,22 +762,44 @@ class AccountingReportsController extends Controller
 
                     return $this->roundMoney($closing_balance['closing_credit_balance'] ?? 0);
                 })
+                ->addColumn('compare_debit_opening_balance', function ($account) {
+                    return $this->roundMoney($account->compare_debit_opening_balance ?? 0);
+                })
+                ->addColumn('compare_credit_opening_balance', function ($account) {
+                    return $this->roundMoney($account->compare_credit_opening_balance ?? 0);
+                })
+                ->addColumn('compare_debit_balance', function ($account) {
+                    return $this->roundMoney($account->compare_debit_balance ?? 0);
+                })
+                ->addColumn('compare_credit_balance', function ($account) {
+                    return $this->roundMoney($account->compare_credit_balance ?? 0);
+                })
+                ->addColumn('compare_closing_debit_balance', function ($account) {
+                    return $this->roundMoney($account->compare_closing_debit_balance ?? 0);
+                })
+                ->addColumn('compare_closing_credit_balance', function ($account) {
+                    return $this->roundMoney($account->compare_closing_credit_balance ?? 0);
+                })
                 ->addColumn('is_group', function ($account) {
                     return (bool) ($account->is_group ?? false);
                 })
                 ->addColumn('group_key', function ($account) {
                     return (string) ($account->group_key ?? '');
                 })
-                ->addColumn('action', function ($account) {
+                ->addColumn('action', function ($account) use ($start_date, $end_date) {
                     if (($account->is_group ?? false) || empty($account->id)) {
                         return '';
                     }
 
                     $label = e(__('accounting::lang.account_statement'));
-                    $url = e(route('print-ledger', $account->id));
+                    $url = e(route('ledger', [
+                        'account_id' => $account->id,
+                        'start_date' => $start_date,
+                        'end_date' => $end_date,
+                    ]));
 
-                    return '<a class="btn btn-sm tb-ledger-btn btn-modal d-inline-flex align-items-center gap-1 text-nowrap" '
-                        .'data-container="#printledger" href="'.$url.'" title="'.$label.'">'
+                    return '<a class="btn btn-sm tb-ledger-btn d-inline-flex align-items-center gap-1 text-nowrap" '
+                        .'href="'.$url.'" title="'.$label.'">'
                         .'<i class="fa-solid fa-file-lines" aria-hidden="true"></i>'
                         .'<span>'.$label.'</span></a>';
                 })
@@ -788,6 +819,12 @@ class AccountingReportsController extends Controller
                     'totalClosingCreditBalance' => $this->roundMoney($totalClosingCreditBalance),
                     'analytics' => $analytics,
                     'compareAnalytics' => $compareAnalytics,
+                    'compareEnabled' => $compareEnabled,
+                    'comparePeriod' => $comparePeriod,
+                    'currentPeriod' => [
+                        'start' => $start_date,
+                        'end' => $end_date,
+                    ],
                     'difference' => $analytics['kpis']['difference'],
                     'isBalanced' => $analytics['kpis']['is_balanced'],
                     'plOpeningWarning' => $plWarning,
