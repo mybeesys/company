@@ -69,19 +69,46 @@ class CompanyController extends Controller
     {
         if (request()->ajax()) {
             try {
-                $company = DB::connection('mysql')->table('companies')->where('id', $id)->first();
+                $companyId = (int) $id;
+                $currentCompanyId = (int) get_company_id();
+
+                if (! $currentCompanyId || $companyId !== $currentCompanyId) {
+                    return response()->json(['error' => __('establishment::responses.something_wrong_happened')], 403);
+                }
+
+                $company = DB::connection('mysql')->table('companies')->where('id', $companyId)->first();
                 if (! $company) {
                     return response()->json(['error' => 'Company not found'], 404);
                 }
 
                 $socialKeys = ['social_whatsapp', 'social_facebook', 'social_instagram', 'social_snapchat', 'social_x'];
                 $validated = $request->validated();
-                $dataToUpdate = collect($validated)->except(['menu_cover_image', 'logo', 'email'])->toArray();
+                $allowedCompanyColumns = [
+                    'name',
+                    'ceo_name',
+                    'business_type',
+                    'phone',
+                    'country_id',
+                    'state',
+                    'city',
+                    'zipcode',
+                    'national_address',
+                    'website',
+                    'tax_name',
+                    'tax_number',
+                    'description',
+                ];
+                $dataToUpdate = collect($validated)
+                    ->only($allowedCompanyColumns)
+                    ->map(function ($value) {
+                        return is_string($value) ? trim($value) : $value;
+                    })
+                    ->toArray();
 
                 if ($request->hasFile('logo')) {
                     $file = $request->file('logo');
                     $oldLogoPath = $company->logo ?? null;
-                    $fileName = 'company-'.$id.'-'.time().'.'.$file->getClientOriginalExtension();
+                    $fileName = 'company-'.$companyId.'-'.time().'.'.$file->getClientOriginalExtension();
                     $path = $file->storeAs('companies/logos', $fileName, 'public');
                     $dataToUpdate['logo'] = $path;
 
@@ -90,10 +117,12 @@ class CompanyController extends Controller
                     }
                 }
 
-                DB::connection('mysql')->table('companies')->where('id', $id)->update($dataToUpdate);
+                if ($dataToUpdate !== []) {
+                    DB::connection('mysql')->table('companies')->where('id', $companyId)->update($dataToUpdate);
+                }
 
-                if (array_intersect(array_keys($dataToUpdate), ['name', 'name_ar']) && function_exists('forget_company_header_name_cache')) {
-                    forget_company_header_name_cache((int) $id);
+                if (array_key_exists('name', $dataToUpdate) && function_exists('forget_company_header_name_cache')) {
+                    forget_company_header_name_cache($companyId);
                 }
 
                 if ($request->filled('email')) {
@@ -113,7 +142,7 @@ class CompanyController extends Controller
                     $file = $request->file('menu_cover_image');
                     $oldCoverPath = Setting::where('key', 'menu_cover_image')->value('value');
 
-                    $fileName = 'company-'.$id.'-'.time().'.'.$file->getClientOriginalExtension();
+                    $fileName = 'company-'.$companyId.'-'.time().'.'.$file->getClientOriginalExtension();
                     $path = $file->storeAs('menu-covers', $fileName, 'public');
 
                     if ($oldCoverPath && Storage::disk('public')->exists($oldCoverPath)) {
@@ -126,7 +155,10 @@ class CompanyController extends Controller
                     );
                 }
 
-                return response()->json(['message' => __('employee::responses.operation_success')]);
+                return response()->json([
+                    'message' => __('employee::responses.operation_success'),
+                    'company_name' => $dataToUpdate['name'] ?? $company->name,
+                ]);
             } catch (\Throwable $e) {
                 Log::error('company update failed', [
                     'error' => $e->getMessage(),

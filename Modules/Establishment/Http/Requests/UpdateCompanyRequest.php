@@ -20,6 +20,7 @@ class UpdateCompanyRequest extends FormRequest
             : null;
 
         return [
+            'name' => [Rule::requiredIf($notAjaxValidate), 'string', 'min:2', 'max:255'],
             'ceo_name' => [Rule::requiredIf($notAjaxValidate), 'string'],
             'email' => [
                 'required',
@@ -51,5 +52,24 @@ class UpdateCompanyRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => __('establishment::fields.name'),
+            'ceo_name' => __('establishment::fields.ceo_name'),
+            'email' => __('establishment::fields.email'),
+            'business_type' => __('establishment::fields.business_type'),
+            'phone' => __('establishment::fields.phone'),
+            'country_id' => __('establishment::fields.country'),
+            'state' => __('establishment::fields.country_state'),
+            'city' => __('establishment::fields.city'),
+            'zipcode' => __('establishment::fields.zipcode'),
+            'tax_name' => __('establishment::fields.tax_name'),
+        ];
     }
 }

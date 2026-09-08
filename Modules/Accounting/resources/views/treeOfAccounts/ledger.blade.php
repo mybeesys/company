@@ -165,15 +165,31 @@
         .ledger-balance-pill {
             display: inline-flex;
             align-items: baseline;
-            font-weight: 700;
+            font-weight: 800;
+            color: #000000;
         }
 
-        .ledger-balance-pill.ledger-bal-dr {
-            color: #0f5132;
+        /* All ledger amounts: same solid black weight (style-only). */
+        .ledger-stat-card .ledger-amount,
+        #ledger-table.ledger-table-pro td.ledger-num,
+        #ledger-table.ledger-table-pro .ledger-balance-pill,
+        #ledger-table-foot.ledger-table-pro td.ledger-num,
+        #ledger-table-foot.ledger-table-pro .ledger-balance-pill,
+        .ledger-opening-balance {
+            color: #000000 !important;
+            font-weight: 800 !important;
         }
 
-        .ledger-balance-pill.ledger-bal-cr {
-            color: #b02a37;
+        #ledger-table.ledger-table-pro td.ledger-num .text-muted,
+        #ledger-table-foot.ledger-table-pro td.ledger-num .text-muted,
+        .ledger-stat-card .ledger-amount .text-muted {
+            color: #a1a5b7 !important;
+            font-weight: 400 !important;
+        }
+
+        .ledger-stat-card .ledger-amount {
+            font-size: 1.25rem;
+            line-height: 1.3;
         }
 
         #ledger-table.ledger-table-pro .ledger-row-opening td {
@@ -536,25 +552,25 @@
                     <div class="col-md-3">
                         <div class="ledger-stat-card">
                             <div class="text-muted fs-7">@lang('accounting::lang.opening_balance')</div>
-                            <div class="fw-bold fs-4">{{ number_format(abs($opening_balance), 2) }} <span class="fs-7 text-muted">({{ $openingNatureLabel }})</span></div>
+                            <div class="ledger-amount">{{ number_format(abs($opening_balance), 2) }} <span class="fs-7 text-muted fw-normal">({{ $openingNatureLabel }})</span></div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="ledger-stat-card">
                             <div class="text-muted fs-7">@lang('accounting::lang.total_debit')</div>
-                            <div class="fw-bold fs-4">{{ number_format($periodDebit, 2) }}</div>
+                            <div class="ledger-amount">{{ number_format($periodDebit, 2) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="ledger-stat-card">
                             <div class="text-muted fs-7">@lang('accounting::lang.total_credit')</div>
-                            <div class="fw-bold fs-4">{{ number_format($periodCredit, 2) }}</div>
+                            <div class="ledger-amount">{{ number_format($periodCredit, 2) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="ledger-stat-card">
                             <div class="text-muted fs-7">@lang('accounting::lang.Closing balance')</div>
-                            <div class="fw-bold fs-4">{{ number_format(abs($closingBalance), 2) }} <span class="fs-7 text-muted">({{ $closingNatureLabel }})</span></div>
+                            <div class="ledger-amount">{{ number_format(abs($closingBalance), 2) }} <span class="fs-7 text-muted fw-normal">({{ $closingNatureLabel }})</span></div>
                         </div>
                     </div>
                 </div>
@@ -604,7 +620,13 @@
                             <tr class="ledger-row-opening">
                                 <td class="text-center fw-bold ledger-opening-label" colspan="{{ $ledgerOpeningLabelSpan }}">
                                     @lang('accounting::lang.opening_balance')</td>
-                                <td class="fw-bold ledger-opening-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif" style="color:#020804"
+                                <td class="ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
+                                    <span class="text-muted fw-normal">—</span>
+                                </td>
+                                <td class="ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
+                                    <span class="text-muted fw-normal">—</span>
+                                </td>
+                                <td class="ledger-opening-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif"
                                     data-ledger-col="balance">
                                     @if ($balance < 0)
                                         ({{ number_format(abs($balance), 2) }})
@@ -703,22 +725,21 @@
                                     </td>
                                     <td class="ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
                                         @if ($transactions->type == 'debit')
-                                            <span class="fw-bold fs-6" style="color: #020804">{{ number_format($transactions->amount, 2) }}</span>
+                                            <span>{{ number_format($transactions->amount, 2) }}</span>
                                         @else
-                                            <span class="text-muted">—</span>
+                                            <span class="text-muted fw-normal">—</span>
                                         @endif
                                     </td>
                                     <td class="ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
                                         @if ($transactions->type == 'credit')
-                                            <span class="fw-bold fs-6" style="color: #020804">{{ number_format($transactions->amount, 2) }}</span>
+                                            <span>{{ number_format($transactions->amount, 2) }}</span>
                                         @else
-                                            <span class="text-muted">—</span>
+                                            <span class="text-muted fw-normal">—</span>
                                         @endif
                                     </td>
                                     <td class="ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
                                         @php
                                             $balIsCredit = $balance < 0;
-                                            $balCss = $balIsCredit ? 'ledger-bal-cr' : 'ledger-bal-dr';
                                             $balHint = app()->getLocale() == 'ar'
                                                 ? ($balIsCredit
                                                     ? 'رصيد دائن: يعني أن إجمالي الدائن أكبر من إجمالي المدين ضمن الفترة (مع احتساب الرصيد الافتتاحي). تم حساب الرصيد وفق طبيعة الحساب.'
@@ -727,7 +748,7 @@
                                                     ? 'Credit balance: total credit exceeds total debit for the period (including opening balance). Balance is computed according to the account nature.'
                                                     : 'Debit balance: total debit exceeds total credit for the period (including opening balance). Balance is computed according to the account nature.');
                                         @endphp
-                                        <span class="ledger-balance-pill {{ $balCss }}" title="{{ $balHint }}">
+                                        <span class="ledger-balance-pill" title="{{ $balHint }}">
                                             {{ number_format(abs($balance), 2) }}
                                         </span>
                                     </td>
@@ -764,13 +785,13 @@
                                     <span title="{{ $totalsHint }}">{{ $totalsLabel }}</span>
                                 </td>
                                 <td class="fw-bold fs-6 ledger-foot-debit ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
-                                    @format_currency($total_debit)
+                                    {{ number_format((float) $total_debit, 2) }}
                                 </td>
                                 <td class="fw-bold fs-6 ledger-foot-credit ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
-                                    @format_currency($total_credit)
+                                    {{ number_format((float) $total_credit, 2) }}
                                 </td>
                                 <td class="fw-bold fs-6 ledger-foot-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
-                                    <span class="text-muted">—</span>
+                                    <span class="text-muted fw-normal">—</span>
                                 </td>
                             </tr>
 
@@ -780,26 +801,25 @@
                                 </td>
                                 <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
                                     @if (! $netMovementIsCredit)
-                                        @format_currency($netMovementAbs)
+                                        {{ number_format((float) $netMovementAbs, 2) }}
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted fw-normal">—</span>
                                     @endif
                                 </td>
                                 <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
                                     @if ($netMovementIsCredit)
-                                        @format_currency($netMovementAbs)
+                                        {{ number_format((float) $netMovementAbs, 2) }}
                                     @else
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted fw-normal">—</span>
                                     @endif
                                 </td>
                                 <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
-                                    <span class="text-muted">—</span>
+                                    <span class="text-muted fw-normal">—</span>
                                 </td>
                             </tr>
 
                             @php
                                 $footIsCredit = $balance < 0;
-                                $footCss = $footIsCredit ? 'ledger-bal-cr' : 'ledger-bal-dr';
                                 $footHint = app()->getLocale() == 'ar'
                                     ? ($footIsCredit
                                         ? 'الرصيد الختامي دائن: إجمالي الدائن أكبر من إجمالي المدين ضمن الفترة (مع الرصيد الافتتاحي).'
@@ -813,14 +833,14 @@
                                     <span title="{{ $endingHint }}">{{ $endingLabel }}</span>
                                 </td>
                                 <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('debit')) d-none @endif" data-ledger-col="debit">
-                                    <span class="text-muted">—</span>
+                                    <span class="text-muted fw-normal">—</span>
                                 </td>
                                 <td class="fw-bold fs-6 ledger-num @if (!$ledgerColShow('credit')) d-none @endif" data-ledger-col="credit">
-                                    <span class="text-muted">—</span>
+                                    <span class="text-muted fw-normal">—</span>
                                 </td>
                                 <td class="fw-bold fs-6 ledger-foot-balance ledger-num @if (!$ledgerColShow('balance')) d-none @endif" data-ledger-col="balance">
-                                    <span class="ledger-balance-pill {{ $footCss }}" title="{{ $footHint }}">
-                                        @format_currency(abs($balance))
+                                    <span class="ledger-balance-pill" title="{{ $footHint }}">
+                                        {{ number_format(abs($balance), 2) }}
                                     </span>
                                 </td>
                             </tr>
@@ -893,20 +913,54 @@
             }
 
             function ledgerSyncTableColumns() {
-                var $headCells = $('#ledger-table-head thead th:visible');
+                var $tables = $('#ledger-table-head, #ledger-table, #ledger-table-foot');
+                // Remove stale colgroups BEFORE measuring — otherwise hide→show keeps
+                // the previous column count and widths and misaligns header/body/footer.
+                $tables.find('colgroup').remove();
+
+                var headEl = document.getElementById('ledger-table-head');
+                if (headEl) {
+                    void headEl.offsetWidth;
+                }
+
+                var $headCells = $('#ledger-table-head thead th').filter(function() {
+                    return $(this).css('display') !== 'none';
+                });
                 if (!$headCells.length) {
                     return;
                 }
 
-                var colHtml = '<colgroup>';
+                var widths = [];
+                var total = 0;
                 $headCells.each(function() {
-                    colHtml += '<col style="width:' + $(this).outerWidth() + 'px">';
+                    var w = Math.max(1, Math.round($(this).outerWidth()));
+                    widths.push(w);
+                    total += w;
+                });
+
+                // Stretch to full shell width so leftover whitespace does not pile up on one side.
+                var shellWidth = $('.ledger-table-shell').width() || total;
+                if (total > 0 && shellWidth > total) {
+                    var scale = shellWidth / total;
+                    widths = widths.map(function(w) {
+                        return Math.max(1, Math.round(w * scale));
+                    });
+                }
+
+                var colHtml = '<colgroup>';
+                widths.forEach(function(w) {
+                    colHtml += '<col style="width:' + w + 'px">';
                 });
                 colHtml += '</colgroup>';
 
-                $('#ledger-table-head, #ledger-table, #ledger-table-foot').each(function() {
-                    $(this).find('colgroup').remove();
+                $tables.each(function() {
                     $(this).prepend(colHtml);
+                });
+            }
+
+            function ledgerScheduleColumnSync() {
+                window.requestAnimationFrame(function() {
+                    window.requestAnimationFrame(ledgerSyncTableColumns);
                 });
             }
 
@@ -929,7 +983,7 @@
                 }).length);
                 $('.ledger-foot-label').attr('colspan', footSpan);
                 ledgerUpdateExportLinks(cols);
-                window.requestAnimationFrame(ledgerSyncTableColumns);
+                ledgerScheduleColumnSync();
             }
 
             function ledgerSyncCheckboxes(cols) {
@@ -993,7 +1047,7 @@
 
             $('#choose_cost_center_select').select2();
 
-            $(window).on('resize.ledgerColumns', ledgerSyncTableColumns);
+            $(window).on('resize.ledgerColumns', ledgerScheduleColumnSync);
         });
     </script>
 @stop

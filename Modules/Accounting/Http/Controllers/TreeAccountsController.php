@@ -128,7 +128,9 @@ class TreeAccountsController extends Controller
 
         return AccountingAccountsTransaction::with(['accTransMapping', 'createdBy', 'transaction', 'account', 'costCenter'])
             ->where('accounting_account_id', $account->id)
-            ->whereBetween('operation_date', [$start, $end])
+            // Compare by calendar date so DATETIME posts on the end day are not cut off at 00:00:00.
+            ->whereDate('operation_date', '>=', $start)
+            ->whereDate('operation_date', '<=', $end)
             ->tap(function ($query) use ($start) {
                 AccountingOpeningBalanceScope::applyExcludeOpeningOnStartFromPeriod($query, $start);
             })

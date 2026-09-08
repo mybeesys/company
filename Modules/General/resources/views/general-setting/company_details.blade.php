@@ -49,6 +49,9 @@
                     'X-HTTP-Method-Override': 'PATCH'
                 },
                 success: function(response) {
+                    if (response.company_name) {
+                        $('.navbar-company-chip-name').text(response.company_name);
+                    }
                     Swal.fire({
                         text: response.message || "{{ __('employee::responses.operation_success') }}",
                         icon: "success",
