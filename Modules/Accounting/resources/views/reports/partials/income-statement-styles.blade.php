@@ -66,6 +66,15 @@
         padding: 1rem 1.25rem;
     }
 
+    .is-comparison-panel {
+        border-color: var(--is-border) !important;
+        background: var(--bs-gray-100) !important;
+    }
+
+    [data-bs-theme="dark"] .is-comparison-panel {
+        background: rgba(15, 23, 42, 0.35) !important;
+    }
+
     .is-table-card {
         border: 1px solid var(--is-border);
         border-radius: 0.625rem;
@@ -78,13 +87,17 @@
         overflow: auto;
     }
 
-    #income-statement-table {
+    .is-statement-table,
+    #income-statement-table,
+    #income-statement-comparison-table {
         margin-bottom: 0;
         font-size: 0.9rem;
         border-color: var(--is-border);
     }
 
-    #income-statement-table thead th {
+    .is-statement-table thead th,
+    #income-statement-table thead th,
+    #income-statement-comparison-table thead th {
         position: sticky;
         top: 0;
         z-index: 2;
@@ -100,23 +113,42 @@
         vertical-align: middle;
     }
 
-    #income-statement-table td {
+    #income-statement-comparison-table thead th .is-period-range {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        text-transform: none;
+        letter-spacing: normal;
+        color: var(--bs-gray-600);
+        white-space: nowrap;
+    }
+
+    .is-statement-table td,
+    #income-statement-table td,
+    #income-statement-comparison-table td {
         padding: 0.5rem 0.85rem;
         vertical-align: middle;
         border-color: var(--bs-gray-200);
     }
 
-    #income-statement-table .is-fin-amount {
+    .is-statement-table .is-fin-amount,
+    #income-statement-table .is-fin-amount,
+    #income-statement-comparison-table .is-fin-amount {
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-weight: 500;
         white-space: nowrap;
     }
 
-    #income-statement-table .is-fin-amount.is-negative {
+    .is-statement-table .is-fin-amount.is-negative,
+    #income-statement-table .is-fin-amount.is-negative,
+    #income-statement-comparison-table .is-fin-amount.is-negative {
         color: var(--bs-danger);
     }
 
-    #income-statement-table tr.is-section td {
+    .is-statement-table tr.is-section td,
+    #income-statement-table tr.is-section td,
+    #income-statement-comparison-table tr.is-section td {
         background: var(--bs-gray-100);
         font-weight: 700;
         font-size: 0.82rem;
@@ -126,49 +158,65 @@
         border-top: 2px solid var(--bs-gray-300);
     }
 
-    #income-statement-table tr.is-subtotal td {
+    .is-statement-table tr.is-subtotal td,
+    #income-statement-table tr.is-subtotal td,
+    #income-statement-comparison-table tr.is-subtotal td {
         background: var(--bs-gray-200);
         font-weight: 600;
         color: var(--bs-gray-800);
     }
 
-    #income-statement-table tr.is-grand td {
+    .is-statement-table tr.is-grand td,
+    #income-statement-table tr.is-grand td,
+    #income-statement-comparison-table tr.is-grand td {
         background: var(--bs-primary-light);
         font-weight: 700;
         font-size: 0.95rem;
         color: var(--bs-gray-900);
     }
 
-    #income-statement-table tr.is-profit-row td {
+    .is-statement-table tr.is-profit-row td,
+    #income-statement-table tr.is-profit-row td,
+    #income-statement-comparison-table tr.is-profit-row td {
         background: var(--bs-success-bg-subtle);
         font-weight: 700;
         color: var(--bs-gray-900);
     }
 
-    #income-statement-table tr.is-loss-row td {
+    .is-statement-table tr.is-loss-row td,
+    #income-statement-table tr.is-loss-row td,
+    #income-statement-comparison-table tr.is-loss-row td {
         background: var(--bs-danger-bg-subtle);
         font-weight: 700;
         color: var(--bs-gray-900);
     }
 
-    #income-statement-table tr.is-account-row:hover td {
+    .is-statement-table tr.is-account-row:hover td,
+    #income-statement-table tr.is-account-row:hover td,
+    #income-statement-comparison-table tr.is-account-row:hover td {
         background: rgba(var(--bs-primary-rgb), 0.06);
     }
 
-    #income-statement-table .is-account-label {
+    .is-statement-table .is-account-label,
+    #income-statement-table .is-account-label,
+    #income-statement-comparison-table .is-account-label {
         display: flex;
         align-items: center;
         gap: 0.35rem;
         color: var(--bs-gray-800);
     }
 
-    #income-statement-table .is-gl-code {
+    .is-statement-table .is-gl-code,
+    #income-statement-table .is-gl-code,
+    #income-statement-comparison-table .is-gl-code {
         font-size: 0.75rem;
         color: var(--bs-gray-600);
         min-width: 3.5rem;
     }
 
-    #income-statement-table .is-indent {
+    .is-statement-table .is-indent,
+    #income-statement-table .is-indent,
+    #income-statement-comparison-table .is-indent {
         display: inline-block;
         width: 1.1rem;
         flex-shrink: 0;
@@ -229,17 +277,28 @@
             overflow: visible !important;
         }
 
-        #income-statement-table thead th {
+        .is-statement-table thead th,
+        #income-statement-table thead th,
+        #income-statement-comparison-table thead th {
             background: #f5f8fa !important;
             color: #3f4254 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
+        .is-statement-table tr.is-section td,
+        .is-statement-table tr.is-subtotal td,
+        .is-statement-table tr.is-grand td,
+        .is-statement-table tr.is-profit-row td,
         #income-statement-table tr.is-section td,
         #income-statement-table tr.is-subtotal td,
         #income-statement-table tr.is-grand td,
-        #income-statement-table tr.is-profit-row td {
+        #income-statement-table tr.is-profit-row td,
+        #income-statement-comparison-table tr.is-section td,
+        #income-statement-comparison-table tr.is-subtotal td,
+        #income-statement-comparison-table tr.is-grand td,
+        #income-statement-comparison-table tr.is-profit-row td,
+        #income-statement-comparison-table tr.is-loss-row td {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }

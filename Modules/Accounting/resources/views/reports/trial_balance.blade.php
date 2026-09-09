@@ -65,14 +65,6 @@
                     <option value="2">@lang('accounting::lang.zero_balances')</option>
                 </select>
             </div>
-            <div class="col-md-6 col-lg-2">
-                <label class="form-label small" for="compare_mode">@lang('accounting::lang.tb_compare')</label>
-                <select id="compare_mode" class="form-select form-select-sm">
-                    <option value="none">@lang('accounting::lang.tb_compare_none')</option>
-                    <option value="previous_period">@lang('accounting::lang.tb_compare_previous')</option>
-                    <option value="previous_year">@lang('accounting::lang.tb_compare_year')</option>
-                </select>
-            </div>
             <div class="col-md-6 col-lg-4">
                 <label class="form-label small" for="choose_cost_center_select">@lang('accounting::lang.cost_center')</label>
                 <select id="choose_cost_center_select" class="form-select form-select-sm" multiple>
@@ -116,38 +108,6 @@
         <strong id="trial-balance-status-label">—</strong>
         <span class="mx-2">|</span>
         <span id="trial-balance-diff-label">—</span>
-        <span class="mx-2" id="tbCompareWrap" style="display:none;">|</span>
-        <span id="trial-balance-compare-label" style="display:none;"></span>
-    </div>
-
-    <div class="row g-3 mb-3 no-print d-none" id="tbCompareKpiRow">
-        <div class="col-12">
-            <div class="tb-panel mb-0">
-                <div class="tb-panel-header py-2">
-                    <h3 class="tb-panel-title mb-0" id="tbComparePeriodTitle">@lang('accounting::lang.tb_compare_period_totals')</h3>
-                </div>
-                <div class="p-3">
-                    <div class="row g-3">
-                        <div class="col-6 col-md-3">
-                            <div class="tb-kpi-label">@lang('accounting::lang.tb_kpi_debit_period')</div>
-                            <div class="tb-kpi-value" data-compare-kpi="total_debit_period">—</div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="tb-kpi-label">@lang('accounting::lang.tb_kpi_credit_period')</div>
-                            <div class="tb-kpi-value" data-compare-kpi="total_credit_period">—</div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="tb-kpi-label">@lang('accounting::lang.difference')</div>
-                            <div class="tb-kpi-value" data-compare-kpi="difference">—</div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="tb-kpi-label">@lang('accounting::lang.tb_kpi_accounts')</div>
-                            <div class="tb-kpi-value" data-compare-kpi="account_count">—</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="row g-3 mb-4 no-print" id="tbKpiRow">
@@ -212,12 +172,6 @@
                         <th class="text-center tb-meta-col">@lang('accounting::lang.tb_balance_type')</th>
                         <th class="tb-fin">@lang('accounting::lang.tb_col_current_closing_debit')</th>
                         <th class="tb-fin">@lang('accounting::lang.tb_col_current_closing_credit')</th>
-                        <th class="tb-fin tb-compare-col">@lang('accounting::lang.tb_col_compare_opening_debit')</th>
-                        <th class="tb-fin tb-compare-col">@lang('accounting::lang.tb_col_compare_opening_credit')</th>
-                        <th class="tb-fin tb-compare-col">@lang('accounting::lang.tb_col_compare_period_debit')</th>
-                        <th class="tb-fin tb-compare-col">@lang('accounting::lang.tb_col_compare_period_credit')</th>
-                        <th class="tb-fin tb-compare-col">@lang('accounting::lang.tb_col_compare_closing_debit')</th>
-                        <th class="tb-fin tb-compare-col">@lang('accounting::lang.tb_col_compare_closing_credit')</th>
                         <th class="text-center">@lang('messages.actions')</th>
                     </tr>
                 </thead>
@@ -234,12 +188,6 @@
                         <th class="tb-meta-col"></th>
                         <th id="closingDebitTotal" class="closing_debit_total tb-fin"></th>
                         <th id="closingCreditTotal" class="closing_credit_total tb-fin"></th>
-                        <th class="compare_debit_opening_total tb-fin tb-compare-col"></th>
-                        <th class="compare_credit_opening_total tb-fin tb-compare-col"></th>
-                        <th class="compare_debit_total tb-fin tb-compare-col"></th>
-                        <th class="compare_credit_total tb-fin tb-compare-col"></th>
-                        <th class="compare_closing_debit_total tb-fin tb-compare-col"></th>
-                        <th class="compare_closing_credit_total tb-fin tb-compare-col"></th>
                         <th></th>
                     </tr>
                 </tfoot>
@@ -269,24 +217,14 @@
         const currencyLabel = @json(\App\Helpers\CurrencyHelper::get_format_currency());
         const tbBalancedLabel = @json(__('accounting::lang.balanced'));
         const tbUnbalancedLabel = @json(__('accounting::lang.unbalanced'));
-        const tbCompareGrowthLabel = @json(__('accounting::lang.tb_compare_growth'));
-        const tbCurrentPeriodLabel = @json(__('accounting::lang.tb_current_period'));
-        const tbComparePeriodLabel = @json(__('accounting::lang.tb_compare_period'));
-        const tbOpeningLabel = @json(__('accounting::lang.opening_balance'));
-        const tbMovementLabel = @json(__('accounting::lang.accounting_transactions'));
-        const tbClosingLabel = @json(__('accounting::lang.closing_balance'));
         const tbInitialStartDate = @json($defaultStart);
         const tbInitialEndDate = @json($defaultEnd);
 
         let dataTable;
         let typeChart;
         const collapsedGroups = new Set();
-        let compareModeActive = false;
 
-        // Amount columns: current open/move/close + compare open/move/close
-        const FIN_COLS = [2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 16];
-        const META_COLS = [6, 7, 8];
-        const COMPARE_COLS = [11, 12, 13, 14, 15, 16];
+        const FIN_COLS = [2, 3, 4, 5, 6, 9, 10];
 
         function formatChartAmount(value) {
             const n = Math.round((Number(value) + Number.EPSILON) * 100) / 100;
@@ -337,7 +275,7 @@
             }
         }
 
-        function updateKpis(kpis, compareKpis, comparePeriod, currentPeriod, compareEnabled) {
+        function updateKpis(kpis) {
             if (!kpis) return;
             document.querySelectorAll('[data-kpi]').forEach(function(el) {
                 const key = el.getAttribute('data-kpi');
@@ -352,48 +290,6 @@
                     el.textContent = formatTbAmount(val) + ' ' + currencyLabel;
                 }
             });
-
-            compareModeActive = !!compareEnabled;
-            if (compareEnabled && comparePeriod) {
-                $('#tbCompareWrap, #trial-balance-compare-label').show();
-                $('#trial-balance-compare-label').text(
-                    tbComparePeriodLabel + ': ' + (comparePeriod.start || '') + ' — ' + (comparePeriod.end || '')
-                );
-                $('#tbCompareKpiRow').removeClass('d-none');
-                $('#tbComparePeriodTitle').text(
-                    tbComparePeriodLabel + ' (' + (comparePeriod.start || '') + ' — ' + (comparePeriod.end || '') + ')'
-                );
-                document.querySelectorAll('[data-compare-kpi]').forEach(function(el) {
-                    const key = el.getAttribute('data-compare-kpi');
-                    const val = compareKpis ? compareKpis[key] : null;
-                    if (val === undefined || val === null) {
-                        el.textContent = '—';
-                        return;
-                    }
-                    if (key === 'account_count') {
-                        el.textContent = Number(val).toLocaleString();
-                    } else {
-                        el.textContent = formatTbAmount(val) + ' ' + currencyLabel;
-                    }
-                });
-            } else {
-                $('#tbCompareWrap, #trial-balance-compare-label').hide();
-                $('#tbCompareKpiRow').addClass('d-none');
-            }
-
-            applyCompareColumnVisibility(compareEnabled, currentPeriod, comparePeriod);
-        }
-
-        function applyCompareColumnVisibility(enabled, currentPeriod, comparePeriod) {
-            if (!dataTable) return;
-
-            META_COLS.forEach(function(idx) {
-                dataTable.column(idx).visible(!enabled, false);
-            });
-            COMPARE_COLS.forEach(function(idx) {
-                dataTable.column(idx).visible(!!enabled, false);
-            });
-            dataTable.columns.adjust();
         }
 
         function renderTopMovement(items) {
@@ -486,7 +382,6 @@
             const lvl = $('#level_filter').val();
             if (lvl !== undefined && lvl !== null && lvl !== '') params.append('level_filter', lvl);
             params.append('with_zero_balances', $('#with_zero_balances').val() ?? '0');
-            params.append('compare_mode', $('#compare_mode').val() ?? 'none');
             ($('#choose_accounts_select').val() || []).forEach(v => params.append('choose_accounts_select[]', v));
             ($('#choose_cost_center_select').val() || []).forEach(v => params.append('choose_cost_center_select[]', v));
             return params.toString();
@@ -502,7 +397,6 @@
             const lvl = $('#level_filter').val();
             if (lvl !== undefined && lvl !== null && lvl !== '') d.level_filter = lvl;
             d.with_zero_balances = $('#with_zero_balances').val() ?? '0';
-            d.compare_mode = $('#compare_mode').val() ?? 'none';
             const accountTypes = $('#choose_accounts_select').val();
             if (accountTypes && accountTypes.length) {
                 d.choose_accounts_select = accountTypes;
@@ -540,12 +434,6 @@
                     { data: 'balance_type', name: 'balance_type', searchable: false, orderable: false, className: 'text-center' },
                     { data: 'closing_debit_balance', name: 'closing_debit_balance', searchable: false, className: 'tb-fin' },
                     { data: 'closing_credit_balance', name: 'closing_credit_balance', searchable: false, className: 'tb-fin' },
-                    { data: 'compare_debit_opening_balance', name: 'compare_debit_opening_balance', searchable: false, className: 'tb-fin', visible: false },
-                    { data: 'compare_credit_opening_balance', name: 'compare_credit_opening_balance', searchable: false, className: 'tb-fin', visible: false },
-                    { data: 'compare_debit_balance', name: 'compare_debit_balance', searchable: false, className: 'tb-fin', visible: false },
-                    { data: 'compare_credit_balance', name: 'compare_credit_balance', searchable: false, className: 'tb-fin', visible: false },
-                    { data: 'compare_closing_debit_balance', name: 'compare_closing_debit_balance', searchable: false, className: 'tb-fin', visible: false },
-                    { data: 'compare_closing_credit_balance', name: 'compare_closing_credit_balance', searchable: false, className: 'tb-fin', visible: false },
                     { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
                 ],
                 columnDefs: [
@@ -577,22 +465,10 @@
                     $('.period_net_total').html(formatTbAmount(sumDetail('period_net')));
                     $('.closing_debit_total').html(formatTbAmount(json.totalClosingDebitBalance || 0));
                     $('.closing_credit_total').html(formatTbAmount(json.totalClosingCreditBalance || 0));
-                    $('.compare_debit_opening_total').html(formatTbAmount(sumDetail('compare_debit_opening_balance')));
-                    $('.compare_credit_opening_total').html(formatTbAmount(sumDetail('compare_credit_opening_balance')));
-                    $('.compare_debit_total').html(formatTbAmount(sumDetail('compare_debit_balance')));
-                    $('.compare_credit_total').html(formatTbAmount(sumDetail('compare_credit_balance')));
-                    $('.compare_closing_debit_total').html(formatTbAmount(sumDetail('compare_closing_debit_balance')));
-                    $('.compare_closing_credit_total').html(formatTbAmount(sumDetail('compare_closing_credit_balance')));
 
                     renderBalanceStatus(!!json.isBalanced, json.difference || 0);
                     renderPlOpeningWarning(json.plOpeningWarning);
-                    updateKpis(
-                        json.analytics?.kpis,
-                        json.compareAnalytics?.kpis,
-                        json.comparePeriod,
-                        json.currentPeriod,
-                        !!json.compareEnabled
-                    );
+                    updateKpis(json.analytics?.kpis);
                     renderTypeChart(json.analytics?.chart);
                     renderTopMovement(json.analytics?.top_movement);
                 },
@@ -613,7 +489,7 @@
                 $('#end_date_filter').val(tbInitialEndDate);
             }
 
-            $('#with_zero_balances, #level_filter, #choose_cost_center_select, #compare_mode').select2({ width: '100%' });
+            $('#with_zero_balances, #level_filter, #choose_cost_center_select').select2({ width: '100%' });
             $('#choose_accounts_select').select2({ width: '100%' });
             const allAccountTypes = $('#choose_accounts_select option').map(function() {
                 return this.value;
@@ -633,7 +509,7 @@
             }
 
             $('#tbApplyFilters').on('click', reloadTb);
-            $('#start_date_filter, #end_date_filter, #level_filter, #with_zero_balances, #compare_mode')
+            $('#start_date_filter, #end_date_filter, #level_filter, #with_zero_balances')
                 .on('change', reloadTb);
             $('#choose_cost_center_select, #choose_accounts_select').on('change', reloadTb);
 

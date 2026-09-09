@@ -11,7 +11,7 @@
     $netProfit = (float) ($data['net_profit'] ?? 0);
     $profitMargin = $data['profit_margin'] ?? null;
     $taxPercent = (float) ($data['tax_percent'] ?? 0);
-    $showCompare = ! empty($compareData);
+    $showCompare = ! empty($compareData) && empty($isComparisonActive);
 @endphp
 
 <div class="container-fluid income-statement-wrap" id="income-report">
@@ -64,14 +64,16 @@
         </p>
     </div>
 
-    <form method="GET" class="is-filters-card mb-4 no-print">
+    <form method="GET" class="is-filters-card mb-4 no-print" id="income-statement-filters">
         <div class="row g-3 align-items-end">
-            <div class="col-md-6 col-lg-2">
+            @include('accounting::reports.partials.income-statement-comparison-filters')
+
+            <div id="is-single-period-dates" class="col-md-6 col-lg-2 {{ ($isComparisonActive ?? false) ? 'd-none' : '' }}">
                 <label class="form-label small mb-1">@lang('accounting::lang.from_date')</label>
                 <input type="date" name="start_date" class="form-control form-control-sm"
                     value="{{ request('start_date', $start_date) }}">
             </div>
-            <div class="col-md-6 col-lg-2">
+            <div id="is-single-period-dates-end" class="col-md-6 col-lg-2 {{ ($isComparisonActive ?? false) ? 'd-none' : '' }}">
                 <label class="form-label small mb-1">@lang('accounting::lang.to_date')</label>
                 <input type="date" name="end_date" class="form-control form-control-sm"
                     value="{{ request('end_date', $end_date) }}">
@@ -104,8 +106,11 @@
                     <option value="0" @selected(($hide_zero_lines ?? 1) == 0)>@lang('accounting::lang.income_statement_show_zero')</option>
                 </select>
             </div>
-            <div class="col-md-12 col-lg-3 d-flex flex-wrap gap-2">
+            <div class="col-md-12 col-lg-4 d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary btn-sm flex-grow-1">@lang('report::general.filter')</button>
+                <a href="{{ route('income-statement') }}" class="btn btn-light btn-sm flex-grow-1">
+                    @lang('accounting::lang.is_clear_filter')
+                </a>
                 @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::INCOME_STATEMENT_PRINT)
                 <button type="button" id="incomeStatementExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                 <button type="button" id="incomeStatementExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
@@ -114,7 +119,7 @@
         </div>
     </form>
 
-    <div class="row g-3 mb-4 no-print">
+    <div class="row g-3 mb-4 no-print {{ ! empty($isComparisonActive) ? 'd-none' : '' }}" id="is-kpi-row">
         @php
             $kpis = [
                 ['label' => __('accounting::lang.income_statement_gross_revenue'), 'value' => $data['gross_revenue'] ?? 0, 'growth' => $kpiGrowth['net_sales'] ?? null],
@@ -147,9 +152,12 @@
         @endforeach
     </div>
 
+    @if(! empty($isComparisonActive) && ! empty($comparisonTable))
+        @include('accounting::reports.partials.income-statement-comparison-table', ['comparisonTable' => $comparisonTable])
+    @else
     <div class="is-table-card">
         <div class="is-table-scroll">
-            <table class="table table-sm table-hover mb-0" id="income-statement-table">
+            <table class="table table-sm table-hover mb-0 is-statement-table" id="income-statement-table">
                 <thead>
                     <tr>
                         <th style="min-width: 55%">@lang('accounting::lang.account_name')</th>
@@ -285,6 +293,7 @@
             </table>
         </div>
     </div>
+    @endif
 
     <p class="is-vat-note no-print">
         @lang('accounting::lang.income_statement_vat_note', ['percent' => number_format($taxPercent, 0)])
@@ -334,6 +343,77 @@
     $(document).ready(function() {
         $('#choose_cost_center_select').select2({ width: '100%' });
         $('#hide_zero_lines, #level_filter').select2({ minimumResultsForSearch: Infinity, width: '100%' });
+
+        const isCompareLabels = {
+            period: @json(__('accounting::lang.is_compare_period_label')),
+            from: @json(__('accounting::lang.from_date')),
+            to: @json(__('accounting::lang.to_date')),
+            names: [
+                @json(__('accounting::lang.is_compare_period_first')),
+                @json(__('accounting::lang.is_compare_period_second')),
+                @json(__('accounting::lang.is_compare_period_third')),
+                @json(__('accounting::lang.is_compare_period_fourth')),
+            ],
+            maxPeriods: 4,
+        };
+
+        function syncComparisonVisibility() {
+            const enabled = $('#comparison_enabled').is(':checked');
+            $('#is-comparison-panel').toggleClass('d-none', !enabled);
+            $('#is-single-period-dates, #is-single-period-dates-end').toggleClass('d-none', enabled);
+            if (enabled) {
+                const start = $('input[name="start_date"]').val();
+                const end = $('input[name="end_date"]').val();
+                const firstStart = $('.is-period-start').first();
+                const firstEnd = $('.is-period-end').first();
+                if (start && !firstStart.val()) firstStart.val(start);
+                if (end && !firstEnd.val()) firstEnd.val(end);
+
+                while ($('#isComparisonPeriodRows .is-comparison-period-row').length < 2) {
+                    addComparisonRow();
+                }
+            }
+        }
+
+        function reindexComparisonRows() {
+            $('#isComparisonPeriodRows .is-comparison-period-row').each(function(index) {
+                $(this).attr('data-period-index', index);
+                $(this).find('input[name*="[label]"]').attr('name', 'periods[' + index + '][label]');
+                $(this).find('.is-period-start').attr('name', 'periods[' + index + '][start_date]');
+                $(this).find('.is-period-end').attr('name', 'periods[' + index + '][end_date]');
+                $(this).find('.is-remove-period').prop('disabled', index < 2);
+            });
+        }
+
+        function addComparisonRow() {
+            const count = $('#isComparisonPeriodRows .is-comparison-period-row').length;
+            if (count >= isCompareLabels.maxPeriods) return;
+
+            const labelDefault = isCompareLabels.names[count] || ('Period ' + (count + 1));
+            const row = $('<div class="row g-2 align-items-end is-comparison-period-row"></div>');
+            row.append(
+                '<div class="col-md-4 col-lg-3"><label class="form-label small mb-1">' + isCompareLabels.period + '</label>' +
+                '<input type="text" class="form-control form-control-sm" name="periods[' + count + '][label]" value="' + labelDefault + '"></div>' +
+                '<div class="col-md-3 col-lg-2"><label class="form-label small mb-1">' + isCompareLabels.from + '</label>' +
+                '<input type="date" class="form-control form-control-sm is-period-start" name="periods[' + count + '][start_date]"></div>' +
+                '<div class="col-md-3 col-lg-2"><label class="form-label small mb-1">' + isCompareLabels.to + '</label>' +
+                '<input type="date" class="form-control form-control-sm is-period-end" name="periods[' + count + '][end_date]"></div>' +
+                '<div class="col-md-2 col-lg-1"><button type="button" class="btn btn-sm btn-light-danger w-100 is-remove-period"><i class="fa fa-times"></i></button></div>'
+            );
+            $('#isComparisonPeriodRows').append(row);
+            reindexComparisonRows();
+        }
+
+        $('#comparison_enabled').on('change', syncComparisonVisibility);
+        $('#isAddComparisonPeriod').on('click', addComparisonRow);
+        $(document).on('click', '.is-remove-period', function() {
+            if ($('#isComparisonPeriodRows .is-comparison-period-row').length <= 2) return;
+            $(this).closest('.is-comparison-period-row').remove();
+            reindexComparisonRows();
+        });
+
+        syncComparisonVisibility();
+        reindexComparisonRows();
 
         $('#incomeStatementExportPdf').on('click', function() {
             window.open(incomeExportPdfUrl + '?' + buildIncomeQuery(), '_blank');

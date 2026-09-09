@@ -34,6 +34,7 @@ use Modules\Expense\Support\ExpenseLedgerAccounts;
 use Modules\Accounting\Services\CashFlowReportService;
 use Modules\Accounting\Services\CustomerSupplierStatementReportService;
 use Modules\Accounting\Services\IncomeStatementAccountClassifier;
+use Modules\Accounting\Services\IncomeStatementComparisonService;
 use Modules\Accounting\Services\TrialBalanceReportService;
 use Modules\Expense\Services\ExpenseReportService;
 use Modules\Expense\Support\TreasuryAccounts;
@@ -185,7 +186,28 @@ class AccountingReportsController extends Controller
         $compareDataset = null;
         $comparePeriod = null;
 
-        if (in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
+        $comparisonPeriods = IncomeStatementComparisonService::resolvePeriodsFromRequest(
+            request(),
+            $start_date,
+            $end_date
+        );
+        $isComparisonActive = count($comparisonPeriods) >= IncomeStatementComparisonService::MIN_PERIODS;
+        $comparisonTable = null;
+
+        if ($isComparisonActive) {
+            $comparisonTable = IncomeStatementComparisonService::buildComparisonTable(
+                $comparisonPeriods,
+                fn (string $periodStart, string $periodEnd) => $this->buildIncomeStatementDataset(
+                    $periodStart,
+                    $periodEnd,
+                    $choose_cost_center_select,
+                    $hide_zero_lines,
+                    $level_filter
+                )
+            );
+        }
+
+        if (! $isComparisonActive && in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
             $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compare_mode);
             $compareDataset = $this->buildIncomeStatementDataset(
                 $comparePeriod['start'],
@@ -197,7 +219,9 @@ class AccountingReportsController extends Controller
         }
 
         $data = $incomeDataset['data'];
-        $kpiGrowth = $this->buildIncomeStatementKpiGrowth($data, $compareDataset['data'] ?? null);
+        $kpiGrowth = $isComparisonActive
+            ? []
+            : $this->buildIncomeStatementKpiGrowth($data, $compareDataset['data'] ?? null);
 
         $costCenters = AccountingCostCenter::where('is_main', 0)->get();
 
@@ -227,6 +251,9 @@ class AccountingReportsController extends Controller
                 'company' => $company,
                 'costCenters' => $costCenters,
                 'choose_cost_center_select' => $choose_cost_center_select,
+                'isComparisonActive' => $isComparisonActive,
+                'comparisonTable' => $comparisonTable,
+                'comparisonPeriods' => $comparisonPeriods,
             ]);
     }
 
@@ -638,34 +665,6 @@ class AccountingReportsController extends Controller
         });
 
         if (request()->ajax()) {
-            $compareMode = $request->input('compare_mode', 'none');
-            $comparePeriod = null;
-            $compareAnalytics = null;
-            $compareEnabled = in_array($compareMode, ['previous_period', 'previous_year'], true);
-
-            if ($compareEnabled) {
-                $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compareMode);
-                $compareDetailRows = $this->queryTrialBalanceAccountRows(
-                    $comparePeriod['start'],
-                    $comparePeriod['end'],
-                    $with_zero_balances,
-                    $choose_accounts_select,
-                    $costCenterIds,
-                    $level_filter
-                )->map(function ($account) {
-                    $account->account_primary_type = TrialBalanceReportService::normalizePrimaryType(
-                        (string) ($account->account_primary_type ?? '')
-                    );
-
-                    return $account;
-                });
-
-                $detailRows = TrialBalanceReportService::mergeWithComparePeriod($detailRows, $compareDetailRows);
-                $compareAnalytics = TrialBalanceReportService::buildAnalytics($compareDetailRows, false);
-            } else {
-                $detailRows->each(fn ($account) => TrialBalanceReportService::attachCompareMetrics($account, null));
-            }
-
             $accounts = TrialBalanceReportService::withAccordionGroups($detailRows);
             $accountsCollection = $accounts instanceof Collection ? $accounts : collect($accounts);
             $analytics = TrialBalanceReportService::buildAnalytics($accountsCollection, false);
@@ -762,24 +761,6 @@ class AccountingReportsController extends Controller
 
                     return $this->roundMoney($closing_balance['closing_credit_balance'] ?? 0);
                 })
-                ->addColumn('compare_debit_opening_balance', function ($account) {
-                    return $this->roundMoney($account->compare_debit_opening_balance ?? 0);
-                })
-                ->addColumn('compare_credit_opening_balance', function ($account) {
-                    return $this->roundMoney($account->compare_credit_opening_balance ?? 0);
-                })
-                ->addColumn('compare_debit_balance', function ($account) {
-                    return $this->roundMoney($account->compare_debit_balance ?? 0);
-                })
-                ->addColumn('compare_credit_balance', function ($account) {
-                    return $this->roundMoney($account->compare_credit_balance ?? 0);
-                })
-                ->addColumn('compare_closing_debit_balance', function ($account) {
-                    return $this->roundMoney($account->compare_closing_debit_balance ?? 0);
-                })
-                ->addColumn('compare_closing_credit_balance', function ($account) {
-                    return $this->roundMoney($account->compare_closing_credit_balance ?? 0);
-                })
                 ->addColumn('is_group', function ($account) {
                     return (bool) ($account->is_group ?? false);
                 })
@@ -818,13 +799,6 @@ class AccountingReportsController extends Controller
                     'totalClosingDebitBalance' => $this->roundMoney($totalClosingDebitBalance),
                     'totalClosingCreditBalance' => $this->roundMoney($totalClosingCreditBalance),
                     'analytics' => $analytics,
-                    'compareAnalytics' => $compareAnalytics,
-                    'compareEnabled' => $compareEnabled,
-                    'comparePeriod' => $comparePeriod,
-                    'currentPeriod' => [
-                        'start' => $start_date,
-                        'end' => $end_date,
-                    ],
                     'difference' => $analytics['kpis']['difference'],
                     'isBalanced' => $analytics['kpis']['is_balanced'],
                     'plOpeningWarning' => $plWarning,
