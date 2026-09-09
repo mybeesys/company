@@ -239,12 +239,6 @@ final class TrialBalanceReportService
                 'credit_opening_balance' => round($buffer->sum(fn ($a) => (float) ($a->credit_opening_balance ?? 0)), 2),
                 'debit_balance' => round($buffer->sum(fn ($a) => (float) ($a->debit_balance ?? 0)), 2),
                 'credit_balance' => round($buffer->sum(fn ($a) => (float) ($a->credit_balance ?? 0)), 2),
-                'compare_debit_opening_balance' => round($buffer->sum(fn ($a) => (float) ($a->compare_debit_opening_balance ?? 0)), 2),
-                'compare_credit_opening_balance' => round($buffer->sum(fn ($a) => (float) ($a->compare_credit_opening_balance ?? 0)), 2),
-                'compare_debit_balance' => round($buffer->sum(fn ($a) => (float) ($a->compare_debit_balance ?? 0)), 2),
-                'compare_credit_balance' => round($buffer->sum(fn ($a) => (float) ($a->compare_credit_balance ?? 0)), 2),
-                'compare_closing_debit_balance' => round($buffer->sum(fn ($a) => (float) ($a->compare_closing_debit_balance ?? 0)), 2),
-                'compare_closing_credit_balance' => round($buffer->sum(fn ($a) => (float) ($a->compare_closing_credit_balance ?? 0)), 2),
                 'child_count' => $buffer->count(),
             ];
 
@@ -397,72 +391,5 @@ final class TrialBalanceReportService
     public static function growthPercent(?float $current, ?float $previous): ?float
     {
         return CurrencyHelper::growth_percent($current, $previous);
-    }
-
-    /**
-     * Attach comparative-period metrics onto a TB account row (zeros when absent).
-     */
-    public static function attachCompareMetrics(object $account, ?object $compareAccount): void
-    {
-        if ($compareAccount === null) {
-            $account->compare_debit_opening_balance = 0.0;
-            $account->compare_credit_opening_balance = 0.0;
-            $account->compare_debit_balance = 0.0;
-            $account->compare_credit_balance = 0.0;
-            $account->compare_closing_debit_balance = 0.0;
-            $account->compare_closing_credit_balance = 0.0;
-
-            return;
-        }
-
-        $opening = static::displayOpeningBalances($compareAccount);
-        $closing = static::closingBalance($compareAccount);
-
-        $account->compare_debit_opening_balance = round((float) $opening['debit'], 2);
-        $account->compare_credit_opening_balance = round((float) $opening['credit'], 2);
-        $account->compare_debit_balance = round((float) ($compareAccount->debit_balance ?? 0), 2);
-        $account->compare_credit_balance = round((float) ($compareAccount->credit_balance ?? 0), 2);
-        $account->compare_closing_debit_balance = round((float) $closing['closing_debit_balance'], 2);
-        $account->compare_closing_credit_balance = round((float) $closing['closing_credit_balance'], 2);
-    }
-
-    /**
-     * Union current + compare account sets so accounts active in either period appear.
-     *
-     * @param  Collection<int, object>  $currentRows
-     * @param  Collection<int, object>  $compareRows
-     * @return Collection<int, object>
-     */
-    public static function mergeWithComparePeriod(Collection $currentRows, Collection $compareRows): Collection
-    {
-        $compareById = $compareRows->keyBy(fn ($account) => (int) ($account->id ?? 0));
-
-        $merged = $currentRows->map(function ($account) use ($compareById) {
-            static::attachCompareMetrics($account, $compareById->get((int) ($account->id ?? 0)));
-
-            return $account;
-        });
-
-        $currentIds = $currentRows
-            ->pluck('id')
-            ->map(fn ($id) => (int) $id)
-            ->flip();
-
-        foreach ($compareRows as $compareAccount) {
-            $id = (int) ($compareAccount->id ?? 0);
-            if ($id <= 0 || $currentIds->has($id)) {
-                continue;
-            }
-
-            $stub = clone $compareAccount;
-            $stub->debit_opening_balance = 0.0;
-            $stub->credit_opening_balance = 0.0;
-            $stub->debit_balance = 0.0;
-            $stub->credit_balance = 0.0;
-            static::attachCompareMetrics($stub, $compareAccount);
-            $merged->push($stub);
-        }
-
-        return $merged->values();
     }
 }
