@@ -490,13 +490,7 @@
         $('.cost-center-column').hide();
     }
 });
-        $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
-            $(this).find('#kt_ecommerce_select2_account_type').select2({
-                dropdownParent: $('#kt_modal_create_account')
-            });
-
-        });
-
+        // Modal select2 + next GL code: accounting::journalEntry.create-account-scripts
         $(document).ready(function() {
 
 
@@ -539,29 +533,7 @@
                 }
             });
 
-            $('#addAccountForm').on('submit', function(e) {
-                e.preventDefault();
-
-                $('#submitBtn .indicator-label').hide();
-                $('#submitBtn .indicator-progress').show();
-
-                $.ajax({
-                    url: "{{ route('store-account') }}",
-                    method: "POST",
-                    data: $(this).serialize(),
-                    success: function(response) {
-                        $('#kt_modal_create_account').modal('hide');
-                        $('#addAccountForm')[0].reset();
-                    },
-                    error: function(xhr) {
-                    },
-                    complete: function() {
-                        $('#submitBtn .indicator-label').show();
-                        $('#submitBtn .indicator-progress').hide();
-                    }
-                });
-            });
-
+            // Account create submit + auto-select handled by accounting::journalEntry.create-account
 
             $('#acc_trans_mappings').on('change', function() {
                 var selectedValue = this.value;
@@ -757,4 +729,5 @@
 
         });
     </script>
+    @include('accounting::journalEntry.create-account-scripts')
 @stop

@@ -361,13 +361,32 @@ class GeneralController extends Controller
             ]);
 
             $trackingPolicy = $request->input('inventory_tracking_policy', 'perpetual');
+            $currentPolicy = Setting::getInventoryTrackingPolicy();
+
+            if ($currentPolicy === 'periodic' && $trackingPolicy === 'perpetual') {
+                $openReviews = \Modules\Accounting\Models\PeriodicInventory::query()
+                    ->where('status', 'in_review')
+                    ->count();
+                if ($openReviews > 0) {
+                    return redirect()->back()->with('error', app()->getLocale() === 'ar'
+                        ? 'لا يمكن التحويل للجرد المستمر ووجود جرد دوري قيد المراجعة. اعتمد أو احذف سجلات المراجعة أولاً.'
+                        : 'Cannot switch to perpetual while periodic counts are still in review. Approve or delete them first.');
+                }
+            }
 
             Setting::updateOrCreate(
                 ['key' => 'inventory_tracking_policy'],
                 ['value' => $trackingPolicy]
             );
 
-            return redirect()->back()->with('success', __('messages.add_successfully'));
+            $message = __('messages.add_successfully');
+            if ($currentPolicy !== $trackingPolicy) {
+                $message = app()->getLocale() === 'ar'
+                    ? 'تم تحديث نظام الجرد. تجنّب التبديل وسط فترة مفتوحة دون مراجعة الأرصدة والقيود.'
+                    : 'Inventory system updated. Avoid switching mid-period without reviewing balances and journals.';
+            }
+
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', __('messages.something_went_wrong'));
         }

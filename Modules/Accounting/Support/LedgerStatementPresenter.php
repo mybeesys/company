@@ -156,6 +156,8 @@ final class LedgerStatementPresenter
      *   date: string,
      *   ref: string,
      *   description: string,
+     *   cost_center: string,
+     *   added_by: string,
      *   debit: string,
      *   credit: string,
      *   balance: string,
@@ -201,6 +203,10 @@ final class LedgerStatementPresenter
                 'date' => self::formatDate($opDate),
                 'ref' => $ref,
                 'description' => $description,
+                'cost_center' => $localeAr
+                    ? (string) ($tx->costCenter?->name_ar ?? $tx->costCenter?->name_en ?? '')
+                    : (string) ($tx->costCenter?->name_en ?? $tx->costCenter?->name_ar ?? ''),
+                'added_by' => (string) ($tx->createdBy?->name ?? ''),
                 'debit' => self::formatAmount($debitAmt, true),
                 'credit' => self::formatAmount($creditAmt, true),
                 'balance' => self::formatSignedBalance($balance),

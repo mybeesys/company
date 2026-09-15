@@ -335,36 +335,7 @@
 
         });
 
-        $(document).on('shown.bs.modal', '#kt_modal_create_account', function() {
-            $(this).find('#kt_ecommerce_select2_account_type').select2({
-                dropdownParent: $('#kt_modal_create_account')
-            });
-
-        });
-
-
-        $('#addAccountForm').on('submit', function(e) {
-            e.preventDefault();
-
-            $('#submitBtn .indicator-label').hide();
-            $('#submitBtn .indicator-progress').show();
-
-            $.ajax({
-                url: "{{ route('store-account') }}",
-                method: "POST",
-                data: $(this).serialize(),
-                success: function(response) {
-                    $('#kt_modal_create_account').modal('hide');
-                    $('#addAccountForm')[0].reset();
-                },
-                error: function(xhr) {},
-                complete: function() {
-                    $('#submitBtn .indicator-label').show();
-                    $('#submitBtn .indicator-progress').hide();
-                }
-            });
-        });
-
+        // Modal select2 + next GL code + store: accounting::journalEntry.create-account-scripts
 
         document.getElementById('addContactCard').addEventListener('click', function() {
             const container = document.getElementById('contactCardContainer');
@@ -506,5 +477,7 @@
             }
         });
     </script>
+
+    @include('accounting::journalEntry.create-account-scripts')
 
 @stop

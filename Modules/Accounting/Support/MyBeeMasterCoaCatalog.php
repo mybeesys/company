@@ -22,7 +22,10 @@ final class MyBeeMasterCoaCatalog
     public static function get(): array
     {
         if (self::$cache === null) {
-            $path = module_path('Accounting', 'data/mybee-master-coa-v5.php');
+            $path = module_path('Accounting', 'data/mybee-master-coa-v6.php');
+            if (! is_file($path)) {
+                $path = module_path('Accounting', 'data/mybee-master-coa-v5.php');
+            }
             /** @var array<string, mixed> $catalog */
             $catalog = require $path;
             self::$cache = $catalog;

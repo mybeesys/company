@@ -87,7 +87,6 @@ Route::middleware([
         Route::post('change-status-account', [TreeAccountsController::class, 'activateDeactivate'])
             ->name('change-status-account');
         Route::get('next-gl-code', [TreeAccountsController::class, 'nextGlCode'])
-            ->middleware($perm(AccountingPermissions::TREE_CREATE))
             ->name('next-gl-code');
         Route::post('delete-account', [TreeAccountsController::class, 'deleteAccount'])
             ->middleware($perm(AccountingPermissions::TREE_DELETE))

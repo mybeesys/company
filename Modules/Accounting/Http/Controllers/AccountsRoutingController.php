@@ -33,7 +33,13 @@ class AccountsRoutingController extends Controller
     public static function routingSettingsData(): array
     {
         $accounts = AccountingAccount::forDropdown();
-        $defaultDiscountAccountId = AccountingAccount::where('gl_code', '523')->value('id');
+        $defaultDiscountAccountId = null;
+        foreach (['51402', '43501', '523'] as $gl) {
+            $defaultDiscountAccountId = AccountingAccount::query()->where('gl_code', $gl)->value('id');
+            if ($defaultDiscountAccountId) {
+                break;
+            }
+        }
         $options = [
             'auto_assign' => 'تعيين تلقائي',
             'no_routing' => 'بلا توجيه',

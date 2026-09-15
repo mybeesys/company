@@ -33,7 +33,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">@lang('accounting::lang.periodic_inventory_last_count_hint')</label>
-                            <input type="text" class="form-control" value="{{ $start_date }}" readonly>
+                            <input type="text" class="form-control periodic-period-start" value="{{ $start_date }}" readonly>
                         </div>
                     </div>
                 </div>

@@ -157,9 +157,14 @@ class PurchaseJournalPoster
             )
             : null;
 
-        $purchasesId = Setting::isPerpetualInventory()
-            ? (int) ($inventoryAssetAccountId ?: $purchasesRoute?->account_id)
-            : (int) ($purchasesRoute?->account_id);
+        if (Setting::isPerpetualInventory()) {
+            if (! $inventoryAssetAccountId) {
+                throw new RuntimeException($this->trans('routing_missing_inventory_asset'));
+            }
+            $purchasesId = (int) $inventoryAssetAccountId;
+        } else {
+            $purchasesId = (int) ($purchasesRoute?->account_id ?? 0);
+        }
 
         if ($purchasesId <= 0) {
             throw new RuntimeException($this->trans('routing_missing_purchases'));
@@ -195,9 +200,14 @@ class PurchaseJournalPoster
             )
             : null;
 
-        $returnId = Setting::isPerpetualInventory()
-            ? (int) ($inventoryAssetAccountId ?: $purchaseRoute?->account_id ?: $returnRoute->account_id)
-            : (int) $returnRoute->account_id;
+        if (Setting::isPerpetualInventory()) {
+            if (! $inventoryAssetAccountId) {
+                throw new RuntimeException($this->trans('routing_missing_inventory_asset'));
+            }
+            $returnId = (int) $inventoryAssetAccountId;
+        } else {
+            $returnId = (int) $returnRoute->account_id;
+        }
 
         return [
             'return_id' => $returnId,

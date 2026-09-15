@@ -8,18 +8,12 @@ use Illuminate\Http\Request;
 use Modules\Accounting\Exceptions\FiscalPeriodException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Accounting\Exports\PeriodicInventoryExport;
 use Modules\Accounting\Exports\PeriodicInventoryListExport;
-use Modules\Accounting\Models\AccountingAccount;
-use Modules\Accounting\Models\AccountingAccountsTransaction;
-use Modules\Accounting\Models\AccountingAccTransMapping;
-use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Models\PeriodicInventory;
+use Modules\Accounting\Services\PeriodicInventoryPeriodClosePoster;
 use Modules\Accounting\Services\FiscalPeriod\PeriodicInventoryFiscalGuard;
-use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
@@ -154,9 +148,19 @@ class PeriodicInventoryController extends Controller
             return $guard;
         }
 
-        $lastInventory = PeriodicInventory::latest()->first();
-        $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear()->format('Y-m-d');
         $first_establishment = Establishment::first();
+        if (! $first_establishment) {
+            return view('accounting::inventory.periodic.create', [
+                'start_date' => now()->subYear()->format('Y-m-d'),
+                'count_date_default' => now()->format('Y-m-d'),
+                'products' => collect(),
+                'establishments' => collect(),
+                'mode' => 'create',
+            ]);
+        }
+
+        $lastInventory = $this->lastApprovedInventoryForEstablishment((int) $first_establishment->id);
+        $start_date = $lastInventory ? $lastInventory->end_date : now()->subYear()->format('Y-m-d');
 
         $products = Product::whereIn('type', ['product', 'variable', 'modifier', 'ingredint'])
             ->with(['unitTransfers'])
@@ -243,7 +247,12 @@ class PeriodicInventoryController extends Controller
 
         $establishment_id = $request->establishment;
         $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
-        $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate);
+        $data = $this->calculateInventoryValuesFromItems(
+            $normalizedItems,
+            $countDate,
+            null,
+            (int) $establishment_id
+        );
 
         $inventory = PeriodicInventory::create([
             'start_date' => $data['start_date'],
@@ -295,7 +304,12 @@ class PeriodicInventoryController extends Controller
         }
 
         $normalizedItems = $this->normalizePeriodicInventoryItems($request->items);
-        $data = $this->calculateInventoryValuesFromItems($normalizedItems, $countDate, $inventory);
+        $data = $this->calculateInventoryValuesFromItems(
+            $normalizedItems,
+            $countDate,
+            $inventory,
+            (int) $request->establishment
+        );
 
         DB::beginTransaction();
         try {
@@ -386,9 +400,13 @@ class PeriodicInventoryController extends Controller
             $adjustmentEntry = $this->postInventoryAdjustments($inventory);
             if ($adjustmentEntry) {
                 $inventory->adjustment_entry_id = $adjustmentEntry->id;
-                $inventory->notes = 'تم اعتماد الجرد مع قيد تسوية رقم '.($adjustmentEntry->ref_no ?? $adjustmentEntry->id);
+                $inventory->notes = app()->getLocale() === 'ar'
+                    ? ('تم اعتماد الجرد مع قيد إقفال تكلفة المبيعات/المخزون رقم '.($adjustmentEntry->ref_no ?? $adjustmentEntry->id))
+                    : ('Count approved with COGS/inventory close journal #'.($adjustmentEntry->ref_no ?? $adjustmentEntry->id));
             } else {
-                $inventory->notes = 'تم اعتماد الجرد بدون قيد تسوية (فرق الجرد يساوي صفر).';
+                $inventory->notes = app()->getLocale() === 'ar'
+                    ? 'تم اعتماد الجرد بدون قيد (لا توجد حركة تكلفة/مخزون للترحيل).'
+                    : 'Count approved with no journal (nothing material to post).';
             }
 
             $inventory->status = 'approved';
@@ -457,34 +475,6 @@ class PeriodicInventoryController extends Controller
         return $out;
     }
 
-    private function calculateInventoryValuesFromItems(array $normalizedItems, string $countDate, ?PeriodicInventory $currentInventory = null): array
-    {
-        if ($currentInventory) {
-            $start_date = (string) $currentInventory->start_date;
-            $opening = (float) ($currentInventory->opening_stock_value ?? 0);
-        } else {
-            $lastInventory = PeriodicInventory::latest()->first();
-            $start_date = $lastInventory ? (string) $lastInventory->end_date : now()->subYear()->format('Y-m-d');
-            $opening = $lastInventory ? (float) $lastInventory->closing_stock_value : 0.0;
-        }
-
-        $purchases = $this->getPurchasesBetween($start_date, $countDate);
-
-        $closing = $this->calculateClosingValue($normalizedItems);
-
-        return [
-            'start_date' => $start_date,
-            'opening_value' => $opening,
-            'purchases_value' => $purchases,
-            'closing_value' => $closing,
-            'cogs' => $this->calculateCOGS(
-                $opening,
-                $purchases,
-                $closing
-            ),
-        ];
-    }
-
     protected function resolveProductInventoryUnitLabel(?Product $product): ?string
     {
         if (! $product) {
@@ -498,120 +488,111 @@ class PeriodicInventoryController extends Controller
             return '—';
         }
 
-        // The unit label is stored directly on product_unit_transfer.unit1 (string).
         return (string) ($ut->unit1 ?: '—');
+    }
+
+    private function lastApprovedInventoryForEstablishment(?int $establishmentId): ?PeriodicInventory
+    {
+        if (! $establishmentId) {
+            return null;
+        }
+
+        return PeriodicInventory::query()
+            ->where('establishment_id', $establishmentId)
+            ->where('status', 'approved')
+            ->orderByDesc('end_date')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    private function calculateInventoryValuesFromItems(
+        array $normalizedItems,
+        string $countDate,
+        ?PeriodicInventory $currentInventory = null,
+        ?int $establishmentId = null
+    ): array {
+        $establishmentId = $establishmentId
+            ?? ($currentInventory?->establishment_id ? (int) $currentInventory->establishment_id : null);
+
+        if ($currentInventory) {
+            $start_date = (string) $currentInventory->start_date;
+            $opening = (float) ($currentInventory->opening_stock_value ?? 0);
+            // When dates/establishment change on edit, recompute opening from last approved before this count.
+            if ($establishmentId) {
+                $prior = PeriodicInventory::query()
+                    ->where('establishment_id', $establishmentId)
+                    ->where('status', 'approved')
+                    ->where('id', '!=', $currentInventory->id)
+                    ->whereDate('end_date', '<=', $countDate)
+                    ->orderByDesc('end_date')
+                    ->orderByDesc('id')
+                    ->first();
+                if ($prior) {
+                    $start_date = (string) $prior->end_date;
+                    $opening = (float) $prior->closing_stock_value;
+                }
+            }
+        } else {
+            $lastInventory = $this->lastApprovedInventoryForEstablishment($establishmentId);
+            $start_date = $lastInventory ? (string) $lastInventory->end_date : now()->subYear()->format('Y-m-d');
+            $opening = $lastInventory ? (float) $lastInventory->closing_stock_value : 0.0;
+        }
+
+        $purchases = $this->getPurchasesBetween($start_date, $countDate, $establishmentId);
+        $closing = $this->calculateClosingValue($normalizedItems);
+
+        return [
+            'start_date' => $start_date,
+            'opening_value' => $opening,
+            'purchases_value' => $purchases,
+            'closing_value' => $closing,
+            'cogs' => $this->calculateCOGS($opening, $purchases, $closing),
+        ];
     }
 
     protected function postInventoryAdjustments($inventory)
     {
-        // Use actual counted variance from items (qty variance * unit cost),
-        // not the derived COGS formula, to determine if adjustment is needed.
-        $variance = (float) $inventory->items->sum(function ($item) {
-            return ((float) $item->physical_quantity - (float) $item->system_quantity) * (float) $item->unit_cost;
-        });
-
-        if ($variance != 0) {
-            try {
-                DB::beginTransaction();
-
-                $ref_number = AccountingUtil::generateReferenceNumber('journal_entry');
-
-                PeriodicInventoryFiscalGuard::assertInventoryPeriodPostable($inventory);
-
-                $operationDate = Carbon::parse($inventory->end_date)->endOfDay()->format('Y-m-d H:i:s');
-
-                $journalEntry = [
-                    'ref_no' => $ref_number,
-                    'note' => 'تسوية جرد مخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
-                    'type' => 'journal_entry',
-                    'created_by' => Auth::user()->id,
-                    'operation_date' => $operationDate,
-                ];
-
-                $acc_trans_mapping = AccountingAccTransMapping::create($journalEntry);
-
-                $inventoryAccountId = AccountingAccount::query()
-                    ->where('account_category', 'inventory')
-                    ->orWhere('gl_code', '1105')
-                    ->value('id');
-
-                $inventoryAdjustmentAccountId = AccountsRoting::query()
-                    ->where('type', 'periodic_inventory_adjustment')
-                    ->where('section', 'periodic_inventory')
-                    ->value('account_id');
-
-                if (! $inventoryAdjustmentAccountId) {
-                    $inventoryAdjustmentAccountId = AccountingAccount::query()
-                        ->where('account_category', 'inventory_adjustment')
-                        ->value('id');
-                }
-                if (! $inventoryAdjustmentAccountId) {
-                    $inventoryAdjustmentAccountId = AccountingAccount::query()
-                        ->where(function ($q) {
-                            $q->where('account_category', 'COGS')
-                                ->orWhere('account_category', 'cost_of_goods_sold')
-                                ->orWhere('gl_code', '50101');
-                        })
-                        ->value('id');
-                }
-
-                if (! $inventoryAdjustmentAccountId) {
-                    $inventoryAdjustmentAccountId = AccountsRoting::where('type', 'purchases_purchase')->value('account_id');
-                }
-
-                $journalEntries = [];
-                $journalEntries[] = [
-                    'account_id' => $inventoryAccountId,
-                    'amount' => abs($variance),
-                    'type' => $variance > 0 ? 'debit' : 'credit',
-                    'notes' => 'تسوية مخزون',
-                ];
-
-                $journalEntries[] = [
-                    'account_id' => $inventoryAdjustmentAccountId,
-                    'amount' => abs($variance),
-                    'type' => $variance > 0 ? 'credit' : 'debit',
-                    'notes' => 'تسوية مخزون',
-                ];
-
-                if (! $journalEntries[0]['account_id'] || ! $journalEntries[1]['account_id']) {
-                    throw new \RuntimeException('Required accounts for periodic inventory adjustment are not configured (inventory / inventory_adjustment).');
-                }
-
-                foreach ($journalEntries as $entry) {
-                    AccountingAccountsTransaction::create([
-                        'accounting_account_id' => $entry['account_id'],
-                        'amount' => $entry['amount'],
-                        'type' => $entry['type'],
-                        'note' => $entry['notes'],
-                        'created_by' => Auth::user()->id,
-                        'operation_date' => $operationDate,
-                        'sub_type' => 'inventory_adjustment',
-                        'acc_trans_mapping_id' => $acc_trans_mapping->id,
-                    ]);
-                }
-
-                $inventory->update(['adjustment_entry_id' => $acc_trans_mapping->id]);
-
-                DB::commit();
-
-                return $acc_trans_mapping;
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('فشل في تسوية الجرد: '.$e->getMessage());
-                throw $e;
-            }
-        }
-
-        return null;
+        return app(PeriodicInventoryPeriodClosePoster::class)->post($inventory);
     }
 
-    protected function getPurchasesBetween($startDate, $endDate)
+    /**
+     * Net inventory purchases (ex-VAT) for the branch/period: purchases − returns − internal consumption.
+     * Internal consumption already hits expense (Cr purchases under periodic), so it must not inflate period COGS.
+     */
+    protected function getPurchasesBetween($startDate, $endDate, $establishmentId = null)
     {
-        return Transaction::where('type', 'purchases')
+        $amountExpression = 'COALESCE(NULLIF(totalAfterDiscount, 0), NULLIF(total_before_tax, 0), 0)';
+
+        $purchasesQuery = Transaction::query()
+            ->where('type', 'purchases')
             ->where('status', '!=', 'draft')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum('final_total');
+            ->whereDate('transaction_date', '>=', $startDate)
+            ->whereDate('transaction_date', '<=', $endDate)
+            ->when($establishmentId, fn ($q) => $q->where('establishment_id', $establishmentId));
+
+        $returnsQuery = Transaction::query()
+            ->where('type', 'purchases-return')
+            ->where('status', '!=', 'draft')
+            ->whereDate('transaction_date', '>=', $startDate)
+            ->whereDate('transaction_date', '<=', $endDate)
+            ->when($establishmentId, fn ($q) => $q->where('establishment_id', $establishmentId));
+
+        $internalQuery = Transaction::query()
+            ->where('type', 'sell')
+            ->where('status', '!=', 'draft')
+            ->where(function ($q) {
+                $q->whereIn('purpose', \Modules\Sales\Support\TransactionPurpose::internalAliases())
+                    ->orWhereNotNull('internal_consumption_type_id');
+            })
+            ->whereDate('transaction_date', '>=', $startDate)
+            ->whereDate('transaction_date', '<=', $endDate)
+            ->when($establishmentId, fn ($q) => $q->where('establishment_id', $establishmentId));
+
+        $purchases = (float) $purchasesQuery->sum(DB::raw($amountExpression));
+        $returns = (float) $returnsQuery->sum(DB::raw($amountExpression));
+        $internal = (float) $internalQuery->sum(DB::raw($amountExpression));
+
+        return round(max(0, $purchases - $returns - $internal), 2);
     }
 
     protected function calculateClosingValue($items)
@@ -632,7 +613,7 @@ class PeriodicInventoryController extends Controller
 
     protected function calculateCOGS($openingStockValue, $purchasesValue, $closingStockValue)
     {
-        return $openingStockValue + $purchasesValue - $closingStockValue;
+        return round((float) $openingStockValue + (float) $purchasesValue - (float) $closingStockValue, 2);
     }
 
     public function getProductsByEstablishment($establishmentId)
@@ -653,7 +634,13 @@ class PeriodicInventoryController extends Controller
             $p->setAttribute('inventory_unit_label', $this->resolveProductInventoryUnitLabel($p));
         });
 
-        return response()->json($products);
+        $last = $this->lastApprovedInventoryForEstablishment((int) $establishmentId);
+
+        return response()->json([
+            'products' => $products,
+            'period_start_date' => $last?->end_date,
+            'opening_stock_value' => $last ? (float) $last->closing_stock_value : 0,
+        ]);
     }
 
     public function exportPdf($id)

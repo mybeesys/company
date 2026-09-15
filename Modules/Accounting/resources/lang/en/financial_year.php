@@ -29,7 +29,7 @@ return [
     'tooltip_end_date' => 'Last day of the period before year-end close or a new year.',
     'tooltip_status' => 'Open: active for entries | Closed: ended.',
 
-    'save_first_year' => 'Save fiscal year',
+    'save_first_year' => 'Add fiscal year',
     'add_year' => 'Add fiscal year',
     'saving' => 'Saving...',
     'save_success' => 'Fiscal year saved successfully.',

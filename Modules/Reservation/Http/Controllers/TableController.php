@@ -32,7 +32,7 @@ class TableController extends Controller
             $t['area']['name_en'] = $table->area->establishment->name_en.' - '.$table->area->name_en;
             $details[] = $t;
         }
-        $tree = $TreeBuilder->buildTreeFromArray($details, null, 'establishment', null, null, null);
+        $tree = $TreeBuilder->buildTreeFromArray($details, null, 'table', null, null, null);
 
         return response()->json($tree);
     }
@@ -48,18 +48,28 @@ class TableController extends Controller
             'id' => 'nullable|numeric',
             'code' => 'required|string',
             'steating_capacity' => 'required|numeric',
-            'table_status' => 'required|numeric',
+            'table_status' => 'nullable|numeric',
             'active' => 'nullable|boolean',
             'method' => 'nullable|string',
+            'area' => 'nullable|array',
+            'area.id' => 'required_without:method|numeric',
         ]);
+
+        $validated['table_status'] = $validated['table_status'] ?? 0;
+        $validated['active'] = array_key_exists('active', $validated)
+            ? (int) (bool) $validated['active']
+            : 1;
 
         if (isset($validated['method']) && ($validated['method'] == 'delete')) {
             $table = Table::find($validated['id']);
             $table->delete();
 
             return response()->json(['message' => 'Done']);
-        } elseif (! isset($validated['id'])) {
-            $validated['area_id'] = $request['area']['id'];
+        } elseif (! isset($validated['id']) || $validated['id'] === null || (int) $validated['id'] === 0) {
+            $validated['area_id'] = $request['area']['id'] ?? null;
+            if (! $validated['area_id']) {
+                return response()->json(['message' => 'AREA_REQUIRED'], 422);
+            }
             $table = Table::where([['area_id', '=', $validated['area_id']],
                 ['code', '=', $validated['code']]])->first();
             if ($table != null) {
@@ -67,7 +77,10 @@ class TableController extends Controller
             }
             $this->createTable($validated, $request);
         } else {
-            $validated['area_id'] = $request['area']['id'];
+            $validated['area_id'] = $request['area']['id'] ?? null;
+            if (! $validated['area_id']) {
+                return response()->json(['message' => 'AREA_REQUIRED'], 422);
+            }
             $table = Table::where([
                 ['id', '!=', $validated['id']],
                 ['area_id', '=', $validated['area_id']],

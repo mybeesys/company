@@ -99,13 +99,14 @@ final class DefaultAccountRoutingMap
             array_merge($stamp, [
                 'type' => 'purchases_discount_calculation',
                 'section' => 'purchases',
-                'routing_type' => 'expense',
+                // Same GL as earned discount (51402) — contra-purchase / credit nature.
+                'routing_type' => 'revenue',
                 'account_id' => $purchasesDiscount?->id,
             ]),
             array_merge($stamp, [
                 'type' => 'purchases_earned_discount',
                 'section' => 'purchases',
-                'routing_type' => 'expense',
+                'routing_type' => 'revenue',
                 'account_id' => $purchasesDiscount?->id,
             ]),
             array_merge($stamp, [
@@ -150,5 +151,41 @@ final class DefaultAccountRoutingMap
         }
 
         AccountsRoting::query()->insert(self::routingRows());
+    }
+
+    /**
+     * Insert missing routing rows and fill null account_id without wiping configured routes.
+     */
+    public static function ensureMissingRoutes(): int
+    {
+        $changed = 0;
+
+        foreach (self::routingRows() as $row) {
+            $existing = AccountsRoting::query()
+                ->where('type', $row['type'])
+                ->where('section', $row['section'])
+                ->first();
+
+            if (! $existing) {
+                AccountsRoting::query()->create([
+                    'type' => $row['type'],
+                    'section' => $row['section'],
+                    'routing_type' => $row['routing_type'],
+                    'account_id' => $row['account_id'],
+                    'direction' => $row['direction'] ?? 'auto_assign',
+                ]);
+                $changed++;
+                continue;
+            }
+
+            if (empty($existing->account_id) && ! empty($row['account_id'])) {
+                $existing->account_id = $row['account_id'];
+                $existing->routing_type = $row['routing_type'] ?? $existing->routing_type;
+                $existing->save();
+                $changed++;
+            }
+        }
+
+        return $changed;
     }
 }

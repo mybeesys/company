@@ -511,7 +511,7 @@ class PurchasesController extends Controller
         }
         if (Setting::isPerpetualInventory()) {
             $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId(null);
-            if (! $inventoryAccountId && ! $purchasesAccountId) {
+            if (! $inventoryAccountId) {
                 $missing[] = __('accounting::lang.inventory');
             }
         }

@@ -68,6 +68,12 @@ class TreeAccountsController extends Controller
         if (! in_array('balance', $cols, true)) {
             $cols[] = 'balance';
         }
+        // Debit / credit stay visible with the on-screen ledger (cannot be toggled off).
+        foreach (['debit', 'credit'] as $requiredAmountCol) {
+            if (! in_array($requiredAmountCol, $cols, true)) {
+                $cols[] = $requiredAmountCol;
+            }
+        }
 
         return array_values(array_intersect($order, $cols));
     }
@@ -472,7 +478,8 @@ class TreeAccountsController extends Controller
             'name_ar' => 'required|string|max:255',
             'name_en' => 'required|string|max:255',
             'account_id' => 'required|exists:accounting_accounts,id',
-            'gl_code' => 'required|string|max:255|unique:accounting_accounts,gl_code',
+            // Optional: empty / omitted → auto next_GLC under parent (AJAX modals often omit it).
+            'gl_code' => 'nullable|string|max:255|unique:accounting_accounts,gl_code',
         ]);
 
         DB::beginTransaction();
@@ -488,11 +495,15 @@ class TreeAccountsController extends Controller
             $parent = AccountingAccount::find($input['account_id']);
 
             if (! $parent) {
-                return redirect()->back()->with('error', __('messages.something_went_wrong'));
+                return $this->storeAccountFailure($request, __('messages.something_went_wrong'), 422);
             }
 
             if (AccountingAccountsTransaction::where('accounting_account_id', $parent->id)->exists()) {
-                return redirect()->back()->with('error', __('accounting::lang.cannot_add_child_account_has_movements'));
+                return $this->storeAccountFailure(
+                    $request,
+                    __('accounting::lang.cannot_add_child_account_has_movements'),
+                    422
+                );
             }
 
             $input['account_primary_type'] = $parent->account_primary_type;
@@ -500,6 +511,7 @@ class TreeAccountsController extends Controller
             $input['detail_type_id'] = $parent->detail_type_id;
             $input['parent_account_id'] = $parent->id;
             $input['account_type'] = $parent->account_type ?? $parent->account_primary_type;
+            $input['account_category'] = $parent->account_category;
             $input['created_by'] = Auth::user()->id;
             $input['status'] = 'active';
             $input['gl_code'] = trim((string) ($input['gl_code'] ?? ''));
@@ -521,13 +533,43 @@ class TreeAccountsController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                $localeAr = app()->getLocale() === 'ar';
+                $name = $localeAr ? $child->name_ar : $child->name_en;
+                $label = trim(($child->gl_code ? '('.$child->gl_code.') ' : '').$name);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => __('messages.add_successfully'),
+                    'account' => [
+                        'id' => $child->id,
+                        'gl_code' => $child->gl_code,
+                        'name_ar' => $child->name_ar,
+                        'name_en' => $child->name_en,
+                        'text' => $label,
+                    ],
+                ]);
+            }
+
             return redirect()->back()->with('success', __('messages.add_successfully'));
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
 
-            return redirect()->back()->with('error', __('messages.something_went_wrong'));
+            return $this->storeAccountFailure($request, __('messages.something_went_wrong'), 500);
         }
+    }
+
+    private function storeAccountFailure(Request $request, string $message, int $status = 422)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], $status);
+        }
+
+        return redirect()->back()->with('error', $message);
     }
 
     public function storeSubAccount(Request $request)
@@ -736,6 +778,7 @@ class TreeAccountsController extends Controller
             'statement_lines' => $lines,
             'account_class_label' => LedgerStatementPresenter::accountClassLabel($account, $localeAr),
             'printed_at' => now()->format('n/j/Y g:i A'),
+            'ledger_visible_columns' => $ledger_visible_columns,
         ];
     }
 

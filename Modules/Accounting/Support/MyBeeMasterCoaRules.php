@@ -42,7 +42,8 @@ final class MyBeeMasterCoaRules
     }
 
     /**
-     * Workbook L5 party rows are examples (Customer 1, Supplier 1…). Prefer subledgers.
+     * Detect workbook example party leaves (Customer 1, Supplier 1, Bank Account 1…).
+     * These are included in the installed master tree; helper remains for labeling / diffs.
      */
     public static function isIllustrativePartyAccount(string $nameAr, string $nameEn): bool
     {
@@ -82,8 +83,9 @@ final class MyBeeMasterCoaRules
             'sales_return' => ['42101', '412'],
             'sales_discount' => ['42201', '42301', '523'],
             'purchases' => ['51101', '11505', '513'],
-            'purchases_return' => ['51101', '11505', '513'],
-            'purchases_discount' => ['43501', '523'],
+            // Purchase returns / earned discounts live under 514 (v6); keep legacy fallbacks.
+            'purchases_return' => ['51401', '51101', '11505', '513'],
+            'purchases_discount' => ['51402', '43501', '523'],
             'inventory' => ['11505', '11504', '11501', '1105'],
             'cogs' => ['51101', '50101'],
             'inventory_adjustment' => ['11601', '51101', '50105', '50101'],

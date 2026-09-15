@@ -944,6 +944,7 @@ return [
 
     'purchase_journal_poster' => [
         'routing_missing_purchases' => 'Accounting routing is missing for purchases. Please configure purchases_purchase or Inventory (perpetual_inventory_asset).',
+        'routing_missing_inventory_asset' => 'Perpetual inventory requires an Inventory asset account. Configure perpetual_inventory_asset in Accounts Routing or link an account to the establishment.',
         'routing_missing_purchases_vat' => 'Accounting routing is missing for purchases VAT. Please configure purchases_vat_calculation.',
         'routing_missing_purchases_return' => 'Accounting routing is missing for purchase returns. Please configure purchases_purchase_return and purchases_vat_calculation.',
         'earned_discount_not_configured' => 'Purchase discount is present but purchases_earned_discount is not configured in Accounts Routing (do not use sales discount allowed).',
