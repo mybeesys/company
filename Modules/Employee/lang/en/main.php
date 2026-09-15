@@ -93,9 +93,17 @@ return [
     'balance' => 'Balance',
     'Sales vs Expenses - Last 6 Months' => 'Sales vs Expenses - Last 6 Months',
 
-    'dashboard_page_subtitle' => 'Quick financial overview: sales, purchases, and balances.',
-    'dashboard_hub_title' => 'Main dashboard',
-    'dashboard_hub_subtitle' => 'Pick a dashboard from the list to view sales, purchases, inventory, and accounting metrics.',
+    'dashboard_page_subtitle' => 'Executive snapshot of sales, purchases, expenses, and receivables for the selected period.',
+    'dashboard_hub_title' => 'Command center',
+    'dashboard_hub_subtitle' => 'A clear view of your business performance for the selected period — sales, purchases, inventory, and financial indicators in one place.',
     'dashboard_hub_iframe_title' => 'Dashboard panel',
-
+    'dashboard_open_full' => 'Open full page',
+    'dashboard_jump_to' => 'Jump to',
+    'dashboard_section_loading' => 'Loading section…',
+    'dashboard_section_overview_desc' => 'Period performance, working capital signals, and the actions managers use most.',
+    'dashboard_section_sales_desc' => 'Revenue pulse, sales mix, and collection pressure for the commercial team.',
+    'dashboard_section_purchases_desc' => 'Procurement spend, supplier dues, and purchase activity for cost control.',
+    'dashboard_section_products_desc' => 'Catalog vitality: new items, menus, and product movement worth watching.',
+    'dashboard_section_inventory_desc' => 'Stock risk, critical items, and warehouse movement for operations.',
+    'dashboard_section_accounting_desc' => 'Ledger health, trial-balance signals, and financial statement shortcuts.',
 ];

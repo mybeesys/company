@@ -44,6 +44,20 @@ class TableController extends Controller
     {
         SettingAccess::authorizeTableMutation($request);
 
+        if ($request->input('method') === 'delete') {
+            $validated = $request->validate([
+                'id' => 'required|numeric',
+                'method' => 'required|string',
+            ]);
+            $table = Table::find($validated['id']);
+            if (! $table) {
+                return response()->json(['message' => 'NOT_FOUND'], 404);
+            }
+            $table->delete();
+
+            return response()->json(['message' => 'Done']);
+        }
+
         $validated = $request->validate([
             'id' => 'nullable|numeric',
             'code' => 'required|string',
@@ -60,12 +74,7 @@ class TableController extends Controller
             ? (int) (bool) $validated['active']
             : 1;
 
-        if (isset($validated['method']) && ($validated['method'] == 'delete')) {
-            $table = Table::find($validated['id']);
-            $table->delete();
-
-            return response()->json(['message' => 'Done']);
-        } elseif (! isset($validated['id']) || $validated['id'] === null || (int) $validated['id'] === 0) {
+        if (! isset($validated['id']) || $validated['id'] === null || (int) $validated['id'] === 0) {
             $validated['area_id'] = $request['area']['id'] ?? null;
             if (! $validated['area_id']) {
                 return response()->json(['message' => 'AREA_REQUIRED'], 422);

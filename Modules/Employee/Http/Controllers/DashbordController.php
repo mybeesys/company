@@ -26,10 +26,8 @@ class DashbordController extends Controller
             abort(403, __('employee::responses.permission_denied'));
         }
         $activeDashboardTab = $hubService->resolveActiveTab($dashboardTabs, $request);
-
-        if ($redirectUrl = $hubService->fullPageUrlForTab($activeDashboardTab, $dashboardTabs)) {
-            return redirect()->to($redirectUrl);
-        }
+        $dashboardEmbedSections = $hubService->visibleEmbedSections();
+        $activeSection = $activeDashboardTab;
 
         // Http::post('http://127.0.0.1:3000/api/order-created', [
         //     'type' => 'reservation',
@@ -425,7 +423,9 @@ class DashbordController extends Controller
 
         return view('employee::dashboard.hub', compact(
             'dashboardTabs',
+            'dashboardEmbedSections',
             'activeDashboardTab',
+            'activeSection',
             'canSales',
             'canPurchases',
             'formattedTodaySales',

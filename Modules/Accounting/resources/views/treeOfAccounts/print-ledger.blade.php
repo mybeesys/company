@@ -8,6 +8,13 @@
     $currency = $currency ?? 'SAR';
     $opening = (float) ($opening_balance ?? 0);
     $closing = (float) ($closing_balance ?? $opening);
+    // Precompute outside @json(...) — nested [] inside Blade @json breaks the compiler.
+    $printReturnUrl = url('ledger').'?'.http_build_query(array_filter([
+        'account_id' => $account->id ?? null,
+        'start_date' => $start_date ?? null,
+        'end_date' => $end_date ?? null,
+        'ledger_cols' => isset($ledger_visible_columns) ? implode(',', $ledger_visible_columns) : null,
+    ]));
     $fmt = fn (?float $v, bool $emptyZero = false) => \Modules\Accounting\Support\LedgerStatementPresenter::formatAmount($v, $emptyZero);
     $fmtDate = fn (?string $d) => \Modules\Accounting\Support\LedgerStatementPresenter::formatDate($d);
     $accountLabel = $localeAr ? ($account->name_ar ?? $account->name_en) : ($account->name_en ?? $account->name_ar);
@@ -176,12 +183,7 @@
         <script>
             window.onload = function() { window.print(); };
             window.onafterprint = function() {
-                window.location.href = @json(url('ledger').'?'.http_build_query(array_filter([
-                    'account_id' => $account->id,
-                    'start_date' => $start_date ?? null,
-                    'end_date' => $end_date ?? null,
-                    'ledger_cols' => isset($ledger_visible_columns) ? implode(',', $ledger_visible_columns) : null,
-                ])));
+                window.location.href = @json($printReturnUrl);
             };
         </script>
     @endif
