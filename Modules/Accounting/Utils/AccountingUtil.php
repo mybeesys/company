@@ -233,10 +233,27 @@ class AccountingUtil
                 : 'Expense account linked to the internal consumption type is missing from the chart of accounts.');
         }
 
-        $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId($establishmentId)
-            ?: PerpetualInventoryAccountResolver::resolveCogsAccountId();
-        if (! $inventoryAccountId) {
-            throw new RuntimeException(__('establishment::responses.internal_consumption_inventory_account_required'));
+        $inventoryAccountId = null;
+        if (Setting::isPerpetualInventory()) {
+            $inventoryAccountId = PerpetualInventoryAccountResolver::resolveInventoryAssetAccountId($establishmentId);
+            if (! $inventoryAccountId) {
+                throw new RuntimeException(__('establishment::responses.internal_consumption_inventory_account_required'));
+            }
+        } else {
+            // Periodic: relieve purchases / COGS — never invent an inventory-asset credit.
+            $inventoryAccountId = (int) (
+                AccountsRoting::query()->where('type', 'purchases_purchase')->value('account_id')
+                ?: PerpetualInventoryAccountResolver::resolveCogsAccountId()
+                ?: AccountsRoting::query()
+                    ->where('type', 'periodic_inventory_adjustment')
+                    ->where('section', 'periodic_inventory')
+                    ->value('account_id')
+            );
+            if ($inventoryAccountId <= 0) {
+                throw new RuntimeException(app()->getLocale() === 'ar'
+                    ? 'تعذّر تحديد حساب المشتريات/التكلفة لقيد الاستهلاك الداخلي تحت الجرد الدوري.'
+                    : 'Could not resolve purchases/COGS account for internal consumption under periodic inventory.');
+            }
         }
 
         $cogsAmount = $this->resolveInternalConsumptionCostAmount($transaction);
@@ -290,7 +307,7 @@ class AccountingUtil
             TransactionPurpose::JOURNAL_SUB_TYPE
         );
 
-        // Cr Inventory (or COGS fallback when inventory asset is not configured)
+        // Cr inventory asset (perpetual) or purchases/COGS (periodic).
         $paymentStub->account_id = $inventoryAccountId;
         $paymentStub->amount = $cogsAmount;
         $this->saveAccountRouteTransaction(
@@ -754,7 +771,9 @@ class AccountingUtil
         $cogsAccountId = PerpetualInventoryAccountResolver::resolveCogsAccountId();
 
         if (! $inventoryAccountId || ! $cogsAccountId) {
-            return;
+            throw new \RuntimeException(app()->getLocale() === 'ar'
+                ? 'لا يمكن ترحيل أثر الجرد المستمر. اضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
+                : 'Perpetual inventory impact cannot be posted. Configure Inventory and COGS in Accounts Routing.');
         }
 
         $costing = app(\Modules\Inventory\Services\InventoryCostingService::class);

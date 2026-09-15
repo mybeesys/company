@@ -224,7 +224,13 @@
                     url: '/get-products-by-establishment/' + establishmentId,
                     type: 'GET',
                     success: function(response) {
-                        rebuildTable(response);
+                        const products = Array.isArray(response)
+                            ? response
+                            : (response.products || []);
+                        if (response && response.period_start_date) {
+                            $('.periodic-period-start').val(response.period_start_date);
+                        }
+                        rebuildTable(products);
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);

@@ -37,6 +37,8 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertContains('411', $candidates['sales']);
         $this->assertContains('513', $candidates['purchases']);
         $this->assertSame('42101', $candidates['sales_return'][0]);
+        $this->assertSame('51401', $candidates['purchases_return'][0]);
+        $this->assertSame('51402', $candidates['purchases_discount'][0]);
         $this->assertSame('11505', $candidates['inventory'][0]);
         $this->assertSame('51101', $candidates['cogs'][0]);
     }
@@ -59,9 +61,12 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertNotSame('#7F6000', $expenseL4['accent']);
     }
 
-    public function test_compiled_catalog_excludes_placeholders_and_keeps_posting_leaves(): void
+    public function test_compiled_catalog_includes_full_tree_through_party_leaves(): void
     {
-        $path = dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Modules'.DIRECTORY_SEPARATOR.'Accounting'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'mybee-master-coa-v5.php';
+        $path = dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Modules'.DIRECTORY_SEPARATOR.'Accounting'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'mybee-master-coa-v6.php';
+        if (! is_file($path)) {
+            $path = dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Modules'.DIRECTORY_SEPARATOR.'Accounting'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'mybee-master-coa-v5.php';
+        }
         $this->assertFileExists($path);
 
         /** @var array<string, mixed> $catalog */
@@ -69,12 +74,18 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $codes = array_column($catalog['accounts'], 'gl_code');
 
         $this->assertCount(17, $catalog['types']);
-        $this->assertNotContains('1130101', $codes);
-        $this->assertNotContains('2110101', $codes);
+        $this->assertSame(5, (int) $catalog['max_level']);
         $this->assertContains('11301', $codes);
+        $this->assertContains('1130101', $codes); // Customer 1
+        $this->assertContains('2110101', $codes); // Supplier 1
+        $this->assertContains('1120101', $codes); // Bank Account 1
+        $this->assertGreaterThanOrEqual(296, count($codes));
         $this->assertContains('41101', $codes);
         $this->assertContains('21301', $codes);
         $this->assertContains('11901', $codes);
+        $this->assertContains('514', $codes);
+        $this->assertContains('51401', $codes);
+        $this->assertContains('51402', $codes);
 
         $byGl = [];
         foreach ($catalog['accounts'] as $row) {
@@ -84,5 +95,13 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertTrue($byGl['41101']['allow_direct_posting']);
         $this->assertFalse($byGl['411']['allow_direct_posting']);
         $this->assertSame('income', $byGl['41101']['account_primary_type']);
+        $this->assertSame('expenses', $byGl['51401']['account_primary_type']);
+        $this->assertSame('514', $byGl['51401']['parent_gl']);
+        $this->assertTrue($byGl['51401']['allow_direct_posting']);
+        $this->assertTrue($byGl['51402']['allow_direct_posting']);
+        $this->assertFalse($byGl['514']['allow_direct_posting']);
+        $this->assertSame(5, (int) $byGl['1130101']['level']);
+        $this->assertTrue($byGl['1130101']['allow_direct_posting']);
+        $this->assertSame('11301', $byGl['1130101']['parent_gl']);
     }
 }

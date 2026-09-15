@@ -38,7 +38,7 @@ const TableAreaTable = ({ dir, translations }) => {
         urlList={urlList}
         canAddInline={true}
         title="tables"
-        defaultValue={{ active: 1 }}
+        defaultValue={{ active: 1, table_status: 0 }}
         validateObject={validateObject}
         cols={[
           { key: "area", autoFocus: false, type: "AsyncDropDown", searchUrl: 'searchAreas', width: '30%', editable: true },

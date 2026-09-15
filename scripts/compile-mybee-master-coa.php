@@ -2,7 +2,10 @@
 
 /**
  * Compiles the My Bee master COA workbook into a PHP catalog.
- * Source of truth: Modules/Accounting/data/MyBee_Master_Chart_of_Accounts_Tree_v5.xlsx
+ * Source of truth: Modules/Accounting/data/MyBee_Master_Chart_of_Accounts_Tree_v6.xlsx
+ *
+ * Level 1 roots are conceptual; level 2 becomes account subtypes; levels 3–5 become
+ * chart accounts (including workbook example leaves such as Customer 1 / Bank Account 1).
  */
 
 declare(strict_types=1);
@@ -12,8 +15,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 require __DIR__.'/../vendor/autoload.php';
 
-$repoXlsx = __DIR__.'/../Modules/Accounting/data/MyBee_Master_Chart_of_Accounts_Tree_v5.xlsx';
-$downloadXlsx = 'C:/Users/ASUS/Downloads/MyBee_Master_Chart_of_Accounts_Tree_v5.xlsx';
+$repoXlsx = __DIR__.'/../Modules/Accounting/data/MyBee_Master_Chart_of_Accounts_Tree_v6.xlsx';
+$downloadXlsx = 'C:/Users/ASUS/Downloads/MyBee_Master_Chart_of_Accounts_Tree_v6.xlsx';
 $path = is_file($repoXlsx) ? $repoXlsx : $downloadXlsx;
 
 if (! is_file($path)) {
@@ -24,7 +27,7 @@ if (! is_file($path)) {
 $sheet = IOFactory::load($path)->getSheet(0);
 $types = [];
 $accounts = [];
-$skipped = [];
+$maxLevel = 0;
 
 for ($r = 2; $r <= (int) $sheet->getHighestRow(); $r++) {
     $gl = trim((string) $sheet->getCell('A'.$r)->getFormattedValue());
@@ -40,6 +43,7 @@ for ($r = 2; $r <= (int) $sheet->getHighestRow(); $r++) {
     $natureRaw = trim((string) $sheet->getCell('H'.$r)->getValue());
     $postingRaw = trim((string) $sheet->getCell('I'.$r)->getValue());
     $sector = MyBeeMasterCoaRules::cleanName((string) $sheet->getCell('J'.$r)->getValue());
+    $maxLevel = max($maxLevel, $level);
 
     $row = [
         'gl_code' => $gl,
@@ -67,18 +71,14 @@ for ($r = 2; $r <= (int) $sheet->getHighestRow(); $r++) {
         continue;
     }
 
-    if (MyBeeMasterCoaRules::isIllustrativePartyAccount($nameAr, $nameEn)) {
-        $skipped[] = $gl.' '.$nameAr;
-        continue;
-    }
-
     $accounts[] = $row;
 }
 
 $catalog = [
-    'version' => 'v5',
+    'version' => 'v6',
     'pack' => 'mybee_master',
-    'source' => 'MyBee_Master_Chart_of_Accounts_Tree_v5.xlsx',
+    'source' => 'MyBee_Master_Chart_of_Accounts_Tree_v6.xlsx',
+    'max_level' => $maxLevel,
     'types' => $types,
     'accounts' => $accounts,
     'account_categories' => MyBeeMasterCoaRules::accountCategories(),
@@ -86,13 +86,13 @@ $catalog = [
     'color_system' => MyBeeMasterCoaRules::colorSystem(),
 ];
 
-$out = __DIR__.'/../Modules/Accounting/data/mybee-master-coa-v5.php';
+$out = __DIR__.'/../Modules/Accounting/data/mybee-master-coa-v6.php';
 $export = var_export($catalog, true);
 $php = <<<PHP
 <?php
 
 /**
- * Compiled My Bee master chart of accounts (v5).
+ * Compiled My Bee master chart of accounts (v6).
  * Regenerate: php scripts/compile-mybee-master-coa.php
  */
 
@@ -102,8 +102,5 @@ PHP;
 
 file_put_contents($out, $php);
 
-echo 'types='.count($types).' accounts='.count($accounts).' skipped='.count($skipped).PHP_EOL;
+echo 'types='.count($types).' accounts='.count($accounts).' max_level='.$maxLevel.PHP_EOL;
 echo 'wrote '.$out.PHP_EOL;
-if ($skipped !== []) {
-    echo "skipped:\n - ".implode("\n - ", $skipped).PHP_EOL;
-}

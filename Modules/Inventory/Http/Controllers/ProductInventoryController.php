@@ -394,7 +394,10 @@ class ProductInventoryController extends Controller
         $inventoryPolicy = Setting::getInventoryTrackingPolicy();
         $lastPeriodicSnapshot = null;
         if ($inventoryPolicy === 'periodic') {
-            $lastPeriodicSnapshot = PeriodicInventory::query()->orderByDesc('end_date')->value('end_date');
+            $lastPeriodicSnapshot = PeriodicInventory::query()
+                ->where('status', 'approved')
+                ->orderByDesc('end_date')
+                ->value('end_date');
         }
 
         return view('inventory::productInventory.index', compact('inventoryPolicy', 'lastPeriodicSnapshot'));
@@ -460,15 +463,22 @@ class ProductInventoryController extends Controller
             return [];
         }
 
-        $latestPerEstablishment = DB::table('periodic_inventories')
-            ->selectRaw('establishment_id, MAX(id) as latest_id')
-            ->groupBy('establishment_id');
+        $latestIds = PeriodicInventory::query()
+            ->where('status', 'approved')
+            ->orderByDesc('end_date')
+            ->orderByDesc('id')
+            ->get(['id', 'establishment_id', 'end_date'])
+            ->unique('establishment_id')
+            ->pluck('id')
+            ->all();
+
+        if ($latestIds === []) {
+            return [];
+        }
 
         $periodicItems = DB::table('periodic_inventory_items as pii')
             ->join('periodic_inventories as pi', 'pi.id', '=', 'pii.periodic_inventory_id')
-            ->joinSub($latestPerEstablishment, 'lp', function ($join) {
-                $join->on('lp.latest_id', '=', 'pi.id');
-            })
+            ->whereIn('pi.id', $latestIds)
             ->select('pi.establishment_id', 'pii.product_id', 'pii.physical_quantity')
             ->get();
 
@@ -485,7 +495,7 @@ class ProductInventoryController extends Controller
         $usePeriodicSnapshot = Setting::isPeriodicInventory();
         $periodicQtyMap = $this->getPeriodicQtyMap($usePeriodicSnapshot);
         $lastSnapshotDate = $usePeriodicSnapshot
-            ? DB::table('periodic_inventories')->max('end_date')
+            ? DB::table('periodic_inventories')->where('status', 'approved')->max('end_date')
             : null;
 
         $rows = DB::table('product_inventories as pi')

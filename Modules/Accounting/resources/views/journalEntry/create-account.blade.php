@@ -16,6 +16,8 @@
                     <span class="text-uppercase bg-body fs-7 fw-semibold text-muted px-3"></span>
                 </div>
 
+                <div id="addAccountFormErrors" class="alert alert-danger d-none" role="alert"></div>
+
                 <form id="addAccountForm" method="POST">
                     @csrf
                     <div class="fv-row mb-5">
@@ -25,15 +27,13 @@
                         <select id="kt_ecommerce_select2_account_type" required
                             class="form-select select-2 form-select-solid" name="account_id">
                             <option value="" selected>@lang('messages.select')</option>
-                            @foreach ($parents_account as $account)
+                            @foreach ($parents_account ?? [] as $account)
                                 <option value="{{ $account->id }}">
                                     ({{ $account->gl_code }}) -
                                     @if (app()->getLocale() == 'ar')
-                                        {{ $account->name_ar }} - <span
-                                            class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                                        {{ $account->name_ar }}
                                     @else
-                                        {{ $account->name_en }} - <span
-                                            class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                                        {{ $account->name_en }}
                                     @endif
                                 </option>
                             @endforeach
@@ -54,28 +54,13 @@
                         <input type="text" class="form-control form-control-solid" required name="name_en" value="">
                     </div>
 
-                    <div class="fv-row mb-5" hidden>
+                    <div class="fv-row mb-5">
                         <label class="fs-6 fw-semibold form-label mt-3">
-                            <span class="required">@lang('accounting::lang.account_type')</span>
+                            <span class="required">@lang('accounting::lang.gl_code')</span>
                         </label>
-                        <select id="kt_ecommerce_select2_account_type" required
-                            class="form-select select-2 form-select-solid" name="account_type">
-                            @foreach ($account_main_types as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="fv-row mb-5" hidden>
-                        <label class="fs-6 fw-semibold form-label mt-3">
-                            <span class="required">@lang('accounting::lang.account_category')</span>
-                        </label>
-                        <select id="kt_ecommerce_select2_account_category" required
-                            class="form-select select-2 form-select-solid" name="account_category">
-                            @foreach ($account_category as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
-                            @endforeach
-                        </select>
+                        <input type="text" class="form-control form-control-solid" id="create_gl_code_ajax"
+                            name="gl_code" value="" autocomplete="off">
+                        <div class="form-text text-muted">@lang('accounting::lang.gl_code_unique_hint')</div>
                     </div>
 
                     <div class="text-center">

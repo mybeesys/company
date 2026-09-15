@@ -117,6 +117,108 @@ final class MyBeeMasterCoaInstaller
     }
 
     /**
+     * Add master-catalog accounts that are missing from an existing tree (non-destructive).
+     * Only inserts rows whose parent GL already exists (or is a known subtype).
+     *
+     * @return array{inserted: int, skipped: int, codes: list<string>}
+     */
+    public function syncMissingMasterAccounts(): array
+    {
+        $hasPostingColumn = Schema::hasColumn('accounting_accounts', 'allow_direct_posting');
+        $hasLevelColumn = Schema::hasColumn('accounting_accounts', 'coa_level');
+        $categories = MyBeeMasterCoaCatalog::get()['account_categories'];
+        $existing = AccountingAccount::query()->pluck('id', 'gl_code')->all();
+        $typesByGl = AccountingAccountTypes::query()
+            ->where('account_type', 'sub_type')
+            ->get()
+            ->keyBy('gl_code');
+
+        $inserted = 0;
+        $skipped = 0;
+        $codes = [];
+
+        $accounts = collect(MyBeeMasterCoaCatalog::accounts())->sortBy([
+            ['level', 'asc'],
+            ['gl_code', 'asc'],
+        ]);
+
+        DB::transaction(function () use (
+            $accounts,
+            $categories,
+            $hasPostingColumn,
+            $hasLevelColumn,
+            &$existing,
+            $typesByGl,
+            &$inserted,
+            &$skipped,
+            &$codes
+        ) {
+            foreach ($accounts as $row) {
+                $gl = (string) $row['gl_code'];
+                if (isset($existing[$gl])) {
+                    continue;
+                }
+
+                $parentGl = $row['parent_gl'];
+                $subType = $typesByGl->get($parentGl);
+                $parentId = null;
+                $primary = $row['account_primary_type'];
+                $accountType = MyBeeMasterCoaRules::subtypeAccountType($primary, (string) $parentGl);
+                $subTypeId = null;
+
+                if ($subType) {
+                    $subTypeId = $subType->id;
+                    $accountType = MyBeeMasterCoaRules::subtypeAccountType($primary, (string) $subType->gl_code);
+                } else {
+                    $parentId = $existing[$parentGl] ?? null;
+                    if (! $parentId) {
+                        $skipped++;
+                        continue;
+                    }
+                    $parent = AccountingAccount::query()->find($parentId);
+                    $subTypeId = $parent?->account_sub_type_id;
+                    $accountType = $parent?->account_type ?? $accountType;
+                    $primary = $parent?->account_primary_type ?? $primary;
+                }
+
+                $payload = [
+                    'name_ar' => $row['name_ar'],
+                    'name_en' => $row['name_en'],
+                    'gl_code' => $gl,
+                    'account_primary_type' => $primary,
+                    'account_type' => $accountType,
+                    'account_sub_type_id' => $subTypeId,
+                    'detail_type_id' => null,
+                    'parent_account_id' => $parentId,
+                    'account_category' => $categories[$gl] ?? null,
+                    'status' => 'active',
+                    'created_by' => Auth::id(),
+                ];
+
+                if ($hasPostingColumn) {
+                    $payload['allow_direct_posting'] = (bool) $row['allow_direct_posting'];
+                }
+                if ($hasLevelColumn) {
+                    $payload['coa_level'] = (int) $row['level'];
+                }
+
+                $account = AccountingAccount::query()->create($payload);
+                $existing[$gl] = $account->id;
+                $codes[] = $gl;
+                $inserted++;
+            }
+        });
+
+        DefaultAccountRoutingMap::ensureMissingRoutes();
+
+        return [
+            'inserted' => $inserted,
+            'skipped' => $skipped,
+            'codes' => $codes,
+        ];
+    }
+
+    /**
      * Empty trees often already have leftover sub-types from an earlier default-account click.
      * With no accounts yet, those rows are unused and can be replaced by the My Bee master set.
      */

@@ -930,6 +930,7 @@ return [
 
     'purchase_journal_poster' => [
         'routing_missing_purchases' => 'توجيه الحسابات ناقص للمشتريات. يرجى ضبط purchases_purchase أو حساب المخزون (perpetual_inventory_asset).',
+        'routing_missing_inventory_asset' => 'الجرد المستمر يتطلب حساب مخزون (أصل). اضبط perpetual_inventory_asset في توجيه الحسابات أو اربط حساباً بالفرع.',
         'routing_missing_purchases_vat' => 'توجيه الحسابات ناقص لضريبة المشتريات. يرجى ضبط purchases_vat_calculation.',
         'routing_missing_purchases_return' => 'توجيه الحسابات ناقص لمردود المشتريات. يرجى ضبط purchases_purchase_return و purchases_vat_calculation.',
         'earned_discount_not_configured' => 'يوجد خصم على الفاتورة لكن حساب purchases_earned_discount غير مضبوط في توجيه الحسابات (لا تستخدم خصم المبيعات المسموح).',

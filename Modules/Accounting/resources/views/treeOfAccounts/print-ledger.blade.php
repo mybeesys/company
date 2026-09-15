@@ -11,6 +11,52 @@
     $fmt = fn (?float $v, bool $emptyZero = false) => \Modules\Accounting\Support\LedgerStatementPresenter::formatAmount($v, $emptyZero);
     $fmtDate = fn (?string $d) => \Modules\Accounting\Support\LedgerStatementPresenter::formatDate($d);
     $accountLabel = $localeAr ? ($account->name_ar ?? $account->name_en) : ($account->name_en ?? $account->name_ar);
+
+    $visible = collect($ledger_visible_columns ?? [
+        'ref_no', 'operation_date', 'narration', 'transaction', 'cost_center', 'added_by', 'debit', 'credit', 'balance',
+    ]);
+    $show = fn (string $key): bool => $visible->contains($key);
+    // Screen maps transaction next to ref; PDF keeps one "transaction/ref" column when either is on.
+    $showDate = $show('operation_date');
+    $showRef = $show('ref_no') || $show('transaction');
+    $showDesc = $show('narration');
+    $showCostCenter = $show('cost_center');
+    $showAddedBy = $show('added_by');
+    $showDebit = $show('debit');
+    $showCredit = $show('credit');
+    $showBalance = true; // balance always shown on statement
+    // Logical PDF columns in order (ref merges ref_no + transaction).
+    $pdfCols = [];
+    if ($showDate) {
+        $pdfCols[] = 'date';
+    }
+    if ($showRef) {
+        $pdfCols[] = 'ref';
+    }
+    if ($showDesc) {
+        $pdfCols[] = 'desc';
+    }
+    if ($showCostCenter) {
+        $pdfCols[] = 'cost_center';
+    }
+    if ($showAddedBy) {
+        $pdfCols[] = 'added_by';
+    }
+    $labelColCount = count($pdfCols);
+    // Need at least one label column so opening/closing rows stay aligned with the header.
+    if ($labelColCount === 0) {
+        $showDesc = true;
+        $pdfCols[] = 'desc';
+        $labelColCount = 1;
+    }
+    if ($showDebit) {
+        $pdfCols[] = 'debit';
+    }
+    if ($showCredit) {
+        $pdfCols[] = 'credit';
+    }
+    $pdfCols[] = 'balance';
+    $colCount = count($pdfCols);
 @endphp
 <html lang="{{ $localeAr ? 'ar' : 'en' }}" dir="{{ $dir }}">
 <head>
@@ -68,7 +114,7 @@
         }
         .summary-bar {
             margin-bottom: 8px;
-            font-size: 9px;
+            font-size: 10px;
             border-bottom: 1px solid #ddd;
             padding-bottom: 6px;
         }
@@ -81,7 +127,7 @@
         .summary-bar .s-center { text-align: center; }
         .summary-bar .s-end { text-align: {{ $alignEnd }}; }
         .summary-bar .k { color: #555; font-weight: 600; }
-        .summary-bar .v { color: #000; font-weight: 700; }
+        .summary-bar .v { color: #000; font-weight: 700; font-size: 11px; }
         .lines { font-size: 9px; }
         .lines thead th {
             border: 1px solid #666;
@@ -89,7 +135,7 @@
             padding: 6px 4px;
             text-align: center;
             font-weight: 700;
-            font-size: 8.5px;
+            font-size: 9px;
         }
         .lines tbody td,
         .lines tfoot td {
@@ -98,9 +144,17 @@
             vertical-align: top;
         }
         .lines .c-date { width: 9%; text-align: center; white-space: nowrap; }
-        .lines .c-ref { width: 10%; text-align: {{ $alignStart }}; }
-        .lines .c-desc { width: 38%; text-align: {{ $alignStart }}; }
-        .lines .c-amt { text-align: {{ $alignEnd }}; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .lines .c-ref { width: 11%; text-align: {{ $alignStart }}; }
+        .lines .c-desc { text-align: {{ $alignStart }}; }
+        .lines .c-meta { width: 11%; text-align: {{ $alignStart }}; }
+        .lines .c-amt {
+            text-align: {{ $alignEnd }};
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .lines thead th.c-amt { font-size: 9.5px; }
         .lines .row-open td,
         .lines .row-close td {
             background: #f4f4f4;
@@ -122,14 +176,18 @@
         <script>
             window.onload = function() { window.print(); };
             window.onafterprint = function() {
-                window.location.href = @json(url('ledger').'?account_id='.$account->id);
+                window.location.href = @json(url('ledger').'?'.http_build_query(array_filter([
+                    'account_id' => $account->id,
+                    'start_date' => $start_date ?? null,
+                    'end_date' => $end_date ?? null,
+                    'ledger_cols' => isset($ledger_visible_columns) ? implode(',', $ledger_visible_columns) : null,
+                ])));
             };
         </script>
     @endif
 </head>
 <body>
 
-    {{-- RTL: العمود الأول يظهر يميناً (الشركة) | الثاني يساراً (الحساب) --}}
     <table class="hdr">
         <tr>
             <td class="hdr-company">
@@ -190,45 +248,75 @@
     <table class="lines">
         <thead>
             <tr>
-                <th class="c-date">@lang('accounting::lang.ledger_stmt_col_date')</th>
-                <th class="c-ref">@lang('accounting::lang.ledger_stmt_col_transaction')</th>
-                <th class="c-desc">@lang('accounting::lang.ledger_stmt_col_description')</th>
-                <th class="c-amt">@lang('accounting::lang.debit')</th>
-                <th class="c-amt">@lang('accounting::lang.credit')</th>
-                <th class="c-amt">@lang('accounting::lang.balance')</th>
+                @if ($showDate)
+                    <th class="c-date">@lang('accounting::lang.ledger_stmt_col_date')</th>
+                @endif
+                @if ($showRef)
+                    <th class="c-ref">@lang('accounting::lang.ledger_stmt_col_transaction')</th>
+                @endif
+                @if ($showDesc)
+                    <th class="c-desc">@lang('accounting::lang.ledger_stmt_col_description')</th>
+                @endif
+                @if ($showCostCenter)
+                    <th class="c-meta">@lang('accounting::lang.cost_center')</th>
+                @endif
+                @if ($showAddedBy)
+                    <th class="c-meta">@lang('accounting::lang.added_by')</th>
+                @endif
+                @if ($showDebit)
+                    <th class="c-amt">@lang('accounting::lang.debit')</th>
+                @endif
+                @if ($showCredit)
+                    <th class="c-amt">@lang('accounting::lang.credit')</th>
+                @endif
+                @if ($showBalance)
+                    <th class="c-amt">@lang('accounting::lang.balance')</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             <tr class="row-open">
-                <td class="c-date"></td>
-                <td class="c-ref"></td>
-                <td class="c-desc">@lang('accounting::lang.opening_balance')</td>
-                <td class="c-amt"></td>
-                <td class="c-amt"></td>
+                <td colspan="{{ $labelColCount }}">@lang('accounting::lang.opening_balance')</td>
+                @if ($showDebit)<td class="c-amt"></td>@endif
+                @if ($showCredit)<td class="c-amt"></td>@endif
                 <td class="c-amt">{{ $fmt($opening) }}</td>
             </tr>
             @forelse ($statement_lines as $line)
                 <tr>
-                    <td class="c-date">{{ $line['date'] }}</td>
-                    <td class="c-ref">{{ $line['ref'] }}</td>
-                    <td class="c-desc">{{ $line['description'] }}</td>
-                    <td class="c-amt">{{ $line['debit'] }}</td>
-                    <td class="c-amt">{{ $line['credit'] }}</td>
+                    @if ($showDate)
+                        <td class="c-date">{{ $line['date'] }}</td>
+                    @endif
+                    @if ($showRef)
+                        <td class="c-ref">{{ $line['ref'] }}</td>
+                    @endif
+                    @if ($showDesc)
+                        <td class="c-desc">{{ $line['description'] }}</td>
+                    @endif
+                    @if ($showCostCenter)
+                        <td class="c-meta">{{ $line['cost_center'] ?? '' }}</td>
+                    @endif
+                    @if ($showAddedBy)
+                        <td class="c-meta">{{ $line['added_by'] ?? '' }}</td>
+                    @endif
+                    @if ($showDebit)
+                        <td class="c-amt">{{ $line['debit'] }}</td>
+                    @endif
+                    @if ($showCredit)
+                        <td class="c-amt">{{ $line['credit'] }}</td>
+                    @endif
                     <td class="c-amt">{{ $line['balance'] }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" style="text-align:center;color:#666;padding:14px;">@lang('accounting::lang.no_data')</td>
+                    <td colspan="{{ $colCount }}" style="text-align:center;color:#666;padding:14px;">@lang('accounting::lang.no_data')</td>
                 </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr class="row-close">
-                <td class="c-date"></td>
-                <td class="c-ref"></td>
-                <td class="c-desc">@lang('accounting::lang.closing_balance')</td>
-                <td class="c-amt"></td>
-                <td class="c-amt"></td>
+                <td colspan="{{ $labelColCount }}">@lang('accounting::lang.closing_balance')</td>
+                @if ($showDebit)<td class="c-amt"></td>@endif
+                @if ($showCredit)<td class="c-amt"></td>@endif
                 <td class="c-amt">{{ $fmt($closing) }}</td>
             </tr>
         </tfoot>

@@ -188,8 +188,22 @@
         }
 
         .ledger-stat-card .ledger-amount {
-            font-size: 1.25rem;
+            font-size: 1.55rem;
+            line-height: 1.25;
+        }
+
+        #ledger-table.ledger-table-pro tbody td.ledger-num,
+        #ledger-table.ledger-table-pro tbody td.ledger-num span,
+        #ledger-table.ledger-table-pro tbody .ledger-balance-pill,
+        #ledger-table-foot.ledger-table-pro tfoot td.ledger-num,
+        #ledger-table-foot.ledger-table-pro tfoot .ledger-balance-pill,
+        .ledger-opening-balance {
+            font-size: 1.12rem !important;
             line-height: 1.3;
+        }
+
+        #ledger-table-head.ledger-table-pro thead th.ledger-num {
+            font-size: 0.95rem !important;
         }
 
         #ledger-table.ledger-table-pro .ledger-row-opening td {
@@ -903,11 +917,14 @@
             }
 
             function ledgerUpdateExportLinks(cols) {
-                var params = $.extend(true, {}, ledgerExportBaseParams, { ledger_cols: cols.join(',') });
+                var params = $.extend(true, {}, ledgerExportBaseParams, {
+                    ledger_cols: cols.join(',')
+                });
+                var qs = $.param(params, true);
                 $('.ledger-export-link').each(function() {
                     var base = $(this).data('ledger-export-base');
                     if (base) {
-                        $(this).attr('href', base + '?' + $.param(params));
+                        $(this).attr('href', base + (qs ? ('?' + qs) : ''));
                     }
                 });
             }
