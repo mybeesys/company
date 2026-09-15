@@ -1,37 +1,13 @@
 <div id="dashboard-hub-overview">
-    <div class="card dash-card mb-6">
-        <div class="card-body">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
-                <div class="flex-grow-1" style="max-width: 920px;">
-                    <h3 class="mb-2">@lang('employee::main.dashboard')</h3>
-                    <div class="text-muted fs-6 lh-lg">@lang('employee::main.dashboard_page_subtitle')</div>
-                </div>
-                <form method="GET" action="{{ route('dashboard') }}" class="filter-box d-flex flex-wrap align-items-end gap-3">
-                    <input type="hidden" name="tab" value="overview">
-                    <div>
-                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'من تاريخ' : 'From Date' }}</label>
-                        <input type="date" name="start_date" class="form-control form-control-solid" value="{{ $startDate->toDateString() }}">
-                    </div>
-                    <div>
-                        <label class="form-label mb-1">{{ app()->getLocale() === 'ar' ? 'إلى تاريخ' : 'To Date' }}</label>
-                        <input type="date" name="end_date" class="form-control form-control-solid" value="{{ $endDate->toDateString() }}">
-                    </div>
-                    <button class="btn btn-primary">{{ app()->getLocale() === 'ar' ? 'تطبيق' : 'Apply' }}</button>
-                    <a href="{{ route('dashboard', ['tab' => 'overview']) }}" class="btn btn-light">@lang('general.clear_filters')</a>
-                </form>
-            </div>
-        </div>
-    </div>
-
     @if (($linkedCompanies ?? collect())->isNotEmpty())
         @dashboardcan(\Modules\Employee\Support\MyCompaniesPermissions::SHOW)
-        <div class="card dash-card mb-6">
-            <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="card dash-card mb-5">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3 py-4">
                 <div>
-                    <h4 class="mb-1">@lang('employee::my_companies.title')</h4>
-                    <p class="text-muted mb-0">@lang('employee::my_companies.dashboard_hint', ['count' => $linkedCompanies->count()])</p>
+                    <h4 class="mb-1 fs-5 fw-bold">@lang('employee::my_companies.title')</h4>
+                    <p class="text-muted mb-0 fs-7">@lang('employee::my_companies.dashboard_hint', ['count' => $linkedCompanies->count()])</p>
                 </div>
-                <a href="{{ route('my-companies.index') }}" class="btn btn-light-primary">
+                <a href="{{ route('my-companies.index') }}" class="btn btn-sm btn-light-primary">
                     <i class="ki-outline ki-abstract-26 fs-3 me-2"></i>
                     @lang('employee::my_companies.menu')
                 </a>
@@ -40,7 +16,7 @@
         @enddashboardcan
     @endif
 
-    <div class="row g-4 mb-6">
+    <div class="row g-4 mb-5">
         @if ($canSales ?? false)
             <div class="col-md-6 col-xl-3">
                 <div class="kpi-card kpi-soft-sales">
@@ -100,7 +76,7 @@
     </div>
 
     @if (($canSales ?? false) || ($canPurchases ?? false))
-        <div class="row g-4 mb-6">
+        <div class="row g-4 mb-5">
             @if ($canSales ?? false)
                 <div class="col-md-4">
                     <div class="kpi-card">
@@ -146,15 +122,15 @@
     @endif
 
     @if (($canSales ?? false) || ($canPurchases ?? false))
-        <div class="row g-4 mb-6">
+        <div class="row g-4 mb-5">
             @if ($canSales ?? false)
                 <div class="col-lg-6">
-                    <div class="card dash-card">
-                        <div class="card-header border-0"><h5 class="card-title mb-0">@lang('employee::main.customers_balances_list')</h5></div>
-                        <div class="card-body pt-0 table-wrap">
+                    <div class="card dash-card h-100">
+                        <div class="card-header border-0 pt-5 pb-0"><h5 class="card-title mb-0 fw-bold">@lang('employee::main.customers_balances_list')</h5></div>
+                        <div class="card-body pt-3 table-wrap">
                             <div class="table-responsive">
-                                <table class="table table-row-dashed align-middle">
-                                    <thead><tr><th>@lang('employee::main.customer_name')</th><th>@lang('employee::main.phone')</th><th class="text-end">@lang('employee::main.balance')</th></tr></thead>
+                                <table class="table table-row-dashed align-middle gs-3 gy-2">
+                                    <thead><tr class="fs-8 text-muted text-uppercase"><th>@lang('employee::main.customer_name')</th><th>@lang('employee::main.phone')</th><th class="text-end">@lang('employee::main.balance')</th></tr></thead>
                                     <tbody>
                                         @forelse ($customersBalances as $customer)
                                             <tr><td>{{ $customer->name }}</td><td>{{ $customer->phone_number ?? '--' }}</td><td class="text-end fw-bold">{{ number_format($customer->balance, 2) }} @get_format_currency()</td></tr>
@@ -170,12 +146,12 @@
             @endif
             @if ($canPurchases ?? false)
                 <div class="col-lg-6">
-                    <div class="card dash-card">
-                        <div class="card-header border-0"><h5 class="card-title mb-0">@lang('employee::main.supplier_balances_list')</h5></div>
-                        <div class="card-body pt-0 table-wrap">
+                    <div class="card dash-card h-100">
+                        <div class="card-header border-0 pt-5 pb-0"><h5 class="card-title mb-0 fw-bold">@lang('employee::main.supplier_balances_list')</h5></div>
+                        <div class="card-body pt-3 table-wrap">
                             <div class="table-responsive">
-                                <table class="table table-row-dashed align-middle">
-                                    <thead><tr><th>@lang('employee::main.customer_name')</th><th>@lang('employee::main.phone')</th><th class="text-end">@lang('employee::main.balance')</th></tr></thead>
+                                <table class="table table-row-dashed align-middle gs-3 gy-2">
+                                    <thead><tr class="fs-8 text-muted text-uppercase"><th>@lang('employee::main.customer_name')</th><th>@lang('employee::main.phone')</th><th class="text-end">@lang('employee::main.balance')</th></tr></thead>
                                     <tbody>
                                         @forelse ($supplierBalances as $supplier)
                                             <tr><td>{{ $supplier->name }}</td><td>{{ $supplier->phone_number ?? '--' }}</td><td class="text-end fw-bold">{{ number_format($supplier->balance, 2) }} @get_format_currency()</td></tr>
@@ -194,7 +170,7 @@
 
     @if ($canSales ?? false)
         <div class="card dash-card">
-            <div class="card-header border-0"><h5 class="card-title mb-0">@lang('employee::main.Sales vs Expenses - Last 6 Months')</h5></div>
+            <div class="card-header border-0 pt-5 pb-0"><h5 class="card-title mb-0 fw-bold">@lang('employee::main.Sales vs Expenses - Last 6 Months')</h5></div>
             <div class="card-body"><div id="sales-expenses-chart" style="height: 340px;"></div></div>
         </div>
     @endif

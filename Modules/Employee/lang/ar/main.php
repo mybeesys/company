@@ -96,9 +96,17 @@ return [
     'balance' => 'الرصيد',
     'Sales vs Expenses - Last 6 Months' => 'المبيعات vs المصروفات - آخر 6 أشهر ',
 
-    'dashboard_page_subtitle' => 'ملخص مالي سريع للمبيعات والمشتريات والذمم.',
-    'dashboard_hub_title' => 'لوحة التحكم الرئيسية',
-    'dashboard_hub_subtitle' => 'اختر لوحة من القائمة لعرض مؤشرات المبيعات والمشتريات والمخزون والمحاسبة.',
+    'dashboard_page_subtitle' => 'لمحة تنفيذية عن المبيعات والمشتريات والمصروفات والذمم للفترة المحددة.',
+    'dashboard_hub_title' => 'مركز القيادة',
+    'dashboard_hub_subtitle' => 'نظرة واضحة على أداء منشأتك للفترة المحددة — المبيعات والمشتريات والمخزون والمؤشرات المالية في مكان واحد.',
     'dashboard_hub_iframe_title' => 'لوحة تحكم',
-
+    'dashboard_open_full' => 'فتح الصفحة الكاملة',
+    'dashboard_jump_to' => 'الانتقال إلى',
+    'dashboard_section_loading' => 'جاري تحميل القسم…',
+    'dashboard_section_overview_desc' => 'أداء الفترة، إشارات رأس المال العامل، والإجراءات الأكثر استخداماً للإدارة.',
+    'dashboard_section_sales_desc' => 'نبض الإيراد، مزيج المبيعات، وضغط التحصيل للفريق التجاري.',
+    'dashboard_section_purchases_desc' => 'إنفاق المشتريات، ذمم الموردين، وحركة الشراء لضبط التكاليف.',
+    'dashboard_section_products_desc' => 'حيوية الكتالوج: الأصناف الجديدة والقوائم والحركة التي تستحق المتابعة.',
+    'dashboard_section_inventory_desc' => 'مخاطر المخزون، الأصناف الحرجة، وحركة المستودع للعمليات.',
+    'dashboard_section_accounting_desc' => 'صحة القيود، إشارات ميزان المراجعة، واختصارات القوائم المالية.',
 ];

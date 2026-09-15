@@ -21,10 +21,28 @@ class DashboardHubService
         return $tabs;
     }
 
+    /**
+     * Module sections only (embedded panels) — excludes the inline overview.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function visibleEmbedSections(?Authenticatable $user = null): array
+    {
+        return array_values(array_filter(
+            $this->visibleTabs($user),
+            static fn (array $tab): bool => ($tab['type'] ?? '') !== 'inline'
+        ));
+    }
+
     public function resolveActiveTab(array $visibleTabs, ?Request $request = null): string
     {
         $request = $request ?? request();
         $requested = $request->query('tab');
+
+        // Support #section-sales style passed as tab query value.
+        if (is_string($requested) && str_starts_with($requested, 'section-')) {
+            $requested = substr($requested, strlen('section-'));
+        }
 
         if ($requested && collect($visibleTabs)->contains(fn (array $t) => $t['id'] === $requested)) {
             return (string) $requested;
@@ -56,17 +74,48 @@ class DashboardHubService
 
     protected function prepareTab(array $tab): array
     {
-        $params = request()->only(['start_date', 'end_date', 'choose_cost_center_select']);
+        $params = $this->filterParams();
 
         if (($tab['type'] ?? '') === 'inline') {
             $tab['url'] = route('dashboard', $params);
+            $tab['embed_url'] = null;
+            $tab['section_id'] = 'section-'.$tab['id'];
+            $tab['description_key'] = 'employee::main.dashboard_section_'.$tab['id'].'_desc';
 
             return $tab;
         }
 
         $tab['url'] = route($tab['route'], $params);
+        $tab['embed_url'] = route($tab['route'], array_merge($params, ['embed' => 1]));
+        $tab['section_id'] = 'section-'.$tab['id'];
+        $tab['description_key'] = 'employee::main.dashboard_section_'.$tab['id'].'_desc';
 
         return $tab;
+    }
+
+    /**
+     * Shared date / cost-center filters for hub + embeds.
+     *
+     * @return array<string, mixed>
+     */
+    public function filterParams(?Request $request = null): array
+    {
+        $request = $request ?? request();
+        $params = [];
+
+        if ($request->filled('start_date')) {
+            $params['start_date'] = $request->input('start_date');
+        }
+        if ($request->filled('end_date')) {
+            $params['end_date'] = $request->input('end_date');
+        }
+
+        $costCenters = $request->input('choose_cost_center_select');
+        if (is_array($costCenters) && $costCenters !== []) {
+            $params['choose_cost_center_select'] = array_values($costCenters);
+        }
+
+        return $params;
     }
 
     public function resolveActiveTabFromRoute(?Request $request = null): string
@@ -83,14 +132,11 @@ class DashboardHubService
         return 'overview';
     }
 
+    /**
+     * @deprecated Hub no longer redirects to module pages; kept for callers that may still reference it.
+     */
     public function fullPageUrlForTab(string $tabId, array $visibleTabs): ?string
     {
-        if ($tabId === 'overview') {
-            return null;
-        }
-
-        $tab = collect($visibleTabs)->firstWhere('id', $tabId);
-
-        return $tab['url'] ?? null;
+        return null;
     }
 }
