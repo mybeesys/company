@@ -27,7 +27,7 @@ const DeleteModal = ({ visible, onClose , onDelete, name, url , row ,translation
             </Modal.Header>
         <Modal.Body>
         <div class="container">
-           <p>{translations.Doyouwanttodelete+" " +row.name_ar +" - "+row.name_en}</p>
+           <p>{translations.Doyouwanttodelete+" " +(row.name_ar || row.code || '') +" - "+(row.name_en || row.code || '')}</p>
         </div>
         </Modal.Body>
 

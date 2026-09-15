@@ -37,6 +37,7 @@ const TableAreaTable = ({ dir, translations }) => {
         dir={dir}
         urlList={urlList}
         canAddInline={true}
+        canDelete={true}
         title="tables"
         defaultValue={{ active: 1, table_status: 0 }}
         validateObject={validateObject}
