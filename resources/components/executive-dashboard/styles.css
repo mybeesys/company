@@ -20,12 +20,16 @@
     --ed-drawer-bg: #ffffff;
     --ed-overlay: rgba(16, 18, 24, 0.35);
     --ed-radius: 12px;
-    --ed-gap: 16px;
-    --ed-pad: 20px;
+    --ed-gap: 12px;
+    --ed-pad: 16px;
+    --ed-brand: var(--bs-primary, #e9b71f);
+    --ed-brand-ink: var(--bs-primary-inverse, #1e2129);
+    --ed-brand-soft: var(--bs-primary-light, #fdf6e3);
+    --ed-brand-active: var(--bs-primary-active, #d1a41b);
     background: transparent;
     color: var(--ed-ink);
     border-radius: 16px;
-    padding: 8px 0 48px;
+    padding: 0 0 28px;
 }
 
 [data-bs-theme="dark"] .ed-page {
@@ -44,38 +48,90 @@
     --ed-drawer-bg: #182030;
     --ed-overlay: rgba(8, 10, 16, 0.65);
     background: linear-gradient(180deg, var(--ed-bg) 0%, var(--ed-bg-2) 100%);
-    padding: 24px 16px 48px;
+    padding: 12px 12px 32px;
     margin-inline: -8px;
 }
 
-.ed-hero h1 {
-    font-size: clamp(1.35rem, 2vw, 1.75rem);
-    font-weight: 800;
-    margin: 0 0 6px;
-    color: var(--ed-ink);
-}
-
-.ed-hero p {
-    color: var(--ed-muted);
-    margin: 0 0 16px;
-}
-
-.ed-filters {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: var(--ed-gap);
-    padding: 16px 20px;
+.ed-topbar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
     background: var(--ed-card);
     border: 1px solid var(--ed-line);
     border-radius: var(--ed-radius);
-    margin-bottom: 20px;
+}
+
+.ed-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 0;
+}
+
+.ed-hero h1 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--ed-ink);
+    line-height: 1.2;
+}
+
+.ed-hub-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0;
+    padding-inline-start: 8px;
+    padding-inline-end: 12px;
+    border: 1px solid var(--ed-line);
+    border-radius: 999px;
+    background: var(--ed-input);
+    color: var(--ed-ink);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(30, 33, 41, 0.04);
+}
+
+.ed-hub-chip:hover {
+    border-color: var(--ed-brand);
+    color: var(--ed-brand-ink);
+    background: var(--ed-brand-soft);
+}
+
+.ed-hub-chip.is-open {
+    background: var(--ed-brand);
+    border-color: transparent;
+    color: var(--ed-brand-ink);
+}
+
+.ed-hub-ico {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+}
+
+.ed-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
 }
 
 .ed-field {
-    grid-column: span 3;
+    flex: 1 1 160px;
+    min-width: 140px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .ed-field label {
@@ -92,28 +148,28 @@
 
 .ed-field input,
 .ed-field select {
-    min-height: 44px;
+    min-height: 38px;
     border: 1px solid var(--ed-line);
-    border-radius: 12px;
-    padding: 0 12px;
+    border-radius: 10px;
+    padding: 0 10px;
     background: var(--ed-input);
     color: var(--ed-ink);
 }
 
 .ed-actions {
-    grid-column: span 3;
     display: flex;
     align-items: flex-end;
     flex-wrap: wrap;
     gap: 8px;
+    margin-inline-start: auto;
 }
 
 .ed-btn {
-    min-height: 44px;
-    min-width: 44px;
-    border-radius: 12px;
+    min-height: 38px;
+    min-width: 38px;
+    border-radius: 10px;
     border: 0;
-    padding: 0 16px;
+    padding: 0 14px;
     font-weight: 700;
     cursor: pointer;
 }
@@ -125,8 +181,12 @@
 }
 
 .ed-btn-primary {
-    background: var(--ed-sales);
-    color: #fff;
+    background: var(--ed-brand);
+    color: var(--ed-brand-ink);
+}
+
+.ed-btn-primary:hover {
+    background: var(--ed-brand-active);
 }
 
 .ed-btn-ghost {
@@ -558,10 +618,12 @@
 @media (max-width: 1199px) {
     .ed-kpi { grid-column: span 6; }
     .ed-charts > *, .ed-bottom > *, .ed-signals > *, .ed-product-lists > * { grid-column: span 12; }
-    .ed-field, .ed-actions { grid-column: span 6; }
 }
 
 @media (max-width: 767px) {
-    .ed-kpi, .ed-field, .ed-actions { grid-column: span 12; }
+    .ed-kpi { grid-column: span 12; }
+    .ed-field, .ed-actions { flex: 1 1 100%; }
+    .ed-actions { margin-inline-start: 0; }
     .ed-page { padding-inline: 8px; margin-inline: 0; }
+    .ed-hero { flex-wrap: wrap; }
 }
