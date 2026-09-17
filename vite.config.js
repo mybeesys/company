@@ -38,7 +38,10 @@ export default defineConfig({
         react(),
         appendBrandTheme(),
         laravel({
-            input: ["resources/components/App.jsx"] ,
+            input: [
+                "resources/components/App.jsx",
+                "resources/components/executive-dashboard/main.jsx",
+            ],
             buildDirectory:'tenancy/assets/build',
             refresh: true,
         }),
