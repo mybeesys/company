@@ -1,10 +1,13 @@
 import React from 'react';
 
-export default function WidgetFrame({ title, status, error, emptyText, children, actions }) {
+export default function WidgetFrame({ title, status, error, emptyText, children, actions, subtitle }) {
     return (
         <section className="ed-card">
             <div className="ed-card-head">
-                <h2>{title}</h2>
+                <div>
+                    <h2>{title}</h2>
+                    {subtitle ? <p className="ed-card-sub">{subtitle}</p> : null}
+                </div>
                 {actions}
             </div>
             {status === 'loading' && (

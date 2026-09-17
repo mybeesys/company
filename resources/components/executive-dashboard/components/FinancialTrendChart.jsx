@@ -16,9 +16,11 @@ export default function FinancialTrendChart({ data, locale, onBarClick, compareU
     const keys = categories.map((c) => c?.key);
     const apexSeries = series.map((s) => ({
         name: String(s?.name || ''),
+        type: s?.type === 'line' ? 'line' : 'column',
         data: (Array.isArray(s?.data) ? s.data : []).map((v) => Number(v) || 0),
     }));
     const colors = series.map((s) => s?.color).filter(Boolean);
+    const strokeWidths = series.map((s) => (s?.type === 'line' ? 3 : 0));
     const chartKey = JSON.stringify({ labels, apexSeries, colors, mode: palette.mode });
 
     useEffect(() => {
@@ -33,7 +35,7 @@ export default function FinancialTrendChart({ data, locale, onBarClick, compareU
         try {
             const options = {
                 chart: {
-                    type: 'bar',
+                    type: 'line',
                     height: 320,
                     fontFamily: 'inherit',
                     background: 'transparent',
@@ -47,9 +49,10 @@ export default function FinancialTrendChart({ data, locale, onBarClick, compareU
                     },
                 },
                 grid: { borderColor: palette.grid, strokeDashArray: 4 },
-                plotOptions: { bar: { columnWidth: '55%' } },
+                plotOptions: { bar: { columnWidth: '52%', borderRadius: 3 } },
                 dataLabels: { enabled: false },
-                stroke: { show: true, width: 2, colors: ['transparent'] },
+                stroke: { width: strokeWidths, curve: 'smooth' },
+                markers: { size: strokeWidths.map((w) => (w ? 4 : 0)) },
                 xaxis: {
                     categories: labels,
                     labels: { style: { colors: palette.fore } },
