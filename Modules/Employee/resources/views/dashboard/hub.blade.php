@@ -360,7 +360,7 @@
                     <h1>@lang('menuItemLang.dashboard')</h1>
                     <p class="cc-hero-sub">@lang('employee::main.dashboard_hub_subtitle')</p>
                 </div>
-                <form method="GET" action="{{ route('dashboard') }}" class="cc-filter d-flex flex-wrap align-items-end gap-3">
+                <form method="GET" action="{{ route('dashboard-v2') }}" class="cc-filter d-flex flex-wrap align-items-end gap-3">
                     @if ($activeSection && $activeSection !== 'overview')
                         <input type="hidden" name="tab" value="{{ $activeSection }}">
                     @endif
@@ -373,7 +373,7 @@
                         <input type="date" name="end_date" class="form-control form-control-sm form-control-solid" value="{{ $endDate->toDateString() }}">
                     </div>
                     <button class="btn btn-sm btn-primary">{{ app()->getLocale() === 'ar' ? 'تطبيق' : 'Apply' }}</button>
-                    <a href="{{ route('dashboard') }}" class="btn btn-sm btn-light">@lang('general.clear_filters')</a>
+                    <a href="{{ route('dashboard-v2') }}" class="btn btn-sm btn-light">@lang('general.clear_filters')</a>
                 </form>
             </div>
         </header>

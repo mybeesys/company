@@ -5,6 +5,7 @@ use Modules\Employee\Http\Controllers\DashboardRoleController;
 use Modules\Employee\Http\Controllers\MyCompaniesController;
 use Modules\Employee\Http\Controllers\ReferralController;
 use Modules\Employee\Http\Controllers\DashbordController;
+use Modules\Employee\Http\Controllers\ExecutiveDashboardController;
 use Modules\Employee\Http\Controllers\EmployeeController;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentController;
 use Modules\Employee\Http\Controllers\PayrollAdjustmentTypeController;
@@ -55,11 +56,24 @@ Route::middleware([
     Route::middleware(['auth'])->group(function () {
         $perm = fn (string ...$names) => 'dashboard.perm:'.implode(',', $names);
 
-        Route::get('/dashboard', [DashbordController::class, 'index'])
+        Route::get('/dashboard', [ExecutiveDashboardController::class, 'index'])
             ->middleware($perm(...DashboardHubPermissions::menuShowAny()))
             ->name('dashboard');
-        Route::get('/', [DashbordController::class, 'index'])
+        Route::get('/', [ExecutiveDashboardController::class, 'index'])
             ->middleware($perm(...DashboardHubPermissions::menuShowAny()));
+
+        Route::get('/dashboard-v2/api/bootstrap', [ExecutiveDashboardController::class, 'bootstrap'])
+            ->middleware($perm(...DashboardHubPermissions::menuShowAny()))
+            ->name('dashboard-v2.bootstrap');
+        Route::get('/dashboard-v2/api/data', [ExecutiveDashboardController::class, 'data'])
+            ->middleware($perm(...DashboardHubPermissions::menuShowAny()))
+            ->name('dashboard-v2.data');
+        Route::get('/dashboard-v2/api/widgets/{widget}', [ExecutiveDashboardController::class, 'widget'])
+            ->middleware($perm(...DashboardHubPermissions::menuShowAny()))
+            ->name('dashboard-v2.widget');
+        Route::get('/dashboard-v2', [DashbordController::class, 'index'])
+            ->middleware($perm(...DashboardHubPermissions::menuShowAny()))
+            ->name('dashboard-v2');
 
         Route::get('/my-companies', [MyCompaniesController::class, 'index'])
             ->middleware($perm(MyCompaniesPermissions::SHOW))
