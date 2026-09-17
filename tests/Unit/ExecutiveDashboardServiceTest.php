@@ -34,6 +34,21 @@ class ExecutiveDashboardServiceTest extends TestCase
         $this->assertNotContains('overview', ExecutiveDashboardService::WIDGETS);
     }
 
+    public function test_compact_slices_rolls_the_long_tail_into_others(): void
+    {
+        $slices = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $slices[] = ['id' => $i, 'name' => 'C'.$i, 'value' => 110 - ($i * 10), 'share_percent' => 0, 'color' => '#000'];
+        }
+
+        $compact = ExecutiveDashboardService::compactSlices($slices, 6, 'أخرى');
+
+        $this->assertCount(6, $compact);
+        $this->assertSame('أخرى', $compact[5]['name']);
+        $this->assertTrue($compact[5]['grouped']);
+        $this->assertSame(150.0, (float) $compact[5]['value']);
+    }
+
     public function test_empty_kpi_contract_keys_match_frontend_payload(): void
     {
         $keys = [

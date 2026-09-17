@@ -105,6 +105,36 @@ class ExecutiveDashboardService
     }
 
     /**
+     * Keep the donut readable: top categories stay visible, the rest roll into Others.
+     *
+     * @param  list<array<string, mixed>>  $slices
+     * @return list<array<string, mixed>>
+     */
+    public static function compactSlices(array $slices, int $maxVisible = 6, string $otherName = 'Others', string $otherColor = '#8B93A7'): array
+    {
+        $rows = array_values(array_filter($slices, static fn ($slice) => (float) ($slice['value'] ?? 0) > 0));
+        usort($rows, static fn ($a, $b) => ((float) $b['value'] <=> (float) $a['value']));
+        if (count($rows) <= $maxVisible) {
+            return $rows;
+        }
+
+        $head = array_slice($rows, 0, $maxVisible - 1);
+        $tail = array_slice($rows, $maxVisible - 1);
+        $otherValue = array_sum(array_map(static fn ($slice) => (float) $slice['value'], $tail));
+        $total = array_sum(array_map(static fn ($slice) => (float) $slice['value'], $rows));
+        $head[] = [
+            'id' => 'other',
+            'name' => $otherName,
+            'value' => $otherValue,
+            'share_percent' => $total > 0 ? round(($otherValue / $total) * 100, 1) : 0,
+            'color' => $otherColor,
+            'grouped' => true,
+        ];
+
+        return array_values($head);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function bootstrap(Request $request): array
@@ -297,9 +327,9 @@ class ExecutiveDashboardService
         $ordersGrowth = self::growthPercent((float) $orders, (float) $prevOrders);
 
         $cards = [
-            $this->kpiCard('profit', 'صافي الربح', 'Net Profit', $net, $profitGrowth, 'currency', 'income-statement', [
-                'ar' => 'هامش صافي '.$margin.'%',
-                'en' => 'Net margin '.$margin.'%',
+            $this->kpiCard('profit', 'صافي الربح التشغيلي', 'Operating profit', $net, $profitGrowth, 'currency', 'income-statement', [
+                'ar' => 'المبيعات − المشتريات − المصروفات · هامش '.$margin.'%',
+                'en' => 'Sales − purchases − expenses · margin '.$margin.'%',
             ], ['net_margin_percent' => $margin]),
             $this->kpiCard('expenses', 'إجمالي المصروفات', 'Total Expenses', $expenses, $expenseGrowth, 'currency', 'expense-report', [
                 'ar' => 'مراقبة التكلفة',
@@ -406,7 +436,7 @@ class ExecutiveDashboardService
      */
     public function financialTrend(array $filters): array
     {
-        $months = collect(range(5, 0))->map(fn ($i) => Carbon::now()->subMonths($i)->format('Y-m'))->values();
+        $months = $this->trendMonths($filters);
         $canSales = $this->canSales();
         $canPurchases = $this->canPurchases();
 
@@ -425,7 +455,7 @@ class ExecutiveDashboardService
             $date = Carbon::parse($month.'-01');
             $categories[] = [
                 'key' => $month,
-                'label' => $date->locale($isAr ? 'ar' : 'en')->translatedFormat('M'),
+                'label' => $date->locale($isAr ? 'ar' : 'en')->translatedFormat('M Y'),
             ];
             $s = (float) ($salesMap[$month] ?? 0);
             $p = (float) ($purchasesMap[$month] ?? 0);
@@ -438,18 +468,27 @@ class ExecutiveDashboardService
 
         $series = [];
         if ($canSales) {
-            $series[] = ['key' => 'sales', 'name' => $isAr ? 'المبيعات' : 'Sales', 'color' => '#F28705', 'data' => $sales];
+            $series[] = ['key' => 'sales', 'name' => $isAr ? 'المبيعات' : 'Sales', 'type' => 'column', 'color' => '#F28705', 'data' => $sales];
         }
         if ($canPurchases) {
-            $series[] = ['key' => 'purchases', 'name' => $isAr ? 'المشتريات' : 'Purchases', 'color' => '#4E91FF', 'data' => $purchases];
+            $series[] = ['key' => 'purchases', 'name' => $isAr ? 'المشتريات' : 'Purchases', 'type' => 'column', 'color' => '#4E91FF', 'data' => $purchases];
         }
-        $series[] = ['key' => 'expenses', 'name' => $isAr ? 'المصروفات' : 'Expenses', 'color' => '#FF6470', 'data' => $expenses];
-        $series[] = ['key' => 'profit', 'name' => $isAr ? 'الربح' : 'Profit', 'color' => '#31D17C', 'data' => $profit];
+        $series[] = ['key' => 'expenses', 'name' => $isAr ? 'المصروفات' : 'Expenses', 'type' => 'column', 'color' => '#FF6470', 'data' => $expenses];
+        $series[] = [
+            'key' => 'profit',
+            'name' => $isAr ? 'الربح التشغيلي' : 'Operating profit',
+            'type' => 'line',
+            'color' => '#31D17C',
+            'data' => $profit,
+        ];
 
         return [
             'categories' => $categories,
             'series' => $series,
             'pop' => $this->periodOverPeriod($series),
+            'note' => $isAr
+                ? 'الربح التشغيلي = المبيعات − المشتريات − المصروفات. لا يشمل تكلفة المخزون ولا الإهلاك؛ صافي الربح المحاسبي يظهر في قائمة الدخل.'
+                : 'Operating profit = sales − purchases − expenses. It excludes inventory COGS and depreciation; accounting net profit is on the income statement.',
         ];
     }
 
@@ -505,7 +544,7 @@ class ExecutiveDashboardService
         return [
             'total' => $total,
             'formatted_total' => $this->formatMoney($total),
-            'slices' => $slices,
+            'slices' => self::compactSlices($slices, 6, $other),
         ];
     }
 
@@ -1234,6 +1273,11 @@ class ExecutiveDashboardService
         }
 
         if ($source === 'expense-category') {
+            $categoryId = (string) ($filters['category_id'] ?? '');
+            if ($categoryId === 'other') {
+                return $this->expenseOtherCategories($filters, $isAr);
+            }
+
             return $this->expenseVouchers($filters, $limit, $isAr);
         }
 
@@ -1423,6 +1467,73 @@ class ExecutiveDashboardService
             ->groupBy('ex.debit_accounting_account_id')
             ->orderByDesc('total')
             ->get();
+    }
+
+    /**
+     * Months covered by the selected filter, capped at 12.
+     *
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    protected function trendMonths(array $filters)
+    {
+        $start = $filters['start']->copy()->startOfMonth();
+        $end = $filters['end']->copy()->startOfMonth();
+        if ($end->lt($start)) {
+            [$start, $end] = [$end->copy(), $start->copy()];
+        }
+
+        $months = collect();
+        $cursor = $start->copy();
+        while ($cursor->lte($end) && $months->count() < 36) {
+            $months->push($cursor->format('Y-m'));
+            $cursor->addMonth();
+        }
+
+        if ($months->isEmpty()) {
+            return collect(range(5, 0))->map(fn ($i) => Carbon::now()->subMonths($i)->format('Y-m'))->values();
+        }
+
+        return $months->count() > 12 ? $months->slice(-12)->values() : $months->values();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function expenseOtherCategories(array $filters, bool $isAr): array
+    {
+        $other = $isAr ? 'أخرى' : 'Others';
+        $rows = collect();
+        try {
+            $rows = $this->expenseDocumentBreakdown($filters, $other);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        $items = $rows
+            ->sortByDesc('total')
+            ->slice(5)
+            ->values()
+            ->map(function ($row) use ($isAr) {
+                $name = $isAr ? (string) $row->name_ar : (string) $row->name_en;
+
+                return [
+                    'id' => (string) $row->id,
+                    'ref' => $name !== '' ? $name : '#'.$row->id,
+                    'amount' => $this->formatMoney((float) $row->total),
+                ];
+            })
+            ->all();
+
+        return [
+            'title' => $isAr ? 'بقية بنود المصروف' : 'Remaining expense items',
+            'columns' => [
+                ['key' => 'ref', 'label' => $isAr ? 'البند' : 'Item'],
+                ['key' => 'amount', 'label' => $isAr ? 'المبلغ' : 'Amount'],
+            ],
+            'rows' => $items,
+            'empty' => $isAr ? 'لا توجد بنود إضافية' : 'No additional items',
+            'report_url' => $this->routeIfCan('expense-report', $filters),
+        ];
     }
 
     /**

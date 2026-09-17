@@ -120,6 +120,7 @@ export default function ExecutiveDashboardView() {
                 <WidgetErrorBoundary title={ar ? 'الأداء المالي عبر الفترات' : 'Financial performance'}>
                     <WidgetFrame
                         title={ar ? 'الأداء المالي عبر الفترات' : 'Financial performance'}
+                        subtitle={payload.financial_chart?.note}
                         status={dashboard.status === 'loading' ? 'loading' : (payload.financial_chart?.series?.length ? 'success' : (dashboard.status === 'error' ? 'error' : 'empty'))}
                         error={dashboard.error}
                         emptyText={empty}
