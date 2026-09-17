@@ -3,6 +3,7 @@ import { fetchBootstrap, fetchWidget } from './api';
 import { useDashboardFilters } from './context/DashboardFilterContext';
 import { useExecutiveDashboard } from './hooks/useExecutiveDashboard';
 import DashboardFilterBar from './components/FilterBar';
+import HubTabsToggle from './components/HubTabsToggle';
 import { KPICardsGrid } from './components/KpiCard';
 import WidgetFrame from './components/WidgetFrame';
 import WidgetErrorBoundary from './components/WidgetErrorBoundary';
@@ -99,12 +100,13 @@ export default function ExecutiveDashboardView() {
 
     return (
         <div className="ed-page">
-            <header className="ed-hero">
-                <h1>{ar ? 'لوحة قرار تنفيذية' : 'Executive decision board'}</h1>
-                <p>{ar ? 'نظرة واضحة على أداء منشأتك للفترة المحددة' : 'A clear view of business performance for the selected period'}</p>
-            </header>
-
-            <DashboardFilterBar bootstrap={bootstrap} locale={locale} />
+            <div className="ed-topbar">
+                <header className="ed-hero">
+                    <h1>{ar ? 'لوحة التحكم' : 'Dashboard'}</h1>
+                    <HubTabsToggle locale={locale} />
+                </header>
+                <DashboardFilterBar bootstrap={bootstrap} locale={locale} />
+            </div>
 
             <WidgetErrorBoundary>
                 <KPICardsGrid

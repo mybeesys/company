@@ -29,34 +29,16 @@
         color: #181c32;
     }
     .ed-hub-tabs-toolbar {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 8px;
-    }
-    .ed-hub-tabs-toggle {
-        border: 1px solid #eef1f7;
-        background: #fff;
-        color: #5e6278;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 6px 12px;
-    }
-    .ed-hub-tabs-toggle:hover,
-    .ed-hub-tabs-toggle[aria-expanded="true"] {
-        color: var(--bs-primary);
-        background: var(--bs-primary-light);
-        border-color: transparent;
+        display: none;
     }
     .ed-hub-tabs-panel[hidden] {
         display: none !important;
     }
     .ed-hub-tabs-panel .dashboard-hub-tabs {
-        margin-bottom: 16px;
+        margin: 0 0 10px;
     }
-    [data-bs-theme="dark"] .ed-hub-tabs-toggle {
-        background: #182030;
-        border-color: #2a3447;
-        color: #9aa4b8;
+    .ed-shell {
+        padding-top: 4px;
+        padding-bottom: 16px;
     }
 </style>

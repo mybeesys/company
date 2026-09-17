@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', app()->getLocale() === 'ar' ? 'لوحة قرار تنفيذية' : 'Executive Dashboard')
+@section('title', __('menuItemLang.dashboard'))
 
 @section('css')
     <link href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.css" rel="stylesheet" type="text/css">
@@ -9,21 +9,8 @@
 @section('content')
     @php
         $activeDashboardTab = 'overview';
-        $hubTabsShowLabel = app()->getLocale() === 'ar' ? 'إظهار لوحات التحكم' : 'Show module dashboards';
-        $hubTabsHideLabel = app()->getLocale() === 'ar' ? 'إخفاء لوحات التحكم' : 'Hide module dashboards';
     @endphp
-    <div class="container-fluid py-3">
-        <div class="ed-hub-tabs-toolbar">
-            <button
-                type="button"
-                class="ed-hub-tabs-toggle"
-                id="edHubTabsToggle"
-                aria-expanded="false"
-                aria-controls="edHubTabsPanel"
-                data-show-label="{{ $hubTabsShowLabel }}"
-                data-hide-label="{{ $hubTabsHideLabel }}"
-            >{{ $hubTabsShowLabel }}</button>
-        </div>
+    <div class="container-fluid ed-shell">
         <div id="edHubTabsPanel" class="ed-hub-tabs-panel" hidden>
             @include('employee::dashboard.partials.tabs-nav')
         </div>
@@ -42,22 +29,4 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.min.js"></script>
     {{-- Matches vite.config.js buildDirectory (not the default public/build manifest). --}}
     @vite(['resources/components/executive-dashboard/main.jsx'], 'tenancy/assets/build')
-    <script>
-        (function () {
-            var key = 'mybee.executiveDashboard.hubTabs';
-            var panel = document.getElementById('edHubTabsPanel');
-            var btn = document.getElementById('edHubTabsToggle');
-            if (!panel || !btn) return;
-            var apply = function (show) {
-                panel.hidden = !show;
-                btn.setAttribute('aria-expanded', show ? 'true' : 'false');
-                btn.textContent = show ? btn.getAttribute('data-hide-label') : btn.getAttribute('data-show-label');
-                try { sessionStorage.setItem(key, show ? '1' : '0'); } catch (e) {}
-            };
-            var stored = false;
-            try { stored = sessionStorage.getItem(key) === '1'; } catch (e) {}
-            apply(stored);
-            btn.addEventListener('click', function () { apply(panel.hidden); });
-        })();
-    </script>
 @endsection
