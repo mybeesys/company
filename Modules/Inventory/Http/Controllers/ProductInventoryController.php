@@ -594,7 +594,12 @@ class ProductInventoryController extends Controller
      */
     public function show($id)
     {
-        return view('inventory::show');
+        InventoryAccess::authorize([
+            InventoryPermissions::PRODUCT_SHOW,
+            InventoryPermissions::PRODUCT_UPDATE,
+        ]);
+
+        return $this->productInventoryForm((int) $id);
     }
 
     /**
@@ -603,11 +608,17 @@ class ProductInventoryController extends Controller
     public function edit($id)
     {
         InventoryAccess::authorize(InventoryPermissions::PRODUCT_UPDATE);
+
+        return $this->productInventoryForm((int) $id);
+    }
+
+    protected function productInventoryForm(int $id)
+    {
         $product = Product::with(['inventory' => function ($query) {
             $query->with('vendor');
             $query->with('vendorUnit');
             $query->with('unit');
-        }])->find($id);
+        }])->findOrFail($id);
         if ($product->inventory == null) {
             $product->inventory = new ProductInventory;
         }
