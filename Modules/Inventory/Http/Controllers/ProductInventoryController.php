@@ -614,20 +614,44 @@ class ProductInventoryController extends Controller
 
     protected function productInventoryForm(int $id)
     {
-        $product = Product::with(['inventory' => function ($query) {
-            $query->with('vendor');
-            $query->with('vendorUnit');
-            $query->with('unit');
-        }])->findOrFail($id);
+        $product = $this->resolveProductForInventory($id);
+        if (! $product) {
+            return redirect()
+                ->route('productInventory.index')
+                ->with('error', app()->getLocale() === 'ar'
+                    ? 'تعذر العثور على بطاقة المخزون المطلوبة.'
+                    : 'The requested inventory item could not be found.');
+        }
+
+        $product->load([
+            'inventory.vendor',
+            'inventory.vendorUnit',
+            'inventory.unit',
+        ]);
         if ($product->inventory == null) {
             $product->inventory = new ProductInventory;
         }
         $productInventory = $product->inventory;
-        $productInventory->product_id = $id;
+        $productInventory->product_id = $product->id;
         $productInventory->name_ar = $product->name_ar;
         $productInventory->name_en = $product->name_en;
 
         return view('inventory::productInventory.edit', compact('productInventory'));
+    }
+
+    protected function resolveProductForInventory(int $id): ?Product
+    {
+        $product = Product::withTrashed()->find($id);
+        if ($product) {
+            return $product;
+        }
+
+        $inventoryRow = ProductInventory::withTrashed()->find($id);
+        if ($inventoryRow?->product_id) {
+            return Product::withTrashed()->find((int) $inventoryRow->product_id);
+        }
+
+        return null;
     }
 
     /**
