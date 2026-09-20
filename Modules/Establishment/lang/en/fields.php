@@ -136,6 +136,13 @@ return [
     'payment_method_fee_type'         => 'Fee type',
     'payment_method_fee_type_amount'  => 'Fixed amount',
     'payment_method_fee_type_percent' => 'Percentage',
+    'payment_method_price_tier_tab'   => 'Price tiers',
+    'payment_method_price_tier'       => 'Payment method price tier',
+    'payment_method_price_tier_hint'  => 'When this method is selected at the cashier, products that have a price for this tier use that price. Otherwise the catalog base price stays unchanged.',
+    'payment_method_price_tier_select'=> 'Price tier',
+    'payment_method_price_tier_source_hint' => 'Options come from Price Tiers (priceTier). Leave empty to keep the base catalog price.',
+    'service_fee_debit_account' => 'Debit account',
+    'service_fee_credit_account' => 'Credit account',
     'business_types' => [
         'contractors' => 'Contractors',
         'e-commerce' => 'E-commerce',

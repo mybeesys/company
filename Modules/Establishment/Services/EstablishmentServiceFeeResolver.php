@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Establishment\Services;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Modules\Establishment\Models\EstablishmentPaymentAccount;
 use Modules\Establishment\Models\EstablishmentServiceFee;
 
@@ -47,6 +48,11 @@ final class EstablishmentServiceFeeResolver
                 'to_date' => self::nullableDate($row['to_date'] ?? null),
                 'sort_order' => $sort++,
             ];
+
+            if (Schema::hasColumn('est_establishment_service_fees', 'debit_accounting_account_id')) {
+                $payload['debit_accounting_account_id'] = self::nullableInt($row['debit_accounting_account_id'] ?? null);
+                $payload['credit_accounting_account_id'] = self::nullableInt($row['credit_accounting_account_id'] ?? null);
+            }
 
             if ($payload['cashier_payment_method_id']) {
                 $belongs = EstablishmentPaymentAccount::query()
@@ -128,7 +134,7 @@ final class EstablishmentServiceFeeResolver
      */
     private static function toRow(EstablishmentServiceFee $row): array
     {
-        return [
+        $data = [
             'id' => (int) $row->id,
             'establishment_id' => $row->establishment_id ? (int) $row->establishment_id : null,
             'establishment_ids' => $row->assignedEstablishmentIds(),
@@ -149,6 +155,22 @@ final class EstablishmentServiceFeeResolver
             'from_date' => $row->from_date?->format('Y-m-d\TH:i'),
             'to_date' => $row->to_date?->format('Y-m-d\TH:i'),
         ];
+
+        if (Schema::hasColumn('est_establishment_service_fees', 'debit_accounting_account_id')) {
+            $data['debit_accounting_account_id'] = $row->debit_accounting_account_id
+                ? (int) $row->debit_accounting_account_id
+                : null;
+            $data['credit_accounting_account_id'] = $row->credit_accounting_account_id
+                ? (int) $row->credit_accounting_account_id
+                : null;
+            $data['has_journal_accounts'] = $row->hasJournalAccounts();
+        } else {
+            $data['debit_accounting_account_id'] = null;
+            $data['credit_accounting_account_id'] = null;
+            $data['has_journal_accounts'] = false;
+        }
+
+        return $data;
     }
 
     private static function normalizeFlag(mixed $value): string
@@ -222,6 +244,11 @@ final class EstablishmentServiceFeeResolver
                 'sort_order' => $sort++,
                 'establishment_id' => $assignedIds[0] ?? null,
             ];
+
+            if (Schema::hasColumn('est_establishment_service_fees', 'debit_accounting_account_id')) {
+                $payload['debit_accounting_account_id'] = self::nullableInt($row['debit_accounting_account_id'] ?? null);
+                $payload['credit_accounting_account_id'] = self::nullableInt($row['credit_accounting_account_id'] ?? null);
+            }
 
             if ($payload['cashier_payment_method_id'] && ! EstablishmentPaymentAccount::query()->where('id', $payload['cashier_payment_method_id'])->exists()) {
                 $payload['cashier_payment_method_id'] = null;

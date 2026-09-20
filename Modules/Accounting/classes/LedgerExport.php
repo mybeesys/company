@@ -4,6 +4,7 @@ namespace Modules\Accounting\classes;
 
 use Illuminate\Support\Facades\App;
 use Modules\Accounting\Support\AccountingNote;
+use Modules\Accounting\Support\LedgerStatementPresenter;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -107,10 +108,31 @@ class LedgerExport implements FromCollection, WithEvents, WithHeadings, WithMapp
 
     protected function narrationText($transaction): string
     {
-        return AccountingNote::resolveForDisplay(
+        $text = AccountingNote::resolveForDisplay(
             $transaction->note ?? null,
             $transaction->accTransMapping?->note
         );
+
+        $attrs = is_array($this->account)
+            ? $this->account
+            : $this->account->getAttributes();
+
+        $statementAccountId = array_key_exists('statement_account_id', $attrs)
+            ? (int) $attrs['statement_account_id']
+            : (isset($attrs['id']) ? (int) $attrs['id'] : null);
+
+        $localeAr = App::getLocale() === 'ar';
+        $prefix = LedgerStatementPresenter::childAccountPrefix(
+            $transaction,
+            $statementAccountId,
+            $localeAr
+        );
+
+        if ($prefix === '') {
+            return $text;
+        }
+
+        return $text !== '' ? $prefix.' — '.$text : $prefix;
     }
 
     public function headings(): array

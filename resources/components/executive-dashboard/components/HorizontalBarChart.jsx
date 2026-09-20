@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function HorizontalBarChart({ items, onSelect, color = '#F28705' }) {
+export default function HorizontalBarChart({ items, onSelect, color = '#e9b71f' }) {
     if (!items?.length) {
         return null;
     }

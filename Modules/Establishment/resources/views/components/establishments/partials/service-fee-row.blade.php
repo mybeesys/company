@@ -9,6 +9,7 @@
     $locale = $locale ?? app()->getLocale();
     $showAssignment = isset($branchOptions);
     $detailsTabId = 'sf-details-'.$index;
+    $accountingTabId = 'sf-accounting-'.$index;
     $assignTabId = 'sf-assign-'.$index;
 @endphp
 <div class="border rounded p-4 service-fee-row bg-body" data-service-fee-row data-catalog-item>
@@ -35,6 +36,7 @@
     @if ($showAssignment)
         @include('establishment::components.establishments.partials.catalog-item-tabs', [
             'detailsTabId' => $detailsTabId,
+            'accountingTabId' => $accountingTabId,
             'assignTabId' => $assignTabId,
             'row' => $row,
         ])
@@ -183,6 +185,14 @@
         </div>
     </div>
     @if ($showAssignment)
+            </div>
+            <div class="tab-pane fade" id="{{ $accountingTabId }}">
+                @include('establishment::components.establishments.partials.service-fee-accounting-tab', [
+                    'index' => $index,
+                    'row' => $row,
+                    'accounts' => $accounts ?? collect(),
+                    'locale' => $locale,
+                ])
             </div>
             <div class="tab-pane fade" id="{{ $assignTabId }}">
                 @include('establishment::components.establishments.partials.branch-assignment-fields', [

@@ -487,35 +487,62 @@
             }
         };
 
+     function setAccountNatureBadge(nature) {
+        let natureText = '';
+        let badgeClass = '';
+
+        if (nature === 'asset' || nature === 'expense' || nature === 'expenses') {
+            natureText = 'مدين (Debit)';
+            badgeClass = 'badge-light-primary';
+        } else {
+            natureText = 'دائن (Credit)';
+            badgeClass = 'badge-light-success';
+        }
+
+        $('#account_nature_display, #account_nature_display_, #account_nature_display_1')
+            .text(natureText)
+            .removeClass('badge-light-primary badge-light-success')
+            .addClass(badgeClass);
+     }
+
+     function resetCreateSubAccountSubtypePicker() {
+        $('#create_sub_account_subtype_wrap').addClass('d-none');
+        $('#create_sub_account_subtype_select').val('').prop('required', false);
+        $('#create_sub_account_subtype_select option').prop('hidden', false).prop('disabled', false);
+     }
+
      function setAccountId(id, nature) {
-   $('#parent_id').val(id);
+        $('#parent_id').val(id);
+        $('#sub_account_id').val(id);
+        resetCreateSubAccountSubtypePicker();
 
-     $('#sub_account_id').val(id);
+        sessionStorage.setItem('sub_account_id', id);
+        sessionStorage.setItem('account_id', id);
+        setAccountNatureBadge(nature);
+     }
 
-    sessionStorage.setItem('sub_account_id', id);
-    sessionStorage.setItem('account_id', id);
-    let natureText = '';
-    let badgeClass = '';
+     function setPrimaryTypeForNewAccount(primaryType) {
+        $('#parent_id').val('');
+        $('#sub_account_id').val('');
+        sessionStorage.removeItem('sub_account_id');
+        sessionStorage.setItem('account_primary_type', primaryType);
+        setAccountNatureBadge(primaryType);
 
-    if (nature === 'asset' || nature === 'expense' || nature ==='expenses') {
-        natureText = 'مدين (Debit)';
-        badgeClass = 'badge-light-primary';
-    } else {
-        natureText = 'دائن (Credit)';
-        badgeClass = 'badge-light-success';
-    }
-
-    $('#account_nature_display').text(natureText)
-                                .removeClass('badge-light-primary badge-light-success')
-                                .addClass(badgeClass);
-                                $('#account_nature_display_').text(natureText)
-                                .removeClass('badge-light-primary badge-light-success')
-                                .addClass(badgeClass);
-$('#account_nature_display_1').text(natureText)
-                                .removeClass('badge-light-primary badge-light-success')
-                                .addClass(badgeClass);
-
-}
+        const $wrap = $('#create_sub_account_subtype_wrap');
+        const $select = $('#create_sub_account_subtype_select');
+        $wrap.removeClass('d-none');
+        $select.prop('required', true).val('');
+        $select.find('option').each(function() {
+            const $opt = $(this);
+            const value = $opt.attr('value');
+            if (!value) {
+                $opt.prop('hidden', false).prop('disabled', false);
+                return;
+            }
+            const match = $opt.data('primary-type') === primaryType;
+            $opt.prop('hidden', !match).prop('disabled', !match);
+        });
+     }
         function setAccount(account) {
             if (!account) {
                 return;
@@ -706,8 +733,27 @@ $('#account_nature_display_1').text(natureText)
             });
 
             $(document).on('shown.bs.modal', '#kt_modal_create_sub_account', function() {
+                if (!$('#create_sub_account_subtype_wrap').hasClass('d-none')) {
+                    return;
+                }
                 var value = sessionStorage.getItem('sub_account_id');
-                $('#sub_account_id').val(value);
+                if (value) {
+                    $('#sub_account_id').val(value);
+                }
+            });
+
+            $(document).on('change', '#create_sub_account_subtype_select', function() {
+                $('#sub_account_id').val($(this).val() || '');
+            });
+
+            $(document).on('submit', '#create_sub_account_form', function(e) {
+                if (!$('#sub_account_id').val()) {
+                    e.preventDefault();
+                    if (!$('#create_sub_account_subtype_wrap').hasClass('d-none')) {
+                        $('#create_sub_account_subtype_select').focus();
+                    }
+                    return false;
+                }
             });
 
             $.jstree.defaults.core.themes.variant = "large";

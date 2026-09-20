@@ -11,7 +11,8 @@
                 :serviceFeeRows="$serviceFeeRows"
                 :diningTypes="$diningTypes"
                 :cashierPaymentRows="$cashierPaymentRows"
-                :branchOptions="$branchOptions" />
+                :branchOptions="$branchOptions"
+                :accounts="$accounts" />
             <x-form.form-buttons cancelUrl="{{ url('/establishment') }}" id="service_fee_settings_form" />
         </form>
     </div>

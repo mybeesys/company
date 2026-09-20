@@ -13,6 +13,7 @@ use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
 use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
 use Modules\Establishment\Services\EstablishmentServiceFeeResolver;
 use Modules\Product\Models\DiningType;
+use Modules\Product\Models\PriceTier;
 
 class CashierCatalogSettingsController extends Controller
 {
@@ -33,6 +34,7 @@ class CashierCatalogSettingsController extends Controller
             'accounts' => $this->accounts(),
             'cashierPaymentRows' => $rows,
             'branchOptions' => $this->branchOptions(),
+            'priceTierOptions' => $this->priceTierOptions(),
         ]);
     }
 
@@ -47,6 +49,7 @@ class CashierCatalogSettingsController extends Controller
             'cashier_payment_rows.*.name_en'                 => ['nullable', 'string', 'max:255'],
             'cashier_payment_rows.*.account_id'              => ['nullable', 'integer', 'exists:accounting_accounts,id'],
             'cashier_payment_rows.*.payment_method_key'      => ['nullable', 'string', 'max:100'],
+            'cashier_payment_rows.*.price_tier_id'           => ['nullable', 'integer', 'exists:price_tiers,id'],
             'cashier_payment_rows.*.establishment_ids'       => ['nullable', 'array'],
             'cashier_payment_rows.*.establishment_ids.*'     => ['integer', 'exists:est_establishments,id'],
             'cashier_payment_rows.*.branch_accounts'         => ['nullable', 'array'],
@@ -117,6 +120,7 @@ class CashierCatalogSettingsController extends Controller
             'diningTypes' => DiningType::query()->orderBy('name_ar')->get(['id', 'name_ar', 'name_en']),
             'cashierPaymentRows' => EstablishmentPaymentAccountResolver::catalogRows(),
             'branchOptions' => $this->branchOptions(),
+            'accounts' => $this->accounts(),
         ]);
     }
 
@@ -134,6 +138,8 @@ class CashierCatalogSettingsController extends Controller
             'service_fee_rows.*.taxable' => ['nullable', 'boolean'],
             'service_fee_rows.*.active' => ['nullable', 'boolean'],
             'service_fee_rows.*.auto_apply_type' => ['nullable', 'in:0,1,2,3'],
+            'service_fee_rows.*.debit_accounting_account_id' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
+            'service_fee_rows.*.credit_accounting_account_id' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
             'service_fee_rows.*.establishment_ids' => ['nullable', 'array'],
             'service_fee_rows.*.establishment_ids.*' => ['integer', 'exists:est_establishments,id'],
         ]);
@@ -269,6 +275,14 @@ class CashierCatalogSettingsController extends Controller
     private function accounts()
     {
         return AccountingAccount::query()->orderBy('gl_code')->get();
+    }
+
+    private function priceTierOptions()
+    {
+        return PriceTier::query()
+            ->where('active', 1)
+            ->orderBy('name_ar')
+            ->get(['id', 'name_ar', 'name_en']);
     }
 
     private function branchOptions()

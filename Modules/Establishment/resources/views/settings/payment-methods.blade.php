@@ -24,7 +24,8 @@
             <x-establishment::establishments.cashier-payment-methods
                 :accounts="$accounts"
                 :cashierPaymentRows="$cashierPaymentRows"
-                :branchOptions="$branchOptions" />
+                :branchOptions="$branchOptions"
+                :priceTierOptions="$priceTierOptions" />
             <x-form.form-buttons cancelUrl="{{ url('/establishment') }}" id="cashier_payment_settings_form" />
         </form>
     </div>

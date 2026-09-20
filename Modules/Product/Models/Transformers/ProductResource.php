@@ -135,6 +135,7 @@ class ProductResource extends JsonResource
             'order' => $this->order,
             'price' => $this->price,
             'pricewithTax' => $price_withtax,
+            'price_tiers' => $this->formatPriceTiersForApi(),
             'tax_1' => $tax_1,
             'tax_2' => $tax_2,
             'tax_total' => round((float) $tax_1 + (float) $tax_2, 2),
@@ -154,6 +155,38 @@ class ProductResource extends JsonResource
             'image' => $this->image ? asset($this->image) : asset('images.png'),
         ];
     }
+
+    /**
+     * Additive for Flutter/web: product prices per price tier (exclusive + inclusive).
+     *
+     * @return list<array{price_tier_id: int, price: float, pricewithTax: float}>
+     */
+    private function formatPriceTiersForApi(): array
+    {
+        $tiers = $this->relationLoaded('priceTiers')
+            ? $this->priceTiers
+            : $this->priceTiers()->get();
+
+        if ($tiers === null || (is_countable($tiers) && count($tiers) === 0)) {
+            return [];
+        }
+
+        $taxRate = (float) ($this->tax->amount ?? 0);
+
+        return collect($tiers)->map(function ($tier) use ($taxRate) {
+            $exclusive = round((float) ($tier->price ?? 0), 2);
+            $inclusive = $taxRate > 0
+                ? round($exclusive + (float) TaxHelper::getTax($exclusive, $taxRate), 2)
+                : $exclusive;
+
+            return [
+                'price_tier_id' => (int) $tier->price_tier_id,
+                'price' => $exclusive,
+                'pricewithTax' => $inclusive,
+            ];
+        })->values()->all();
+    }
+
     // public function toArray($request)
     // {
     //     $category["id"] = $this->category["id"];

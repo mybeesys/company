@@ -14,7 +14,11 @@ export default function DecisionCenter({ alerts, locale, onNavigate }) {
                 <div key={item.id} className={`ed-alert ${item.level || 'info'}`}>
                     <div>
                         <div className="ed-alert-title">{item.title}</div>
-                        <strong className="ed-alert-count">{item.count}</strong>
+                        {item.body ? <p className="ed-alert-body">{item.body}</p> : null}
+                        <strong className="ed-alert-count">
+                            {item.count}
+                            {item.unit ? <span className="ed-alert-unit"> {item.unit}</span> : null}
+                        </strong>
                     </div>
                     {item.href && (
                         <button

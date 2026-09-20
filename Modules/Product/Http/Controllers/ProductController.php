@@ -1372,6 +1372,9 @@ class ProductController extends Controller implements HasMiddleware
                 });
             })
             ->with(['unitTransfers'])
+            ->with(['priceTiers' => function ($query) {
+                $query->select('id', 'product_id', 'price_tier_id', 'price');
+            }])
             ->when($includeExtrasFlags, function ($query) {
                 $query->withCount(['modifiers', 'combos']);
             })
@@ -1414,6 +1417,12 @@ class ProductController extends Controller implements HasMiddleware
                 $product->has_modifiers = ((int) ($product->modifiers_count ?? 0)) > 0;
                 $product->has_combos = ((int) ($product->combos_count ?? 0)) > 0;
             }
+
+            $product->price_tiers = collect($product->priceTiers ?? [])->map(fn ($tier) => [
+                'price_tier_id' => (int) $tier->price_tier_id,
+                'price' => round((float) ($tier->price ?? 0), 2),
+            ])->values()->all();
+            unset($product->priceTiers);
 
             return $product;
         });

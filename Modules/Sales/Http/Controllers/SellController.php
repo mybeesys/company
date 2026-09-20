@@ -696,14 +696,26 @@ class SellController extends Controller
             $invoiceServiceFees = [];
         }
 
-        // رسوم طرق الدفع للتجريب في صفحة إنشاء الفاتورة
+        // رسوم طرق الدفع للتجريب في صفحة إنشاء الفاتورة (معطّلة مؤقتاً عبر الإعداد)
+        $paymentMethodFeesEnabled = (bool) config('establishment.payment_method_fees_enabled', false);
         try {
-            $paymentMethodFees = \Modules\Establishment\Services\EstablishmentPaymentAccountResolver::catalogRows();
-            // نُبقي فقط الطرق التي لديها رسوم نشطة
-            $paymentMethodFees = array_filter($paymentMethodFees, fn (array $m) => ! empty($m['fees']));
-            $paymentMethodFees = array_values($paymentMethodFees);
+            $allPaymentMethods = \Modules\Establishment\Services\EstablishmentPaymentAccountResolver::catalogRows();
+            $paymentMethodFees = $paymentMethodFeesEnabled
+                ? array_values(array_filter($allPaymentMethods, fn (array $m) => ! empty($m['fees'])))
+                : [];
+            $paymentMethodPriceTiers = array_values(array_map(static function (array $m) {
+                return [
+                    'id' => (int) ($m['id'] ?? 0),
+                    'account_id' => $m['account_id'] ?? null,
+                    'name_ar' => $m['name_ar'] ?? '',
+                    'name_en' => $m['name_en'] ?? '',
+                    'price_tier_id' => ! empty($m['price_tier_id']) ? (int) $m['price_tier_id'] : null,
+                    'branch_accounts' => $m['branch_accounts'] ?? [],
+                ];
+            }, $allPaymentMethods));
         } catch (\Throwable $e) {
             $paymentMethodFees = [];
+            $paymentMethodPriceTiers = [];
         }
         $defaultEstablishmentId = (int) (Establishment::notMain()->active()->value('id') ?? 0);
         $invoiceServiceFeesSetting = Setting::where('key', 'toggleServiceFees')->value('value');
@@ -738,6 +750,7 @@ class SellController extends Controller
             'defaultEstablishmentId',
             'invoiceServiceFeesEnabled',
             'paymentMethodFees',
+            'paymentMethodPriceTiers',
             'zatcaOps'
         ));
     }
@@ -790,11 +803,25 @@ class SellController extends Controller
         } catch (\Throwable $e) {
             $invoiceServiceFees = [];
         }
+        $paymentMethodFeesEnabled = (bool) config('establishment.payment_method_fees_enabled', false);
         try {
-            $paymentMethodFees = \Modules\Establishment\Services\EstablishmentPaymentAccountResolver::catalogRows();
-            $paymentMethodFees = array_values(array_filter($paymentMethodFees, fn (array $m) => ! empty($m['fees'])));
+            $allPaymentMethods = \Modules\Establishment\Services\EstablishmentPaymentAccountResolver::catalogRows();
+            $paymentMethodFees = $paymentMethodFeesEnabled
+                ? array_values(array_filter($allPaymentMethods, fn (array $m) => ! empty($m['fees'])))
+                : [];
+            $paymentMethodPriceTiers = array_values(array_map(static function (array $m) {
+                return [
+                    'id' => (int) ($m['id'] ?? 0),
+                    'account_id' => $m['account_id'] ?? null,
+                    'name_ar' => $m['name_ar'] ?? '',
+                    'name_en' => $m['name_en'] ?? '',
+                    'price_tier_id' => ! empty($m['price_tier_id']) ? (int) $m['price_tier_id'] : null,
+                    'branch_accounts' => $m['branch_accounts'] ?? [],
+                ];
+            }, $allPaymentMethods));
         } catch (\Throwable $e) {
             $paymentMethodFees = [];
+            $paymentMethodPriceTiers = [];
         }
         $defaultEstablishmentId = (int) (Establishment::notMain()->active()->value('id') ?? 0);
         $invoiceServiceFeesSetting = Setting::where('key', 'toggleServiceFees')->value('value');
@@ -828,6 +855,7 @@ class SellController extends Controller
             'defaultEstablishmentId',
             'invoiceServiceFeesEnabled',
             'paymentMethodFees',
+            'paymentMethodPriceTiers',
             'zatcaOps'
         ));
     }

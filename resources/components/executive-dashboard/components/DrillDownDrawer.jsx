@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
+import ExpenseDonutChart from './ExpenseDonutChart';
 
-export default function DrillDownDrawer({ open, payload, status, error, locale, onClose, onOpenRow, onOpenReport }) {
+export default function DrillDownDrawer({ open, payload, status, error, locale, onClose, onOpenRow, onOpenReport, onSliceClick }) {
     const ar = locale === 'ar';
 
     useEffect(() => {
@@ -16,8 +17,11 @@ export default function DrillDownDrawer({ open, payload, status, error, locale, 
 
     const rows = payload?.rows || [];
     const columns = payload?.columns || [];
+    const slices = payload?.slices || [];
+    const hasChart = slices.length > 0;
     const hasRowActions = rows.some((row) => row.url);
     const actionLabel = payload?.action_label || (ar ? 'فتح' : 'Open');
+    const showEmpty = status === 'success' && !hasChart && rows.length === 0;
 
     return (
         <>
@@ -27,12 +31,23 @@ export default function DrillDownDrawer({ open, payload, status, error, locale, 
                     <h2>{payload?.title || (ar ? 'التفاصيل' : 'Details')}</h2>
                     <button type="button" className="ed-btn ed-btn-ghost" onClick={onClose}>{ar ? 'إغلاق' : 'Close'}</button>
                 </div>
-                {status === 'loading' && <div className="ed-widget-state">...</div>}
+                {status === 'loading' && !hasChart && <div className="ed-widget-state">...</div>}
                 {status === 'error' && <div className="ed-widget-state">{error}</div>}
-                {status === 'success' && rows.length === 0 && (
+                {hasChart && (
+                    <ExpenseDonutChart
+                        slices={slices}
+                        totalFormatted={payload.total_formatted}
+                        locale={locale}
+                        centerLabel={payload.center_label}
+                        showLegend
+                        height={220}
+                        onSliceClick={onSliceClick}
+                    />
+                )}
+                {showEmpty && (
                     <div className="ed-widget-state">{payload?.empty || (ar ? 'لا توجد بيانات' : 'No data')}</div>
                 )}
-                {status === 'success' && rows.length > 0 && (
+                {rows.length > 0 && (
                     <table className="ed-table">
                         <thead>
                             <tr>

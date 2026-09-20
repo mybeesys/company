@@ -19,9 +19,9 @@ class InventoryStockHealthService
     /**
      * @return array<string, mixed>
      */
-    public function snapshot(?int $warehouseId, Carbon $periodStart, Carbon $periodEnd, int $listLimit = self::LIST_LIMIT): array
+    public function snapshot(?int $warehouseId, Carbon $periodStart, Carbon $periodEnd, int $listLimit = self::LIST_LIMIT, array $selectedIds = []): array
     {
-        $warehouseIds = $this->warehouseIds($warehouseId);
+        $warehouseIds = $this->warehouseIds($warehouseId, $selectedIds);
         $empty = $warehouseIds === [];
 
         $inventoryRows = $empty
@@ -161,13 +161,15 @@ class InventoryStockHealthService
     }
 
     /**
+     * @param  list<int>  $selectedIds
      * @return list<int>
      */
-    public function warehouseIds(?int $warehouseId): array
+    public function warehouseIds(?int $warehouseId, array $selectedIds = []): array
     {
         $ids = Establishment::query()->where('is_main', 0)->pluck('id');
-        if ($warehouseId) {
-            $ids = $ids->contains($warehouseId) ? collect([$warehouseId]) : collect();
+        $wanted = $selectedIds !== [] ? $selectedIds : ($warehouseId ? [$warehouseId] : []);
+        if ($wanted !== []) {
+            $ids = $ids->intersect($wanted)->values();
         }
 
         return array_values(array_map('intval', $ids->all()));

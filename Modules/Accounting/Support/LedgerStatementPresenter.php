@@ -169,7 +169,8 @@ final class LedgerStatementPresenter
         float $openingBalance,
         bool $isDebitNature,
         bool $localeAr,
-        bool $showTransactionType
+        bool $showTransactionType,
+        ?int $statementAccountId = null
     ): array {
         $balance = $openingBalance;
         $rows = [];
@@ -197,6 +198,13 @@ final class LedgerStatementPresenter
                 $tx->accTransMapping?->note
             );
 
+            $childPrefix = self::childAccountPrefix($tx, $statementAccountId, $localeAr);
+            if ($childPrefix !== '') {
+                $description = $description !== ''
+                    ? $childPrefix.' — '.$description
+                    : $childPrefix;
+            }
+
             $opDate = $tx->operation_date ? (string) $tx->operation_date : null;
 
             $rows[] = [
@@ -215,6 +223,35 @@ final class LedgerStatementPresenter
         }
 
         return $rows;
+    }
+
+    /**
+     * When consolidating a parent ledger, label the child account on each line.
+     */
+    public static function childAccountPrefix(
+        AccountingAccountsTransaction $tx,
+        ?int $statementAccountId,
+        bool $localeAr
+    ): string {
+        if ($statementAccountId === null || (int) $tx->accounting_account_id === $statementAccountId) {
+            return '';
+        }
+
+        $child = $tx->account;
+        if (! $child) {
+            return '';
+        }
+
+        $name = $localeAr
+            ? (string) ($child->name_ar ?: $child->name_en)
+            : (string) ($child->name_en ?: $child->name_ar);
+        $code = trim((string) ($child->gl_code ?? ''));
+
+        if ($code !== '' && $name !== '') {
+            return $code.' — '.$name;
+        }
+
+        return $code !== '' ? $code : $name;
     }
 
     public static function accountClassLabel(AccountingAccount $account, bool $localeAr): string

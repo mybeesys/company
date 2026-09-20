@@ -75,6 +75,8 @@ return [
     'clear_branches' => 'Clear',
     'select_branches' => 'Select branches',
     'settings_details_tab' => 'Details',
+    'service_fee_accounting_tab' => 'Journal entry settings',
+    'service_fee_accounting_title' => 'Service fee journal parties',
     'cashier_payment_methods_page_hint' => 'Each payment method is defined once. From the assignment tab, pick branches and set a GL account for every assigned branch.',
     'cashier_payment_details_hint' => 'The name is shown on cashier and invoices. The GL account is set per branch from the assignment tab.',
     'assign_payment_method_branches_hint' => 'Assigned branches see this method on the cashier. Each branch needs its own GL account.',

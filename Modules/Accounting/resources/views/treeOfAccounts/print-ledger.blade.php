@@ -229,6 +229,11 @@
     </table>
 
     <div class="doc-title">@lang('accounting::lang.account_statement')</div>
+    @if (!empty($ledger_includes_children))
+        <div style="text-align:center;font-size:9pt;color:#5e6278;margin:-4px 0 10px;">
+            @lang('accounting::lang.ledger_includes_children_note')
+        </div>
+    @endif
 
     <table class="summary-bar">
         <tr>

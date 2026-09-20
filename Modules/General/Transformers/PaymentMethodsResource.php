@@ -26,8 +26,20 @@ class PaymentMethodsResource extends JsonResource
             'active' => $this->active ?? 1,
             'id' => $this->id,
             'payment_method_key' => $this->payment_method_key ?? null,
+            'price_tier_id' => $this->resolvePriceTierId(),
             'fees' => PaymentMethodFeeResource::collection($this->activeFeesForApi())->resolve(),
         ];
+    }
+
+    private function resolvePriceTierId(): ?int
+    {
+        if (! $this->resource instanceof EstablishmentPaymentAccount) {
+            return null;
+        }
+
+        $id = (int) ($this->price_tier_id ?? 0);
+
+        return $id > 0 ? $id : null;
     }
 
     /**
@@ -35,6 +47,10 @@ class PaymentMethodsResource extends JsonResource
      */
     private function activeFeesForApi(): Collection
     {
+        if (! (bool) config('establishment.payment_method_fees_enabled', false)) {
+            return collect();
+        }
+
         if (! $this->resource instanceof EstablishmentPaymentAccount) {
             return collect();
         }

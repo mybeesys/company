@@ -75,6 +75,8 @@ return [
     'clear_branches' => 'مسح التحديد',
     'select_branches' => 'اختر الفروع',
     'settings_details_tab' => 'التفاصيل',
+    'service_fee_accounting_tab' => 'إعدادات القيد المحاسبي',
+    'service_fee_accounting_title' => 'أطراف قيد رسوم الخدمة',
     'cashier_payment_methods_page_hint' => 'طريقة الدفع واحدة لكل الشركة. من تاب الإسناد اختر الفروع ثم خصّص حساباً مالياً لكل فرع على حدة.',
     'cashier_payment_details_hint' => 'الاسم يظهر للكاشير والفواتير. الحساب المالي يُحدَّد لكل فرع من تاب الإسناد.',
     'assign_payment_method_branches_hint' => 'الفروع المحددة هي التي تظهر لها طريقة الدفع في الكاشير. كل فرع يحتاج حساباً مالياً خاصاً به.',

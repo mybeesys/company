@@ -23,6 +23,34 @@
                                             </span>
                                         @endif
                                     </span>
+                                    <span class="tree-actions">
+                                        <div class="btn-group dropend">
+                                            <button type="button"
+                                                style="background: transparent; padding: 2px 7px 8px 13px; border-radius: 6px;"
+                                                class="btn dropdown-toggle" data-bs-toggle="dropdown"
+                                                onclick="event.stopPropagation();">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end coa-action-menu"
+                                                @if (app()->getLocale() == 'ar') dir="rtl" @endif>
+                                                @dashboardcan([\Modules\Accounting\Support\AccountingPermissions::LEDGER_SHOW, \Modules\Accounting\Support\AccountingPermissions::ACCOUNT_STATEMENT_SHOW])
+                                                <a class="dropdown-item ledger-link"
+                                                    href="{{ route('ledger', ['account_primary_type' => $key]) }}"
+                                                    onclick="event.stopPropagation();">
+                                                    <i class="fas fa-file-alt me-2"></i>@lang('accounting::lang.ledger')
+                                                </a>
+                                                @enddashboardcan
+                                                @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::TREE_CREATE)
+                                                <a class="dropdown-item" href="#"
+                                                    onclick="setPrimaryTypeForNewAccount('{{ $key }}')"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#kt_modal_create_sub_account">
+                                                    <i class="fas fa-plus me-2"></i>@lang('accounting::lang.add_account')
+                                                </a>
+                                                @enddashboardcan
+                                            </div>
+                                        </div>
+                                    </span>
                                     <ul>
                                         @foreach ($imported_roots[$key] ?? [] as $rootAccount)
                                             @include('accounting::treeOfAccounts.account_tree_node', ['account' => $rootAccount])

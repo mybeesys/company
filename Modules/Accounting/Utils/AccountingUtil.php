@@ -715,6 +715,10 @@ class AccountingUtil
             AutoJournalGuard::assertBalanced((int) $acc_trans_mapping_id);
         }
 
+        if ((string) ($transaction->type ?? '') === 'sell') {
+            \Modules\Accounting\Services\ServiceFeeJournalPoster::postForTransaction($transaction);
+        }
+
         return true;
     }
 
@@ -728,6 +732,17 @@ class AccountingUtil
     {
         $finalTotal = round((float) ($transaction->final_total ?? 0), 2);
         $taxAmount = round((float) ($transaction->tax_amount ?? 0), 2);
+
+        // Fees with both journal accounts are posted as separate «قيد رسوم خدمة»
+        // entries — exclude them from the sales journal so we do not double-book.
+        if ((string) ($transaction->type ?? '') === 'sell') {
+            $separate = \Modules\Accounting\Services\ServiceFeeJournalPoster::separatelyAccountedTotals($transaction);
+            if ($separate['gross'] > 0) {
+                $finalTotal = round(max(0, $finalTotal - $separate['gross']), 2);
+                $taxAmount = round(max(0, $taxAmount - $separate['fee_tax']), 2);
+            }
+        }
+
         $netForJournal = round($finalTotal - $taxAmount, 2);
 
         $beforeTax = round((float) ($transaction->total_before_tax ?? 0), 2);

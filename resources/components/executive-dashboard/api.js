@@ -19,9 +19,14 @@ async function getJson(url) {
 function withFilters(url, filters, extra = {}) {
     const params = new URLSearchParams();
     Object.entries({ ...filters, ...extra }).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '' && value !== 'all' && key !== 'channel') {
-            params.set(key, String(value));
+        if (key === 'channel' || value === null || value === undefined || value === '' || value === 'all') {
+            return;
         }
+        if (Array.isArray(value)) {
+            if (value.length) params.set(key, value.join(','));
+            return;
+        }
+        params.set(key, String(value));
     });
     const qs = params.toString();
     return `${url}${qs ? `?${qs}` : ''}`;

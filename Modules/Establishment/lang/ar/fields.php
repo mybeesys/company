@@ -137,6 +137,13 @@ return [
     'payment_method_fee_type'         => 'نوع الرسم',
     'payment_method_fee_type_amount'  => 'مبلغ ثابت',
     'payment_method_fee_type_percent' => 'نسبة مئوية',
+    'payment_method_price_tier_tab'   => 'التسعيرات',
+    'payment_method_price_tier'       => 'تسعيرة طريقة الدفع',
+    'payment_method_price_tier_hint'  => 'عند اختيار هذه الطريقة في الكاشير تُطبَّق أسعار التسعيرة على المنتجات التي لها سعر لهذه التسعيرة. غير ذلك يبقى السعر الأساسي.',
+    'payment_method_price_tier_select'=> 'التسعيرة',
+    'payment_method_price_tier_source_hint' => 'القائمة من شاشة التسعيرات (priceTier). اتركها فارغة للإبقاء على السعر الأساسي.',
+    'service_fee_debit_account' => 'الحساب المدين',
+    'service_fee_credit_account' => 'الحساب الدائن',
     'business_types' => [
         'contractors' => 'مقاولات',
         'e-commerce' => 'تجارة إلكترونية',
