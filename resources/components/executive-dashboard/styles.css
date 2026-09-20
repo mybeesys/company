@@ -1,5 +1,5 @@
 .ed-page {
-    --ed-sales: #f28705;
+    --ed-sales: #e9b71f;
     --ed-purchases: #4e91ff;
     --ed-expenses: #ff6470;
     --ed-profit: #31d17c;
@@ -71,12 +71,74 @@
     min-height: 0;
 }
 
+.ed-hero-start {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.ed-hero-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
 .ed-hero h1 {
     font-size: 1.15rem;
     font-weight: 800;
     margin: 0;
     color: var(--ed-ink);
     line-height: 1.2;
+    white-space: nowrap;
+}
+
+.ed-applied {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ed-applied-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 220px;
+    min-height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--ed-input);
+    border: 1px solid var(--ed-line);
+    color: var(--ed-ink);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.ed-applied-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ed-applied-x {
+    border: 0;
+    background: transparent;
+    color: var(--ed-muted);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+}
+
+.ed-applied-x:hover {
+    color: var(--ed-ink);
 }
 
 .ed-hub-chip {
@@ -132,6 +194,11 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+.ed-field-select {
+    flex: 1 1 220px;
+    min-width: 200px;
 }
 
 .ed-field label {
@@ -204,13 +271,17 @@
 
 .ed-kpi {
     grid-column: span 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
     background: var(--ed-card);
     border: 1px solid var(--ed-line);
     border-radius: var(--ed-radius);
-    padding: var(--ed-pad);
+    padding: 10px 12px;
     text-align: start;
     cursor: pointer;
-    min-height: 132px;
+    min-height: 0;
     color: inherit;
 }
 
@@ -222,38 +293,49 @@
 .ed-kpi-top {
     display: flex;
     justify-content: space-between;
-    gap: 8px;
-    align-items: flex-start;
-    margin-bottom: 8px;
+    gap: 6px;
+    align-items: center;
 }
 
 .ed-kpi-title {
     color: var(--ed-muted);
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.ed-kpi-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .ed-kpi-value {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
-    line-height: 1.2;
+    line-height: 1.15;
 }
 
 .ed-kpi-unit {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--ed-muted);
 }
 
 .ed-kpi-growth {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    margin-top: 6px;
+    margin: 0;
+    white-space: nowrap;
 }
 
 .ed-kpi-sub {
     color: var(--ed-muted);
-    font-size: 12px;
-    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.3;
+    margin: 0;
 }
 
 .ed-chip {
@@ -411,6 +493,21 @@
 
 .ed-donut-chart { min-height: 240px; }
 
+.ed-donut.is-chart-only {
+    display: block;
+    max-width: 260px;
+    margin-inline: auto;
+}
+
+.ed-donut.is-chart-only .ed-donut-chart {
+    min-height: 220px;
+}
+
+.ed-drawer .ed-donut {
+    grid-template-columns: 1fr;
+    margin-bottom: 16px;
+}
+
 .ed-donut-legend {
     list-style: none;
     margin: 0;
@@ -505,7 +602,7 @@
 
 .ed-tab.is-active {
     background: var(--ed-sales);
-    color: #fff;
+    color: var(--ed-brand-ink, #1e2129);
     border-color: var(--ed-sales);
 }
 
@@ -561,8 +658,15 @@
     border: 1px solid var(--ed-line);
 }
 
-.ed-alert-title { font-size: 13px; }
-.ed-alert-count { color: var(--ed-ink); }
+.ed-alert-title { font-size: 13px; font-weight: 700; }
+.ed-alert-body {
+    margin: 2px 0 4px;
+    font-size: 12px;
+    color: var(--ed-muted);
+    line-height: 1.45;
+}
+.ed-alert-count { color: var(--ed-ink); font-size: 22px; font-weight: 800; line-height: 1.1; }
+.ed-alert-unit { font-size: 13px; font-weight: 700; color: var(--ed-muted); }
 
 .ed-alert.critical { background: rgba(255, 100, 112, 0.12); }
 .ed-alert.warning { background: rgba(245, 200, 76, 0.12); }
@@ -626,4 +730,5 @@
     .ed-actions { margin-inline-start: 0; }
     .ed-page { padding-inline: 8px; margin-inline: 0; }
     .ed-hero { flex-wrap: wrap; }
+    .ed-hero-actions { width: 100%; justify-content: flex-end; }
 }

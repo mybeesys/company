@@ -10,7 +10,7 @@ function formatAmount(value, locale) {
     }
 }
 
-export default function ExpenseDonutChart({ slices, totalFormatted, locale, onSliceClick, centerLabel }) {
+export default function ExpenseDonutChart({ slices, totalFormatted, locale, onSliceClick, centerLabel, showLegend = true, height = 260 }) {
     const elRef = useRef(null);
     const chartRef = useRef(null);
     const clickRef = useRef(onSliceClick);
@@ -34,7 +34,7 @@ export default function ExpenseDonutChart({ slices, totalFormatted, locale, onSl
             const options = {
                 chart: {
                     type: 'donut',
-                    height: 260,
+                    height,
                     background: 'transparent',
                     foreColor: palette.fore,
                     toolbar: { show: false },
@@ -102,29 +102,31 @@ export default function ExpenseDonutChart({ slices, totalFormatted, locale, onSl
         }
         return () => chartRef.current?.destroy();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sliceKey, totalFormatted, locale, centerLabel, palette.mode, palette.fore, palette.ink, palette.surface]);
+    }, [sliceKey, totalFormatted, locale, centerLabel, height, palette.mode, palette.fore, palette.ink, palette.surface]);
 
     if (!safeSlices.length) {
         return null;
     }
 
     return (
-        <div className="ed-donut">
+        <div className={`ed-donut${showLegend ? '' : ' is-chart-only'}`}>
             <div className="ed-donut-chart" ref={elRef} />
-            <ul className="ed-donut-legend">
-                {safeSlices.map((slice) => (
-                    <li key={String(slice.id)}>
-                        <button type="button" className="ed-donut-legend-item" onClick={() => onSliceClick?.(slice)}>
-                            <span className="ed-donut-swatch" style={{ background: slice.color }} />
-                            <span className="ed-donut-legend-copy">
-                                <strong>{slice.name}</strong>
-                                <em>{formatAmount(slice.value, locale)}</em>
-                            </span>
-                            <span className="ed-donut-pct">{slice.share_percent}%</span>
-                        </button>
-                    </li>
-                ))}
-            </ul>
+            {showLegend ? (
+                <ul className="ed-donut-legend">
+                    {safeSlices.map((slice) => (
+                        <li key={String(slice.id)}>
+                            <button type="button" className="ed-donut-legend-item" onClick={() => onSliceClick?.(slice)}>
+                                <span className="ed-donut-swatch" style={{ background: slice.color }} />
+                                <span className="ed-donut-legend-copy">
+                                    <strong>{slice.name}</strong>
+                                    <em>{formatAmount(slice.value, locale)}</em>
+                                </span>
+                                <span className="ed-donut-pct">{slice.share_percent}%</span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
         </div>
     );
 }

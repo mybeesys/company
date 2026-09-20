@@ -11,7 +11,15 @@ window.PaymentMethodFees = (function () {
     var applyingPrices = false;
 
     function cfg() {
-        return window.paymentMethodFeesConfig || { methods: [], locale: 'ar' };
+        return window.paymentMethodFeesConfig || { methods: [], locale: 'ar', enabled: false };
+    }
+
+    function feesEnabled() {
+        var c = cfg();
+        if (c.enabled === false || c.enabled === 0 || c.enabled === '0') {
+            return false;
+        }
+        return true;
     }
 
     function round2(v) {
@@ -272,7 +280,7 @@ window.PaymentMethodFees = (function () {
     }
 
     function applyItemFeesToLines() {
-        if (isInternalConsumption()) {
+        if (!feesEnabled() || isInternalConsumption()) {
             return;
         }
 
@@ -310,6 +318,14 @@ window.PaymentMethodFees = (function () {
     }
 
     function applyToTotals(context) {
+        if (!feesEnabled()) {
+            return {
+                feeAmount: 0,
+                feeTax: 0,
+                itemFeeAmount: 0,
+                displayAmount: 0,
+            };
+        }
         var fees = currentFees();
         var lines = collectContextLines();
         var baseLines = collectBaseLines();
@@ -369,7 +385,7 @@ window.PaymentMethodFees = (function () {
     }
 
     function init() {
-        if (!window.paymentMethodFeesConfig) {
+        if (!window.paymentMethodFeesConfig || !feesEnabled()) {
             return;
         }
 

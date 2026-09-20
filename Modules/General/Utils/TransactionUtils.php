@@ -188,6 +188,9 @@ class TransactionUtils
 
         if (! $alreadyPosted) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
+        } elseif (in_array($transaction->type, ['sell'], true)) {
+            // Sales JE already exists — still post missing service-fee journals (idempotent).
+            \Modules\Accounting\Services\ServiceFeeJournalPoster::postForTransaction($transaction);
         }
 
         return true;

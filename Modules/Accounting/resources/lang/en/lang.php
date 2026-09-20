@@ -79,6 +79,8 @@ return [
     'ledger_narration' => 'Narration',
     'ledger_report_period' => 'For the period :from to :to',
     'ledger_report_account_class' => 'Account classification',
+    'ledger_includes_children_note' => 'Consolidated statement: includes movements of subordinate child accounts.',
+    'ledger_child_account' => 'Sub-account',
     'account_not_found' => 'Account not found.',
     'cannot_delete_account_has_movements' => 'Cannot delete: this account has movements.',
     'cannot_delete_account_has_children' => 'Cannot delete: this account has child accounts.',

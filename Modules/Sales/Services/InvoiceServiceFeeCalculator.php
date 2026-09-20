@@ -205,6 +205,15 @@ final class InvoiceServiceFeeCalculator
             'application_type' => (string) ($fee['application_type'] ?? '1'),
             'calculation_method' => (string) ($fee['calculation_method'] ?? '0'),
             'line_breakdown' => $lineBreakdown,
+            'debit_accounting_account_id' => ! empty($fee['debit_accounting_account_id'])
+                ? (int) $fee['debit_accounting_account_id']
+                : null,
+            'credit_accounting_account_id' => ! empty($fee['credit_accounting_account_id'])
+                ? (int) $fee['credit_accounting_account_id']
+                : null,
+            'has_journal_accounts' => (bool) ($fee['has_journal_accounts'] ?? (
+                ! empty($fee['debit_accounting_account_id']) && ! empty($fee['credit_accounting_account_id'])
+            )),
         ];
     }
 

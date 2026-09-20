@@ -65,8 +65,8 @@ class ExecutiveDashboardService
         $prevStart = $start->copy()->subDays($periodDays)->startOfDay();
         $prevEnd = $start->copy()->subDay()->endOfDay();
 
-        $branchId = $request->filled('branch_id') ? (int) $request->input('branch_id') : null;
-        $activityId = $request->filled('activity_id') ? (int) $request->input('activity_id') : null;
+        $branchIds = self::parseIdList($request->input('branch_ids', $request->input('branch_id')));
+        $activityIds = self::parseIdList($request->input('activity_ids', $request->input('activity_id')));
 
         return [
             'start' => $start,
@@ -74,8 +74,10 @@ class ExecutiveDashboardService
             'prev_start' => $prevStart,
             'prev_end' => $prevEnd,
             'period_days' => $periodDays,
-            'branch_id' => $branchId,
-            'activity_id' => $activityId,
+            'branch_ids' => $branchIds,
+            'branch_id' => $branchIds[0] ?? null,
+            'activity_ids' => $activityIds,
+            'activity_id' => $activityIds[0] ?? null,
             'channel' => 'all',
             'locale' => app()->getLocale(),
             'dimension' => (string) $request->input('dimension', 'product'),
@@ -102,6 +104,23 @@ class ExecutiveDashboardService
         }
 
         return round(($net / $sales) * 100, 1);
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<int>
+     */
+    public static function parseIdList(mixed $value): array
+    {
+        if (is_array($value)) {
+            $parts = $value;
+        } elseif ($value === null || $value === '' || $value === 'all') {
+            $parts = [];
+        } else {
+            $parts = preg_split('/[,\s]+/', (string) $value) ?: [];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $parts), static fn (int $id) => $id > 0)));
     }
 
     /**
@@ -175,8 +194,8 @@ class ExecutiveDashboardService
             'filters' => [
                 'start_date' => $filters['start']->toDateString(),
                 'end_date' => $filters['end']->toDateString(),
-                'branch_id' => $filters['branch_id'],
-                'activity_id' => $filters['activity_id'],
+                'branch_id' => $filters['branch_ids'] ?? $filters['branch_id'],
+                'activity_id' => $filters['activity_ids'] ?? $filters['activity_id'],
             ],
             'options' => [
                 'branches' => $branches,
@@ -185,7 +204,7 @@ class ExecutiveDashboardService
             'permissions' => $permissions,
             'routes' => $this->safeRoutes($permissions, $filters),
             'colors' => [
-                'sales' => '#F28705',
+                'sales' => '#e9b71f',
                 'purchases' => '#4E91FF',
                 'expenses' => '#FF6470',
                 'profit' => '#31D17C',
@@ -468,7 +487,7 @@ class ExecutiveDashboardService
 
         $series = [];
         if ($canSales) {
-            $series[] = ['key' => 'sales', 'name' => $isAr ? 'المبيعات' : 'Sales', 'type' => 'column', 'color' => '#F28705', 'data' => $sales];
+            $series[] = ['key' => 'sales', 'name' => $isAr ? 'المبيعات' : 'Sales', 'type' => 'column', 'color' => '#e9b71f', 'data' => $sales];
         }
         if ($canPurchases) {
             $series[] = ['key' => 'purchases', 'name' => $isAr ? 'المشتريات' : 'Purchases', 'type' => 'column', 'color' => '#4E91FF', 'data' => $purchases];
@@ -500,7 +519,7 @@ class ExecutiveDashboardService
     {
         $isAr = $filters['locale'] === 'ar';
         $other = $isAr ? 'أخرى' : 'Others';
-        $palette = ['#FF6470', '#F28705', '#4E91FF', '#9A73FF', '#33C8D7', '#31D17C'];
+        $palette = ['#FF6470', '#e9b71f', '#4E91FF', '#9A73FF', '#33C8D7', '#31D17C'];
 
         $rows = collect();
         try {
@@ -829,12 +848,14 @@ class ExecutiveDashboardService
         }
 
         $isAr = $filters['locale'] === 'ar';
-        $warehouseId = ! empty($filters['branch_id']) ? (int) $filters['branch_id'] : null;
+        $warehouseIds = $this->branchIds($filters);
         $stock = app(InventoryStockHealthService::class);
         $snap = $stock->snapshot(
-            $warehouseId,
+            $warehouseIds[0] ?? null,
             $filters['start'],
-            $filters['end']
+            $filters['end'],
+            InventoryStockHealthService::LIST_LIMIT,
+            $warehouseIds
         );
 
         $inventoryUrl = $this->named('inventory.dashboard');
@@ -984,11 +1005,12 @@ class ExecutiveDashboardService
         }
 
         $isAr = $filters['locale'] === 'ar';
-        $costCenterId = ! empty($filters['activity_id']) ? (int) $filters['activity_id'] : null;
+        $costCenterIds = $this->costCenterIds($filters);
         $snap = app(AccountingLedgerOverviewService::class)->snapshot(
             $filters['start'],
             $filters['end'],
-            $costCenterId
+            $costCenterIds[0] ?? null,
+            $costCenterIds
         );
 
         $months = collect($snap['monthly']['months'] ?? []);
@@ -1138,7 +1160,7 @@ class ExecutiveDashboardService
             'level' => 'info',
             'label' => $isAr ? 'معلومة' : 'Info',
             'count' => $pending,
-            'title' => $isAr ? 'طلبات بانتظار الاعتماد' : 'Pending approvals',
+            'title' => $isAr ? 'مسودات بانتظار الاعتماد' : 'Drafts awaiting approval',
             'href' => $this->routeIfCan('invoices', $filters),
         ];
 
@@ -1192,8 +1214,12 @@ class ExecutiveDashboardService
             [
                 'id' => 'pending_approvals',
                 'level' => 'info',
-                'title' => $isAr ? 'طلبات بانتظار الاعتماد' : 'Pending approvals',
+                'title' => $isAr ? 'مسودات بانتظار الاعتماد' : 'Drafts awaiting approval',
                 'count' => $pending,
+                'unit' => $isAr ? 'طلب' : ($pending === 1 ? 'order' : 'orders'),
+                'body' => $isAr
+                    ? ($pending > 0 ? "العدد: {$pending} طلبًا بانتظار الاعتماد." : 'لا توجد مسودات بانتظار الاعتماد.')
+                    : ($pending > 0 ? "{$pending} draft orders awaiting approval." : 'No drafts awaiting approval.'),
                 'action_label' => $view,
                 'href' => $this->routeIfCan('invoices', $filters),
             ],
@@ -1418,8 +1444,8 @@ class ExecutiveDashboardService
 
         $q = DB::table('expenses as ex')
             ->whereBetween('ex.date', [$start->toDateString(), $end->toDateString()]);
-        if (! empty($filters['activity_id']) && Schema::hasColumn('expenses', 'cost_center_id')) {
-            $q->where('ex.cost_center_id', $filters['activity_id']);
+        if ($this->costCenterIds($filters) !== [] && Schema::hasColumn('expenses', 'cost_center_id')) {
+            $q->whereIn('ex.cost_center_id', $this->costCenterIds($filters));
         }
 
         return (float) $q->sum('ex.amount');
@@ -1442,8 +1468,8 @@ class ExecutiveDashboardService
             })
             ->leftJoin('accounting_accounts as aa', 'aa.id', '=', 'ex.debit_accounting_account_id')
             ->whereBetween('ex.date', [$filters['start']->toDateString(), $filters['end']->toDateString()]);
-        if (! empty($filters['activity_id']) && Schema::hasColumn('expenses', 'cost_center_id')) {
-            $q->where('ex.cost_center_id', $filters['activity_id']);
+        if ($this->costCenterIds($filters) !== [] && Schema::hasColumn('expenses', 'cost_center_id')) {
+            $q->whereIn('ex.cost_center_id', $this->costCenterIds($filters));
         }
 
         if ($hasCategories) {
@@ -1595,8 +1621,8 @@ class ExecutiveDashboardService
             ->selectRaw("DATE_FORMAT(ex.date, '%Y-%m') as month, SUM(ex.amount) as total")
             ->whereIn(DB::raw("DATE_FORMAT(ex.date, '%Y-%m')"), $months->all())
             ->groupBy('month');
-        if (! empty($filters['activity_id']) && Schema::hasColumn('expenses', 'cost_center_id')) {
-            $docs->where('ex.cost_center_id', $filters['activity_id']);
+        if ($this->costCenterIds($filters) !== [] && Schema::hasColumn('expenses', 'cost_center_id')) {
+            $docs->whereIn('ex.cost_center_id', $this->costCenterIds($filters));
         }
         $fromDocs = $docs->pluck('total', 'month');
 
@@ -1761,6 +1787,32 @@ class ExecutiveDashboardService
         return $q;
     }
 
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return list<int>
+     */
+    protected function branchIds(array $filters): array
+    {
+        if (! empty($filters['branch_ids']) && is_array($filters['branch_ids'])) {
+            return array_values(array_filter(array_map('intval', $filters['branch_ids'])));
+        }
+
+        return ! empty($filters['branch_id']) ? [(int) $filters['branch_id']] : [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return list<int>
+     */
+    protected function costCenterIds(array $filters): array
+    {
+        if (! empty($filters['activity_ids']) && is_array($filters['activity_ids'])) {
+            return array_values(array_filter(array_map('intval', $filters['activity_ids'])));
+        }
+
+        return ! empty($filters['activity_id']) ? [(int) $filters['activity_id']] : [];
+    }
+
     protected function applyTransactionFilters($query, array $filters, string $alias, bool $withChannel = false): void
     {
         if (empty($filters['skip_dates']) && isset($filters['start'], $filters['end'])) {
@@ -1769,11 +1821,11 @@ class ExecutiveDashboardService
         if (! empty($filters['month'])) {
             $query->where(DB::raw("DATE_FORMAT({$alias}.transaction_date, '%Y-%m')"), $filters['month']);
         }
-        if (! empty($filters['branch_id']) && Schema::hasColumn('transactions', 'establishment_id')) {
-            $query->where($alias.'.establishment_id', $filters['branch_id']);
+        if ($this->branchIds($filters) !== [] && Schema::hasColumn('transactions', 'establishment_id')) {
+            $query->whereIn($alias.'.establishment_id', $this->branchIds($filters));
         }
-        if (! empty($filters['activity_id']) && Schema::hasColumn('transactions', 'cost_center')) {
-            $query->where($alias.'.cost_center', $filters['activity_id']);
+        if ($this->costCenterIds($filters) !== [] && Schema::hasColumn('transactions', 'cost_center')) {
+            $query->whereIn($alias.'.cost_center', $this->costCenterIds($filters));
         }
         if ($withChannel && ($filters['channel'] ?? 'all') !== 'all' && Schema::hasTable('cash_register_transactions')) {
             if ($filters['channel'] === 'pos') {
@@ -1794,8 +1846,8 @@ class ExecutiveDashboardService
 
     protected function applyExpenseFilters($query, array $filters, string $alias): void
     {
-        if (! empty($filters['activity_id'])) {
-            $query->where($alias.'.cost_center_id', $filters['activity_id']);
+        if ($this->costCenterIds($filters) !== []) {
+            $query->whereIn($alias.'.cost_center_id', $this->costCenterIds($filters));
         }
         if (! empty($filters['category_id'])) {
             $query->where('aa.account_sub_type_id', $filters['category_id']);
@@ -2003,8 +2055,8 @@ class ExecutiveDashboardService
         if (! empty($filters['end'])) {
             $qs['end_date'] = $filters['end'] instanceof Carbon ? $filters['end']->toDateString() : $filters['end'];
         }
-        if (! empty($filters['activity_id'])) {
-            $qs['choose_cost_center_select'] = [$filters['activity_id']];
+        if ($this->costCenterIds($filters) !== []) {
+            $qs['choose_cost_center_select'] = $this->costCenterIds($filters);
         }
 
         return $qs;
@@ -2038,8 +2090,7 @@ class ExecutiveDashboardService
     protected function inventoryIssueDrilldown(string $source, array $filters, int $limit, bool $isAr): array
     {
         $service = app(InventoryStockHealthService::class);
-        $warehouseId = ! empty($filters['branch_id']) ? (int) $filters['branch_id'] : null;
-        $warehouseIds = $service->warehouseIds($warehouseId);
+        $warehouseIds = $service->warehouseIds($filters['branch_id'] ? (int) $filters['branch_id'] : null, $this->branchIds($filters));
         $report = $this->named('inventory.dashboard');
 
         if ($source === 'waste-ops') {

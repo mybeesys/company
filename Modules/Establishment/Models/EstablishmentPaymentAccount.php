@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Establishment\Models\Concerns\HasEstablishmentAssignments;
+use Modules\Product\Models\PriceTier;
 
 class EstablishmentPaymentAccount extends Model
 {
@@ -116,5 +117,10 @@ class EstablishmentPaymentAccount extends Model
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id');
+    }
+
+    public function priceTier(): BelongsTo
+    {
+        return $this->belongsTo(PriceTier::class, 'price_tier_id');
     }
 }

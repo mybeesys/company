@@ -201,12 +201,18 @@ class EstablishmentPaymentAccountResolver
                     ])->values()->all()
                     : [];
 
+                $priceTierId = null;
+                if (\Illuminate\Support\Facades\Schema::hasColumn('est_establishment_payment_accounts', 'price_tier_id')) {
+                    $priceTierId = $row->price_tier_id ? (int) $row->price_tier_id : null;
+                }
+
                 return [
                     'id'                  => (int) $row->id,
                     'name_ar'             => (string) ($row->name_ar ?? ''),
                     'name_en'             => (string) ($row->name_en ?? $row->payment_method_key ?? ''),
                     'account_id'          => $row->account_id ? (int) $row->account_id : null,
                     'payment_method_key'  => (string) $row->payment_method_key,
+                    'price_tier_id'       => $priceTierId,
                     'establishment_ids'   => $establishmentIds,
                     'branch_accounts'     => $branchAccounts,
                     'fees'                => $fees,
@@ -255,10 +261,19 @@ class EstablishmentPaymentAccountResolver
                 'establishment_id' => $assignedIds[0] ?? (array_key_first($branchAccounts) ?: null),
             ];
 
+            if (Schema::hasColumn('est_establishment_payment_accounts', 'price_tier_id')) {
+                $priceTierId = self::nullableInt($row['price_tier_id'] ?? null);
+                $payload['price_tier_id'] = $priceTierId && $priceTierId > 0 ? $priceTierId : null;
+            }
+
+            $feesEnabled = (bool) config('establishment.payment_method_fees_enabled', false);
+
             if ($existing) {
                 $existing->update($payload);
                 $existing->syncBranchAccounts($branchAccounts);
-                self::syncFees($existing, (array) ($row['fees'] ?? []));
+                if ($feesEnabled) {
+                    self::syncFees($existing, (array) ($row['fees'] ?? []));
+                }
                 $keptIds[] = (int) $existing->id;
 
                 continue;
@@ -266,7 +281,9 @@ class EstablishmentPaymentAccountResolver
 
             $created = EstablishmentPaymentAccount::query()->create($payload);
             $created->syncBranchAccounts($branchAccounts);
-            self::syncFees($created, (array) ($row['fees'] ?? []));
+            if ($feesEnabled) {
+                self::syncFees($created, (array) ($row['fees'] ?? []));
+            }
             $keptIds[] = (int) $created->id;
         }
 
@@ -367,9 +384,9 @@ class EstablishmentPaymentAccountResolver
     public static function defaultCatalogRows(): array
     {
         return [
-            ['id' => null, 'name_ar' => 'نقداً', 'name_en' => 'Cash', 'account_id' => null, 'payment_method_key' => 'cash', 'establishment_ids' => [], 'branch_accounts' => []],
-            ['id' => null, 'name_ar' => 'بطاقة', 'name_en' => 'Card', 'account_id' => null, 'payment_method_key' => 'card', 'establishment_ids' => [], 'branch_accounts' => []],
-            ['id' => null, 'name_ar' => 'طلبات توصيل', 'name_en' => 'Delivery orders', 'account_id' => null, 'payment_method_key' => 'delivery_apps', 'establishment_ids' => [], 'branch_accounts' => []],
+            ['id' => null, 'name_ar' => 'نقداً', 'name_en' => 'Cash', 'account_id' => null, 'payment_method_key' => 'cash', 'price_tier_id' => null, 'establishment_ids' => [], 'branch_accounts' => [], 'fees' => []],
+            ['id' => null, 'name_ar' => 'بطاقة', 'name_en' => 'Card', 'account_id' => null, 'payment_method_key' => 'card', 'price_tier_id' => null, 'establishment_ids' => [], 'branch_accounts' => [], 'fees' => []],
+            ['id' => null, 'name_ar' => 'طلبات توصيل', 'name_en' => 'Delivery orders', 'account_id' => null, 'payment_method_key' => 'delivery_apps', 'price_tier_id' => null, 'establishment_ids' => [], 'branch_accounts' => [], 'fees' => []],
         ];
     }
 

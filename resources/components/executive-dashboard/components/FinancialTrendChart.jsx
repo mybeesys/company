@@ -66,7 +66,7 @@ export default function FinancialTrendChart({ data, locale, onBarClick, compareU
                 },
                 legend: { position: 'top', horizontalAlign: ar ? 'right' : 'left', labels: { colors: palette.ink } },
                 tooltip: { shared: true, intersect: false },
-                colors: colors.length ? colors : ['#F28705', '#4E91FF', '#FF6470', '#31D17C'],
+                colors: colors.length ? colors : ['#e9b71f', '#4E91FF', '#FF6470', '#31D17C'],
                 series: apexSeries,
             };
             chartRef.current = new window.ApexCharts(elRef.current, options);

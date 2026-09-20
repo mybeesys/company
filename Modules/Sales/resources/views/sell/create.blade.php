@@ -353,6 +353,7 @@
     <script src="{{ url('/modules/Sales/js/invoice-calculations.js') }}"></script>
     <script src="{{ url('/modules/Sales/js/invoice-service-fees.js') }}?v={{ @filemtime(public_path('modules/Sales/js/invoice-service-fees.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/payment-method-fees.js') }}?v={{ @filemtime(public_path('modules/Sales/js/payment-method-fees.js')) ?: time() }}"></script>
+    <script src="{{ url('/modules/Sales/js/payment-method-price-tiers.js') }}?v={{ @filemtime(public_path('modules/Sales/js/payment-method-price-tiers.js')) ?: time() }}"></script>
     <script src="{{ url('/modules/Sales/js/sell-modifiers-combos.js') }}"></script>
     @include('zatca::partials.save-sync-overlay', [
         'zatcaOps' => $zatcaOps ?? [],
@@ -376,9 +377,16 @@
             },
         };
 
-        // رسوم طرق الدفع — تجريبي
+        // رسوم طرق الدفع — تجريبي (معطّلة افتراضياً)
         window.paymentMethodFeesConfig = {
             methods: @json($paymentMethodFees ?? []),
+            locale: @json(app()->getLocale()),
+            enabled: @json((bool) config('establishment.payment_method_fees_enabled', false)),
+        };
+
+        // تسعيرات طرق الدفع
+        window.paymentMethodPriceTiersConfig = {
+            methods: @json($paymentMethodPriceTiers ?? []),
             locale: @json(app()->getLocale()),
         };
 
@@ -494,6 +502,7 @@
                         inventory_qty:product.inventory_qty,
                         has_modifiers: !!product.has_modifiers,
                         has_combos: !!product.has_combos,
+                        price_tiers: Array.isArray(product.price_tiers) ? product.price_tiers : [],
                     })),
                     pagination: {
                         more: response.meta?.next_page_url ? true : false
@@ -510,8 +519,17 @@
         ? resolveInvoiceProductUnitPrice(selectedData)
         : (selectedData.price || 0);
     $row.find('.unit_price-field').val(catalogPrice);
+    if (window.PaymentMethodPriceTiers && typeof window.PaymentMethodPriceTiers.rememberProductTiers === 'function') {
+        window.PaymentMethodPriceTiers.rememberProductTiers($row, selectedData.price_tiers || []);
+    }
+    if (window.PaymentMethodPriceTiers && typeof window.PaymentMethodPriceTiers.captureCatalogPrice === 'function') {
+        window.PaymentMethodPriceTiers.captureCatalogPrice($row, catalogPrice);
+    }
     if (window.PaymentMethodFees && typeof window.PaymentMethodFees.captureCatalogPrice === 'function') {
         window.PaymentMethodFees.captureCatalogPrice($row, catalogPrice);
+    }
+    if (window.PaymentMethodPriceTiers && typeof window.PaymentMethodPriceTiers.applyToLines === 'function') {
+        window.PaymentMethodPriceTiers.applyToLines();
     }
     if (selectedData.inventory_cost !== undefined || selectedData.cost !== undefined) {
         $row.data('inventory-cost', selectedData.inventory_cost != null ? selectedData.inventory_cost : selectedData.cost);

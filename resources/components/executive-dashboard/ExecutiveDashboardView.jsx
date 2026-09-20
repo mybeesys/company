@@ -19,7 +19,6 @@ import DrillDownDrawer from './components/DrillDownDrawer';
 
 const DIMENSIONS = [
     { id: 'by_product', ar: 'المنتج', en: 'Product' },
-    { id: 'by_service', ar: 'الخدمة', en: 'Service' },
     { id: 'by_category', ar: 'التصنيف', en: 'Category' },
     { id: 'by_customer', ar: 'العميل', en: 'Customer' },
     { id: 'by_salesman', ar: 'المندوب', en: 'Sales rep' },
@@ -30,7 +29,7 @@ export default function ExecutiveDashboardView() {
     const locale = root?.getAttribute('data-locale') || 'ar';
     const ar = locale === 'ar';
     const { applied, rememberNavigation, salesDimension, setSalesDimension, applyPatch } = useDashboardFilters();
-    const dimKey = ['by_product', 'by_service', 'by_category', 'by_customer', 'by_salesman'].includes(salesDimension)
+    const dimKey = ['by_product', 'by_category', 'by_customer', 'by_salesman'].includes(salesDimension)
         ? salesDimension
         : 'by_product';
 
@@ -63,12 +62,30 @@ export default function ExecutiveDashboardView() {
     );
 
     const openDrilldown = useCallback(
-        (source, extra = {}) => {
+        (source, extra = {}, keepChart = false) => {
             const base = root?.getAttribute('data-widget-url');
-            setDrawer({ open: true, status: 'loading', data: null, error: null });
-            window.history.pushState({ edDrawer: true }, '');
+            setDrawer((prev) => ({
+                open: true,
+                status: 'loading',
+                data: keepChart ? prev.data : null,
+                error: null,
+            }));
+            if (!window.history.state?.edDrawer) window.history.pushState({ edDrawer: true }, '');
             fetchWidget(base, 'drilldown', applied, { source, ...extra })
-                .then((data) => setDrawer({ open: true, status: 'success', data, error: null }))
+                .then((data) => setDrawer((prev) => ({
+                    open: true,
+                    status: 'success',
+                    data: keepChart && prev.data?.slices
+                        ? {
+                            ...data,
+                            slices: prev.data.slices,
+                            total_formatted: prev.data.total_formatted,
+                            center_label: prev.data.center_label,
+                            title: prev.data.title || data.title,
+                        }
+                        : data,
+                    error: null,
+                })))
                 .catch((err) => setDrawer({ open: true, status: 'error', data: null, error: err.message }));
         },
         [applied, root]
@@ -101,11 +118,11 @@ export default function ExecutiveDashboardView() {
     return (
         <div className="ed-page">
             <div className="ed-topbar">
-                <header className="ed-hero">
-                    <h1>{ar ? 'لوحة التحكم' : 'Dashboard'}</h1>
-                    <HubTabsToggle locale={locale} />
-                </header>
-                <DashboardFilterBar bootstrap={bootstrap} locale={locale} />
+                <DashboardFilterBar
+                    bootstrap={bootstrap}
+                    locale={locale}
+                    extraActions={<HubTabsToggle locale={locale} />}
+                />
             </div>
 
             <WidgetErrorBoundary>
@@ -136,18 +153,95 @@ export default function ExecutiveDashboardView() {
                         />
                     </WidgetFrame>
                 </WidgetErrorBoundary>
+                <WidgetErrorBoundary title={ar ? 'تحليل المبيعات الديناميكي' : 'Dynamic sales analysis'}>
+                    <WidgetFrame
+                        title={ar ? 'تحليل المبيعات الديناميكي' : 'Dynamic sales analysis'}
+                        status={dashboard.status === 'loading' ? 'loading' : (analysisItems.length ? 'success' : (dashboard.status === 'error' ? 'error' : 'empty'))}
+                        error={dashboard.error}
+                        emptyText={empty}
+                        actions={
+                            <div className="ed-tabs">
+                                {DIMENSIONS.map((d) => (
+                                    <button
+                                        key={d.id}
+                                        type="button"
+                                        className={`ed-tab ${dimKey === d.id ? 'is-active' : ''}`}
+                                        onClick={() => setSalesDimension(d.id)}
+                                    >
+                                        {ar ? d.ar : d.en}
+                                    </button>
+                                ))}
+                            </div>
+                        }
+                    >
+                        <HorizontalBarChart items={analysisItems} color="#e9b71f" />
+                    </WidgetFrame>
+                </WidgetErrorBoundary>
+            </div>
+
+            <div className="ed-bottom">
+                <WidgetErrorBoundary title={ar ? 'مركز القرار' : 'Decision center'}>
+                    {dashboard.status === 'loading' ? (
+                        <section className="ed-card"><div className="ed-skel" /></section>
+                    ) : (
+                        <DecisionCenter alerts={payload.decision_alerts} locale={locale} onNavigate={go} />
+                    )}
+                </WidgetErrorBoundary>
+                {showBranches && (
+                    <WidgetErrorBoundary title={ar ? 'المبيعات حسب الفروع' : 'Sales by branch'}>
+                        <WidgetFrame
+                            title={ar ? 'المبيعات حسب الفروع' : 'Sales by branch'}
+                            status="success"
+                            emptyText={empty}
+                        >
+                            <HorizontalBarChart
+                                items={payload.top_branches}
+                                color="#e9b71f"
+                                onSelect={(item) => {
+                                    if (item.id) applyPatch({ branch_id: String(item.id) });
+                                }}
+                            />
+                        </WidgetFrame>
+                    </WidgetErrorBoundary>
+                )}
                 <WidgetErrorBoundary title={ar ? 'توزيع المصروفات' : 'Expense distribution'}>
                     <WidgetFrame
                         title={ar ? 'توزيع المصروفات' : 'Expense distribution'}
                         status={dashboard.status === 'loading' ? 'loading' : ((payload.expense_categories || []).length ? 'success' : (dashboard.status === 'error' ? 'error' : 'empty'))}
                         error={dashboard.error}
                         emptyText={empty}
+                        actions={
+                            (payload.expense_categories || []).length ? (
+                                <button
+                                    type="button"
+                                    className="ed-btn ed-btn-ghost ed-btn-sm"
+                                    onClick={() => {
+                                        setDrawer({
+                                            open: true,
+                                            status: 'success',
+                                            error: null,
+                                            data: {
+                                                title: ar ? 'توزيع المصروفات' : 'Expense distribution',
+                                                slices: payload.expense_categories,
+                                                total_formatted: payload.expense_total_formatted,
+                                                center_label: ar ? 'إجمالي المصروف' : 'Total expenses',
+                                                report_url: routes.expense_report || null,
+                                            },
+                                        });
+                                        if (!window.history.state?.edDrawer) window.history.pushState({ edDrawer: true }, '');
+                                    }}
+                                >
+                                    {ar ? 'عرض التفاصيل' : 'View details'}
+                                </button>
+                            ) : null
+                        }
                     >
                         <ExpenseDonutChart
                             slices={payload.expense_categories}
                             totalFormatted={payload.expense_total_formatted}
                             locale={locale}
-                            onSliceClick={(slice) => openDrilldown('expense-category', { category_id: slice.id })}
+                            showLegend={false}
+                            height={220}
                         />
                     </WidgetFrame>
                 </WidgetErrorBoundary>
@@ -325,56 +419,6 @@ export default function ExecutiveDashboardView() {
                 </>
             )}
 
-            <div className="ed-bottom">
-                <WidgetErrorBoundary title={ar ? 'مركز القرار' : 'Decision center'}>
-                    {dashboard.status === 'loading' ? (
-                        <section className="ed-card"><div className="ed-skel" /></section>
-                    ) : (
-                        <DecisionCenter alerts={payload.decision_alerts} locale={locale} onNavigate={go} />
-                    )}
-                </WidgetErrorBoundary>
-                <WidgetErrorBoundary title={ar ? 'تحليل المبيعات الديناميكي' : 'Dynamic sales analysis'}>
-                    <WidgetFrame
-                        title={ar ? 'تحليل المبيعات الديناميكي' : 'Dynamic sales analysis'}
-                        status={dashboard.status === 'loading' ? 'loading' : (analysisItems.length ? 'success' : (dashboard.status === 'error' ? 'error' : 'empty'))}
-                        error={dashboard.error}
-                        emptyText={empty}
-                        actions={
-                            <div className="ed-tabs">
-                                {DIMENSIONS.map((d) => (
-                                    <button
-                                        key={d.id}
-                                        type="button"
-                                        className={`ed-tab ${dimKey === d.id ? 'is-active' : ''}`}
-                                        onClick={() => setSalesDimension(d.id)}
-                                    >
-                                        {ar ? d.ar : d.en}
-                                    </button>
-                                ))}
-                            </div>
-                        }
-                    >
-                        <HorizontalBarChart items={analysisItems} color="#F28705" />
-                    </WidgetFrame>
-                </WidgetErrorBoundary>
-                {showBranches && (
-                    <WidgetErrorBoundary title={ar ? 'المبيعات حسب الفروع' : 'Sales by branch'}>
-                        <WidgetFrame
-                            title={ar ? 'المبيعات حسب الفروع' : 'Sales by branch'}
-                            status="success"
-                            emptyText={empty}
-                        >
-                            <HorizontalBarChart
-                                items={payload.top_branches}
-                                onSelect={(item) => {
-                                    if (item.id) applyPatch({ branch_id: String(item.id) });
-                                }}
-                            />
-                        </WidgetFrame>
-                    </WidgetErrorBoundary>
-                )}
-            </div>
-
             <DrillDownDrawer
                 open={drawer.open}
                 payload={drawer.data}
@@ -384,6 +428,7 @@ export default function ExecutiveDashboardView() {
                 onClose={closeDrawer}
                 onOpenRow={(row) => go(row.url)}
                 onOpenReport={(url) => go(url)}
+                onSliceClick={(slice) => openDrilldown('expense-category', { category_id: slice.id }, true)}
             />
         </div>
     );

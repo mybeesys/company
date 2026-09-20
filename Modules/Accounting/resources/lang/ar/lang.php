@@ -75,6 +75,8 @@ return [
     'ledger_narration' => 'البيان',
     'ledger_report_period' => 'عن الفترة من :from إلى :to',
     'ledger_report_account_class' => 'تصنيف الحساب',
+    'ledger_includes_children_note' => 'كشف مجمّع: يتضمن حركات الحسابات الفرعية التابعة لهذا الحساب.',
+    'ledger_child_account' => 'الحساب الفرعي',
     'account_not_found' => 'الحساب غير موجود.',
     'cannot_delete_account_has_movements' => 'لا يمكن حذف الحساب لأنه يحتوي على حركات.',
     'cannot_delete_account_has_children' => 'لا يمكن حذف الحساب لأنه يحتوي على حسابات فرعية.',

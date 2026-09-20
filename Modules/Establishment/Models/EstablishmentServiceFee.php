@@ -4,6 +4,7 @@ namespace Modules\Establishment\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Accounting\Models\AccountingAccount;
 use Modules\Establishment\Models\Concerns\HasEstablishmentAssignments;
 
 class EstablishmentServiceFee extends Model
@@ -63,6 +64,25 @@ class EstablishmentServiceFee extends Model
     public function cashierPaymentMethod(): BelongsTo
     {
         return $this->belongsTo(EstablishmentPaymentAccount::class, 'cashier_payment_method_id');
+    }
+
+    public function debitAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountingAccount::class, 'debit_accounting_account_id');
+    }
+
+    public function creditAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountingAccount::class, 'credit_accounting_account_id');
+    }
+
+    /**
+     * Both journal parties must be set before posting a separate service-fee entry.
+     */
+    public function hasJournalAccounts(): bool
+    {
+        return (int) ($this->debit_accounting_account_id ?? 0) > 0
+            && (int) ($this->credit_accounting_account_id ?? 0) > 0;
     }
 
     public function displayName(?string $locale = null): string

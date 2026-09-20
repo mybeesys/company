@@ -3,9 +3,11 @@
     'diningTypes' => null,
     'cashierPaymentRows' => [],
     'branchOptions' => null,
+    'accounts' => null,
 ])
 @php
     $locale = app()->getLocale();
+    $accounts = $accounts ?? collect();
     $rows = old('service_fee_rows', $serviceFeeRows ?? []);
     if (! is_array($rows) || $rows === []) {
         $rows = [[
@@ -22,6 +24,8 @@
             'dining_type_ids' => [],
             'guestCount' => null,
             'credit_type' => null,
+            'debit_accounting_account_id' => null,
+            'credit_accounting_account_id' => null,
             'from_date' => null,
             'to_date' => null,
             'establishment_ids' => [],
@@ -47,6 +51,7 @@
                         'cashierPaymentRows' => $cashierPaymentRows,
                         'locale' => $locale,
                         'branchOptions' => $branchOptions,
+                        'accounts' => $accounts,
                     ])
                 @endforeach
             </div>
@@ -71,6 +76,8 @@
             'dining_type_ids' => [],
             'guestCount' => null,
             'credit_type' => null,
+            'debit_accounting_account_id' => null,
+            'credit_accounting_account_id' => null,
             'from_date' => null,
             'to_date' => null,
             'establishment_ids' => [],
@@ -79,5 +86,6 @@
         'cashierPaymentRows' => $cashierPaymentRows,
         'locale' => $locale,
         'branchOptions' => $branchOptions,
+        'accounts' => $accounts,
     ])
 </template>

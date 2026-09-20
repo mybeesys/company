@@ -23,8 +23,24 @@
                 </div>
 
 
-                <form action="{{ route('store-sub-account') }}" method="POST">
+                <form action="{{ route('store-sub-account') }}" method="POST" id="create_sub_account_form">
                     @csrf
+
+                    <div class="fv-row mb-5 fv-plugins-icon-container d-none" id="create_sub_account_subtype_wrap">
+                        <label class="fs-6 fw-semibold form-label mt-3">
+                            <span class="required">@lang('accounting::lang.account_sub_type')</span>
+                        </label>
+                        <select id="create_sub_account_subtype_select" class="form-select form-select-solid">
+                            <option value="">@lang('messages.select')</option>
+                            @foreach (($account_sub_types ?? collect()) as $subTypeOption)
+                                <option value="{{ $subTypeOption->id }}"
+                                    data-primary-type="{{ $subTypeOption->account_primary_type }}">
+                                    ({{ $subTypeOption->gl_code }})
+                                    {{ app()->getLocale() == 'ar' ? $subTypeOption->name_ar : $subTypeOption->name_en }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <div class="fv-row mb-5 fv-plugins-icon-container">
                         <label class="fs-6 fw-semibold form-label mt-3">
@@ -42,21 +58,8 @@
                             value="">
                     </div>
 
-                    {{-- <div class="fv-row mb-5">
-                        <label class="fs-6 fw-semibold form-label mt-3">
-                            <span class="required">@lang('accounting::lang.account_category')</span>
-                        </label>
-                        <select id="kt_ecommerce_select2_account_category data-kt-menu-placement" required
-                            class="form-select select-2 form-select-solid kt_ecommerce_select2_account_category_" name="account_category">
-                            <option value="" selected>@lang('messages.select')</option>
-                            @foreach ($account_category as $key => $vale)
-                                <option value="{{ $key }}">{{ $vale }}</option>
-                            @endforeach
-                        </select>
-                    </div> --}}
-
                     <input type="text" id="sub_account_id" hidden class="form-control form-control-solid"
-                        name="sub_account_id" value="">
+                        name="sub_account_id" value="" required>
                     <div class="text-center">
                         <button type="reset" class="btn btn-light me-3" data-bs-dismiss="modal">
                             @lang('messages.cancel')

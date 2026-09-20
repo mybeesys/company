@@ -10,17 +10,19 @@ export default function KpiCard({ card, currency, onOpen }) {
                 {card.badge?.label && <span className={`ed-chip ed-chip-${card.badge.tone || 'warning'}`}>{card.badge.label}</span>}
                 {card.tag?.label && <span className="ed-chip ed-chip-info">{card.tag.label}</span>}
             </div>
-            <div className="ed-kpi-value">
-                {card.formatted}
-                {card.unit ? <span className="ed-kpi-unit"> {card.unit}</span> : null}
-                {card.show_currency ? <span className="currency-symbol"> {currency}</span> : null}
-            </div>
-            {growth !== null && growth !== undefined && (
-                <div className={`ed-kpi-growth ${up ? 'ed-up' : 'ed-down'}`}>
-                    {up ? '▲' : '▼'} {Math.abs(growth)}%
+            <div className="ed-kpi-main">
+                <div className="ed-kpi-value">
+                    {card.formatted}
+                    {card.unit ? <span className="ed-kpi-unit"> {card.unit}</span> : null}
+                    {card.show_currency ? <span className="currency-symbol"> {currency}</span> : null}
                 </div>
-            )}
-            <div className="ed-kpi-sub">{card.subtitle}</div>
+                {growth !== null && growth !== undefined && (
+                    <div className={`ed-kpi-growth ${up ? 'ed-up' : 'ed-down'}`}>
+                        {up ? '▲' : '▼'} {Math.abs(growth)}%
+                    </div>
+                )}
+            </div>
+            {card.subtitle ? <div className="ed-kpi-sub">{card.subtitle}</div> : null}
         </button>
     );
 }

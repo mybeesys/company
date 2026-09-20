@@ -3,8 +3,12 @@
     $detailsTabId = 'cashier-pay-details-'.$index;
     $assignTabId  = 'cashier-pay-assign-'.$index;
     $feesTabId    = 'cashier-pay-fees-'.$index;
+    $priceTierTabId = 'cashier-pay-price-tier-'.$index;
+    $feesEnabled  = (bool) config('establishment.payment_method_fees_enabled', false);
     $feesCount    = count($row['fees'] ?? []);
     $locale       = $locale ?? app()->getLocale();
+    $priceTierOptions = $priceTierOptions ?? collect();
+    $selectedPriceTierId = $row['price_tier_id'] ?? null;
 @endphp
 <div class="border border-gray-300 rounded p-4 cashier-payment-row bg-body" data-cashier-row data-catalog-item>
     @if (! empty($row['id']))
@@ -14,7 +18,7 @@
         <input type="hidden" name="cashier_payment_rows[{{ $index }}][payment_method_key]" value="{{ $row['payment_method_key'] }}">
     @endif
     @if ($showAssignment)
-        {{-- تبويبات: التفاصيل | الفروع | الرسوم --}}
+        {{-- تبويبات: التفاصيل | الفروع | التسعيرات | الرسوم (مؤقتاً مخفية) --}}
         @php $assignedCount = count(array_filter(array_map('intval', $row['establishment_ids'] ?? []))); @endphp
         <ul class="nav nav-stretch nav-line-tabs nav-line-tabs-2x catalog-item-tabs mb-5" role="tablist">
             <li class="nav-item">
@@ -32,11 +36,22 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link text-active-primary pb-4 d-inline-flex align-items-center gap-2"
+                   data-bs-toggle="tab" href="#{{ $priceTierTabId }}" role="tab">
+                    @lang('establishment::fields.payment_method_price_tier_tab')
+                    @if ($selectedPriceTierId)
+                        <span class="badge badge-light-success fw-bold rounded-pill px-3 py-2">1</span>
+                    @endif
+                </a>
+            </li>
+            @if ($feesEnabled)
+            <li class="nav-item">
+                <a class="nav-link text-active-primary pb-4 d-inline-flex align-items-center gap-2"
                    data-bs-toggle="tab" href="#{{ $feesTabId }}" role="tab">
                     @lang('establishment::fields.payment_method_fees_tab')
                     <span class="badge badge-light-warning fw-bold rounded-pill px-3 py-2 pmf-fees-tab-count">{{ $feesCount }}</span>
                 </a>
             </li>
+            @endif
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="{{ $detailsTabId }}">
@@ -76,6 +91,15 @@
                     'locale' => $locale,
                 ])
             </div>
+            <div class="tab-pane fade" id="{{ $priceTierTabId }}">
+                @include('establishment::components.establishments.partials.payment-method-price-tier-tab', [
+                    'index' => $index,
+                    'row' => $row,
+                    'priceTierOptions' => $priceTierOptions,
+                    'locale' => $locale,
+                ])
+            </div>
+            @if ($feesEnabled)
             <div class="tab-pane fade" id="{{ $feesTabId }}">
                 @include('establishment::components.establishments.partials.payment-method-fees-tab', [
                     'index' => $index,
@@ -83,6 +107,7 @@
                     'locale' => $locale,
                 ])
             </div>
+            @endif
         </div>
     @endif
 </div>

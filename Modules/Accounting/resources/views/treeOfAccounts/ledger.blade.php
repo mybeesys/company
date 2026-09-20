@@ -261,6 +261,31 @@
         .ledger-filter-actions .btn {
             white-space: nowrap;
         }
+
+        .ledger-children-note {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.65rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 8px;
+            background: #f1f3f8;
+            color: #5e6278;
+            font-size: 0.8rem;
+            line-height: 1.35;
+        }
+
+        .ledger-child-badge {
+            display: inline-block;
+            margin-inline-end: 0.35rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 6px;
+            background: #eef3ff;
+            color: #3e5eb5;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
     </style>
 @stop
 @section('content')
@@ -316,6 +341,11 @@
                             {{ app()->getLocale() == 'ar' ? $account->account_sub_type['name_ar'] : $account->account_sub_type['name_en'] }}
                         @endif
                     </div>
+                    @if (!empty($ledger_includes_children))
+                        <div class="ledger-children-note">
+                            @lang('accounting::lang.ledger_includes_children_note')
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -324,17 +354,24 @@
 
 
     @php
-        $ledgerExportQuery = array_merge($ledger_export_base_params ?? [], [
+        $ledgerScopeQuery = $ledger_scope_query ?? (
+            (int) ($account->id ?? 0) > 0 ? ['account_id' => (int) $account->id] : []
+        );
+        $ledgerExportQuery = array_merge($ledger_export_base_params ?? [], $ledgerScopeQuery, [
             'ledger_cols' => implode(',', $ledger_visible_columns),
         ]);
+        $ledgerFilterAction = url('ledger').'?'.http_build_query($ledgerScopeQuery);
+        $ledgerResetUrl = route('ledger', $ledgerScopeQuery);
+        $ledgerExportId = (int) ($account->id ?? 0);
     @endphp
 
-    <form action="{{ url('ledger') }}?account_id={{ $account->id }}" method="GET">
+    <form action="{{ $ledgerFilterAction }}" method="GET">
         <div class="row py-5">
             <div class="col-md-3">
                 <label>{{ __('accounting::lang.from_date') }}</label>
-                <input type="hidden" name="account_id" value="{{ $account->id }}"
-                    class="form-control">
+                @foreach ($ledgerScopeQuery as $scopeKey => $scopeValue)
+                    <input type="hidden" name="{{ $scopeKey }}" value="{{ $scopeValue }}">
+                @endforeach
                 <input type="date" name="start_date" value="{{ request('start_date', $start_date) }}"
                     class="form-control">
             </div>
@@ -370,14 +407,14 @@
             </div>
             <div class="col-md-9 d-flex align-items-end mt-4 ledger-filter-actions">
                 <button type="submit" class="btn btn-primary">{{ __('report::general.filter') }}</button>
-                <a href="{{ route('ledger', ['account_id' => $account->id]) }}" class="btn btn-light">@lang('sales::lang.Remove filter')</a>
+                <a href="{{ $ledgerResetUrl }}" class="btn btn-light">@lang('sales::lang.Remove filter')</a>
                 @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::ACCOUNT_STATEMENT_PRINT)
-                <a href="{{ url('/ledger-export-pdf', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
+                <a href="{{ url('/ledger-export-pdf', $ledgerExportId) }}?{{ http_build_query($ledgerExportQuery) }}"
                     class="btn btn-export-pdf btn-sm ledger-export-link"
-                    data-ledger-export-base="{{ url('/ledger-export-pdf', $account->id) }}">@lang('general.export_as_pdf')</a>
-                <a href="{{ url('/ledger-export-excel', $account->id) }}?{{ http_build_query($ledgerExportQuery) }}"
+                    data-ledger-export-base="{{ url('/ledger-export-pdf', $ledgerExportId) }}">@lang('general.export_as_pdf')</a>
+                <a href="{{ url('/ledger-export-excel', $ledgerExportId) }}?{{ http_build_query($ledgerExportQuery) }}"
                     class="btn btn-export-excel btn-sm ledger-export-link"
-                    data-ledger-export-base="{{ url('/ledger-export-excel', $account->id) }}">@lang('general.export_as_excel')</a>
+                    data-ledger-export-base="{{ url('/ledger-export-excel', $ledgerExportId) }}">@lang('general.export_as_excel')</a>
                 @enddashboardcan
             </div>
         </div>
@@ -652,13 +689,8 @@
 
                             @foreach ($account_transactions as $transactions)
                                 @php
-                                    $account_type = $transactions->account->account_primary_type;
-                                    $is_debit_nature = in_array($account_type, [
-                                        'asset',
-                                        'expenses',
-                                        'analytical_accounts',
-                                    ]);
-
+                                    // Use the statement account nature (parent when consolidated) so
+                                    // running balance matches opening / print / export.
                                     if ($is_debit_nature) {
                                         if ($transactions->type == 'debit') {
                                             $balance += $transactions->amount;
@@ -720,7 +752,19 @@
                                                 $transactions->accTransMapping?->note,
                                                 true
                                             );
+                                            $showChildBadge = ! empty($ledger_includes_children)
+                                                || (($ledger_scope_mode ?? 'account') !== 'account');
+                                            $childPrefix = $showChildBadge
+                                                ? \Modules\Accounting\Support\LedgerStatementPresenter::childAccountPrefix(
+                                                    $transactions,
+                                                    (int) ($account->id ?? 0),
+                                                    app()->getLocale() === 'ar'
+                                                )
+                                                : '';
                                         @endphp
+                                        @if ($childPrefix !== '')
+                                            <span class="ledger-child-badge" title="@lang('accounting::lang.ledger_child_account')">{{ $childPrefix }}</span>
+                                        @endif
                                         <span class="text-gray-800 fs-7">{{ $ledgerNarr }}</span>
                                     </td>
                                     <td class="@if (!$ledgerColShow('cost_center')) d-none @endif" data-ledger-col="cost_center">
@@ -1046,6 +1090,8 @@
             function ledgerNavigateToAccount(newId) {
                 var url = new URL(ledgerBaseUrl, window.location.origin);
                 var params = new URLSearchParams(window.location.search);
+                params.delete('account_primary_type');
+                params.delete('account_sub_type_id');
                 params.set('account_id', String(newId));
                 url.search = params.toString();
                 window.location.href = url.toString();

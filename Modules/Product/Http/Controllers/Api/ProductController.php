@@ -42,6 +42,9 @@ class ProductController extends Controller
             }])->with(['unitTransfers' => function ($query) {
                 $query->whereNull('unit2');
             }])->with('category')->with('subcategory')->with('tax')
+            ->with(['priceTiers' => function ($query) {
+                $query->select('id', 'product_id', 'price_tier_id', 'price');
+            }])
             ->with(['total' => function ($query) use ($establishment_id) {
                 $query->where('establishment_id', '=', $establishment_id);
             }])
@@ -70,7 +73,10 @@ class ProductController extends Controller
             }]);
         }])->with(['unitTransfers' => function ($query) {
             $query->whereNull('unit2');
-        }])->with('category')->with('subcategory')->with('tax')->get();
+        }])->with('category')->with('subcategory')->with('tax')
+            ->with(['priceTiers' => function ($query) {
+                $query->select('id', 'product_id', 'price_tier_id', 'price');
+            }])->get();
 
         return new ProductCollection($products);
     }

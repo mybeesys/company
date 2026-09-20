@@ -2,13 +2,15 @@
     'accounts' => null,
     'cashierPaymentRows' => [],
     'branchOptions' => null,
+    'priceTierOptions' => null,
 ])
 @php
     $locale = app()->getLocale();
     $rows = old('cashier_payment_rows', $cashierPaymentRows ?? []);
     if (! is_array($rows) || $rows === []) {
-        $rows = [['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'establishment_ids' => [], 'branch_accounts' => []]];
+        $rows = [['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'price_tier_id' => null, 'establishment_ids' => [], 'branch_accounts' => [], 'fees' => []]];
     }
+    $priceTierOptions = $priceTierOptions ?? collect();
 @endphp
 <div class="establishment-cashier-payments d-flex flex-column flex-row-fluid gap-7 gap-lg-10" id="cashier_payment_methods_root">
     <x-form.form-card bodyClass="d-flex flex-column gap-5" :title="__('establishment::general.cashier_payment_methods')">
@@ -28,6 +30,7 @@
                         'accounts' => $accounts,
                         'locale' => $locale,
                         'branchOptions' => $branchOptions,
+                        'priceTierOptions' => $priceTierOptions,
                     ])
                 @endforeach
             </div>
@@ -50,13 +53,15 @@
 <template id="cashier_payment_row_template">
     @include('establishment::components.establishments.partials.cashier-payment-row', [
         'index' => '__INDEX__',
-        'row' => ['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'establishment_ids' => [], 'branch_accounts' => [], 'fees' => []],
+        'row' => ['id' => null, 'name_ar' => '', 'name_en' => '', 'account_id' => null, 'price_tier_id' => null, 'establishment_ids' => [], 'branch_accounts' => [], 'fees' => []],
         'accounts' => $accounts,
         'locale' => $locale,
         'branchOptions' => $branchOptions,
+        'priceTierOptions' => $priceTierOptions,
     ])
 </template>
 
+@if (config('establishment.payment_method_fees_enabled', false))
 <template id="cashier_payment_fee_row_template">
     @include('establishment::components.establishments.partials.payment-method-fee-row', [
         'methodIndex' => '__METHOD_INDEX__',
@@ -65,3 +70,4 @@
         'locale'      => $locale,
     ])
 </template>
+@endif
