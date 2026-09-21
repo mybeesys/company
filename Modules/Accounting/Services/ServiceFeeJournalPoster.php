@@ -13,11 +13,17 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\AutoJournalGuard;
+use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Establishment\Models\EstablishmentServiceFee;
 use Modules\General\Models\Transaction;
 
 /**
- * Posts one independent «قيد رسوم خدمة» journal per applied service fee
- * that has both debit and credit accounts configured.
+ * Posts one independent «قيد رسوم خدمة» for collected fees that have a fee GL account.
+ *
+ * Taxable fee VAT stays inside the sales invoice journal (Accounts Routing VAT).
+ * This entry posts fee net only:
+ *   Dr customer AR (fee_amount)
+ *   Cr fee account (fee_amount)
  */
 final class ServiceFeeJournalPoster
 {
@@ -58,14 +64,14 @@ final class ServiceFeeJournalPoster
     }
 
     /**
-     * Totals for fees that will be posted separately (strip from sales JE).
+     * Fee nets that post separately — strip from sales JE revenue/AR only.
+     * Fee tax remains in the sales invoice VAT line.
      *
      * @return array{fee_amount: float, fee_tax: float, gross: float}
      */
     public static function separatelyAccountedTotals(Transaction $transaction): array
     {
         $feeAmount = 0.0;
-        $feeTax = 0.0;
 
         $payload = $transaction->service_fees_payload;
         if (! is_array($payload)) {
@@ -78,16 +84,15 @@ final class ServiceFeeJournalPoster
             }
 
             $feeAmount += (float) ($feeLine['fee_amount'] ?? 0);
-            $feeTax += (float) ($feeLine['tax_amount'] ?? 0);
         }
 
         $feeAmount = round($feeAmount, 2);
-        $feeTax = round($feeTax, 2);
 
         return [
             'fee_amount' => $feeAmount,
-            'fee_tax' => $feeTax,
-            'gross' => round($feeAmount + $feeTax, 2),
+            // Intentionally 0: taxable fee VAT stays on the sales journal.
+            'fee_tax' => 0.0,
+            'gross' => $feeAmount,
         ];
     }
 
@@ -96,16 +101,35 @@ final class ServiceFeeJournalPoster
      */
     public static function feeLineIsSeparatelyAccounted(array $feeLine): bool
     {
-        $debitId = (int) ($feeLine['debit_accounting_account_id'] ?? 0);
-        $creditId = (int) ($feeLine['credit_accounting_account_id'] ?? 0);
+        return self::canBuildInvoiceJournal($feeLine);
+    }
 
-        if ($debitId > 0 && $creditId > 0) {
-            return true;
+    /**
+     * @param  array<string, mixed>  $feeLine
+     */
+    private static function canBuildInvoiceJournal(array $feeLine): bool
+    {
+        $direction = strtoupper((string) ($feeLine['fee_direction'] ?? EstablishmentServiceFee::DIRECTION_COLLECTED));
+        if ($direction !== '' && $direction !== EstablishmentServiceFee::DIRECTION_COLLECTED) {
+            return false;
         }
 
-        return (bool) ($feeLine['has_journal_accounts'] ?? false)
-            && $debitId > 0
-            && $creditId > 0;
+        return self::resolvedFeeAccountId($feeLine) > 0;
+    }
+
+    /**
+     * @param  array<string, mixed>  $feeLine
+     */
+    private static function resolvedFeeAccountId(array $feeLine): int
+    {
+        foreach (['fee_account_id', 'revenue_account_id', 'credit_accounting_account_id'] as $key) {
+            $id = (int) ($feeLine[$key] ?? 0);
+            if ($id > 0) {
+                return $id;
+            }
+        }
+
+        return 0;
     }
 
     /**
@@ -118,14 +142,10 @@ final class ServiceFeeJournalPoster
         }
 
         $feeId = (int) ($feeLine['id'] ?? 0);
-        $debitId = (int) ($feeLine['debit_accounting_account_id'] ?? 0);
-        $creditId = (int) ($feeLine['credit_accounting_account_id'] ?? 0);
-        $gross = round(
-            (float) ($feeLine['fee_amount'] ?? 0) + (float) ($feeLine['tax_amount'] ?? 0),
-            2
-        );
+        $feeAmount = round((float) ($feeLine['fee_amount'] ?? 0), 2);
+        $feeAccountId = self::resolvedFeeAccountId($feeLine);
 
-        if ($feeId <= 0 || $debitId <= 0 || $creditId <= 0 || $gross <= 0) {
+        if ($feeId <= 0 || $feeAmount <= 0 || $feeAccountId <= 0) {
             return null;
         }
 
@@ -134,8 +154,13 @@ final class ServiceFeeJournalPoster
         }
 
         try {
-            return DB::transaction(function () use ($transaction, $feeLine, $feeId, $debitId, $creditId, $gross) {
+            return DB::transaction(function () use ($transaction, $feeLine, $feeId, $feeAmount, $feeAccountId) {
                 FiscalPeriodGatekeeper::assertPostable($transaction->transaction_date ?? now());
+
+                $arAccountId = self::resolveArAccountId($transaction, $feeLine);
+                if ($arAccountId <= 0) {
+                    throw new \RuntimeException('Customer receivable account is required to post the service fee journal.');
+                }
 
                 $feeName = trim((string) (
                     app()->getLocale() === 'ar'
@@ -161,11 +186,10 @@ final class ServiceFeeJournalPoster
                 $opDate = $mapping->operation_date;
                 $userId = (int) ($mapping->created_by ?? 1);
                 $costCenterId = $transaction->cost_center ? (int) $transaction->cost_center : null;
-                $lineNote = 'service_fee:'.$feeId;
 
                 AccountingAccountsTransaction::query()->create([
-                    'amount' => $gross,
-                    'accounting_account_id' => $debitId,
+                    'amount' => $feeAmount,
+                    'accounting_account_id' => $arAccountId,
                     'type' => 'debit',
                     'sub_type' => self::SUB_TYPE,
                     'operation_date' => $opDate,
@@ -174,12 +198,12 @@ final class ServiceFeeJournalPoster
                     'transaction_payment_id' => null,
                     'acc_trans_mapping_id' => (int) $mapping->id,
                     'cost_center_id' => $costCenterId,
-                    'note' => $lineNote,
+                    'note' => $note,
                 ]);
 
                 AccountingAccountsTransaction::query()->create([
-                    'amount' => $gross,
-                    'accounting_account_id' => $creditId,
+                    'amount' => $feeAmount,
+                    'accounting_account_id' => $feeAccountId,
                     'type' => 'credit',
                     'sub_type' => self::SUB_TYPE,
                     'operation_date' => $opDate,
@@ -188,7 +212,7 @@ final class ServiceFeeJournalPoster
                     'transaction_payment_id' => null,
                     'acc_trans_mapping_id' => (int) $mapping->id,
                     'cost_center_id' => $costCenterId,
-                    'note' => $lineNote,
+                    'note' => $note,
                 ]);
 
                 AutoJournalGuard::assertBalanced((int) $mapping->id);
@@ -206,12 +230,34 @@ final class ServiceFeeJournalPoster
         }
     }
 
+    /**
+     * @param  array<string, mixed>  $feeLine
+     */
+    private static function resolveArAccountId(Transaction $transaction, array $feeLine): int
+    {
+        $override = (int) ($feeLine['debit_accounting_account_id'] ?? 0);
+        if ($override > 0) {
+            return $override;
+        }
+
+        $client = Contact::query()->find($transaction->contact_id);
+        $util = app(AccountingUtil::class);
+
+        return $util->resolveCustomerReceivableAccountId($client, 'service fee');
+    }
+
     private static function alreadyPosted(Transaction $transaction, int $feeId): bool
     {
+        $legacyMarker = 'service_fee:'.$feeId;
+        $idMarker = '[#'.$feeId.']';
+
         return AccountingAccountsTransaction::query()
             ->where('transaction_id', $transaction->id)
             ->where('sub_type', self::SUB_TYPE)
-            ->where('note', 'service_fee:'.$feeId)
+            ->where(function ($query) use ($legacyMarker, $idMarker) {
+                $query->where('note', $legacyMarker)
+                    ->orWhere('note', 'like', '%'.$idMarker.'%');
+            })
             ->exists();
     }
 }

@@ -208,12 +208,37 @@ final class InvoiceServiceFeeCalculator
             'debit_accounting_account_id' => ! empty($fee['debit_accounting_account_id'])
                 ? (int) $fee['debit_accounting_account_id']
                 : null,
+            'fee_direction' => in_array(strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED')), ['COLLECTED', 'PAID'], true)
+                ? strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED'))
+                : 'COLLECTED',
+            'fee_account_id' => ! empty($fee['fee_account_id'])
+                ? (int) $fee['fee_account_id']
+                : (! empty($fee['revenue_account_id'])
+                    ? (int) $fee['revenue_account_id']
+                    : (! empty($fee['credit_accounting_account_id'])
+                        ? (int) $fee['credit_accounting_account_id']
+                        : (! empty($fee['expense_account_id']) ? (int) $fee['expense_account_id'] : null))),
+            'revenue_account_id' => ! empty($fee['revenue_account_id'])
+                ? (int) $fee['revenue_account_id']
+                : (! empty($fee['fee_account_id']) && strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED')) !== 'PAID'
+                    ? (int) $fee['fee_account_id']
+                    : (! empty($fee['credit_accounting_account_id']) ? (int) $fee['credit_accounting_account_id'] : null)),
             'credit_accounting_account_id' => ! empty($fee['credit_accounting_account_id'])
                 ? (int) $fee['credit_accounting_account_id']
-                : null,
-            'has_journal_accounts' => (bool) ($fee['has_journal_accounts'] ?? (
-                ! empty($fee['debit_accounting_account_id']) && ! empty($fee['credit_accounting_account_id'])
-            )),
+                : (! empty($fee['revenue_account_id'])
+                    ? (int) $fee['revenue_account_id']
+                    : (! empty($fee['fee_account_id']) && strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED')) !== 'PAID'
+                        ? (int) $fee['fee_account_id']
+                        : null)),
+            'has_journal_accounts' => (bool) ($fee['has_journal_accounts'] ?? false)
+                || (
+                    strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED')) === 'COLLECTED'
+                    && (
+                        ! empty($fee['fee_account_id'])
+                        || ! empty($fee['revenue_account_id'])
+                        || ! empty($fee['credit_accounting_account_id'])
+                    )
+                ),
         ];
     }
 

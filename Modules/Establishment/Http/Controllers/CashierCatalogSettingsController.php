@@ -140,6 +140,8 @@ class CashierCatalogSettingsController extends Controller
             'service_fee_rows.*.auto_apply_type' => ['nullable', 'in:0,1,2,3'],
             'service_fee_rows.*.debit_accounting_account_id' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
             'service_fee_rows.*.credit_accounting_account_id' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
+            'service_fee_rows.*.fee_direction' => ['nullable', 'in:COLLECTED,PAID'],
+            'service_fee_rows.*.fee_account_id' => ['nullable', 'integer', 'exists:accounting_accounts,id'],
             'service_fee_rows.*.establishment_ids' => ['nullable', 'array'],
             'service_fee_rows.*.establishment_ids.*' => ['integer', 'exists:est_establishments,id'],
         ]);

@@ -109,6 +109,7 @@ function initEstablishmentServiceFees() {
         $row.find('input[type="hidden"][name*="[id]"]').remove();
         $row.find('input[type="checkbox"][name*="[active]"]').prop('checked', true);
         $row.find('input[type="checkbox"][name*="[taxable]"]').prop('checked', false);
+        $row.find('input.service-fee-direction[value="COLLECTED"]').prop('checked', true);
         $row.find('select').each(function () {
             if ($(this).hasClass('service-fee-type')) {
                 $(this).val('0');

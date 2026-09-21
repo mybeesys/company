@@ -54,6 +54,8 @@ final class EstablishmentServiceFeeResolver
                 $payload['credit_accounting_account_id'] = self::nullableInt($row['credit_accounting_account_id'] ?? null);
             }
 
+            $payload = array_merge($payload, self::journalSettingsFromRow($row));
+
             if ($payload['cashier_payment_method_id']) {
                 $belongs = EstablishmentPaymentAccount::query()
                     ->where('id', $payload['cashier_payment_method_id'])
@@ -156,6 +158,29 @@ final class EstablishmentServiceFeeResolver
             'to_date' => $row->to_date?->format('Y-m-d\TH:i'),
         ];
 
+        if (Schema::hasColumn('est_establishment_service_fees', 'fee_direction')) {
+            $data['fee_direction'] = $row->feeDirection();
+            $data['fee_account_id'] = $row->resolvedFeeAccountId() ?: null;
+            // Derived for storage compatibility / older readers.
+            $data['accounting_nature'] = $row->feeDirection() === EstablishmentServiceFee::DIRECTION_PAID
+                ? EstablishmentServiceFee::NATURE_EXPENSE
+                : EstablishmentServiceFee::NATURE_OWN_REVENUE;
+            $data['posting_event'] = EstablishmentServiceFee::POSTING_INVOICE;
+            $data['revenue_account_id'] = $row->feeDirection() === EstablishmentServiceFee::DIRECTION_COLLECTED
+                ? ($row->resolvedRevenueAccountId() ?: null)
+                : null;
+            $data['expense_account_id'] = $row->feeDirection() === EstablishmentServiceFee::DIRECTION_PAID
+                ? ((int) ($row->expense_account_id ?? 0) ?: null)
+                : null;
+        } else {
+            $data['fee_direction'] = EstablishmentServiceFee::DIRECTION_COLLECTED;
+            $data['fee_account_id'] = null;
+            $data['accounting_nature'] = EstablishmentServiceFee::NATURE_OWN_REVENUE;
+            $data['posting_event'] = EstablishmentServiceFee::POSTING_INVOICE;
+            $data['revenue_account_id'] = null;
+            $data['expense_account_id'] = null;
+        }
+
         if (Schema::hasColumn('est_establishment_service_fees', 'debit_accounting_account_id')) {
             $data['debit_accounting_account_id'] = $row->debit_accounting_account_id
                 ? (int) $row->debit_accounting_account_id
@@ -163,14 +188,70 @@ final class EstablishmentServiceFeeResolver
             $data['credit_accounting_account_id'] = $row->credit_accounting_account_id
                 ? (int) $row->credit_accounting_account_id
                 : null;
-            $data['has_journal_accounts'] = $row->hasJournalAccounts();
+            // Keep legacy credit mirror in sync with revenue for older snapshots.
+            if (! $data['credit_accounting_account_id'] && ! empty($data['revenue_account_id'])) {
+                $data['credit_accounting_account_id'] = (int) $data['revenue_account_id'];
+            }
         } else {
             $data['debit_accounting_account_id'] = null;
             $data['credit_accounting_account_id'] = null;
-            $data['has_journal_accounts'] = false;
         }
 
+        $data['has_journal_accounts'] = $row->hasJournalAccounts();
+
         return $data;
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private static function journalSettingsFromRow(array $row): array
+    {
+        if (! Schema::hasColumn('est_establishment_service_fees', 'fee_direction')) {
+            return [];
+        }
+
+        $direction = strtoupper((string) ($row['fee_direction'] ?? EstablishmentServiceFee::DIRECTION_COLLECTED));
+        if (! in_array($direction, [EstablishmentServiceFee::DIRECTION_COLLECTED, EstablishmentServiceFee::DIRECTION_PAID], true)) {
+            $direction = EstablishmentServiceFee::DIRECTION_COLLECTED;
+        }
+
+        $feeAccountId = self::nullableInt(
+            $row['fee_account_id']
+                ?? $row['revenue_account_id']
+                ?? $row['expense_account_id']
+                ?? $row['credit_accounting_account_id']
+                ?? null
+        );
+
+        $isCollected = $direction === EstablishmentServiceFee::DIRECTION_COLLECTED;
+        $revenueId = $isCollected ? $feeAccountId : null;
+        $expenseId = $isCollected ? null : $feeAccountId;
+
+        $payload = [
+            'fee_direction' => $direction,
+            // Derived defaults — UI no longer exposes these.
+            'accounting_nature' => $isCollected
+                ? EstablishmentServiceFee::NATURE_OWN_REVENUE
+                : EstablishmentServiceFee::NATURE_EXPENSE,
+            'posting_event' => EstablishmentServiceFee::POSTING_INVOICE,
+            'revenue_account_id' => $revenueId,
+            'expense_account_id' => $expenseId,
+            'output_vat_account_id' => null,
+            'input_vat_account_id' => null,
+            'settlement_account_id' => null,
+        ];
+
+        if (Schema::hasColumn('est_establishment_service_fees', 'liability_account_id')) {
+            $payload['liability_account_id'] = null;
+        }
+
+        if (Schema::hasColumn('est_establishment_service_fees', 'credit_accounting_account_id')) {
+            $payload['credit_accounting_account_id'] = $revenueId;
+        }
+
+        return $payload;
     }
 
     private static function normalizeFlag(mixed $value): string
@@ -249,6 +330,8 @@ final class EstablishmentServiceFeeResolver
                 $payload['debit_accounting_account_id'] = self::nullableInt($row['debit_accounting_account_id'] ?? null);
                 $payload['credit_accounting_account_id'] = self::nullableInt($row['credit_accounting_account_id'] ?? null);
             }
+
+            $payload = array_merge($payload, self::journalSettingsFromRow($row));
 
             if ($payload['cashier_payment_method_id'] && ! EstablishmentPaymentAccount::query()->where('id', $payload['cashier_payment_method_id'])->exists()) {
                 $payload['cashier_payment_method_id'] = null;
