@@ -190,10 +190,12 @@
                                     <td colspan="2">{{ $group['label'] }}</td>
                                 </tr>
                             @elseif(($group['type'] ?? '') === 'accounts')
+                                @if(empty($group['hide_header']) && trim((string) ($group['label'] ?? '')) !== '')
                                 <tr class="bs-group-header">
                                     <td>{{ $group['label'] }}</td>
                                     @include('accounting::reports.partials.income-statement-amount', ['amount' => $group['total'] ?? 0])
                                 </tr>
+                                @endif
                                 @include('accounting::reports.partials.balance-sheet-account-rows', ['accounts' => $group['accounts']])
                             @elseif(in_array($group['type'] ?? '', ['subtotal', 'grand'], true))
                                 <tr class="bs-{{ $group['type'] }}">

@@ -151,13 +151,19 @@
     #balance-sheet-table .bs-account-label {
         display: flex;
         align-items: center;
-        gap: 0.35rem;
+        gap: 0.45rem;
+        line-height: 1.45;
+    }
+
+    #balance-sheet-table .bs-account-row td:first-child {
+        white-space: nowrap;
     }
 
     #balance-sheet-table .bs-gl-code {
         font-size: 0.75rem;
         color: var(--bs-gray-600);
-        min-width: 3.5rem;
+        min-width: 4rem;
+        font-variant-numeric: tabular-nums;
     }
 
     .bs-toggle-btn {

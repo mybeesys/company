@@ -9,7 +9,7 @@
         data-account-id="{{ $account->id }}"
         @if($account->parent_account_id) data-parent-id="{{ $account->parent_account_id }}" @endif>
         <td>
-            <div class="bs-account-label" style="padding-inline-start: {{ ($depth + 1) * 1.1 }}rem;">
+            <div class="bs-account-label" style="padding-inline-start: {{ ($depth + 1) * 1.85 }}rem;">
                 @if($hasChildren)
                     <button type="button" class="bs-toggle-btn" data-bs-toggle-account="{{ $account->id }}" aria-label="toggle">
                         <i class="fa fa-chevron-down fa-xs"></i>
