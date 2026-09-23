@@ -105,7 +105,7 @@ final class BalanceSheetReportBuilder
 
         $assets = $accounts->filter(fn ($a) => $this->isAsset($a))->values();
         $liabilities = $accounts->filter(fn ($a) => $this->isLiability($a))->values();
-        $equities = $accounts->filter(fn ($a) => $this->isEquity($a))->values();
+        $equities = $accounts->filter(fn ($a) => $this->isEquity($a) && ! $this->isPartnersCurrentLiability($a))->values();
 
         $totalAssets = $roundMoney($assets->sum('balance'));
         $totalLiabilities = $roundMoney($liabilities->sum('balance'));
@@ -146,7 +146,7 @@ final class BalanceSheetReportBuilder
     {
         $assets = $accounts->filter(fn ($a) => $this->isAsset($a))->sortBy('gl_code')->values();
         $liabilities = $accounts->filter(fn ($a) => $this->isLiability($a))->sortBy('gl_code')->values();
-        $equities = $accounts->filter(fn ($a) => $this->isEquity($a))->sortBy('gl_code')->values();
+        $equities = $accounts->filter(fn ($a) => $this->isEquity($a) && ! $this->isPartnersCurrentLiability($a))->sortBy('gl_code')->values();
 
         $currentAssets = $assets->filter(fn ($a) => $this->isCurrentAsset($a))->values();
         $nonCurrentAssets = $assets->reject(fn ($a) => $this->isCurrentAsset($a))->values();
@@ -405,6 +405,10 @@ final class BalanceSheetReportBuilder
 
     private function isLiability(object $account): bool
     {
+        if ($this->isPartnersCurrentLiability($account)) {
+            return true;
+        }
+
         $primary = strtolower(trim((string) ($account->account_primary_type ?? '')));
 
         return in_array($primary, ['liability', 'liabilities'], true)
@@ -413,9 +417,36 @@ final class BalanceSheetReportBuilder
 
     private function isEquity(object $account): bool
     {
+        if ($this->isPartnersCurrentLiability($account)) {
+            return false;
+        }
+
         $primary = strtolower(trim((string) ($account->account_primary_type ?? '')));
 
         return $primary === 'equity' || $this->leadingDigit((string) ($account->gl_code ?? '')) === '3';
+    }
+
+    /**
+     * Partners current / drawings: accountant presentation under current liabilities
+     * even when COA still parks them under equity (GL families 331 and 332).
+     */
+    public function isPartnersCurrentLiability(object $account): bool
+    {
+        $gl = preg_replace('/[^0-9]/', '', (string) ($account->gl_code ?? '')) ?? '';
+        if ($gl !== '' && (str_starts_with($gl, '331') || str_starts_with($gl, '332'))) {
+            return true;
+        }
+
+        $name = mb_strtolower(trim((string) ($account->name_ar ?? '').' '.(string) ($account->name_en ?? '')));
+        $name = str_replace(['أ', 'إ', 'آ'], 'ا', $name);
+
+        return str_contains($name, 'جاري الشركاء')
+            || str_contains($name, 'حساب جاري الشركاء')
+            || str_contains($name, 'مسحوبات الملاك')
+            || str_contains($name, 'مسحوبات الشركاء')
+            || str_contains($name, 'partners current')
+            || str_contains($name, 'owners drawings')
+            || str_contains($name, 'partner drawings');
     }
 
     private function isCurrentAsset(object $account): bool
@@ -431,6 +462,10 @@ final class BalanceSheetReportBuilder
 
     private function isCurrentLiability(object $account): bool
     {
+        if ($this->isPartnersCurrentLiability($account)) {
+            return true;
+        }
+
         $type = strtolower(trim((string) ($account->account_type ?? '')));
         $subtype = strtolower(trim((string) ($account->account_sub_type_name_en ?? '')));
         $gl = preg_replace('/[^0-9]/', '', (string) ($account->gl_code ?? '')) ?? '';

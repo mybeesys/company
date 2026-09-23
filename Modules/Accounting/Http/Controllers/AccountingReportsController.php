@@ -31,6 +31,7 @@ use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Expense\Models\Expense;
 use Modules\Expense\Support\ExpenseLedgerAccounts;
+use Modules\Accounting\Services\BalanceSheetComparisonService;
 use Modules\Accounting\Services\CashFlowReportService;
 use Modules\Accounting\Services\CustomerSupplierStatementReportService;
 use Modules\Accounting\Services\IncomeStatementAccountClassifier;
@@ -78,6 +79,7 @@ class AccountingReportsController extends Controller
         $total_administrative_expense = 0;
         $total_other_income = 0;
         $total_other_expense = 0;
+        $prior_period_adjustments = 0;
 
         foreach ($accounts as $account) {
             $debit = (float) $account->debit_balance;
@@ -117,6 +119,11 @@ class AccountingReportsController extends Controller
                 case 'other_expenses':
                     $total_other_expense += $debit - $credit;
                     break;
+
+                case 'prior_period_adjustments':
+                    // Equity-nature movement (credit increases retained earnings).
+                    $prior_period_adjustments += $credit - $debit;
+                    break;
             }
         }
 
@@ -131,6 +138,7 @@ class AccountingReportsController extends Controller
         $taxableBase = max(0.0, (float) $income_before_tax);
         $tax_amount = ($taxPercent * $taxableBase) / 100;
         $net_profit = $income_before_tax - $tax_amount;
+        $net_profit_after_prior_period = $net_profit + $prior_period_adjustments;
 
         $total_expenses_all = $cost_of_revenue
             + $total_operating_expense
@@ -150,6 +158,8 @@ class AccountingReportsController extends Controller
             'tax_amount' => $tax_amount,
             'tax_percent' => $taxPercent,
             'net_profit' => $net_profit,
+            'prior_period_adjustments' => $prior_period_adjustments,
+            'net_profit_after_prior_period' => $net_profit_after_prior_period,
             'cost_of_revenue' => $cost_of_revenue,
             'total_operating_expense' => $total_operating_expense,
             'total_operating_expenses' => $total_operating_expense,
@@ -237,6 +247,7 @@ class AccountingReportsController extends Controller
                 'expenseAccounts' => $incomeDataset['expenseAccounts'],
                 'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
                 'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
+                'priorPeriodAccounts' => $incomeDataset['priorPeriodAccounts'],
                 'revenueAccounts' => $incomeDataset['grossRevenueAccounts'],
                 'start_date' => $start_date,
                 'end_date' => $end_date,
@@ -288,6 +299,7 @@ class AccountingReportsController extends Controller
             'expenseAccounts' => $incomeDataset['expenseAccounts'],
             'otherIncomeAccounts' => $incomeDataset['otherIncomeAccounts'],
             'otherExpenseAccounts' => $incomeDataset['otherExpenseAccounts'],
+            'priorPeriodAccounts' => $incomeDataset['priorPeriodAccounts'],
         ])->render();
 
         $mpdf = new Mpdf([
@@ -350,7 +362,11 @@ class AccountingReportsController extends Controller
             })
             ->where(function ($query) {
                 $query->whereIn('accounting_accounts.account_type', ['income', 'expenses'])
-                    ->orWhereIn('accounting_accounts.account_primary_type', ['income', 'expenses']);
+                    ->orWhereIn('accounting_accounts.account_primary_type', ['income', 'expenses'])
+                    // Prior-period adjustments (324*) live under equity in COA but must appear on the IS.
+                    ->orWhere('accounting_accounts.gl_code', 'like', '324%')
+                    ->orWhere('accounting_accounts.name_ar', 'like', '%تعديلات سنوات سابقة%')
+                    ->orWhere('accounting_accounts.name_en', 'like', '%Prior Period%');
             })
             ->select(
                 'accounting_accounts.id',
@@ -403,6 +419,7 @@ class AccountingReportsController extends Controller
         $expenseAccounts = $sellingExpenseAccounts->concat($administrativeExpenseAccounts)->values();
         $otherIncomeAccounts = $visibleAccounts->where('acc_type', 'other_income')->filter($filterZero)->values();
         $otherExpenseAccounts = $visibleAccounts->where('acc_type', 'other_expenses')->filter($filterZero)->values();
+        $priorPeriodAccounts = $visibleAccounts->where('acc_type', 'prior_period_adjustments')->filter($filterZero)->values();
 
         return [
             'accounts' => $visibleAccounts,
@@ -417,6 +434,7 @@ class AccountingReportsController extends Controller
             'expenseAccounts' => $expenseAccounts,
             'otherIncomeAccounts' => $otherIncomeAccounts,
             'otherExpenseAccounts' => $otherExpenseAccounts,
+            'priorPeriodAccounts' => $priorPeriodAccounts,
         ];
     }
 
@@ -482,7 +500,7 @@ class AccountingReportsController extends Controller
             $debit = (float) $account->debit_balance;
             $credit = (float) $account->credit_balance;
 
-            if (in_array($account->acc_type, ['gross_revenue', 'other_income'], true)) {
+            if (in_array($account->acc_type, ['gross_revenue', 'other_income', 'prior_period_adjustments'], true)) {
                 $account->amount = $credit - $debit;
             } elseif ($account->acc_type === 'sales_returns') {
                 $account->amount = -1 * ($debit - $credit);
@@ -610,6 +628,18 @@ class AccountingReportsController extends Controller
             $fmt($data['tax_amount'] ?? 0),
         ]);
         $rows->push([__('accounting::lang.net_profit'), $fmt($data['net_profit'] ?? 0)]);
+        $pushAccounts(__('accounting::lang.income_statement_prior_period_adjustments'), $incomeDataset['priorPeriodAccounts'] ?? collect());
+        if (($incomeDataset['priorPeriodAccounts'] ?? collect())->isNotEmpty()
+            || abs((float) ($data['prior_period_adjustments'] ?? 0)) > 0.0001) {
+            $rows->push([
+                __('accounting::lang.income_statement_total_prior_period_adjustments'),
+                $fmt($data['prior_period_adjustments'] ?? 0),
+            ]);
+            $rows->push([
+                __('accounting::lang.income_statement_net_profit_after_prior_period'),
+                $fmt($data['net_profit_after_prior_period'] ?? 0),
+            ]);
+        }
 
         return $rows;
     }
@@ -1248,6 +1278,14 @@ class AccountingReportsController extends Controller
         $levelsArray = $this->resolveAccountLevelsArray() ?? [null => __('all')];
         $company = DB::connection('mysql')->table('companies')->find(get_company_id());
 
+        $comparisonPeriods = IncomeStatementComparisonService::resolvePeriodsFromRequest(
+            $request,
+            $start_date,
+            $end_date
+        );
+        $isComparisonActive = count($comparisonPeriods) >= IncomeStatementComparisonService::MIN_PERIODS;
+        $comparisonTable = null;
+
         $dataset = $this->buildBalanceSheetDataset(
             $start_date,
             $end_date,
@@ -1258,7 +1296,20 @@ class AccountingReportsController extends Controller
         $compareDataset = null;
         $comparePeriod = null;
 
-        if (in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
+        if ($isComparisonActive) {
+            $comparisonTable = BalanceSheetComparisonService::buildComparisonTable(
+                $comparisonPeriods,
+                fn (string $periodStart, string $periodEnd) => $this->buildBalanceSheetDataset(
+                    $periodStart,
+                    $periodEnd,
+                    $choose_cost_center_select,
+                    $with_zero_balances,
+                    $level_filter
+                )
+            );
+        }
+
+        if (! $isComparisonActive && in_array($compare_mode, ['previous_period', 'previous_year'], true)) {
             $comparePeriod = $this->resolveIncomeComparePeriod($start_date, $end_date, $compare_mode);
             $compareDataset = $this->buildBalanceSheetDataset(
                 $comparePeriod['start'],
@@ -1295,6 +1346,9 @@ class AccountingReportsController extends Controller
                 'total_liab_owners' => $dataset['total_liab_owners'],
                 'difference' => $dataset['difference'],
                 'balance_status' => $dataset['balance_status'],
+                'isComparisonActive' => $isComparisonActive,
+                'comparisonTable' => $comparisonTable,
+                'comparisonPeriods' => $comparisonPeriods,
             ]);
     }
 

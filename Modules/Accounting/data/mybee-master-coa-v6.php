@@ -1960,6 +1960,18 @@ return array (
     ),
     152 => 
     array (
+      'gl_code' => '219',
+      'name_ar' => 'جاري ومسحوبات الشركاء',
+      'name_en' => 'Partners Current & Drawings',
+      'level' => 3,
+      'parent_gl' => '21',
+      'account_primary_type' => 'liabilities',
+      'normal_balance' => 'credit',
+      'allow_direct_posting' => false,
+      'sector' => 'جميع القطاعات / All Sectors',
+    ),
+    153 => 
+    array (
       'gl_code' => '221',
       'name_ar' => 'قروض طويلة الأجل',
       'name_en' => 'Long-term Loans',
@@ -1970,7 +1982,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    153 => 
+    154 => 
     array (
       'gl_code' => '22101',
       'name_ar' => 'قروض بنكية طويلة الأجل',
@@ -1982,7 +1994,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    154 => 
+    1541 => 
     array (
       'gl_code' => '22102',
       'name_ar' => 'تمويل مرابحة طويل الأجل',
@@ -2192,8 +2204,8 @@ return array (
       'name_ar' => 'جاري الشركاء',
       'name_en' => 'Partners Current Accounts',
       'level' => 4,
-      'parent_gl' => '33',
-      'account_primary_type' => 'equity',
+      'parent_gl' => '219',
+      'account_primary_type' => 'liabilities',
       'normal_balance' => 'credit',
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
@@ -2205,7 +2217,7 @@ return array (
       'name_en' => 'Partner 1',
       'level' => 5,
       'parent_gl' => '33101',
-      'account_primary_type' => 'equity',
+      'account_primary_type' => 'liabilities',
       'normal_balance' => 'credit',
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
@@ -2217,7 +2229,7 @@ return array (
       'name_en' => 'Partner 2',
       'level' => 5,
       'parent_gl' => '33101',
-      'account_primary_type' => 'equity',
+      'account_primary_type' => 'liabilities',
       'normal_balance' => 'credit',
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
@@ -2229,7 +2241,7 @@ return array (
       'name_en' => 'Partner 3',
       'level' => 5,
       'parent_gl' => '33101',
-      'account_primary_type' => 'equity',
+      'account_primary_type' => 'liabilities',
       'normal_balance' => 'credit',
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
@@ -2240,8 +2252,8 @@ return array (
       'name_ar' => 'مسحوبات الملاك',
       'name_en' => 'Owners Drawings',
       'level' => 4,
-      'parent_gl' => '33',
-      'account_primary_type' => 'equity',
+      'parent_gl' => '219',
+      'account_primary_type' => 'liabilities',
       'normal_balance' => 'credit',
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',

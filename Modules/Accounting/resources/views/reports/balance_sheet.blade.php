@@ -52,11 +52,13 @@
 
     <form method="GET" class="bs-filters-card mb-4 no-print">
         <div class="row g-3 align-items-end">
-            <div class="col-md-6 col-lg-2">
+            @include('accounting::reports.partials.income-statement-comparison-filters')
+
+            <div id="is-single-period-dates" class="col-md-6 col-lg-2 {{ ($isComparisonActive ?? false) ? 'd-none' : '' }}">
                 <label class="form-label small mb-1">@lang('accounting::lang.from_date')</label>
                 <input type="date" name="start_date" class="form-control form-control-sm" value="{{ request('start_date', $start_date) }}">
             </div>
-            <div class="col-md-6 col-lg-2">
+            <div id="is-single-period-dates-end" class="col-md-6 col-lg-2 {{ ($isComparisonActive ?? false) ? 'd-none' : '' }}">
                 <label class="form-label small mb-1">@lang('accounting::lang.to_date')</label>
                 <input type="date" name="end_date" class="form-control form-control-sm" value="{{ request('end_date', $end_date) }}">
             </div>
@@ -80,7 +82,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-6 col-lg-2">
+            <div class="col-md-6 col-lg-2 {{ ($isComparisonActive ?? false) ? 'd-none' : '' }}" id="bs-compare-mode-wrap">
                 <label class="form-label small mb-1" for="compare_mode">@lang('accounting::lang.income_statement_growth')</label>
                 <select name="compare_mode" id="compare_mode" class="form-select form-select-sm">
                     <option value="none" @selected(($compare_mode ?? 'none') === 'none')>@lang('accounting::lang.bs_compare_none')</option>
@@ -105,7 +107,7 @@
         </div>
     </form>
 
-    <div class="alert {{ $isBalanced ? 'alert-success' : 'alert-warning' }} py-2 mb-3 no-print">
+    <div class="alert {{ $isBalanced ? 'alert-success' : 'alert-warning' }} py-2 mb-3 no-print {{ ! empty($isComparisonActive) ? 'd-none' : '' }}">
         <strong>@lang('accounting::lang.balance'):</strong> {{ $balance_status }}
         <span class="mx-2">|</span>
         <strong>@lang('accounting::lang.difference'):</strong> @format_accounting_amount($difference ?? 0)
@@ -113,7 +115,7 @@
         <span class="small">@lang('accounting::lang.bs_equation')</span>
     </div>
 
-    <div class="row g-3 mb-4 no-print">
+    <div class="row g-3 mb-4 no-print {{ ! empty($isComparisonActive) ? 'd-none' : '' }}" id="bs-kpi-row">
         @php
             $kpis = [
                 ['label' => __('accounting::lang.total_assets'), 'value' => $m['total_assets'] ?? 0],
@@ -142,7 +144,7 @@
         @endforeach
     </div>
 
-    <div class="bs-ratio-card no-print mb-4">
+    <div class="bs-ratio-card no-print mb-4 {{ ! empty($isComparisonActive) ? 'd-none' : '' }}">
         <div class="fw-semibold mb-3 text-gray-800">@lang('accounting::lang.bs_analytics')</div>
         <div class="row g-2">
             @php
@@ -170,6 +172,9 @@
         </div>
     </div>
 
+    @if(! empty($isComparisonActive) && ! empty($comparisonTable))
+        @include('accounting::reports.partials.balance-sheet-comparison-table', ['comparisonTable' => $comparisonTable])
+    @else
     <div class="bs-table-card">
         <div class="bs-table-scroll">
             <table class="table table-sm table-hover mb-0" id="balance-sheet-table">
@@ -213,6 +218,7 @@
             </table>
         </div>
     </div>
+    @endif
 
     <div class="bs-print-footer text-center text-muted small mt-4">
         @lang('accounting::lang.bs_print_footer') — {{ now()->format('Y-m-d H:i') }}
@@ -240,6 +246,17 @@
         if (levelFilter !== undefined && levelFilter !== null && levelFilter !== '') {
             params.append('level_filter', levelFilter);
         }
+        if ($('#comparison_enabled').is(':checked')) {
+            params.append('comparison_enabled', '1');
+            $('#isComparisonPeriodRows .is-comparison-period-row').each(function(index) {
+                const label = $(this).find('input[name*="[label]"]').val();
+                const start = $(this).find('.is-period-start').val();
+                const end = $(this).find('.is-period-end').val();
+                if (label) params.append('periods[' + index + '][label]', label);
+                if (start) params.append('periods[' + index + '][start_date]', start);
+                if (end) params.append('periods[' + index + '][end_date]', end);
+            });
+        }
         costCenters.forEach(v => params.append('choose_cost_center_select[]', v));
         return params.toString();
     }
@@ -254,6 +271,74 @@
     $(document).ready(function() {
         $('#choose_cost_center_select').select2({ width: '100%' });
         $('#with_zero_balances, #compare_mode, #level_filter').select2({ minimumResultsForSearch: Infinity, width: '100%' });
+
+        const isCompareLabels = {
+            period: @json(__('accounting::lang.is_compare_period_label')),
+            from: @json(__('accounting::lang.from_date')),
+            to: @json(__('accounting::lang.to_date')),
+            names: [
+                @json(__('accounting::lang.is_compare_period_first')),
+                @json(__('accounting::lang.is_compare_period_second')),
+                @json(__('accounting::lang.is_compare_period_third')),
+                @json(__('accounting::lang.is_compare_period_fourth')),
+            ],
+            maxPeriods: 4,
+        };
+
+        function syncComparisonVisibility() {
+            const enabled = $('#comparison_enabled').is(':checked');
+            $('#is-comparison-panel').toggleClass('d-none', !enabled);
+            $('#is-single-period-dates, #is-single-period-dates-end, #bs-compare-mode-wrap').toggleClass('d-none', enabled);
+            if (enabled) {
+                const start = $('input[name="start_date"]').val();
+                const end = $('input[name="end_date"]').val();
+                const firstStart = $('.is-period-start').first();
+                const firstEnd = $('.is-period-end').first();
+                if (start && !firstStart.val()) firstStart.val(start);
+                if (end && !firstEnd.val()) firstEnd.val(end);
+                while ($('#isComparisonPeriodRows .is-comparison-period-row').length < 2) {
+                    addComparisonRow();
+                }
+            }
+        }
+
+        function reindexComparisonRows() {
+            $('#isComparisonPeriodRows .is-comparison-period-row').each(function(index) {
+                $(this).attr('data-period-index', index);
+                $(this).find('input[name*="[label]"]').attr('name', 'periods[' + index + '][label]');
+                $(this).find('.is-period-start').attr('name', 'periods[' + index + '][start_date]');
+                $(this).find('.is-period-end').attr('name', 'periods[' + index + '][end_date]');
+                $(this).find('.is-remove-period').prop('disabled', index < 2);
+            });
+        }
+
+        function addComparisonRow() {
+            const count = $('#isComparisonPeriodRows .is-comparison-period-row').length;
+            if (count >= isCompareLabels.maxPeriods) return;
+            const labelDefault = isCompareLabels.names[count] || ('Period ' + (count + 1));
+            const row = $('<div class="row g-2 align-items-end is-comparison-period-row"></div>');
+            row.append(
+                '<div class="col-md-4 col-lg-3"><label class="form-label small mb-1">' + isCompareLabels.period + '</label>' +
+                '<input type="text" class="form-control form-control-sm" name="periods[' + count + '][label]" value="' + labelDefault + '"></div>' +
+                '<div class="col-md-3 col-lg-2"><label class="form-label small mb-1">' + isCompareLabels.from + '</label>' +
+                '<input type="date" class="form-control form-control-sm is-period-start" name="periods[' + count + '][start_date]"></div>' +
+                '<div class="col-md-3 col-lg-2"><label class="form-label small mb-1">' + isCompareLabels.to + '</label>' +
+                '<input type="date" class="form-control form-control-sm is-period-end" name="periods[' + count + '][end_date]"></div>' +
+                '<div class="col-md-2 col-lg-1"><button type="button" class="btn btn-sm btn-light-danger w-100 is-remove-period"><i class="fa fa-times"></i></button></div>'
+            );
+            $('#isComparisonPeriodRows').append(row);
+            reindexComparisonRows();
+        }
+
+        $('#comparison_enabled').on('change', syncComparisonVisibility);
+        $('#isAddComparisonPeriod').on('click', addComparisonRow);
+        $(document).on('click', '.is-remove-period', function() {
+            if ($('#isComparisonPeriodRows .is-comparison-period-row').length <= 2) return;
+            $(this).closest('.is-comparison-period-row').remove();
+            reindexComparisonRows();
+        });
+        syncComparisonVisibility();
+        reindexComparisonRows();
 
         $('#balanceSheetExportPdf').on('click', () => window.open(balanceSheetExportPdfUrl + '?' + buildBalanceSheetQuery(), '_blank'));
         $('#balanceSheetExportExcel').on('click', () => { window.location.href = balanceSheetExportExcelUrl + '?' + buildBalanceSheetQuery(); });
