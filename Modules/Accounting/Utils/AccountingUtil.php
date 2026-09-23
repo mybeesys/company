@@ -733,13 +733,12 @@ class AccountingUtil
         $finalTotal = round((float) ($transaction->final_total ?? 0), 2);
         $taxAmount = round((float) ($transaction->tax_amount ?? 0), 2);
 
-        // Fees with both journal accounts are posted as separate «قيد رسوم خدمة»
-        // entries — exclude them from the sales journal so we do not double-book.
+        // Collected fees with a dedicated GL account post as separate «قيد رسوم خدمة».
+        // Strip fee net only — taxable fee VAT stays in the sales invoice VAT line.
         if ((string) ($transaction->type ?? '') === 'sell') {
             $separate = \Modules\Accounting\Services\ServiceFeeJournalPoster::separatelyAccountedTotals($transaction);
-            if ($separate['gross'] > 0) {
-                $finalTotal = round(max(0, $finalTotal - $separate['gross']), 2);
-                $taxAmount = round(max(0, $taxAmount - $separate['fee_tax']), 2);
+            if ($separate['fee_amount'] > 0) {
+                $finalTotal = round(max(0, $finalTotal - $separate['fee_amount']), 2);
             }
         }
 

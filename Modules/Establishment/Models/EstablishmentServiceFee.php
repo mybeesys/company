@@ -31,6 +31,20 @@ class EstablishmentServiceFee extends Model
 
     public const AUTO_TIME = '3';
 
+    public const DIRECTION_COLLECTED = 'COLLECTED';
+
+    public const DIRECTION_PAID = 'PAID';
+
+    public const NATURE_OWN_REVENUE = 'OWN_REVENUE';
+
+    public const NATURE_EXPENSE = 'EXPENSE';
+
+    public const POSTING_INVOICE = 'INVOICE';
+
+    public const POSTING_COLLECTION = 'COLLECTION';
+
+    public const POSTING_SETTLEMENT = 'SETTLEMENT';
+
     protected $table = 'est_establishment_service_fees';
 
     protected $guarded = ['id', 'created_at', 'updated_at'];
@@ -76,13 +90,84 @@ class EstablishmentServiceFee extends Model
         return $this->belongsTo(AccountingAccount::class, 'credit_accounting_account_id');
     }
 
+    public function revenueAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountingAccount::class, 'revenue_account_id');
+    }
+
+    public function expenseAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountingAccount::class, 'expense_account_id');
+    }
+
+    public function outputVatAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountingAccount::class, 'output_vat_account_id');
+    }
+
+    public function inputVatAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountingAccount::class, 'input_vat_account_id');
+    }
+
+    public function settlementAccount(): BelongsTo
+    {
+        return $this->belongsTo(AccountingAccount::class, 'settlement_account_id');
+    }
+
+    public function feeDirection(): string
+    {
+        $value = strtoupper((string) ($this->fee_direction ?: self::DIRECTION_COLLECTED));
+
+        return in_array($value, [self::DIRECTION_COLLECTED, self::DIRECTION_PAID], true)
+            ? $value
+            : self::DIRECTION_COLLECTED;
+    }
+
+    public function accountingNature(): string
+    {
+        $value = strtoupper((string) ($this->accounting_nature ?: self::NATURE_OWN_REVENUE));
+
+        return in_array($value, [self::NATURE_OWN_REVENUE, self::NATURE_EXPENSE], true)
+            ? $value
+            : self::NATURE_OWN_REVENUE;
+    }
+
+    public function postingEvent(): string
+    {
+        $value = strtoupper((string) ($this->posting_event ?: self::POSTING_INVOICE));
+
+        return in_array($value, [self::POSTING_INVOICE, self::POSTING_COLLECTION, self::POSTING_SETTLEMENT], true)
+            ? $value
+            : self::POSTING_INVOICE;
+    }
+
+    public function resolvedFeeAccountId(): int
+    {
+        if ($this->feeDirection() === self::DIRECTION_PAID) {
+            return (int) ($this->expense_account_id ?? 0);
+        }
+
+        return $this->resolvedRevenueAccountId();
+    }
+
+    public function resolvedRevenueAccountId(): int
+    {
+        $id = (int) ($this->revenue_account_id ?? 0);
+        if ($id > 0) {
+            return $id;
+        }
+
+        return (int) ($this->credit_accounting_account_id ?? 0);
+    }
+
     /**
-     * Both journal parties must be set before posting a separate service-fee entry.
+     * Collected fees with a fee GL account post a separate invoice-time journal.
      */
     public function hasJournalAccounts(): bool
     {
-        return (int) ($this->debit_accounting_account_id ?? 0) > 0
-            && (int) ($this->credit_accounting_account_id ?? 0) > 0;
+        return $this->feeDirection() === self::DIRECTION_COLLECTED
+            && $this->resolvedFeeAccountId() > 0;
     }
 
     public function displayName(?string $locale = null): string
