@@ -130,6 +130,16 @@
             @php $renderSummary(__('accounting::lang.income_before_tax'), $data['income_before_tax'] ?? 0); @endphp
             @php $renderSummary(__('accounting::lang.tax_amount').' ('.number_format($taxPercent, 0).'%)', -1 * abs($data['tax_amount'] ?? 0)); @endphp
             @php $renderSummary(__('accounting::lang.net_profit'), $netProfit, $netProfit >= 0 ? 'profit' : 'loss'); @endphp
+
+            @if(($priorPeriodAccounts ?? collect())->isNotEmpty() || abs((float) ($data['prior_period_adjustments'] ?? 0)) > 0.0001)
+                <tr class="section"><td colspan="2">{{ __('accounting::lang.income_statement_prior_period_adjustments') }}</td></tr>
+                @php $renderAccountRows($priorPeriodAccounts ?? collect()); @endphp
+                @php $renderSummary(__('accounting::lang.income_statement_total_prior_period_adjustments'), $data['prior_period_adjustments'] ?? 0, 'subtotal'); @endphp
+                @php
+                    $afterPrior = (float) ($data['net_profit_after_prior_period'] ?? 0);
+                    $renderSummary(__('accounting::lang.income_statement_net_profit_after_prior_period'), $afterPrior, $afterPrior >= 0 ? 'profit' : 'loss');
+                @endphp
+            @endif
         </tbody>
     </table>
 

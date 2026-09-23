@@ -304,6 +304,29 @@ final class IncomeStatementComparisonService
                 'data_key' => 'net_profit',
                 'row_class' => 'is-profit-row',
             ],
+            [
+                'type' => 'section',
+                'label_key' => 'accounting::lang.income_statement_prior_period_adjustments',
+                'visible' => ['collection' => 'priorPeriodAccounts', 'data_key' => 'prior_period_adjustments'],
+            ],
+            [
+                'type' => 'accounts',
+                'collection' => 'priorPeriodAccounts',
+                'visible' => ['collection' => 'priorPeriodAccounts', 'data_key' => 'prior_period_adjustments'],
+            ],
+            [
+                'type' => 'summary',
+                'label' => __('accounting::lang.income_statement_total_prior_period_adjustments'),
+                'data_key' => 'prior_period_adjustments',
+                'visible' => ['collection' => 'priorPeriodAccounts', 'data_key' => 'prior_period_adjustments'],
+            ],
+            [
+                'type' => 'summary',
+                'label' => __('accounting::lang.income_statement_net_profit_after_prior_period'),
+                'data_key' => 'net_profit_after_prior_period',
+                'row_class' => 'is-profit-row',
+                'visible' => ['collection' => 'priorPeriodAccounts', 'data_key' => 'prior_period_adjustments'],
+            ],
         ];
     }
 

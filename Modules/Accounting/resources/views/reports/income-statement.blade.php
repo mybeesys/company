@@ -289,6 +289,22 @@
                         'amount' => $netProfit,
                         'rowClass' => $netProfit >= 0 ? 'is-profit-row' : 'is-loss-row',
                     ])
+
+                    @if(($priorPeriodAccounts ?? collect())->isNotEmpty() || abs((float) ($data['prior_period_adjustments'] ?? 0)) > 0.0001)
+                        <tr class="is-section">
+                            <td colspan="2">@lang('accounting::lang.income_statement_prior_period_adjustments')</td>
+                        </tr>
+                        @include('accounting::reports.partials.income-statement-account-rows', ['accounts' => $priorPeriodAccounts ?? collect()])
+                        @include('accounting::reports.partials.income-statement-summary-row', [
+                            'label' => __('accounting::lang.income_statement_total_prior_period_adjustments'),
+                            'amount' => $data['prior_period_adjustments'] ?? 0,
+                        ])
+                        @include('accounting::reports.partials.income-statement-summary-row', [
+                            'label' => __('accounting::lang.income_statement_net_profit_after_prior_period'),
+                            'amount' => $data['net_profit_after_prior_period'] ?? 0,
+                            'rowClass' => ((float) ($data['net_profit_after_prior_period'] ?? 0)) >= 0 ? 'is-profit-row' : 'is-loss-row',
+                        ])
+                    @endif
                 </tbody>
             </table>
         </div>

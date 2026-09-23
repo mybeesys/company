@@ -27,6 +27,10 @@ final class IncomeStatementAccountClassifier
 
     public function categorize(object $account): string
     {
+        if ($this->isPriorPeriodAdjustment($account)) {
+            return 'prior_period_adjustments';
+        }
+
         $isIncome = ($account->account_type ?? null) === 'income'
             || ($account->account_primary_type ?? null) === 'income';
 
@@ -142,6 +146,21 @@ final class IncomeStatementAccountClassifier
             'مواد خام',
             'بضاعة مباعة',
             'بضائع مباعة',
+        ]);
+    }
+
+    private function isPriorPeriodAdjustment(object $account): bool
+    {
+        $gl = preg_replace('/[^0-9]/', '', (string) ($account->gl_code ?? '')) ?? '';
+        if ($gl !== '' && str_starts_with($gl, '324')) {
+            return true;
+        }
+
+        return $this->matchesAny($this->label($account), [
+            'prior period adjustment',
+            'prior period adjustments',
+            'تعديلات سنوات سابقة',
+            'تعديل سنوات سابقة',
         ]);
     }
 

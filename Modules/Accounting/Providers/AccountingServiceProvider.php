@@ -46,6 +46,7 @@ class AccountingServiceProvider extends ServiceProvider
     {
         $this->commands([
             \Modules\Accounting\Console\SyncAccountingPermissionsCommand::class,
+            \Modules\Accounting\Console\ReclassifyPartnersToCurrentLiabilitiesCommand::class,
         ]);
     }
 
