@@ -62,15 +62,17 @@
                     @if(($group['type'] ?? '') === 'subsection')
                         <tr class="subsection"><td colspan="2">{{ $group['label'] }}</td></tr>
                     @elseif(($group['type'] ?? '') === 'accounts')
+                        @if(empty($group['hide_header']) && trim((string) ($group['label'] ?? '')) !== '')
                         @php $gf = $fmt($group['total'] ?? 0); @endphp
                         <tr class="group-header">
                             <td>{{ $group['label'] }}</td>
                             <td class="amount{{ $gf['neg'] ? ' neg' : '' }}">{{ $gf['text'] }}</td>
                         </tr>
+                        @endif
                         @foreach ($group['accounts'] as $account)
                             @php $af = $fmt($account->balance); @endphp
                             <tr>
-                                <td style="padding-inline-start:{{ (($account->depth ?? 0) + 1) * 8 }}px">
+                                <td style="padding-inline-start:{{ (($account->depth ?? 0) + 1) * 18 }}px">
                                     <span style="color:#78829D;font-size:9px;">{{ $account->gl_code }}</span>
                                     {{ $name($account) }}
                                 </td>
