@@ -377,6 +377,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800 {{ ($activeTab ?? '') === 'contact-accounts' ? 'active' : '' }}"
+                    data-bs-toggle="tab" href="#contact_accounts_settings_tab" role="tab">
+                    @lang('accounting::financial_year.contact_accounts_tab')
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link justify-content-center text-active-gray-800 {{ ($activeTab ?? '') === 'financial-year' ? 'active' : '' }}"
                     data-bs-toggle="tab" href="#financial_year_settings_tab" role="tab">
                     @lang('accounting::financial_year.financial_year_settings')
@@ -400,6 +406,10 @@
                         </div>
                     </div>
                 @endif
+            </div>
+            <div class="tab-pane fade {{ ($activeTab ?? '') === 'contact-accounts' ? 'show active' : '' }}"
+                id="contact_accounts_settings_tab" role="tabpanel">
+                @include('accounting::settings.contact-accounts')
             </div>
             <div class="tab-pane fade {{ ($activeTab ?? '') === 'financial-year' ? 'show active' : '' }}"
                 id="financial_year_settings_tab" role="tabpanel">
@@ -556,7 +566,9 @@
             tab.addEventListener('shown.bs.tab', function () {
                 const id = this.getAttribute('href');
                 if (id && history.replaceState) {
-                    const param = id === '#accounts_routing_settings_tab' ? 'accounts-routing' : 'financial-year';
+                    const param = id === '#accounts_routing_settings_tab'
+                        ? 'accounts-routing'
+                        : (id === '#contact_accounts_settings_tab' ? 'contact-accounts' : 'financial-year');
                     const url = new URL(window.location.href);
                     url.searchParams.set('tab', param);
                     history.replaceState(null, '', url.toString());

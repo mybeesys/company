@@ -58,6 +58,7 @@ return [
     'validation_end_before_start' => 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية أو مساوياً له.',
     'validation_first_year_exists' => 'تم تعريف سنة مالية. يمكنك تعديلها من سجل السنوات أدناه.',
     'accounts_routing_tab' => 'توجيه الحسابات',
+    'contact_accounts_tab' => 'حسابات العملاء والموردين',
 
     'back_to_years' => 'العودة إلى السنوات المالية',
     'year_details_title' => 'تفاصيل السنة المالية',

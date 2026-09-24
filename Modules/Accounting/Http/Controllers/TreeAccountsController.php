@@ -22,6 +22,7 @@ use Modules\Accounting\Support\LedgerStatementPresenter;
 use Modules\Accounting\Support\AccountingReportDateResolver;
 use Modules\Accounting\Support\ImportedAccountTypeSync;
 use Modules\Accounting\Services\ChartOfAccounts\MyBeeMasterCoaInstaller;
+use Modules\Accounting\Services\AccountCoaVisibility;
 use Modules\Accounting\Services\ChartOfAccountsTreeBuilder;
 use Modules\Accounting\Services\ChartOfAccountsTreePresenter;
 use Modules\Accounting\Utils\AccountingUtil;
@@ -456,6 +457,8 @@ class TreeAccountsController extends Controller
                 'accounting_accounts.*',
             ])
             ->get();
+
+        $accounts = AccountCoaVisibility::collapseHiddenTree($accounts);
 
         // $accounts = $query->get();
         $account_GLC = [];

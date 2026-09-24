@@ -58,6 +58,7 @@ return [
     'validation_end_before_start' => 'End date must be on or after the start date.',
     'validation_first_year_exists' => 'A fiscal year is already defined. Edit it from the list below.',
     'accounts_routing_tab' => 'Accounts routing',
+    'contact_accounts_tab' => 'Customer & supplier accounts',
 
     'back_to_years' => 'Back to fiscal years',
     'year_details_title' => 'Fiscal year details',

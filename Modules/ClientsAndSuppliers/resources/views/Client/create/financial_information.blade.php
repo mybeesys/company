@@ -19,33 +19,52 @@
                     </div>
                 </div>
             </div>
-            <div class="row mb-5">
-                <div class="d-flex align-items-center">
-                    <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;" for="account_id">
-                        @lang('clientsandsuppliers::fields.accounting_account')
-                    </label>
-                    <div class="col-md-9">
-                        <select id="account_id"
-                            class="form-select select-2 form-select-solid kt_ecommerce_select2_account"
-                            name="account_id" required data-placeholder="@lang('clientsandsuppliers::fields.select_account')">
-                            <option value="">@lang('clientsandsuppliers::fields.select_account')</option>
 
-                            @foreach ($accounts as $account)
-                                <option value="{{ $account->id }}" @selected(old('account_id') == $account->id)>
-                                    @if (app()->getLocale() == 'ar')
-                                        {{ $account->name_ar }} - <span
-                                            class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
-                                    @else
-                                        {{ $account->name_en }} - <span
-                                            class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="form-text text-muted">@lang('clientsandsuppliers::fields.accounting_account_required_hint')</div>
+            @if(!empty($contactAccountAutoCreate))
+                <div class="row mb-5">
+                    <div class="d-flex align-items-start">
+                        <label class="fs-6 fw-semibold mb-2 me-3" style="width: 150px;">
+                            @lang('clientsandsuppliers::fields.accounting_account')
+                        </label>
+                        <div class="col-md-9">
+                            <div class="alert alert-light-primary py-3 mb-0">
+                                @lang('clientsandsuppliers::fields.accounting_account_auto_hint')
+                                @if(!empty($contactAccountParentLabel))
+                                    <div class="fw-semibold mt-1">{{ $contactAccountParentLabel }}</div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            @else
+                <div class="row mb-5">
+                    <div class="d-flex align-items-center">
+                        <label class="fs-6 fw-semibold mb-2 me-3 required" style="width: 150px;" for="account_id">
+                            @lang('clientsandsuppliers::fields.accounting_account')
+                        </label>
+                        <div class="col-md-9">
+                            <select id="account_id"
+                                class="form-select select-2 form-select-solid kt_ecommerce_select2_account"
+                                name="account_id" required data-placeholder="@lang('clientsandsuppliers::fields.select_account')">
+                                <option value="">@lang('clientsandsuppliers::fields.select_account')</option>
+
+                                @foreach ($accounts as $account)
+                                    <option value="{{ $account->id }}" @selected(old('account_id') == $account->id)>
+                                        @if (app()->getLocale() == 'ar')
+                                            {{ $account->name_ar }} - <span
+                                                class="fw-semibold mx-2 text-muted fs-5">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                                        @else
+                                            {{ $account->name_en }} - <span
+                                                class="fw-semibold mx-2 text-muted fs-7">@lang('accounting::lang.' . $account->account_primary_type)</span>
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text text-muted">@lang('clientsandsuppliers::fields.accounting_account_required_hint')</div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
 
             <div class="col-sm">

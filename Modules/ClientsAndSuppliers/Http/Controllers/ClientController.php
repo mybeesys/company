@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Services\ContactAccountProvisioner;
+use Modules\Accounting\Services\ContactAccountSettings;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Country;
@@ -62,6 +64,10 @@ class ClientController extends Controller
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
         $create_page = Route::currentRouteName();
+        $contactAccountAutoCreate = ContactAccountSettings::autoCreateEnabled();
+        $contactAccountParentLabel = $this->contactAccountParentLabel(
+            $create_page === 'supplier-create' ? 'supplier' : 'customer'
+        );
 
         if ($create_page == 'client-create') {
             SalesAccess::authorize(SalesPermissions::CUSTOMERS_CREATE);
@@ -70,10 +76,28 @@ class ClientController extends Controller
         if ($create_page == 'supplier-create') {
             PurchasesAccess::authorize(PurchasesPermissions::SUPPLIERS_CREATE);
 
-            return view('clientsandsuppliers::Client.create.supplier', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
+            return view('clientsandsuppliers::Client.create.supplier', compact(
+                'countries',
+                'parents_account',
+                'account_category',
+                'account_main_types',
+                'accounts',
+                'payment_terms',
+                'contactAccountAutoCreate',
+                'contactAccountParentLabel'
+            ));
         }
 
-        return view('clientsandsuppliers::Client.create.create', compact('countries', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
+        return view('clientsandsuppliers::Client.create.create', compact(
+            'countries',
+            'parents_account',
+            'account_category',
+            'account_main_types',
+            'accounts',
+            'payment_terms',
+            'contactAccountAutoCreate',
+            'contactAccountParentLabel'
+        ));
     }
 
     public function edit($id)
@@ -83,15 +107,27 @@ class ClientController extends Controller
         $payment_terms = SalesUtile::paymentTerms();
         $accounts = AccountingAccount::forDropdown();
 
-        $contact = Contact::find($id);
+        $contact = Contact::with('account')->find($id);
         SalesAccess::authorizeCustomer($contact, 'update');
         PurchasesAccess::authorizeSupplier($contact, 'update');
 
         $parents_account = AccountingAccount::all();
         $account_main_types = AccountingUtil::account_type();
         $account_category = AccountingUtil::account_category();
+        $contactAccountAutoCreate = ContactAccountSettings::autoCreateEnabled();
+        $contactAccountParentLabel = $this->contactAccountParentLabel((string) $contact->business_type);
 
-        return view('clientsandsuppliers::Client.edit.edit', compact('countries', 'contact', 'parents_account', 'account_category', 'account_main_types', 'accounts', 'payment_terms'));
+        return view('clientsandsuppliers::Client.edit.edit', compact(
+            'countries',
+            'contact',
+            'parents_account',
+            'account_category',
+            'account_main_types',
+            'accounts',
+            'payment_terms',
+            'contactAccountAutoCreate',
+            'contactAccountParentLabel'
+        ));
     }
 
     /**
@@ -101,8 +137,6 @@ class ClientController extends Controller
     {
 
         // return $request;
-        $this->validateRequiredAccountingAccount($request);
-
         if (($request->business_type ?? '') === 'customer') {
             SalesAccess::authorize(SalesPermissions::CUSTOMERS_CREATE);
         } elseif (($request->business_type ?? '') === 'supplier') {
@@ -111,6 +145,12 @@ class ClientController extends Controller
 
         try {
             DB::beginTransaction();
+
+            $accountId = ContactAccountProvisioner::resolveAccountIdForRequest(
+                (string) ($request->business_type ?? 'customer'),
+                (string) ($request->client_name ?? ''),
+                (int) $request->input('account_id') ?: null
+            );
 
             if ($request->ajax()) {
                 $attachment_name = null;
@@ -130,7 +170,7 @@ class ClientController extends Controller
                     'tax_number' => $request->tax_number,
                     'commercial_register' => $request->commercial_register,
                     'payment_terms' => $request->payment_terms,
-                    'account_id' => $request->account_id,
+                    'account_id' => $accountId,
                     'file_path' => $attachment_name,
                     'credit_limit' => $request->credit_limit,
                     'status' => 'active',
@@ -174,7 +214,7 @@ class ClientController extends Controller
                 'file_path' => $attachment_name,
                 'status' => 'active',
                 'payment_terms' => $request->payment_terms,
-                'account_id' => $request->account_id,
+                'account_id' => $accountId,
                 'credit_limit' => $request->credit_limit,
 
             ]);
@@ -404,8 +444,6 @@ class ClientController extends Controller
     {
         // return $request;
         // dd($request->hasFile('attachment'),$request->file('attachment'));
-        $this->validateRequiredAccountingAccount($request);
-
         try {
             $attachment_name = null;
 
@@ -417,7 +455,16 @@ class ClientController extends Controller
             $contact = Contact::find($request->id);
             SalesAccess::authorizeCustomer($contact, 'update');
             PurchasesAccess::authorizeSupplier($contact, 'update');
+
             DB::beginTransaction();
+
+            $accountId = ContactAccountProvisioner::resolveAccountIdForRequest(
+                (string) $contact->business_type,
+                (string) ($request->client_name ?? $contact->name),
+                (int) $request->input('account_id') ?: null,
+                $contact->account_id ? (int) $contact->account_id : null
+            );
+
             $contact->update([
                 'name' => $request->client_name,
                 'phone_number' => $request->phone_number,
@@ -429,7 +476,7 @@ class ClientController extends Controller
                 'commercial_register' => $request->commercial_register,
                 'file_path' => $attachment_name,
                 'payment_terms' => $request->payment_terms,
-                'account_id' => $request->account_id,
+                'account_id' => $accountId,
                 'credit_limit' => $request->credit_limit,
 
             ]);
@@ -577,5 +624,22 @@ class ClientController extends Controller
                 'account_id' => __('clientsandsuppliers::fields.accounting_account_required'),
             ]);
         }
+    }
+
+    protected function contactAccountParentLabel(string $businessType): ?string
+    {
+        $parentId = ContactAccountSettings::parentIdForBusinessType($businessType);
+        if (! $parentId) {
+            return null;
+        }
+
+        $parent = AccountingAccount::query()->find($parentId);
+        if (! $parent) {
+            return null;
+        }
+
+        $name = app()->getLocale() === 'ar' ? $parent->name_ar : $parent->name_en;
+
+        return trim('('.$parent->gl_code.') '.$name);
     }
 }

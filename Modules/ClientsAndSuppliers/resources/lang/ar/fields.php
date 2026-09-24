@@ -53,6 +53,8 @@ return [
     'accounting_account' => 'الحساب المحاسبي',
     'accounting_account_required' => 'الحساب المحاسبي مطلوب. يجب ربط العميل/المورد بحساب من دليل الحسابات.',
     'accounting_account_required_hint' => 'إجباري لترحيل فواتير البيع والشراء محاسبياً.',
+    'accounting_account_auto' => 'إنشاء تلقائي تحت الحساب الأب',
+    'accounting_account_auto_hint' => 'يُنشأ الحساب المالي تلقائياً تحت الأب المحدد في إعدادات المحاسبة، ويتحدّث اسمه عند تعديل اسم جهة الاتصال.',
     'amount_to_pay_to_earn_point' => 'المبلغ الواجب إنفاقه للحصول على نقطة',
     'minimum_order_payment_to_earn_points' => 'الحد الأدنى لمدفوعات الطلب للحصول على نقاط',
     'maximum_order_points' => 'الحد الأقصى للنقاط لكل طلب',
