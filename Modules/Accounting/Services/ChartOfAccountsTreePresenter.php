@@ -47,7 +47,7 @@ class ChartOfAccountsTreePresenter
         $directBalance = (float) ($account->balance ?? 0);
 
         $displayBalance = $hasChildren
-            ? (float) $children->sum(fn (AccountingAccount $child) => (float) ($child->coa_display_balance ?? 0))
+            ? (float) ($account->balance ?? 0) + (float) $children->sum(fn (AccountingAccount $child) => (float) ($child->coa_display_balance ?? 0))
             : $directBalance;
 
         $account->setAttribute('coa_has_movements', $hasMovements);

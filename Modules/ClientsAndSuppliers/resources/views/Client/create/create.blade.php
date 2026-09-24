@@ -281,8 +281,12 @@
     <script>
         $(document).ready(function() {
             const accountRequiredMsg = @json(__('clientsandsuppliers::fields.accounting_account_required'));
+            const accountAutoCreate = @json(!empty($contactAccountAutoCreate));
 
             $('#client').on('submit', function(e) {
+                if (accountAutoCreate) {
+                    return true;
+                }
                 const accountId = $('select[name="account_id"]').val();
                 if (!accountId) {
                     e.preventDefault();

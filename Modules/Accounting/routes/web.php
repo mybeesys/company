@@ -8,6 +8,7 @@ use Modules\Accounting\Http\Controllers\AccountingSettingsController;
 use Modules\Accounting\Http\Controllers\FinancialYearPagesController;
 use Modules\Accounting\Http\Controllers\FinancialYearSettingsController;
 use Modules\Accounting\Http\Controllers\AccountsRoutingController;
+use Modules\Accounting\Http\Controllers\ContactAccountSettingsController;
 use Modules\Accounting\Http\Controllers\CostCenterConrollerController;
 use Modules\Accounting\Http\Controllers\JournalEntryController;
 use Modules\Accounting\Http\Controllers\JournalEntryImportController;
@@ -96,6 +97,10 @@ Route::middleware([
         Route::get('accounting-settings', [AccountingSettingsController::class, 'index'])
             ->middleware($perm(...AccountingPermissions::settingsHubShowAny()))
             ->name('accounting-settings');
+
+        Route::post('accounting/contact-accounts-settings', [ContactAccountSettingsController::class, 'store'])
+            ->middleware($perm(AccountingPermissions::SETTINGS_UPDATE))
+            ->name('accounting.contact-accounts-settings.store');
 
         Route::prefix('accounting/financial-years')->name('accounting.financial-years.')->group(function () use ($perm) {
             Route::get('/', [FinancialYearSettingsController::class, 'index'])

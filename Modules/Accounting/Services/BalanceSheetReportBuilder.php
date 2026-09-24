@@ -7,6 +7,7 @@ namespace Modules\Accounting\Services;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Services\AccountCoaVisibility;
 
 /**
  * Balance sheet from the COA tree (assets / liabilities / equity) as-is.
@@ -98,6 +99,7 @@ final class BalanceSheetReportBuilder
 
         $accounts = $this->enrichTree($accounts);
         $accounts = $this->applyCurrentYearProfitPlug($accounts, $plNet, $roundMoney);
+        $accounts = AccountCoaVisibility::rollupHiddenIntoParents($accounts);
 
         if ($withZeroBalances === 0) {
             $accounts = $this->keepNonZeroTree($accounts);

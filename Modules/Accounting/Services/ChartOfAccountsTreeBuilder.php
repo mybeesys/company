@@ -58,6 +58,8 @@ class ChartOfAccountsTreeBuilder
             ->map(fn (AccountingAccount $account) => $attachChildren($account))
             ->values();
 
+        $roots = AccountCoaVisibility::collapseHiddenTree($roots);
+
         $grouped = [];
         foreach ($roots as $root) {
             $type = (string) ($root->account_primary_type ?: 'asset');

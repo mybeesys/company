@@ -53,6 +53,8 @@ return [
     'accounting_account' => 'Accounting account',
     'accounting_account_required' => 'Accounting account is required. Link the customer/supplier to a chart of accounts entry.',
     'accounting_account_required_hint' => 'Required to post sales and purchase invoices to the general ledger.',
+    'accounting_account_auto' => 'Auto-create under parent account',
+    'accounting_account_auto_hint' => 'The ledger account is created automatically under the parent from Accounting settings, and its name updates when the contact name changes.',
     'amount_to_pay_to_earn_point' => 'Amount that has to be paid to earn a point',
     'minimum_order_payment_to_earn_points' => 'Minimum order payment to earn points',
     'maximum_order_points' => 'Maximum points for each order',
