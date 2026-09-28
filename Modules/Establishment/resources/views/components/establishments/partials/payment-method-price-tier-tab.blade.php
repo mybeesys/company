@@ -14,7 +14,8 @@
             <select class="form-select form-select-solid select-2-cashier"
                 name="cashier_payment_rows[{{ $index }}][price_tier_id]"
                 data-placeholder="@lang('establishment::fields.payment_method_price_tier_default')">
-                <option value="" @selected(empty($selectedPriceTierId))>
+                {{-- value=0 (not empty): Select2 hides empty-value options from the results list --}}
+                <option value="0" @selected(empty($selectedPriceTierId) || (int) $selectedPriceTierId === 0)>
                     @lang('establishment::fields.payment_method_price_tier_default')
                 </option>
                 @foreach ($priceTierOptions as $tier)

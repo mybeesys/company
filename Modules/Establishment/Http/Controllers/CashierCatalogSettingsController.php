@@ -49,7 +49,18 @@ class CashierCatalogSettingsController extends Controller
             'cashier_payment_rows.*.name_en'                 => ['nullable', 'string', 'max:255'],
             'cashier_payment_rows.*.account_id'              => ['nullable', 'integer', 'exists:accounting_accounts,id'],
             'cashier_payment_rows.*.payment_method_key'      => ['nullable', 'string', 'max:100'],
-            'cashier_payment_rows.*.price_tier_id'           => ['nullable', 'integer', 'exists:price_tiers,id'],
+            'cashier_payment_rows.*.price_tier_id'           => [
+                'nullable',
+                'integer',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '' || (int) $value <= 0) {
+                        return;
+                    }
+                    if (! \Illuminate\Support\Facades\DB::table('price_tiers')->where('id', (int) $value)->exists()) {
+                        $fail(__('validation.exists', ['attribute' => $attribute]));
+                    }
+                },
+            ],
             'cashier_payment_rows.*.establishment_ids'       => ['nullable', 'array'],
             'cashier_payment_rows.*.establishment_ids.*'     => ['integer', 'exists:est_establishments,id'],
             'cashier_payment_rows.*.branch_accounts'         => ['nullable', 'array'],
