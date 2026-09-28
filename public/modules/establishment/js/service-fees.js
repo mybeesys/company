@@ -49,11 +49,23 @@ function initEstablishmentServiceFees() {
     }
 
     function fillBranchPaymentSelect($select, methods) {
+        const isMultiple = !!$select.prop('multiple');
         const current = $select.val();
-        const placeholder = $select.data('placeholder') || '';
-        $select.empty().append(new Option(placeholder, '', false, false));
+        const selected = isMultiple
+            ? (Array.isArray(current) ? current.map(String) : (current ? [String(current)] : []))
+            : [];
+
+        $select.empty();
+        if (!isMultiple) {
+            const placeholder = $select.data('placeholder') || '';
+            $select.append(new Option(placeholder, '', false, false));
+        }
+
         methods.forEach(function (method) {
-            $select.append(new Option(method.label, method.value, false, String(current) === String(method.value)));
+            const isSelected = isMultiple
+                ? selected.indexOf(String(method.value)) !== -1
+                : String(current) === String(method.value);
+            $select.append(new Option(method.label, method.value, false, isSelected));
         });
     }
 

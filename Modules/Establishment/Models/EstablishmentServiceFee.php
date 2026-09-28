@@ -64,6 +64,7 @@ class EstablishmentServiceFee extends Model
         'taxable' => 'boolean',
         'is_active' => 'boolean',
         'dining_type_ids' => 'array',
+        'cashier_payment_method_ids' => 'array',
         'guest_count' => 'integer',
         'sort_order' => 'integer',
         'from_date' => 'datetime',

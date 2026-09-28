@@ -13,18 +13,16 @@
             <label class="form-label fw-semibold mb-2">@lang('establishment::fields.payment_method_price_tier_select')</label>
             <select class="form-select form-select-solid select-2-cashier"
                 name="cashier_payment_rows[{{ $index }}][price_tier_id]"
-                data-placeholder="@lang('messages.select')"
-                data-allow-clear="true">
-                <option value="">@lang('messages.select')</option>
+                data-placeholder="@lang('establishment::fields.payment_method_price_tier_default')">
+                <option value="" @selected(empty($selectedPriceTierId))>
+                    @lang('establishment::fields.payment_method_price_tier_default')
+                </option>
                 @foreach ($priceTierOptions as $tier)
                     <option value="{{ $tier->id }}" @selected((int) $selectedPriceTierId === (int) $tier->id)>
                         {{ $locale === 'ar' ? ($tier->name_ar ?: $tier->name_en) : ($tier->name_en ?: $tier->name_ar) }}
                     </option>
                 @endforeach
             </select>
-            <div class="form-text text-muted">
-                @lang('establishment::fields.payment_method_price_tier_source_hint')
-            </div>
         </div>
     </div>
 </div>

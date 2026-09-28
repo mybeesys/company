@@ -99,8 +99,18 @@ window.InvoiceServiceFees = (function () {
             return true;
         }
         if (type === AUTO_PAYMENT) {
-            const accountId = parseInt(fee.payment_account_id || "0", 10) || 0;
-            return accountId > 0 && accountId === cashAccountId();
+            const accountId = cashAccountId();
+            if (!accountId) {
+                return false;
+            }
+            const accountIds = Array.isArray(fee.payment_account_ids)
+                ? fee.payment_account_ids.map(function (id) { return parseInt(id || "0", 10) || 0; }).filter(Boolean)
+                : [];
+            if (accountIds.length > 0) {
+                return accountIds.indexOf(accountId) !== -1;
+            }
+            const single = parseInt(fee.payment_account_id || "0", 10) || 0;
+            return single > 0 && single === accountId;
         }
         if (type === AUTO_TIME) {
             const at = transactionDate() ? new Date(transactionDate()) : new Date();

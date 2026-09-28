@@ -149,10 +149,19 @@
 
         <div class="col-md-6 col-lg-4 service-fee-auto-apply-field" data-auto-apply="2" @if ($autoApplyType !== '2') style="display:none" @endif>
             <label class="form-label fw-semibold">@lang('establishment::fields.service_fee_credit_type')</label>
-            <select name="service_fee_rows[{{ $index }}][credit_type]"
+            @php
+                $selectedPaymentMethodIds = $row['cashier_payment_method_ids']
+                    ?? (isset($row['credit_type']) && is_array($row['credit_type'])
+                        ? $row['credit_type']
+                        : (($row['credit_type'] ?? $row['cashier_payment_method_id'] ?? null)
+                            ? [(int) ($row['credit_type'] ?? $row['cashier_payment_method_id'])]
+                            : []));
+                $selectedPaymentMethodIds = array_values(array_map('strval', (array) $selectedPaymentMethodIds));
+            @endphp
+            <select name="service_fee_rows[{{ $index }}][credit_type][]"
                 class="form-select form-select-solid select-2-service-fee service-fee-branch-payment w-100"
+                multiple
                 data-placeholder="@lang('messages.select')" data-allow-clear="true">
-                <option value="">@lang('messages.select')</option>
                 @foreach ($cashierPaymentRows ?? [] as $method)
                     @php
                         $methodId = $method['id'] ?? $method->id ?? null;
@@ -160,7 +169,7 @@
                         $methodNameEn = $method['name_en'] ?? $method->name_en ?? '';
                     @endphp
                     @if ($methodId)
-                        <option value="{{ $methodId }}" @selected((string) ($row['credit_type'] ?? '') === (string) $methodId)>
+                        <option value="{{ $methodId }}" @selected(in_array((string) $methodId, $selectedPaymentMethodIds, true))>
                             {{ $locale === 'ar' ? ($methodNameAr ?: $methodNameEn) : ($methodNameEn ?: $methodNameAr) }}
                         </option>
                     @endif
