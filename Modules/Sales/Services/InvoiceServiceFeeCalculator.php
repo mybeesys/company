@@ -270,10 +270,24 @@ final class InvoiceServiceFeeCalculator
      */
     private static function matchesPayment(array $fee, array $context): bool
     {
-        $accountId = (int) ($fee['payment_account_id'] ?? 0);
         $cashAccountId = (int) ($context['cash_account_id'] ?? 0);
+        if ($cashAccountId <= 0) {
+            return false;
+        }
 
-        return $accountId > 0 && $cashAccountId > 0 && $accountId === $cashAccountId;
+        $accountIds = array_values(array_filter(array_map(
+            'intval',
+            (array) ($fee['payment_account_ids'] ?? [])
+        )));
+
+        if ($accountIds === []) {
+            $single = (int) ($fee['payment_account_id'] ?? 0);
+            if ($single > 0) {
+                $accountIds = [$single];
+            }
+        }
+
+        return $accountIds !== [] && in_array($cashAccountId, $accountIds, true);
     }
 
     /**

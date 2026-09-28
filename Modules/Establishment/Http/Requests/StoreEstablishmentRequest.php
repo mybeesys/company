@@ -110,7 +110,8 @@ class StoreEstablishmentRequest extends FormRequest
             'service_fee_rows.*.dining_type_ids' => ['nullable', 'array'],
             'service_fee_rows.*.dining_type_ids.*' => ['nullable', 'integer'],
             'service_fee_rows.*.guestCount' => ['nullable', 'numeric', 'min:0'],
-            'service_fee_rows.*.credit_type' => ['nullable', 'integer', 'exists:est_establishment_payment_accounts,id'],
+            'service_fee_rows.*.credit_type' => ['nullable', 'array'],
+            'service_fee_rows.*.credit_type.*' => ['nullable', 'integer', 'exists:est_establishment_payment_accounts,id'],
             'service_fee_rows.*.from_date' => ['nullable', 'date'],
             'service_fee_rows.*.to_date' => ['nullable', 'date'],
         ];

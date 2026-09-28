@@ -4,6 +4,7 @@ namespace Modules\General\Transformers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Schema;
 use Modules\Establishment\Models\EstablishmentServiceFee;
 
 class EstablishmentServiceFeeResource extends JsonResource
@@ -18,6 +19,14 @@ class EstablishmentServiceFeeResource extends JsonResource
         $autoApplyType = $fee->auto_apply_type !== null && $fee->auto_apply_type !== ''
             ? (string) $fee->auto_apply_type
             : '';
+
+        $paymentMethodIds = [];
+        if (Schema::hasColumn('est_establishment_service_fees', 'cashier_payment_method_ids')) {
+            $paymentMethodIds = array_values(array_filter(array_map('intval', (array) ($fee->cashier_payment_method_ids ?? []))));
+        }
+        if ($paymentMethodIds === [] && $fee->cashier_payment_method_id) {
+            $paymentMethodIds = [(int) $fee->cashier_payment_method_id];
+        }
 
         return [
             'id' => (int) $fee->id,
@@ -36,9 +45,8 @@ class EstablishmentServiceFeeResource extends JsonResource
             'auto_apply' => $fee->autoApplyKey(),
             'dining_type_ids' => array_values(array_map('intval', $fee->dining_type_ids ?? [])),
             'guest_count' => $fee->guest_count ? (int) $fee->guest_count : null,
-            'cashier_payment_method_id' => $fee->cashier_payment_method_id
-                ? (int) $fee->cashier_payment_method_id
-                : null,
+            'cashier_payment_method_id' => $paymentMethodIds[0] ?? null,
+            'cashier_payment_method_ids' => $paymentMethodIds,
             'from_date' => $fee->from_date?->format('Y-m-d\TH:i:s'),
             'to_date' => $fee->to_date?->format('Y-m-d\TH:i:s'),
             'sort_order' => (int) ($fee->sort_order ?? 0),

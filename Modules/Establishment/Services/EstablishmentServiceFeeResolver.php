@@ -43,11 +43,16 @@ final class EstablishmentServiceFeeResolver
                 'auto_apply_type' => self::nullableFlag($row['auto_apply_type'] ?? null),
                 'dining_type_ids' => array_values(array_filter(array_map('intval', (array) ($row['dining_type_ids'] ?? [])))),
                 'guest_count' => self::nullableInt($row['guestCount'] ?? $row['guest_count'] ?? null),
-                'cashier_payment_method_id' => self::nullableInt($row['credit_type'] ?? $row['cashier_payment_method_id'] ?? null),
                 'from_date' => self::nullableDate($row['from_date'] ?? null),
                 'to_date' => self::nullableDate($row['to_date'] ?? null),
                 'sort_order' => $sort++,
             ];
+
+            $paymentMethodIds = self::normalizePaymentMethodIds($row);
+            $payload['cashier_payment_method_id'] = $paymentMethodIds[0] ?? null;
+            if (Schema::hasColumn('est_establishment_service_fees', 'cashier_payment_method_ids')) {
+                $payload['cashier_payment_method_ids'] = $paymentMethodIds;
+            }
 
             if (Schema::hasColumn('est_establishment_service_fees', 'debit_accounting_account_id')) {
                 $payload['debit_accounting_account_id'] = self::nullableInt($row['debit_accounting_account_id'] ?? null);
@@ -55,15 +60,6 @@ final class EstablishmentServiceFeeResolver
             }
 
             $payload = array_merge($payload, self::journalSettingsFromRow($row));
-
-            if ($payload['cashier_payment_method_id']) {
-                $belongs = EstablishmentPaymentAccount::query()
-                    ->where('id', $payload['cashier_payment_method_id'])
-                    ->exists();
-                if (! $belongs) {
-                    $payload['cashier_payment_method_id'] = null;
-                }
-            }
 
             if ($rowId) {
                 $existing = EstablishmentServiceFee::query()
@@ -124,11 +120,33 @@ final class EstablishmentServiceFeeResolver
             $query->forEstablishment($establishmentId);
         }
 
-        return $query->get()->map(fn (EstablishmentServiceFee $row) => array_merge(self::toRow($row), [
-            'payment_account_id' => $row->cashierPaymentMethod?->account_id
-                ? (int) $row->cashierPaymentMethod->account_id
-                : null,
-        ]))->all();
+        $fees = $query->get();
+        $allMethodIds = $fees
+            ->flatMap(fn (EstablishmentServiceFee $row) => self::paymentMethodIdsFromModel($row))
+            ->unique()
+            ->values()
+            ->all();
+
+        $accountByMethodId = $allMethodIds === []
+            ? collect()
+            : EstablishmentPaymentAccount::query()
+                ->whereIn('id', $allMethodIds)
+                ->pluck('account_id', 'id');
+
+        return $fees->map(function (EstablishmentServiceFee $row) use ($accountByMethodId) {
+            $methodIds = self::paymentMethodIdsFromModel($row);
+            $accountIds = collect($methodIds)
+                ->map(fn ($id) => (int) ($accountByMethodId[$id] ?? 0))
+                ->filter(fn ($id) => $id > 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            return array_merge(self::toRow($row), [
+                'payment_account_ids' => $accountIds,
+                'payment_account_id' => $accountIds[0] ?? null,
+            ]);
+        })->all();
     }
 
     /**
@@ -136,6 +154,8 @@ final class EstablishmentServiceFeeResolver
      */
     private static function toRow(EstablishmentServiceFee $row): array
     {
+        $paymentMethodIds = self::paymentMethodIdsFromModel($row);
+
         $data = [
             'id' => (int) $row->id,
             'establishment_id' => $row->establishment_id ? (int) $row->establishment_id : null,
@@ -152,8 +172,9 @@ final class EstablishmentServiceFeeResolver
             'auto_apply_type' => $row->auto_apply_type !== null ? (string) $row->auto_apply_type : '',
             'dining_type_ids' => array_values(array_map('intval', $row->dining_type_ids ?? [])),
             'guestCount' => $row->guest_count,
-            'credit_type' => $row->cashier_payment_method_id,
-            'cashier_payment_method_id' => $row->cashier_payment_method_id,
+            'credit_type' => $paymentMethodIds,
+            'cashier_payment_method_ids' => $paymentMethodIds,
+            'cashier_payment_method_id' => $paymentMethodIds[0] ?? null,
             'from_date' => $row->from_date?->format('Y-m-d\TH:i'),
             'to_date' => $row->to_date?->format('Y-m-d\TH:i'),
         ];
@@ -319,12 +340,17 @@ final class EstablishmentServiceFeeResolver
                 'auto_apply_type' => self::nullableFlag($row['auto_apply_type'] ?? null),
                 'dining_type_ids' => array_values(array_filter(array_map('intval', (array) ($row['dining_type_ids'] ?? [])))),
                 'guest_count' => self::nullableInt($row['guestCount'] ?? $row['guest_count'] ?? null),
-                'cashier_payment_method_id' => self::nullableInt($row['credit_type'] ?? $row['cashier_payment_method_id'] ?? null),
                 'from_date' => self::nullableDate($row['from_date'] ?? null),
                 'to_date' => self::nullableDate($row['to_date'] ?? null),
                 'sort_order' => $sort++,
                 'establishment_id' => $assignedIds[0] ?? null,
             ];
+
+            $paymentMethodIds = self::normalizePaymentMethodIds($row);
+            $payload['cashier_payment_method_id'] = $paymentMethodIds[0] ?? null;
+            if (Schema::hasColumn('est_establishment_service_fees', 'cashier_payment_method_ids')) {
+                $payload['cashier_payment_method_ids'] = $paymentMethodIds;
+            }
 
             if (Schema::hasColumn('est_establishment_service_fees', 'debit_accounting_account_id')) {
                 $payload['debit_accounting_account_id'] = self::nullableInt($row['debit_accounting_account_id'] ?? null);
@@ -332,10 +358,6 @@ final class EstablishmentServiceFeeResolver
             }
 
             $payload = array_merge($payload, self::journalSettingsFromRow($row));
-
-            if ($payload['cashier_payment_method_id'] && ! EstablishmentPaymentAccount::query()->where('id', $payload['cashier_payment_method_id'])->exists()) {
-                $payload['cashier_payment_method_id'] = null;
-            }
 
             if ($rowId) {
                 $existing = EstablishmentServiceFee::query()->where('id', $rowId)->first();
@@ -382,5 +404,52 @@ final class EstablishmentServiceFeeResolver
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return list<int>
+     */
+    private static function normalizePaymentMethodIds(array $row): array
+    {
+        $raw = $row['credit_type']
+            ?? $row['cashier_payment_method_ids']
+            ?? $row['cashier_payment_method_id']
+            ?? [];
+
+        if (! is_array($raw)) {
+            $raw = ($raw !== null && $raw !== '') ? [$raw] : [];
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', $raw), fn (int $id) => $id > 0)));
+        if ($ids === []) {
+            return [];
+        }
+
+        $valid = EstablishmentPaymentAccount::query()
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        // Preserve request order, drop invalid ids.
+        return array_values(array_filter($ids, fn (int $id) => in_array($id, $valid, true)));
+    }
+
+    /**
+     * @return list<int>
+     */
+    private static function paymentMethodIdsFromModel(EstablishmentServiceFee $row): array
+    {
+        $ids = [];
+        if (Schema::hasColumn('est_establishment_service_fees', 'cashier_payment_method_ids')) {
+            $ids = array_values(array_filter(array_map('intval', (array) ($row->cashier_payment_method_ids ?? []))));
+        }
+
+        if ($ids === [] && $row->cashier_payment_method_id) {
+            $ids = [(int) $row->cashier_payment_method_id];
+        }
+
+        return $ids;
     }
 }

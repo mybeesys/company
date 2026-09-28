@@ -140,7 +140,7 @@ return [
     'payment_method_price_tier'       => 'Payment method price tier',
     'payment_method_price_tier_hint'  => 'When this method is selected at the cashier, products that have a price for this tier use that price. Otherwise the catalog base price stays unchanged.',
     'payment_method_price_tier_select'=> 'Price tier',
-    'payment_method_price_tier_source_hint' => 'Options come from Price Tiers (priceTier). Leave empty to keep the base catalog price.',
+    'payment_method_price_tier_default' => 'Default price',
     'service_fee_debit_account' => 'Debit account',
     'service_fee_credit_account' => 'Credit account',
     'service_fee_direction' => 'Fee direction',

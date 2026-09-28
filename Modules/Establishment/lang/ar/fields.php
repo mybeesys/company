@@ -141,7 +141,7 @@ return [
     'payment_method_price_tier'       => 'تسعيرة طريقة الدفع',
     'payment_method_price_tier_hint'  => 'عند اختيار هذه الطريقة في الكاشير تُطبَّق أسعار التسعيرة على المنتجات التي لها سعر لهذه التسعيرة. غير ذلك يبقى السعر الأساسي.',
     'payment_method_price_tier_select'=> 'التسعيرة',
-    'payment_method_price_tier_source_hint' => 'القائمة من شاشة التسعيرات (priceTier). اتركها فارغة للإبقاء على السعر الأساسي.',
+    'payment_method_price_tier_default' => 'السعر الافتراضي',
     'service_fee_debit_account' => 'الحساب المدين',
     'service_fee_credit_account' => 'الحساب الدائن',
     'service_fee_direction' => 'اتجاه الرسم',

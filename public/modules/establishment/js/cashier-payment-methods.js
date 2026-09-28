@@ -19,8 +19,9 @@ function initCashierPaymentMethods() {
         $(scope).find('.select-2-cashier, .select-2-branch-account').each(function () {
             const $el = $(this);
             destroySelect2($el);
+            const isPriceTier = String($el.attr('name') || '').indexOf('[price_tier_id]') !== -1;
             $el.select2({
-                allowClear: true,
+                allowClear: !isPriceTier,
                 width: '100%',
                 placeholder: $el.data('placeholder') || '',
                 dropdownParent: $(root).closest('form')

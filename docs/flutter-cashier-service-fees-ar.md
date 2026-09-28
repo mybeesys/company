@@ -86,6 +86,7 @@ GET /api/service-fees?establishment_id=1
       "dining_type_ids": [],
       "guest_count": null,
       "cashier_payment_method_id": null,
+      "cashier_payment_method_ids": [],
       "from_date": null,
       "to_date": null,
       "sort_order": 0,
@@ -123,7 +124,7 @@ GET /api/service-fees?establishment_id=1
 | `always` | متاح؛ يمكن اختياره يدوياً (الويب يعلّمه إن لم يُضبط شرط) |
 | `dining` | إذا `dining_type_id` الحالي ضمن `dining_type_ids` |
 | `guest_count` | إذا عدد الضيوف ≥ `guest_count` |
-| `payment_method` | إذا `payments[].method_id` = `cashier_payment_method_id` (نفس id من `payment-methods`) |
+| `payment_method` | إذا `payments[].method_id` ضمن `cashier_payment_method_ids` (أو يساوي `cashier_payment_method_id` للتوافق الخلفي — نفس id من `payment-methods`) |
 | `time_slot` | إذا وقت الفاتورة بين `from_date` و`to_date` |
 
 بعد أن يختار المستخدم (أو تُطبَّق القاعدة في الواجهة) أرسل الـ ids. لا تعتمد على السيرفر ليخمّن الاختيار في مسار POS.
