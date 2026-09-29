@@ -126,16 +126,43 @@ class GeneralController extends Controller
 
     public function subscription()
     {
-        $company = Company::findOrFail(get_company_id());
-        $current_subscription = $company->subscription;
-        $old_subscriptions = $company->subscription->withoutGlobalScopes()->whereNot('id', $current_subscription->id)->get();
-        $user = FacadesDB::connection('mysql')->table('users')->where('id', $company->user_id)->get(['id', 'email', 'name'])->first();
+        $overview = app(\App\Services\SubscriptionOverviewService::class)->forCompany();
 
-        return view('general::subscription.index', compact('company', 'current_subscription', 'old_subscriptions', 'user'));
+        return view('general::subscription.index', $overview);
+    }
+
+    public function manageSubscription()
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $companyId = get_company_id();
+        if (! $companyId) {
+            return redirect()
+                ->route('subscription')
+                ->with('error', __('general::general.subscription_manage_unavailable'));
+        }
+
+        $url = app(\App\Services\CentralSubscribeHandoff::class)->createUrl(
+            userId: (int) $user->id,
+            companyId: (int) $companyId,
+            redirectTo: '/subscribe',
+        );
+
+        return redirect()->away($url);
     }
 
     public function updateModules(Request $request)
     {
+        $gate = app(\App\Services\EntitlementGate::class);
+        $state = $gate->forCompany();
+
+        if (! $state['legacy']) {
+            return redirect()->back()->with('error', __('general::general.subscription_modules_locked'));
+        }
+
         try {
             $enabledModules = $request->input('modules', []);
 

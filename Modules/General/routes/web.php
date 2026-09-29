@@ -33,6 +33,7 @@ Route::middleware([
         $perm = fn (string ...$names) => 'dashboard.perm:'.implode(',', $names);
 
         Route::get('/subscription', [GeneralController::class, 'subscription'])->name('subscription');
+        Route::get('/subscription/manage', [GeneralController::class, 'manageSubscription'])->name('subscription.manage');
 
         Route::post('store-sidebar-status', [GeneralController::class, 'storeSidebarState'])->name('store-sidebar-status');
 
