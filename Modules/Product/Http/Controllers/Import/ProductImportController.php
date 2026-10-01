@@ -3,10 +3,10 @@
 namespace Modules\Product\Http\Controllers\Import;
 
 use App\Http\Controllers\Controller;
-use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Modules\Product\Services\ProductImportService;
+use Throwable;
 
 class ProductImportController extends Controller
 {
@@ -15,84 +15,167 @@ class ProductImportController extends Controller
         return view('product::product.import');
     }
 
-    public function readData(Request $request)
+    public function readData(Request $request, ProductImportService $service)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'file' => 'required|file|max:10240',
         ]);
 
-        $file = $request->file('file');
+        try {
+            $file = $request->file('file');
+            $data = Excel::toArray([], $file);
+            $sheet = $data[0] ?? [];
+            $mapped = $service->mapSheet($sheet);
+            $rows = $service->validateRows($mapped);
 
-        // Read the Excel file and return as array
-        $data = Excel::toArray([], $file);
-        $mappedData = collect($data[0])->map(function ($row) {
-            return [
-                'name_ar' => $row[0],
-                'name_en' => $row[1],
-                'deacription_ar' => $row[2],
-                'deacription_en' => $row[3],
-                'category' => $row[4],
-                'subcategory' => $row[5],
-                'active' => $row[6],
-                'forSell' => $row[7],
-                'SKU' => $row[8],
-                'barcode' => $row[9],
-                'order' => $row[10],
-                'color' => $row[11],
-                'cost' => $row[12],
-                'price_with_tax' => $row[13],
-                'unit' => $row[14],
-                'tax' => $row[15],
-                'establishment' => $row[16],
-            ];
-        });
-
-        return response()->json($mappedData);
+            return response()->json([
+                'rows' => $rows,
+                'count' => count($rows),
+                'summary' => $this->summary($rows),
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => 'Error',
+                'detail' => $e->getMessage(),
+                'rows' => [],
+                'count' => 0,
+            ], 422);
+        }
     }
 
-    public function upload(Request $request)
+    public function validateRows(Request $request, ProductImportService $service)
     {
-        // Validate that the request contains a file
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:2048',
+            'rows' => 'required|array|min:1',
         ]);
 
-        if ($request->hasFile('file')) {
+        $rows = $service->validateRows($request->input('rows', []));
 
-            $file = $request->file('file');
+        return response()->json([
+            'rows' => $rows,
+            'count' => count($rows),
+            'summary' => $this->summary($rows),
+        ]);
+    }
 
-            $uuid = Str::uuid().'.xlsx';
-            $tenant = tenancy()->tenant;
-            $tenantId = $tenant->id;
+    public function upload(Request $request, ProductImportService $service)
+    {
+        try {
+            if ($request->filled('rows') || $request->has('rows')) {
+                $rows = $request->input('rows');
+                if (is_string($rows)) {
+                    $rows = json_decode($rows, true) ?: [];
+                }
+                if (! is_array($rows) || count($rows) === 0) {
+                    return response()->json([
+                        'message' => 'Error',
+                        'errors' => [[
+                            'row' => ['name_ar' => '—', 'name_en' => '—'],
+                            'message' => ['message' => 'INVALID_import', 'data' => ['empty rows']],
+                        ]],
+                    ], 200);
+                }
 
-            // Store the file temporarily
-            $uploadPath = public_path('storage/tenant'.$tenantId.'/uploads/');
+                $result = $service->importRows($rows);
 
-            $filePath = $uploadPath.$uuid;
-            $file->move($uploadPath, $uuid);
+                if ($result['imported'] > 0 && $result['failed'] === 0) {
+                    return response()->json([
+                        'message' => 'Done',
+                        'imported' => $result['imported'],
+                        'skipped' => $result['skipped'],
+                        'failed' => $result['failed'],
+                        'rows' => $result['rows'],
+                        'summary' => $this->summary($result['rows']),
+                    ], 200);
+                }
 
-            if (! file_exists($filePath)) {
-                return response()->json(['message' => 'File not found after moving.'], 500);
-            }
-
-            $productImport = new ProductImport;
-            try {
-
-                Excel::import($productImport, $filePath);
-
-                return response()->json([
-                    'message' => 'Done',
-                ], 200);
-            } catch (Exception $e) {
-                $errors = $productImport->getErrors();
+                if ($result['imported'] > 0) {
+                    return response()->json([
+                        'message' => 'Partial',
+                        'imported' => $result['imported'],
+                        'skipped' => $result['skipped'],
+                        'failed' => $result['failed'],
+                        'errors' => $result['errors'],
+                        'rows' => $result['rows'],
+                        'summary' => $this->summary($result['rows']),
+                    ], 200);
+                }
 
                 return response()->json([
                     'message' => 'Error',
-                    'errors' => $errors,
+                    'imported' => $result['imported'],
+                    'skipped' => $result['skipped'],
+                    'failed' => $result['failed'],
+                    'errors' => $result['errors'],
+                    'rows' => $result['rows'],
+                    'summary' => $this->summary($result['rows']),
                 ], 200);
             }
+
+            $request->validate([
+                'file' => 'required|file|max:10240',
+            ]);
+
+            $file = $request->file('file');
+            $data = Excel::toArray([], $file);
+            $mapped = $service->mapSheet($data[0] ?? []);
+            $result = $service->importRows($mapped);
+
+            if ($result['imported'] > 0 && $result['failed'] === 0) {
+                return response()->json([
+                    'message' => 'Done',
+                    'imported' => $result['imported'],
+                    'skipped' => $result['skipped'],
+                    'failed' => $result['failed'],
+                    'rows' => $result['rows'],
+                    'summary' => $this->summary($result['rows']),
+                ], 200);
+            }
+
+            if ($result['imported'] > 0) {
+                return response()->json([
+                    'message' => 'Partial',
+                    'imported' => $result['imported'],
+                    'skipped' => $result['skipped'],
+                    'failed' => $result['failed'],
+                    'errors' => $result['errors'],
+                    'rows' => $result['rows'],
+                    'summary' => $this->summary($result['rows']),
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => 'Error',
+                'imported' => $result['imported'],
+                'skipped' => $result['skipped'],
+                'failed' => $result['failed'],
+                'errors' => $result['errors'],
+                'rows' => $result['rows'],
+                'summary' => $this->summary($result['rows']),
+            ], 200);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => 'Error',
+                'errors' => [[
+                    'row' => ['name_ar' => '—', 'name_en' => '—'],
+                    'message' => ['message' => 'INVALID_import', 'data' => [$e->getMessage()]],
+                ]],
+                'detail' => config('app.debug') ? $e->getMessage() : null,
+            ], 200);
+        }
+    }
+
+    protected function summary(array $rows): array
+    {
+        $counts = ['ok' => 0, 'exists' => 0, 'error' => 0, 'imported' => 0];
+        foreach ($rows as $row) {
+            $status = $row['status'] ?? 'ok';
+            if (! isset($counts[$status])) {
+                $counts[$status] = 0;
+            }
+            $counts[$status]++;
         }
 
-        return response()->json(['message' => 'No file found in the request.'], 400);
+        return $counts;
     }
 }

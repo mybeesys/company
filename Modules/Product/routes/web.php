@@ -160,6 +160,8 @@ Route::middleware([
             ->middleware($perm(ProductPermissions::IMPORT_CREATE));
         Route::post('/importProduct/readData', [ProductImportController::class, 'readData'])
             ->middleware($perm(ProductPermissions::IMPORT_CREATE));
+        Route::post('/importProduct/validateRows', [ProductImportController::class, 'validateRows'])
+            ->middleware($perm(ProductPermissions::IMPORT_CREATE));
         Route::get('/importProduct/import', [ProductImportController::class, 'import'])
             ->middleware($perm(ProductPermissions::IMPORT_SHOW))
             ->name('productImport.import');
