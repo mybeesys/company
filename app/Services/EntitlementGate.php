@@ -78,6 +78,30 @@ class EntitlementGate
         ];
     }
 
+    /**
+     * Expand commercial packages into the legacy/internal keys menus & routes still use.
+     * e.g. finance_business → sales, purchases, accounting, expenses.
+     *
+     * @param  list<string>  $modules
+     * @return list<string>
+     */
+    protected function expandGrantedModules(array $modules): array
+    {
+        $grantsMap = config('entitlements.module_grants', [
+            'finance_business' => ['sales', 'purchases', 'accounting', 'expenses'],
+        ]);
+
+        $expanded = $modules;
+
+        foreach ($modules as $module) {
+            foreach ($grantsMap[$module] ?? [] as $granted) {
+                $expanded[] = $granted;
+            }
+        }
+
+        return array_values(array_unique($expanded));
+    }
+
     public function allows(string|array $moduleKeys, ?int $companyId = null): bool
     {
         $state = $this->forCompany($companyId);
@@ -86,10 +110,11 @@ class EntitlementGate
             return true;
         }
 
+        $entitled = $this->expandGrantedModules($state['modules']);
         $keys = is_array($moduleKeys) ? $moduleKeys : [$moduleKeys];
 
         foreach ($keys as $key) {
-            if ($key === 'platform' || in_array($key, $state['modules'], true)) {
+            if ($key === 'platform' || in_array($key, $entitled, true)) {
                 return true;
             }
         }
@@ -151,9 +176,11 @@ class EntitlementGate
             }
 
             return $this->allows([
+                'finance_business',
                 'sales',
                 'purchases',
                 'inventory',
+                'manufacturing',
                 'cashier_pos',
                 'accounting',
             ], $companyId);

@@ -17,6 +17,14 @@
  */
 return [
 
+    /**
+     * Commercial packages that unlock legacy/internal module keys used by menus & routes.
+     * Must stay in sync with clients config entitlements.modules.*.grants.
+     */
+    'module_grants' => [
+        'finance_business' => ['sales', 'purchases', 'accounting', 'expenses'],
+    ],
+
     'always_menu_keys' => [
         'dashboard',
         'my_companies',
@@ -34,7 +42,7 @@ return [
         'franchise' => 'franchise',
         'inventory_module' => 'inventory',
         'inventory' => 'inventory',
-        'prep' => 'inventory',
+        'prep' => 'manufacturing',
         'transfer' => 'inventory',
         'waste' => 'inventory',
         'import' => 'inventory',
@@ -66,6 +74,13 @@ return [
         'devices' => 'digital_screens',
         'reports_module' => 'reports',
         'expenses_manage' => 'expenses',
+        // Employee schedule (sold separately)
+        'schedules' => 'employee_schedule',
+        'shift_schedule' => 'employee_schedule',
+        'payroll' => 'employee_schedule',
+        'payroll_group' => 'employee_schedule',
+        'timecards' => 'employee_schedule',
+        'timesheet_rules' => 'employee_schedule',
         // Settings / tables surfaces
         'tables' => ['cashier_pos', 'electronic_menu'],
         'areas' => ['cashier_pos', 'electronic_menu'],
@@ -88,9 +103,9 @@ return [
         'purchaseOrderReport' => 'inventory',
         'inventoryOperation' => 'inventory',
         'openInventoryImport' => 'inventory',
-        'prepareRecipe' => 'inventory',
-        'needPreparationList' => 'inventory',
-        'getIngredientList' => 'inventory',
+        'prepareRecipe' => 'manufacturing',
+        'needPreparationList' => 'manufacturing',
+        'getIngredientList' => 'manufacturing',
         'getProductInventory' => 'inventory',
         'listTransactions' => 'inventory',
         'establishmentList' => 'inventory',
@@ -102,7 +117,14 @@ return [
         'storeWaste' => 'inventory',
         'wasteList' => 'inventory',
         'rma' => 'inventory',
-        'prep' => 'inventory',
+        'prep' => 'manufacturing',
+        'schedules.' => 'employee_schedule',
+        'schedules/' => 'employee_schedule',
+        'schedule/' => 'employee_schedule',
+        'schedules.payrolls' => 'employee_schedule',
+        'schedules.timecards' => 'employee_schedule',
+        'schedules.shifts' => 'employee_schedule',
+        'schedules.timesheet' => 'employee_schedule',
 
         // Sales
         'sales.' => 'sales',
@@ -298,8 +320,8 @@ return [
         'api/stor-sell-return' => 'sales',
         'api/stor-purchases-return' => 'purchases',
         'api/new-order' => 'cashier_pos',
-        'api/kitchen-orders' => 'cashier_pos',
-        'api/waiter' => 'cashier_pos',
+        'api/kitchen-orders' => 'kitchen_app',
+        'api/waiter' => 'waiter_app',
         'api/tables' => 'cashier_pos',
         'api/get-tables' => 'cashier_pos',
         'api/change-status' => 'cashier_pos',

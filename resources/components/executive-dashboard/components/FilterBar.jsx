@@ -78,6 +78,10 @@ export default function DashboardFilterBar({ bootstrap, locale, extraActions }) 
         <>
             <header className="ed-hero">
                 <div className="ed-hero-start">
+                    <div className="ed-hive-brand">
+                        <span className="ed-hive-brand__hex" aria-hidden="true" />
+                        <span className="ed-hive-brand__label">{ar ? 'خلية أعمالك' : 'Your business hive'}</span>
+                    </div>
                     <h1>{ar ? 'لوحة التحكم' : 'Dashboard'}</h1>
                     {chips.length > 0 && (
                         <div className="ed-applied" aria-label={ar ? 'الفلاتر المطبقة' : 'Applied filters'}>

@@ -98,6 +98,21 @@
                 </span>
             </div>
         @endif
+        <a href="{{ route('subscription.manage') }}"
+           class="navbar-hive-chip"
+           data-bs-toggle="tooltip"
+           data-bs-placement="bottom"
+           title="@lang('general::general.hive_chip_hint')">
+            <span class="navbar-hive-chip__cells" aria-hidden="true">
+                <span class="navbar-hive-chip__hex navbar-hive-chip__hex--a"></span>
+                <span class="navbar-hive-chip__hex navbar-hive-chip__hex--b"></span>
+                <span class="navbar-hive-chip__hex navbar-hive-chip__hex--c"></span>
+            </span>
+            <span class="navbar-hive-chip__text">
+                <span class="navbar-hive-chip__kicker">@lang('general::general.hive_chip_kicker')</span>
+                <span class="navbar-hive-chip__cta">@lang('general::general.hive_chip_cta')</span>
+            </span>
+        </a>
         <span class="d-none d-xl-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date flex-shrink-0">
             <i class="ki-outline ki-calendar fs-6 text-gray-500"></i>
             <span>{{ $navbarDate }}</span>
@@ -509,6 +524,93 @@
         border: 1px solid rgba(63, 66, 84, 0.1);
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .navbar-hive-chip {
+        --hive-accent: #ebb81e;
+        --hive-accent-2: #b88912;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        flex-shrink: 0;
+        padding: 0.28rem 0.7rem 0.28rem 0.45rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(235, 184, 30, 0.42);
+        background:
+            linear-gradient(135deg, rgba(240, 196, 58, 0.22), rgba(255, 253, 247, 0.96) 55%);
+        box-shadow: 0 4px 14px rgba(184, 137, 18, 0.12);
+        text-decoration: none !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        max-width: min(46vw, 14rem);
+    }
+
+    .navbar-hive-chip:hover {
+        transform: translateY(-1px);
+        border-color: rgba(235, 184, 30, 0.75);
+        box-shadow: 0 8px 20px rgba(184, 137, 18, 0.2);
+    }
+
+    .navbar-hive-chip:active {
+        transform: translateY(0);
+    }
+
+    .navbar-hive-chip__cells {
+        position: relative;
+        width: 1.55rem;
+        height: 1.45rem;
+        flex-shrink: 0;
+    }
+
+    .navbar-hive-chip__hex {
+        position: absolute;
+        width: 0.72rem;
+        height: 0.8rem;
+        background: linear-gradient(145deg, #f5d76e, var(--hive-accent) 45%, var(--hive-accent-2));
+        clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%);
+        box-shadow: 0 1px 3px rgba(184, 137, 18, 0.35);
+        transition: transform 0.25s ease;
+    }
+
+    .navbar-hive-chip__hex--a { inset-inline-start: 0.4rem; top: 0; }
+    .navbar-hive-chip__hex--b { inset-inline-start: 0; top: 0.45rem; opacity: 0.72; }
+    .navbar-hive-chip__hex--c { inset-inline-start: 0.8rem; top: 0.45rem; opacity: 0.85; }
+
+    .navbar-hive-chip:hover .navbar-hive-chip__hex--a { transform: translateY(-1px); }
+    .navbar-hive-chip:hover .navbar-hive-chip__hex--b { transform: translate(-1px, 1px); }
+    .navbar-hive-chip:hover .navbar-hive-chip__hex--c { transform: translate(1px, 1px); }
+
+    .navbar-hive-chip__text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.15;
+    }
+
+    .navbar-hive-chip__kicker {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #1a1a1a;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+    }
+
+    .navbar-hive-chip__cta {
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: #8a6a0d;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 991.98px) {
+        .navbar-hive-chip__cta { display: none; }
+        .navbar-hive-chip {
+            padding-inline-end: 0.55rem;
+            max-width: none;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .navbar-hive-chip__kicker { font-size: 0.7rem; }
     }
 
     .navbar-company-chip-icon-wrap {
