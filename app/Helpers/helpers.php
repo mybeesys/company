@@ -26,35 +26,50 @@ if (! function_exists('get_company_id')) {
     /**
      * Company id for the current tenant. Uses loaded tenant data when available
      * to avoid an extra central DB query on every request.
+     *
+     * Important: do not permanently cache a null result before tenancy boots —
+     * that would force entitlement checks into "legacy open" for the whole request.
      */
     function get_company_id(): ?int
     {
         static $companyId = null;
-        static $resolved = false;
+        static $resolvedTenantKey = null;
 
-        if ($resolved) {
+        $tenantKey = null;
+        if (function_exists('tenancy') && tenancy()->initialized) {
+            $id = tenant('id');
+            $tenantKey = $id !== null && $id !== '' ? (string) $id : null;
+        }
+
+        if ($tenantKey === null) {
+            return null;
+        }
+
+        if ($resolvedTenantKey === $tenantKey) {
             return $companyId;
         }
 
-        $resolved = true;
+        $resolvedTenantKey = $tenantKey;
+        $companyId = null;
 
-        if (function_exists('tenancy') && tenancy()->initialized) {
-            $fromTenant = tenant('company_id');
-            if ($fromTenant !== null && $fromTenant !== '') {
-                $companyId = (int) $fromTenant;
+        $fromTenant = tenant('company_id');
+        if ($fromTenant !== null && $fromTenant !== '') {
+            $companyId = (int) $fromTenant;
 
-                return $companyId;
-            }
+            return $companyId;
         }
 
-        $tenantId = tenant('id');
-        if ($tenantId) {
-            $found = \Illuminate\Support\Facades\DB::connection('mysql')
-                ->table('tenants')
-                ->where('id', $tenantId)
-                ->value('company_id');
-            $companyId = $found !== null ? (int) $found : null;
+        $connection = (string) config('tenancy.database.central_connection', 'central');
+        if ($connection === '' || ! config("database.connections.{$connection}")) {
+            $connection = 'mysql';
         }
+
+        $found = \Illuminate\Support\Facades\DB::connection($connection)
+            ->table('tenants')
+            ->where('id', $tenantKey)
+            ->value('company_id');
+
+        $companyId = $found !== null ? (int) $found : null;
 
         return $companyId;
     }
@@ -340,5 +355,30 @@ if (! function_exists('dashboard_can')) {
     function dashboard_can(string|array $permissions): bool
     {
         return \Modules\Employee\Support\DashboardAccess::allows(auth()->user(), $permissions);
+    }
+}
+
+if (! function_exists('tenant_entitled')) {
+    /**
+     * Whether the current tenant's subscription includes a commercial module.
+     * Legacy tenants without company_entitlements remain unrestricted.
+     */
+    function tenant_entitled(string|array $moduleKeys): bool
+    {
+        return app(\App\Services\EntitlementGate::class)->allows($moduleKeys);
+    }
+}
+
+if (! function_exists('tenant_menu_entitled')) {
+    function tenant_menu_entitled(?string $menuName): bool
+    {
+        return app(\App\Services\EntitlementGate::class)->menuAllowed($menuName);
+    }
+}
+
+if (! function_exists('tenant_setting_entitled')) {
+    function tenant_setting_entitled(string $section): bool
+    {
+        return app(\App\Services\EntitlementGate::class)->settingAllowed($section);
     }
 }
