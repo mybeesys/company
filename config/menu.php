@@ -138,12 +138,6 @@ return [
                 'permission' => 'products.product barcode.show',
 
             ],
-            [
-                'name' => 'importProduct',
-                'url' => 'importProduct/import',
-                'permission' => 'products.importProduct.show',
-
-            ],
 
         ],
     ],

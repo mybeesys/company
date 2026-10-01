@@ -110,9 +110,11 @@ class QuotationController extends Controller
             }
         }
 
-        $products = Product::where('type', '<>', 'ingredint')->with(['unitTransfers' => function ($query) {
-            $query->whereNull('unit2');
-        }])->get();
+        $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
+            ->whereIn('type', ['product', 'variable', 'ingredint'])
+            ->with(['unitTransfers' => function ($query) {
+                $query->whereNull('unit2');
+            }])->get();
 
         $sellWithModifiersCombos = WebSellModifiersCombosService::isEnabled();
         $allowSaleWithoutStock = \Modules\Sales\Support\SalesAccess::allowsSaleWithoutStock();

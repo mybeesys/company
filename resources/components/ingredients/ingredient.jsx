@@ -11,6 +11,7 @@ const Ingredient = ({ translations, dir }) => {
     const rootElement = document.getElementById("root");
     const urlList = JSON.parse(rootElement.getAttribute("list-url"));
     const unitTypes = JSON.parse(rootElement.getAttribute("unitTypes-url"));
+    const importUrl = rootElement.getAttribute("import-url") || "/importIngredient/import";
     const [unitTypeValues, setUnitTypeValues] = useState([]);
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -452,6 +453,15 @@ const Ingredient = ({ translations, dir }) => {
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
                         {emsCan("create") ? (
                         <a
+                            href={importUrl}
+                            class="btn btn-light-primary"
+                        >
+                            <i class="ki-outline ki-file-up fs-2"></i>
+                            {translations.importIngredients || translations.import1 || "استيراد"}
+                        </a>
+                        ) : null}
+                        {emsCan("create") ? (
+                        <a
                             href="#"
                             class="btn btn-primary"
                             onClick={() => openAddIngredient()}
@@ -517,6 +527,14 @@ const Ingredient = ({ translations, dir }) => {
                             header={translations.active}
                             style={{ width: "6%" }}
                             body={(node) => renderCheckCell(node, "active")}
+                            sortable
+                        >
+                            {" "}
+                        </Column>
+                        <Column
+                            header={translations.forSell}
+                            style={{ width: "8%" }}
+                            body={(node) => renderCheckCell(node, "for_sell")}
                             sortable
                         >
                             {" "}

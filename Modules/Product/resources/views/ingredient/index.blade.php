@@ -7,6 +7,7 @@
     <div id="root" type="ingredient" list-url="{{ json_encode(route('ingredientList')) }}"
          unitTypes-url="{{ json_encode(route('unitTypeList')) }}"
         Ingredient-url="{{ json_encode(route('ingredient.store')) }}"
+        import-url="{{ route('ingredientImport.import') }}"
         ems-can="{{ \Modules\Product\Support\ProductAccess::uiJson('ingredient') }}"
         dir = "{{ app()->getLocale() == 'en' ? 'ltr' : 'rtl' }}"></div>
 @endsection

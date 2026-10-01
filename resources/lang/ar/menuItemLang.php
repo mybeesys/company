@@ -97,7 +97,10 @@ return [
 
     'supplier_receipts' => 'سندات الموردين',
     'supplier_receipt' => 'سند الموردين',
-    'importProduct' => 'استيراد',
+    'importProduct' => 'استيراد المنتجات',
+    'importIngredient' => 'استيراد المكونات',
+    'importModifier' => 'استيراد الإضافات',
+    'importAttribute' => 'استيراد المتغيرات',
     'tel' => 'هاتف',
 
     'screen_module' => 'الشاشات',

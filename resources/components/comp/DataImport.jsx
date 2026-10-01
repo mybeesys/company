@@ -9,17 +9,66 @@ const ACCEPTED = {
   "text/csv": [".csv"],
 };
 
-const PREVIEW_COLUMNS = [
-  { key: "name_ar", labelKey: "name_ar", editable: true },
-  { key: "name_en", labelKey: "name_en", editable: true },
-  { key: "category", labelKey: "category", editable: true },
-  { key: "subcategory", labelKey: "subcategory", editable: true },
-  { key: "main_unit", labelKey: "Unit", editable: true },
-  { key: "price_with_tax", labelKey: "price_with_tax", editable: true },
-  { key: "tax", labelKey: "tax", editable: true },
-  { key: "establishment", labelKey: "establishment", editable: true },
-  { key: "SKU", labelKey: "SKU", editable: true },
-];
+const IMPORT_PROFILES = {
+  importProduct: {
+    titleKey: "importProduct",
+    titleFallback: "استيراد المنتجات",
+    dataLabelKey: "products",
+    columns: [
+      { key: "name_ar", labelKey: "name_ar", editable: true },
+      { key: "name_en", labelKey: "name_en", editable: true },
+      { key: "category", labelKey: "category", editable: true },
+      { key: "subcategory", labelKey: "subcategory", editable: true },
+      { key: "main_unit", labelKey: "Unit", editable: true },
+      { key: "price_with_tax", labelKey: "price_with_tax", editable: true },
+      { key: "tax", labelKey: "tax", editable: true },
+      { key: "establishment", labelKey: "establishment", editable: true },
+      { key: "SKU", labelKey: "SKU", editable: true },
+    ],
+  },
+  importIngredient: {
+    titleKey: "importIngredient",
+    titleFallback: "استيراد المكونات",
+    dataLabelKey: "ingredients",
+    columns: [
+      { key: "name_ar", labelKey: "name_ar", editable: true },
+      { key: "name_en", labelKey: "name_en", editable: true },
+      { key: "main_unit", labelKey: "Unit", editable: true },
+      { key: "cost", labelKey: "cost", editable: true },
+      { key: "SKU", labelKey: "SKU", editable: true },
+      { key: "barcode", labelKey: "barcode", editable: true },
+      { key: "establishment", labelKey: "establishment", editable: true },
+      { key: "for_sell", labelKey: "forSell", editable: true },
+    ],
+  },
+  importModifier: {
+    titleKey: "importModifier",
+    titleFallback: "استيراد الإضافات",
+    dataLabelKey: "modifiers",
+    columns: [
+      { key: "name_ar", labelKey: "name_ar", editable: true },
+      { key: "name_en", labelKey: "name_en", editable: true },
+      { key: "modifier_class", labelKey: "modifier_class", editable: true },
+      { key: "price_with_tax", labelKey: "price_with_tax", editable: true },
+      { key: "cost", labelKey: "cost", editable: true },
+      { key: "tax", labelKey: "tax", editable: true },
+      { key: "main_unit", labelKey: "Unit", editable: true },
+      { key: "SKU", labelKey: "SKU", editable: true },
+    ],
+  },
+  importAttribute: {
+    titleKey: "importAttribute",
+    titleFallback: "استيراد المتغيرات",
+    dataLabelKey: "attributes",
+    columns: [
+      { key: "name_ar", labelKey: "name_ar", editable: true },
+      { key: "name_en", labelKey: "name_en", editable: true },
+      { key: "attribute_class", labelKey: "attribute_class", editable: true },
+      { key: "active", labelKey: "active", editable: true },
+      { key: "order", labelKey: "order", editable: true },
+    ],
+  },
+};
 
 const statusClass = (status) => {
   if (status === "exists") return "pi-row-exists";
@@ -51,6 +100,7 @@ const issueText = (row, translations) => {
 
 const ImportPreviewTable = ({
   rows,
+  columns,
   translations,
   onCellChange,
   onCellBlur,
@@ -62,7 +112,7 @@ const ImportPreviewTable = ({
         <tr className="fw-bold text-muted">
           <th className="ps-4 min-w-40px">#</th>
           <th className="min-w-110px">{translations.status || "الحالة"}</th>
-          {PREVIEW_COLUMNS.map((col) => (
+          {columns.map((col) => (
             <th key={col.key} className="min-w-120px">
               {translations[col.labelKey] || col.key}
             </th>
@@ -88,7 +138,7 @@ const ImportPreviewTable = ({
                     : translations.importStatusOk || "سليم"}
                 </span>
               </td>
-              {PREVIEW_COLUMNS.map((col) => {
+              {columns.map((col) => {
                 const isProblem = problems.has(col.key);
                 const value = row[col.key] ?? "";
                 if (canEdit && col.editable) {
@@ -125,8 +175,11 @@ const ImportPreviewTable = ({
 const DataImport = ({ translations, dir }) => {
   const rootElement = document.getElementById("root");
   const templateUrl = rootElement.getAttribute("template-url");
+  const backUrl = rootElement.getAttribute("back-url");
   const type = rootElement.getAttribute("type");
   const dataType = rootElement.getAttribute("data-type");
+  const profile = IMPORT_PROFILES[type] || IMPORT_PROFILES.importProduct;
+  const previewColumns = profile.columns;
 
   const [data, setData] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -137,40 +190,16 @@ const DataImport = ({ translations, dir }) => {
   const [dragActive, setDragActive] = useState(false);
   const [previewError, setPreviewError] = useState(null);
 
-  const isProductImport = type === "importProduct";
   const t = (key, fallback) => translations?.[key] || fallback;
 
-  const rules = useMemo(() => {
-    if (!isProductImport) {
-      return [
-        {
-          icon: "ki-file-up",
-          title: t("importRuleFormatTitle", "صيغة الملف"),
-          body: t("importRuleFormatBody", "XLSX أو XLS أو CSV وفق النموذج المعتمد."),
-        },
-        {
-          icon: "ki-verify",
-          title: t("importRuleHeadersTitle", "ترويسة الأعمدة"),
-          body: t("importRuleHeadersBody", "لا تغيّر أسماء الأعمدة في الصف الأول."),
-        },
-      ];
-    }
-
-    return [
+  const rules = useMemo(
+    () => [
       {
         icon: "ki-file",
         title: t("importRuleTemplateTitle", "ابدأ من النموذج"),
         body: t(
           "importRuleTemplateBody",
           "حمّل النموذج الرسمي واملأ الصفوف دون تعديل أسماء الأعمدة."
-        ),
-      },
-      {
-        icon: "ki-element-11",
-        title: t("importRuleCategoryTitle", "التصنيفات"),
-        body: t(
-          "importRuleCategoryBody",
-          "التصنيف والتصنيف الجزئي يُنشآن تلقائياً إن لم يكونا موجودين."
         ),
       },
       {
@@ -182,12 +211,9 @@ const DataImport = ({ translations, dir }) => {
         ),
       },
       {
-        icon: "ki-parcel",
-        title: t("importRuleUnitTitle", "الوحدة والأسماء"),
-        body: t(
-          "importRuleUnitBody",
-          "الاسم العربي والوحدة الرئيسية إلزاميان، ولا يُسمح بتكرار الأسماء."
-        ),
+        icon: "ki-verify",
+        title: t("importRuleHeadersTitle", "ترويسة الأعمدة"),
+        body: t("importRuleHeadersBody", "لا تغيّر أسماء الأعمدة في الصف الأول."),
       },
       {
         icon: "ki-cloud-add",
@@ -197,8 +223,9 @@ const DataImport = ({ translations, dir }) => {
           "الحد الأقصى 10 ميغابايت — صيغ XLSX / XLS / CSV فقط."
         ),
       },
-    ];
-  }, [isProductImport, translations]);
+    ],
+    [translations]
+  );
 
   const applyValidated = (payload) => {
     const rows = Array.isArray(payload?.rows)
@@ -451,13 +478,13 @@ const DataImport = ({ translations, dir }) => {
     <div className="product-import-page" dir={dir}>
       <div className="pi-hero card border-0 mb-5">
         <div className="card-body py-6 px-6 px-lg-8">
-          <div className="d-flex flex-wrap align-items-start justify-content-between gap-4">
+            <div className="d-flex flex-wrap align-items-start justify-content-between gap-4">
             <div className="pi-hero-copy">
               <div className="pi-kicker mb-2">
                 {t("importStudioKicker", "استوديو الاستيراد")}
               </div>
               <h2 className="pi-title mb-2">
-                {t(type, t("importProduct", "استيراد المنتجات"))}
+                {t(profile.titleKey, profile.titleFallback)}
               </h2>
               <p className="pi-subtitle mb-0 text-muted">
                 {t(
@@ -466,14 +493,22 @@ const DataImport = ({ translations, dir }) => {
                 )}
               </p>
             </div>
-            <a
-              href={templateUrl}
-              className="btn btn-light-primary btn-sm pi-template-btn"
-              download
-            >
-              <i className="ki-outline ki-file-down fs-3 me-1" />
-              {t("downloadTemplate", "تحميل النموذج")}
-            </a>
+            <div className="d-flex flex-wrap gap-2">
+              {backUrl ? (
+                <a href={backUrl} className="btn btn-light btn-sm pi-template-btn">
+                  <i className="ki-outline ki-arrow-right fs-3 me-1" />
+                  {t("back", "رجوع")}
+                </a>
+              ) : null}
+              <a
+                href={templateUrl}
+                className="btn btn-light-primary btn-sm pi-template-btn"
+                download
+              >
+                <i className="ki-outline ki-file-down fs-3 me-1" />
+                {t("downloadTemplate", "تحميل النموذج")}
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -653,6 +688,7 @@ const DataImport = ({ translations, dir }) => {
           ) : data.length ? (
             <ImportPreviewTable
               rows={data}
+              columns={previewColumns}
               translations={translations}
               onCellChange={handleCellChange}
               onCellBlur={handleCellBlur}

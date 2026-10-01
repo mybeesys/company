@@ -285,7 +285,7 @@ class Product extends Model
     public static function productsForSell()
     {
         return Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-            ->whereIn('type', ['product', 'variation'])
+            ->whereIn('type', ['product', 'variable', 'ingredint'])
             ->with(['unitTransfers' => function ($query) {
                 $query->whereNull('unit2');
             }])
@@ -295,7 +295,7 @@ class Product extends Model
     public static function productsForPurchese()
     {
         return Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-            ->whereIn('type', ['product', 'variation'])
+            ->whereIn('type', ['product', 'variable', 'ingredint'])
             ->with(['unitTransfers' => function ($query) {
                 $query->whereNull('unit2');
             }])

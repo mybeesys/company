@@ -90,6 +90,7 @@ class IngredientController extends Controller implements HasMiddleware
         $ingredient = new Product;
         $ingredient->establishments = Establishment::where('is_main', 0)->get();
         $ingredient->active = 1;
+        $ingredient->for_sell = 0;
 
         return view('product::ingredient.create', compact('ingredient'));
     }
@@ -124,12 +125,16 @@ class IngredientController extends Controller implements HasMiddleware
 
         if (isset($validated['id'])) {
             $validated['tax_id'] = $validated['order_tax_id'] ?? null;
+            $validated['for_sell'] = ! empty($validated['for_sell']) ? 1 : 0;
+            $validated['active'] = ! empty($validated['active']) ? 1 : 0;
             $res = $this->validateProduct($validated['id'], $validated);
             if (count($res) > 0) {
                 return $res;
             }
             $this->saveProduct($validated, $request);
         } else {
+            $validated['for_sell'] = ! empty($validated['for_sell']) ? 1 : 0;
+            $validated['active'] = ! empty($validated['active']) ? 1 : 0;
             $res = $this->validateProduct(null, $validated);
             if (count($res) > 0) {
                 return $res;
@@ -241,6 +246,10 @@ class IngredientController extends Controller implements HasMiddleware
     {
         DB::transaction(function () use ($validated, $request) {
             $validated['type'] = self::PRODUCT_TYPE;
+            $validated['for_sell'] = ! empty($validated['for_sell']) ? 1 : 0;
+            $validated['active'] = array_key_exists('active', $validated)
+                ? (! empty($validated['active']) ? 1 : 0)
+                : 1;
             $product = Product::create($validated);
             $user = auth()->user();
 

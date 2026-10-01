@@ -12,6 +12,9 @@ use Modules\Product\Http\Controllers\DiningTypeController;
 use Modules\Product\Http\Controllers\DiscountController;
 use Modules\Product\Http\Controllers\DiscountLOVController;
 use Modules\Product\Http\Controllers\GeneralController;
+use Modules\Product\Http\Controllers\Import\AttributeImportController;
+use Modules\Product\Http\Controllers\Import\IngredientImportController;
+use Modules\Product\Http\Controllers\Import\ModifierImportController;
 use Modules\Product\Http\Controllers\Import\ProductImportController;
 use Modules\Product\Http\Controllers\IngredientController;
 use Modules\Product\Http\Controllers\LinkedComboController;
@@ -165,6 +168,37 @@ Route::middleware([
         Route::get('/importProduct/import', [ProductImportController::class, 'import'])
             ->middleware($perm(ProductPermissions::IMPORT_SHOW))
             ->name('productImport.import');
+
+        Route::post('/importIngredient/upload', [IngredientImportController::class, 'upload'])
+            ->middleware($perm(ProductPermissions::INGREDIENT_CREATE));
+        Route::post('/importIngredient/readData', [IngredientImportController::class, 'readData'])
+            ->middleware($perm(ProductPermissions::INGREDIENT_CREATE));
+        Route::post('/importIngredient/validateRows', [IngredientImportController::class, 'validateRows'])
+            ->middleware($perm(ProductPermissions::INGREDIENT_CREATE));
+        Route::get('/importIngredient/import', [IngredientImportController::class, 'import'])
+            ->middleware($perm(ProductPermissions::INGREDIENT_SHOW))
+            ->name('ingredientImport.import');
+
+        Route::post('/importModifier/upload', [ModifierImportController::class, 'upload'])
+            ->middleware($perm(ProductPermissions::MODIFIER_CREATE));
+        Route::post('/importModifier/readData', [ModifierImportController::class, 'readData'])
+            ->middleware($perm(ProductPermissions::MODIFIER_CREATE));
+        Route::post('/importModifier/validateRows', [ModifierImportController::class, 'validateRows'])
+            ->middleware($perm(ProductPermissions::MODIFIER_CREATE));
+        Route::get('/importModifier/import', [ModifierImportController::class, 'import'])
+            ->middleware($perm(ProductPermissions::MODIFIER_SHOW))
+            ->name('modifierImport.import');
+
+        Route::post('/importAttribute/upload', [AttributeImportController::class, 'upload'])
+            ->middleware($perm(ProductPermissions::ATTRIBUTE_CREATE));
+        Route::post('/importAttribute/readData', [AttributeImportController::class, 'readData'])
+            ->middleware($perm(ProductPermissions::ATTRIBUTE_CREATE));
+        Route::post('/importAttribute/validateRows', [AttributeImportController::class, 'validateRows'])
+            ->middleware($perm(ProductPermissions::ATTRIBUTE_CREATE));
+        Route::get('/importAttribute/import', [AttributeImportController::class, 'import'])
+            ->middleware($perm(ProductPermissions::ATTRIBUTE_SHOW))
+            ->name('attributeImport.import');
+
         Route::get('/productBarcode/barcode', [ProductController::class, 'barcode'])
             ->middleware($perm(ProductPermissions::BARCODE_SHOW))
             ->name('productBarcode.barcode');

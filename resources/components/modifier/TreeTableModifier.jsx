@@ -13,6 +13,7 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
     const modifierCrudList = JSON.parse(
         rootElement.getAttribute("modifier-crud-url")
     );
+    const importUrl = rootElement.getAttribute("import-url") || "/importModifier/import";
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState("");
@@ -536,6 +537,15 @@ const TreeTableModifier = ({ urlList, rootElement, translations, dir }) => {
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                        {emsCan("create") ? (
+                        <a
+                            href={importUrl}
+                            class="btn btn-light-primary"
+                        >
+                            <i class="ki-outline ki-file-up fs-2"></i>
+                            {translations.importModifiers || translations.import1 || "استيراد"}
+                        </a>
+                        ) : null}
                         {emsCan("create") ? (
                         <a
                             href="javascript:void(0);"

@@ -8,6 +8,7 @@ import { emsCan, emsCanEditOrSave } from "../emsCan";
 
 const defaultObjectValue = { active: 1 };
 const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
+    const importUrl = rootElement.getAttribute("import-url") || "/importAttribute/import";
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState("");
@@ -367,6 +368,15 @@ const TreeTableAttribute = ({ urlList, rootElement, translations }) => {
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">
+                        {emsCan("create") ? (
+                        <a
+                            href={importUrl}
+                            class="btn btn-light-primary"
+                        >
+                            <i class="ki-outline ki-file-up fs-2"></i>
+                            {translations.importAttributes || translations.import1 || "استيراد"}
+                        </a>
+                        ) : null}
                         <DeleteModal
                             visible={isDeleteModalVisible}
                             onClose={handleClose}
