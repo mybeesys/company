@@ -144,7 +144,7 @@ const App = ({ nodeType, dir }) => {
                 await import("./brand-override.scss");
                 transaltion = await import("./lang/ar.json");
             }
-            setTranslations(transaltion);
+            setTranslations(transaltion.default ?? transaltion);
             setLoading(false);
         };
         loadTranslations();
