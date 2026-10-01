@@ -16,7 +16,8 @@ const TreeTableComponentLocal = ({ translations, dir, header, cols,
     const formRef = useRef(null);
 
     const rootElement = document.getElementById('root');
-    const urlList = JSON.parse(rootElement.getAttribute('list-url'));
+    const listUrlAttr = rootElement?.getAttribute('list-url');
+    const urlList = listUrlAttr ? JSON.parse(listUrlAttr) : null;
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [url, setUrl] = useState('');
