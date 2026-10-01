@@ -56,7 +56,8 @@ const IngredientDetail = ({ dir, translations }) => {
             setSubmitdisableButton(true);
 
             let r = { ...currentObject };
-            r["active"] = r["active"] ? r["active"] : 0;
+            r["active"] = r["active"] ? 1 : 0;
+            r["for_sell"] = r["for_sell"] ? 1 : 0;
 
             let transfer = unitTransfer.filter((object) => object.id != -100);
 

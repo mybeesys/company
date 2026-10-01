@@ -98,27 +98,32 @@
                 </span>
             </div>
         @endif
-        <a href="{{ route('subscription.manage') }}"
-           class="navbar-hive-chip"
-           data-bs-toggle="tooltip"
-           data-bs-placement="bottom"
-           title="@lang('general::general.hive_chip_hint')">
-            <span class="navbar-hive-chip__cells" aria-hidden="true">
-                <span class="navbar-hive-chip__hex navbar-hive-chip__hex--a"></span>
-                <span class="navbar-hive-chip__hex navbar-hive-chip__hex--b"></span>
-                <span class="navbar-hive-chip__hex navbar-hive-chip__hex--c"></span>
-            </span>
-            <span class="navbar-hive-chip__text">
-                <span class="navbar-hive-chip__kicker">@lang('general::general.hive_chip_kicker')</span>
-                <span class="navbar-hive-chip__cta">@lang('general::general.hive_chip_cta')</span>
-            </span>
-        </a>
         <span class="d-none d-xl-inline-flex align-items-center gap-1 fs-8 fw-semibold text-muted navbar-meta-date flex-shrink-0">
             <i class="ki-outline ki-calendar fs-6 text-gray-500"></i>
             <span>{{ $navbarDate }}</span>
         </span>
     </div>
     <div class="app-navbar-actions d-flex align-items-center gap-1 gap-lg-2 flex-shrink-0 ms-auto">
+    <a href="{{ route('subscription.manage') }}"
+       class="navbar-hive-chip"
+       data-bs-toggle="tooltip"
+       data-bs-placement="bottom"
+       title="@lang('general::general.hive_chip_hint')">
+        <span class="navbar-hive-chip__glow" aria-hidden="true"></span>
+        <span class="navbar-hive-chip__cells" aria-hidden="true">
+            <span class="navbar-hive-chip__hex navbar-hive-chip__hex--a"></span>
+            <span class="navbar-hive-chip__hex navbar-hive-chip__hex--b"></span>
+            <span class="navbar-hive-chip__hex navbar-hive-chip__hex--c"></span>
+        </span>
+        <span class="navbar-hive-chip__text">
+            <span class="navbar-hive-chip__kicker">@lang('general::general.hive_chip_kicker')</span>
+            <span class="navbar-hive-chip__cta">@lang('general::general.hive_chip_cta')</span>
+        </span>
+        <span class="navbar-hive-chip__arrow" aria-hidden="true">
+            <i class="ki-outline ki-arrow-left fs-6"></i>
+        </span>
+    </a>
+    <span class="navbar-actions-divider d-none d-md-inline-flex" aria-hidden="true"></span>
     {{-- <div class="app-navbar-item d-flex align-items-stretch flex-lg-grow-1">
         <div id="kt_header_search" class="header-search d-flex align-items-center w-lg-350px"
             data-kt-search-keypress="true" data-kt-search-min-length="2" data-kt-search-enter="enter"
@@ -202,14 +207,14 @@
         </div>
     </div> --}}
     <div class="app-navbar-item">
-        <a href="{{ url('/dashboard') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px"
+        <a href="{{ url('/dashboard') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px navbar-action-btn"
             title="{{ __('general.dashboard') }}" aria-label="{{ __('general.dashboard') }}">
             <i class="ki-outline ki-home-2 fs-3"></i>
         </a>
     </div>
     @if ($hasQuickPermission('setting.General setting.show'))
         <div class="app-navbar-item">
-            <a href="{{ url('/general-setting') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px"
+            <a href="{{ url('/general-setting') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px navbar-action-btn"
                 title="{{ __('general.header_help_settings') }}" aria-label="{{ __('general.header_help_settings') }}">
                 <i class="ki-outline ki-information-2 fs-3"></i>
             </a>
@@ -217,7 +222,7 @@
     @endif
     <!--begin::Notifications-->
     <div class="app-navbar-item">
-        <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px position-relative notification_btn"
+        <div class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px position-relative notification_btn navbar-action-btn"
             data-kt-menu-trigger="{default: 'click'}" data-kt-menu-attach="parent"
             data-kt-menu-placement="{{ $menu_placement_y }}">
             <i class="ki-outline ki-notification-on fs-3"></i>
@@ -511,6 +516,32 @@
 
     .app-navbar--compact .app-navbar-actions {
         align-items: center;
+        gap: 0.35rem;
+    }
+
+    .navbar-actions-divider {
+        width: 1px;
+        height: 1.65rem;
+        margin-inline: 0.35rem;
+        background: linear-gradient(
+            180deg,
+            transparent 0%,
+            rgba(63, 66, 84, 0.18) 20%,
+            rgba(63, 66, 84, 0.18) 80%,
+            transparent 100%
+        );
+        flex-shrink: 0;
+    }
+
+    .navbar-action-btn {
+        border: 1px solid transparent;
+        background: transparent;
+        transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .navbar-action-btn:hover {
+        background: rgba(63, 66, 84, 0.05) !important;
+        border-color: rgba(63, 66, 84, 0.08);
     }
 
     .navbar-company-chip {
@@ -520,8 +551,8 @@
         max-width: min(52vw, 22rem);
         min-width: 0;
         padding: 0.35rem 0.75rem 0.35rem 0.65rem;
-        border-radius: 0.65rem;
-        border: 1px solid rgba(63, 66, 84, 0.1);
+        border-radius: 0.75rem;
+        border: 1px solid rgba(63, 66, 84, 0.08);
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
@@ -529,25 +560,51 @@
     .navbar-hive-chip {
         --hive-accent: #ebb81e;
         --hive-accent-2: #b88912;
+        --hive-ink: #1a1a1a;
+        position: relative;
         display: inline-flex;
         align-items: center;
         gap: 0.55rem;
         flex-shrink: 0;
-        padding: 0.28rem 0.7rem 0.28rem 0.45rem;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(235, 184, 30, 0.42);
+        overflow: hidden;
+        padding: 0.32rem 0.55rem 0.32rem 0.42rem;
+        border-radius: 999px;
+        border: 1px solid rgba(235, 184, 30, 0.45);
         background:
-            linear-gradient(135deg, rgba(240, 196, 58, 0.22), rgba(255, 253, 247, 0.96) 55%);
-        box-shadow: 0 4px 14px rgba(184, 137, 18, 0.12);
+            linear-gradient(120deg, rgba(255, 248, 220, 0.95) 0%, rgba(255, 255, 255, 0.98) 48%, rgba(255, 251, 235, 0.92) 100%);
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.85) inset,
+            0 4px 14px rgba(184, 137, 18, 0.14);
         text-decoration: none !important;
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        max-width: min(46vw, 14rem);
+        max-width: min(48vw, 15.5rem);
+        isolation: isolate;
+    }
+
+    .navbar-hive-chip__glow {
+        position: absolute;
+        inset: -40% -20% auto auto;
+        width: 4.5rem;
+        height: 4.5rem;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(245, 215, 110, 0.55) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.85;
+        transition: opacity 0.25s ease, transform 0.25s ease;
     }
 
     .navbar-hive-chip:hover {
         transform: translateY(-1px);
-        border-color: rgba(235, 184, 30, 0.75);
-        box-shadow: 0 8px 20px rgba(184, 137, 18, 0.2);
+        border-color: rgba(235, 184, 30, 0.85);
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.9) inset,
+            0 10px 24px rgba(184, 137, 18, 0.22);
+    }
+
+    .navbar-hive-chip:hover .navbar-hive-chip__glow {
+        opacity: 1;
+        transform: scale(1.08);
     }
 
     .navbar-hive-chip:active {
@@ -559,6 +616,7 @@
         width: 1.55rem;
         height: 1.45rem;
         flex-shrink: 0;
+        z-index: 1;
     }
 
     .navbar-hive-chip__hex {
@@ -583,34 +641,107 @@
         display: flex;
         flex-direction: column;
         min-width: 0;
-        line-height: 1.15;
+        line-height: 1.12;
+        z-index: 1;
     }
 
     .navbar-hive-chip__kicker {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         font-weight: 800;
-        color: #1a1a1a;
-        letter-spacing: -0.01em;
+        color: var(--hive-ink);
+        letter-spacing: -0.015em;
         white-space: nowrap;
     }
 
     .navbar-hive-chip__cta {
-        font-size: 0.62rem;
+        font-size: 0.6rem;
         font-weight: 700;
         color: #8a6a0d;
         white-space: nowrap;
+        opacity: 0.92;
+    }
+
+    .navbar-hive-chip__arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.35rem;
+        height: 1.35rem;
+        border-radius: 999px;
+        flex-shrink: 0;
+        background: rgba(235, 184, 30, 0.18);
+        color: #8a6a0d;
+        z-index: 1;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .navbar-hive-chip:hover .navbar-hive-chip__arrow {
+        background: rgba(235, 184, 30, 0.32);
+        transform: translateX(-2px);
+    }
+
+    [dir="ltr"] .navbar-hive-chip__arrow i {
+        transform: scaleX(-1);
+    }
+
+    [dir="ltr"] .navbar-hive-chip:hover .navbar-hive-chip__arrow {
+        transform: translateX(2px);
+    }
+
+    [dir="ltr"] .navbar-hive-chip:hover .navbar-hive-chip__arrow i {
+        transform: scaleX(-1);
     }
 
     @media (max-width: 991.98px) {
         .navbar-hive-chip__cta { display: none; }
         .navbar-hive-chip {
-            padding-inline-end: 0.55rem;
+            padding-inline-end: 0.45rem;
             max-width: none;
+            gap: 0.4rem;
         }
+        .navbar-hive-chip__arrow { display: none; }
     }
 
     @media (max-width: 575.98px) {
-        .navbar-hive-chip__kicker { font-size: 0.7rem; }
+        .navbar-hive-chip__kicker { font-size: 0.68rem; }
+        .navbar-hive-chip {
+            padding: 0.28rem 0.4rem;
+        }
+    }
+
+    [data-bs-theme="dark"] .navbar-hive-chip {
+        border-color: rgba(235, 184, 30, 0.35);
+        background:
+            linear-gradient(120deg, rgba(235, 184, 30, 0.16) 0%, rgba(26, 26, 39, 0.95) 55%, rgba(235, 184, 30, 0.1) 100%);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    }
+
+    [data-bs-theme="dark"] .navbar-hive-chip__kicker {
+        color: #f8f5ea;
+    }
+
+    [data-bs-theme="dark"] .navbar-hive-chip__cta {
+        color: #e6c35a;
+    }
+
+    [data-bs-theme="dark"] .navbar-hive-chip__arrow {
+        background: rgba(235, 184, 30, 0.2);
+        color: #e6c35a;
+    }
+
+    [data-bs-theme="dark"] .navbar-actions-divider {
+        background: linear-gradient(
+            180deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.16) 20%,
+            rgba(255, 255, 255, 0.16) 80%,
+            transparent 100%
+        );
+    }
+
+    [data-bs-theme="dark"] .navbar-action-btn:hover {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(255, 255, 255, 0.08);
     }
 
     .navbar-company-chip-icon-wrap {

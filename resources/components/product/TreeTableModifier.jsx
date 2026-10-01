@@ -17,6 +17,7 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
         rootElement.getAttribute("product-crud-url"),
     );
     const productPermission = rootElement.getAttribute("product-permission");
+    const importProductUrl = rootElement.getAttribute("import-product-url") || "/importProduct/import";
 
     const [nodes, setNodes] = useState([]);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -570,6 +571,15 @@ const TreeTableProduct = ({ urlList, rootElement, translations }) => {
                 </h3>
                 <div className="card-toolbar">
                     <div className="d-flex align-items-center gap-2 gap-lg-3">
+                        {emsCan("create", "importProduct") && (
+                            <a
+                                href={importProductUrl}
+                                className="btn btn-light-primary"
+                            >
+                                <i className="ki-outline ki-file-up fs-2"></i>
+                                {translations.importProducts || translations.importProduct || "استيراد منتجات"}
+                            </a>
+                        )}
                         {canAddType("product") && (
                             <a href="javascript:void(0);" className="btn btn-primary" onClick={() => window.location.href = productCrudList + "/create"}>
                                 <i className="ki-outline ki-plus fs-2"></i>

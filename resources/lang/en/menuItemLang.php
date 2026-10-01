@@ -107,7 +107,10 @@ return [
     'main' => 'Main',
 
     'supplier_receipts' => 'Supplier Receipts',
-    'importProduct' => 'Import',
+    'importProduct' => 'Import Products',
+    'importIngredient' => 'Import Ingredients',
+    'importModifier' => 'Import Modifiers',
+    'importAttribute' => 'Import Attributes',
     'sell-return' => 'Sell Return',
     'purchases-return' => 'Purchases return',
     'tables' => 'Tables',

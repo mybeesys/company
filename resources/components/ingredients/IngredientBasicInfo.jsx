@@ -14,28 +14,51 @@ const IngredientBasicInfo = ({
 }) => {
     return (
         <div class="card-body" dir={dir}>
-            <div class="d-flex  align-items-center pt-3">
-                <label
-                    class="fs-6 fw-semibold mb-2 me-3 "
-                    style={{ width: "10px" }}
-                >
-                    {translations.active}
-                </label>
-                <div class="form-check form-switch">
-                    {/* <input type="checkbox" style={{border: "1px solid #9f9f9f"}}
-                    class="form-check-input" role="switch"
-                    id="active" checked={!!currentObject.active ? currentObject.active : false}
-                    onChange={(e) => handleChange('active', e.target.checked)}/> */}
-                    <InputSwitch
-                        checked={
-                            !!currentObject.active
-                                ? !!currentObject.active
-                                : false
-                        }
-                        onChange={(e) => handleChange("active", e.value)}
-                    />
+            <div class="d-flex flex-wrap align-items-center gap-4 gap-lg-8 pt-3 pb-2">
+                <div class="d-flex align-items-center">
+                    <label
+                        class="fs-6 fw-semibold mb-0 me-3"
+                    >
+                        {translations.active}
+                    </label>
+                    <div class="form-check form-switch p-0">
+                        <InputSwitch
+                            checked={!!currentObject.active}
+                            onChange={(e) => onBasicChange("active", e.value ? 1 : 0)}
+                        />
+                    </div>
+                </div>
+                <div class="d-flex align-items-center ingredient-for-sell-switch">
+                    <label
+                        class="fs-6 fw-semibold mb-0 me-2"
+                    >
+                        {translations.forSell}
+                        <span
+                            className="ms-1"
+                            data-bs-toggle="tooltip"
+                            aria-label={translations.ingredientForSellHint || translations.forSell_status}
+                            data-bs-original-title={translations.ingredientForSellHint || translations.forSell_status}
+                        >
+                            <i className="ki-outline ki-information-5 text-gray-500 fs-6"></i>
+                        </span>
+                    </label>
+                    <div class="form-check form-switch p-0">
+                        <InputSwitch
+                            checked={!!currentObject.for_sell}
+                            onChange={(e) => onBasicChange("for_sell", e.value ? 1 : 0)}
+                        />
+                    </div>
                 </div>
             </div>
+            {!!currentObject.for_sell ? (
+                <div className="alert alert-light-warning d-flex align-items-center py-3 px-4 mb-4 mt-2">
+                    <i className="ki-outline ki-information-5 fs-2 text-warning me-3"></i>
+                    <div className="fs-7 text-gray-700">
+                        {translations.ingredientForSellNotice ||
+                            "هذا المكون سيظهر ضمن المنتجات في فواتير المبيعات والعروض والكافيه — تأكد من ضبط سعر البيع والضريبة من تبويب التسعير."}
+                    </div>
+                </div>
+            ) : null}
             <div class="form-group">
                 <div class="row">
                     <div class="col-6">

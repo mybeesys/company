@@ -1326,8 +1326,8 @@ class ProductController extends Controller implements HasMiddleware
         $search = $request->input('search');
         $includeExtrasFlags = \Modules\Sales\Services\WebSellModifiersCombosService::isEnabled();
         $products = Product::where([['active', '=', 1], ['for_sell', '=', 1]])
-            ->whereIn('type', ['product', 'variable'])
-            ->restrictByFranchise()
+            ->whereIn('type', ['product', 'variable', 'ingredint'])
+            ->restrictByFranchise(['product', 'variable', 'ingredint'])
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name_ar', 'like', "%$search%")
@@ -1362,8 +1362,8 @@ class ProductController extends Controller implements HasMiddleware
         $includeExtrasFlags = \Modules\Sales\Services\WebSellModifiersCombosService::isEnabled();
         $products = Product::where('active', 1)
             ->where('for_sell', 1)
-            ->whereIn('type', ['product', 'variable'])
-            ->restrictByFranchise()
+            ->whereIn('type', ['product', 'variable', 'ingredint'])
+            ->restrictByFranchise(['product', 'variable', 'ingredint'])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($sub) use ($search) {
                     $sub->where('name_ar', 'like', "%{$search}%")

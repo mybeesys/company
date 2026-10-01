@@ -118,6 +118,9 @@ const App = ({ nodeType, dir }) => {
         warehouse: <WarehouseTree translations={translations} dir={dir} />,
         priceTier: <PriceTierTree translations={translations} dir={dir} />,
         importProduct: <DataImport translations={translations} dir={dir} />,
+        importIngredient: <DataImport translations={translations} dir={dir} />,
+        importModifier: <DataImport translations={translations} dir={dir} />,
+        importAttribute: <DataImport translations={translations} dir={dir} />,
         openInventoryImport: (
             <DataImport translations={translations} dir={dir} />
         ),
