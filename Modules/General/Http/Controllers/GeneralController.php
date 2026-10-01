@@ -145,11 +145,26 @@ class GeneralController extends Controller
                 ->with('error', __('general::general.subscription_manage_unavailable'));
         }
 
-        $url = app(\App\Services\CentralSubscribeHandoff::class)->createUrl(
-            userId: (int) $user->id,
-            companyId: (int) $companyId,
-            redirectTo: '/subscribe',
-        );
+        $email = (string) ($user->email ?? '');
+        if ($email === '') {
+            return redirect()
+                ->route('subscription')
+                ->with('error', __('general::general.subscription_manage_unavailable'));
+        }
+
+        try {
+            $url = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
+                email: $email,
+                companyId: (int) $companyId,
+                redirectTo: '/subscribe',
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('subscription')
+                ->with('error', __('general::general.subscription_manage_unavailable'));
+        }
 
         return redirect()->away($url);
     }
