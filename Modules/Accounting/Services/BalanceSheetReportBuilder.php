@@ -11,6 +11,8 @@ use Modules\Accounting\Services\AccountCoaVisibility;
 
 /**
  * Balance sheet from the COA tree (assets / liabilities / equity) as-is.
+ * Parent lines display rolled-up descendant balances; section totals use
+ * each account's own postings so the tree is not double-counted.
  * Income & expense accounts are not listed line-by-line; their net is plugged
  * into Current Year Profit / Loss (32201) so A = L + E stays balanced.
  */
@@ -100,6 +102,8 @@ final class BalanceSheetReportBuilder
         $accounts = $this->enrichTree($accounts);
         $accounts = $this->applyCurrentYearProfitPlug($accounts, $plNet, $roundMoney);
         $accounts = AccountCoaVisibility::rollupHiddenIntoParents($accounts);
+        $accounts = $this->enrichTree($accounts);
+        $accounts = $this->rollupDescendantBalances($accounts, $roundMoney);
 
         if ($withZeroBalances === 0) {
             $accounts = $this->keepNonZeroTree($accounts);
@@ -109,9 +113,9 @@ final class BalanceSheetReportBuilder
         $liabilities = $accounts->filter(fn ($a) => $this->isLiability($a))->values();
         $equities = $accounts->filter(fn ($a) => $this->isEquity($a) && ! $this->isPartnersCurrentLiability($a))->values();
 
-        $totalAssets = $roundMoney($assets->sum('balance'));
-        $totalLiabilities = $roundMoney($liabilities->sum('balance'));
-        $totalEquity = $roundMoney($equities->sum('balance'));
+        $totalAssets = $this->sumOwnBalances($assets, $roundMoney);
+        $totalLiabilities = $this->sumOwnBalances($liabilities, $roundMoney);
+        $totalEquity = $this->sumOwnBalances($equities, $roundMoney);
         $totalLiabOwners = $roundMoney($totalLiabilities + $totalEquity);
         $difference = $roundMoney(abs($totalAssets - $totalLiabOwners));
 
@@ -155,7 +159,7 @@ final class BalanceSheetReportBuilder
         $currentLiab = $liabilities->filter(fn ($a) => $this->isCurrentLiability($a))->values();
         $nonCurrentLiab = $liabilities->reject(fn ($a) => $this->isCurrentLiability($a))->values();
 
-        $sum = fn (Collection $rows) => $roundMoney($rows->sum('balance'));
+        $sum = fn (Collection $rows) => $this->sumOwnBalances($rows, $roundMoney);
 
         $accountsGroup = function (Collection $rows, string $labelKey = '') use ($sum) {
             if ($rows->isEmpty()) {
@@ -230,11 +234,13 @@ final class BalanceSheetReportBuilder
         float $totalEquity,
         callable $roundMoney
     ): array {
-        $currentAssets = $roundMoney(
-            $accounts->filter(fn ($a) => $this->isAsset($a) && $this->isCurrentAsset($a))->sum('balance')
+        $currentAssets = $this->sumOwnBalances(
+            $accounts->filter(fn ($a) => $this->isAsset($a) && $this->isCurrentAsset($a)),
+            $roundMoney
         );
-        $currentLiabilities = $roundMoney(
-            $accounts->filter(fn ($a) => $this->isLiability($a) && $this->isCurrentLiability($a))->sum('balance')
+        $currentLiabilities = $this->sumOwnBalances(
+            $accounts->filter(fn ($a) => $this->isLiability($a) && $this->isCurrentLiability($a)),
+            $roundMoney
         );
 
         $workingCapital = $roundMoney($currentAssets - $currentLiabilities);
@@ -331,6 +337,42 @@ final class BalanceSheetReportBuilder
     }
 
     /**
+     * Parent rows must show the subtree (own postings + descendants).
+     * Totals keep using own_balance so parents are not counted twice.
+     *
+     * @param  Collection<int, object>  $accounts
+     * @return Collection<int, object>
+     */
+    private function rollupDescendantBalances(Collection $accounts, callable $roundMoney): Collection
+    {
+        foreach ($accounts as $account) {
+            $account->own_balance = (float) ($account->balance ?? 0);
+        }
+
+        $byId = $accounts->keyBy(fn ($account) => (int) $account->id);
+
+        foreach ($accounts->sortByDesc(fn ($account) => (int) ($account->depth ?? 0)) as $account) {
+            $parentId = $account->parent_account_id !== null ? (int) $account->parent_account_id : 0;
+            if ($parentId === 0 || ! $byId->has($parentId)) {
+                continue;
+            }
+
+            $parent = $byId->get($parentId);
+            $parent->balance = $roundMoney((float) ($parent->balance ?? 0) + (float) ($account->balance ?? 0));
+        }
+
+        return $accounts->values();
+    }
+
+    /**
+     * @param  Collection<int, object>  $rows
+     */
+    private function sumOwnBalances(Collection $rows, callable $roundMoney): float
+    {
+        return $roundMoney($rows->sum(fn ($row) => (float) ($row->own_balance ?? 0)));
+    }
+
+    /**
      * @param  Collection<int, object>  $accounts
      * @return Collection<int, object>
      */
@@ -341,7 +383,8 @@ final class BalanceSheetReportBuilder
 
         foreach ($accounts as $account) {
             $isPlug = ! empty($account->is_current_year_profit_plug);
-            if (! $isPlug && abs((float) ($account->balance ?? 0)) <= 0.0001) {
+            $own = (float) ($account->own_balance ?? $account->balance ?? 0);
+            if (! $isPlug && abs($own) <= 0.0001) {
                 continue;
             }
 
