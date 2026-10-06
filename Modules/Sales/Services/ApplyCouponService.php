@@ -108,6 +108,27 @@ class ApplyCouponService
         ];
     }
 
+    /**
+     * Reconstruct pre-coupon taxable + VAT so a coupon is never applied on an already-discounted base.
+     *
+     * @return array{0: float, 1: float} [gross_taxable, vat_on_gross]
+     */
+    public static function preCouponTaxableAndVat(float $grossTaxable, float $afterDiscount, float $vatOnAfter, float $existingDiscount): array
+    {
+        $gross = round($grossTaxable, 2);
+        if ($gross <= 0.00001) {
+            $gross = round(max(0, $afterDiscount) + max(0, $existingDiscount), 2);
+        }
+
+        $after = round($afterDiscount, 2);
+        $vat = round(max(0, $vatOnAfter), 2);
+        if ($after > 0.00001 && $gross > $after + 0.00001) {
+            $vat = round($vat * ($gross / $after), 2);
+        }
+
+        return [$gross, $vat];
+    }
+
     public static function errorCodeFromMessage(string $message): string
     {
         $map = [

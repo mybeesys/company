@@ -36,7 +36,9 @@ use Modules\Product\Models\Product;
 use Modules\Product\Models\RecipeProduct;
 use Modules\Sales\Models\Coupon;
 use Modules\Sales\Services\ApplyCouponService;
+use Modules\Sales\Services\InvoiceServiceFeeAmounts;
 use Modules\Sales\Services\InvoiceServiceFeeCalculator;
+use Modules\Sales\Services\PosInvoiceServiceFeeApplier;
 use Modules\Sales\Services\WebSellModifiersCombosService;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
@@ -1226,23 +1228,44 @@ class SellController extends Controller
         if ($couponCode !== '' && ! $isInternalConsumption) {
             try {
                 $couponService = app(ApplyCouponService::class);
-                $taxableBefore = (float) ($request->totalAfterDiscount ?? $request->totalBeforeVat ?? 0);
+                $existingDiscount = (float) ($request->invoice_discount ?? 0);
+                $afterDiscount = (float) ($request->totalAfterDiscount ?? $request->totalBeforeVat ?? 0);
+                $grossTaxable = (float) ($request->totalBeforeVat ?? 0);
                 $currentTax = (float) ($request->totalVat ?? 0);
+                [$couponBase, $couponVatBase] = ApplyCouponService::preCouponTaxableAndVat(
+                    $grossTaxable,
+                    $afterDiscount,
+                    $currentTax,
+                    $existingDiscount
+                );
                 $couponUsage = $couponService->applyForSale(
                     $couponCode,
                     (int) $request->client_id,
                     (int) $establishment_id,
                     $products,
-                    $taxableBefore,
-                    $currentTax
+                    $couponBase,
+                    $couponVatBase
                 );
+
+                $couponAmount = (float) $couponUsage['discount_amount'];
+                $mergedDiscount = $couponAmount;
+                $mergedAfter = (float) $couponUsage['taxable_after'];
+                $mergedVat = (float) $couponUsage['tax_amount'];
+                $mergedFinal = (float) $couponUsage['final_total'];
+                if ($existingDiscount > $couponAmount + 0.02) {
+                    $mergedDiscount = round($existingDiscount + $couponAmount, 2);
+                    $mergedAfter = max(0, round($couponBase - $mergedDiscount, 2));
+                    $rate = $couponBase > 0 ? ($couponVatBase / $couponBase) : 0.0;
+                    $mergedVat = round($mergedAfter * $rate, 2);
+                    $mergedFinal = round($mergedAfter + $mergedVat, 2);
+                }
 
                 $request->merge([
                     'invoiced_discount_type' => 'fixed',
-                    'invoice_discount' => (float) ($request->invoice_discount ?? 0) + (float) $couponUsage['discount_amount'],
-                    'totalAfterDiscount' => $couponUsage['taxable_after'],
-                    'totalVat' => $couponUsage['tax_amount'],
-                    'totalAfterVat' => $couponUsage['final_total'],
+                    'invoice_discount' => $mergedDiscount,
+                    'totalAfterDiscount' => $mergedAfter,
+                    'totalVat' => $mergedVat,
+                    'totalAfterVat' => $mergedFinal,
                 ]);
                 if ((float) ($request->paid_amount ?? 0) > (float) $couponUsage['final_total']) {
                     $request->merge(['paid_amount' => $couponUsage['final_total']]);
@@ -1325,11 +1348,36 @@ class SellController extends Controller
                 : null;
 
             $cashAccountId = (int) ($request->input('cash_account') ?: $request->input('account_id') ?: 0);
+            $paymentMethodIds = array_values(array_filter(array_map('intval', array_merge(
+                (array) $request->input('applied_payment_method_ids', []),
+                [(int) ($request->input('payment_method_id') ?: 0)]
+            ))));
 
             $productVat = round((float) ($request->totalVat ?? 0), 2);
             $productTotal = round((float) ($request->totalAfterVat ?? 0), 2);
 
             try {
+                $fromPaymentGl = [];
+                if ($cashAccountId > 0) {
+                    foreach (EstablishmentServiceFeeResolver::invoiceCatalog($establishment_id) as $fee) {
+                        if ((string) ($fee['auto_apply_type'] ?? '') !== \Modules\Establishment\Models\EstablishmentServiceFee::AUTO_PAYMENT) {
+                            continue;
+                        }
+                        $accountIds = array_map('intval', (array) ($fee['payment_account_ids'] ?? []));
+                        if (in_array($cashAccountId, $accountIds, true)) {
+                            $fromPaymentGl[] = (int) ($fee['id'] ?? 0);
+                        }
+                    }
+                }
+                $fromPayment = array_values(array_unique(array_filter(array_merge(
+                    PosInvoiceServiceFeeApplier::paymentBoundFeeIds($establishment_id, $paymentMethodIds),
+                    $fromPaymentGl
+                ))));
+                $mergedIds = $appliedIds;
+                if ($fromPayment !== []) {
+                    $mergedIds = array_values(array_unique(array_filter(array_merge($appliedIds ?? [], $fromPayment))));
+                }
+
                 $serviceFeeResult = InvoiceServiceFeeCalculator::forInvoice(
                     $establishment_id,
                     $feeLines,
@@ -1338,14 +1386,21 @@ class SellController extends Controller
                     (float) ($request->totalAfterDiscount ?? 0),
                     $productVat,
                     $productTotal,
-                    $appliedIds,
+                    $mergedIds,
                     $cashAccountId > 0 ? $cashAccountId : null,
-                    $request->input('transaction_date')
+                    $request->input('transaction_date'),
+                    null,
+                    null,
+                    $paymentMethodIds
                 );
 
+                $customerFees = InvoiceServiceFeeAmounts::customerFacing($serviceFeeResult['lines'] ?? []);
+                $serviceFeeResult['fee_amount'] = $customerFees['fee_amount'];
+                $serviceFeeResult['fee_tax'] = $customerFees['fee_tax'];
+
                 $request->merge([
-                    'totalVat' => round($productVat + $serviceFeeResult['fee_tax'], 2),
-                    'totalAfterVat' => round($productTotal + $serviceFeeResult['fee_amount'] + $serviceFeeResult['fee_tax'], 2),
+                    'totalVat' => round($productVat + $customerFees['fee_tax'], 2),
+                    'totalAfterVat' => round($productTotal + $customerFees['fee_amount'] + $customerFees['fee_tax'], 2),
                 ]);
             } catch (\Throwable $e) {
                 \Log::warning('Invoice service fee calculation skipped', [

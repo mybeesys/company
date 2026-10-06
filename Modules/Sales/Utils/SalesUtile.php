@@ -17,6 +17,7 @@ class SalesUtile
             '6' => __('sales::lang.terms.6'),
             '7' => __('sales::lang.terms.7'),
             '9' => __('sales::lang.terms.9'),
+            '90' => __('sales::lang.terms.90'),
         ];
     }
 

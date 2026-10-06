@@ -21,6 +21,13 @@
         <h4 class="fs-6 fw-bold mb-0">@lang('establishment::general.service_fee_item_title')</h4>
         <div class="d-flex align-items-center gap-4">
             <div class="form-check form-switch form-check-custom form-check-solid">
+                <input type="hidden" name="service_fee_rows[{{ $index }}][show_on_invoice]" value="0">
+                <input class="form-check-input" type="checkbox"
+                    name="service_fee_rows[{{ $index }}][show_on_invoice]"
+                    value="1" @checked(filter_var($row['show_on_invoice'] ?? true, FILTER_VALIDATE_BOOL))>
+                <label class="form-check-label fw-semibold">@lang('establishment::fields.service_fee_show_on_invoice')</label>
+            </div>
+            <div class="form-check form-switch form-check-custom form-check-solid">
                 <input type="hidden" name="service_fee_rows[{{ $index }}][active]" value="0">
                 <input class="form-check-input" type="checkbox"
                     name="service_fee_rows[{{ $index }}][active]"

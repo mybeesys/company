@@ -45,7 +45,8 @@ final class InvoiceServiceFeeCalculator
         ?int $cashAccountId = null,
         ?string $transactionDate = null,
         ?int $guestCount = null,
-        ?int $diningTypeId = null
+        ?int $diningTypeId = null,
+        ?array $paymentMethodIds = null
     ): array {
         $catalog = EstablishmentServiceFeeResolver::invoiceCatalog($establishmentId);
         $context = [
@@ -59,6 +60,7 @@ final class InvoiceServiceFeeCalculator
             'transaction_date' => $transactionDate,
             'guest_count' => $guestCount,
             'dining_type_id' => $diningTypeId,
+            'payment_method_ids' => array_values(array_filter(array_map('intval', $paymentMethodIds ?? []))),
         ];
 
         $selected = [];
@@ -232,13 +234,17 @@ final class InvoiceServiceFeeCalculator
                         : null)),
             'has_journal_accounts' => (bool) ($fee['has_journal_accounts'] ?? false)
                 || (
-                    strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED')) === 'COLLECTED'
-                    && (
+                    (
                         ! empty($fee['fee_account_id'])
                         || ! empty($fee['revenue_account_id'])
                         || ! empty($fee['credit_accounting_account_id'])
+                        || ! empty($fee['expense_account_id'])
                     )
                 ),
+            'increases_customer_total' => strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED')) !== 'PAID',
+            'show_on_invoice' => array_key_exists('show_on_invoice', $fee)
+                ? (bool) $fee['show_on_invoice']
+                : strtoupper((string) ($fee['fee_direction'] ?? 'COLLECTED')) !== 'PAID',
         ];
     }
 
@@ -270,6 +276,24 @@ final class InvoiceServiceFeeCalculator
      */
     private static function matchesPayment(array $fee, array $context): bool
     {
+        $methodIds = array_values(array_filter(array_map(
+            'intval',
+            (array) ($context['payment_method_ids'] ?? [])
+        )));
+        $feeMethodIds = array_values(array_filter(array_map(
+            'intval',
+            (array) ($fee['cashier_payment_method_ids'] ?? [])
+        )));
+        if ($feeMethodIds === []) {
+            $singleMethod = (int) ($fee['cashier_payment_method_id'] ?? 0);
+            if ($singleMethod > 0) {
+                $feeMethodIds = [$singleMethod];
+            }
+        }
+        if ($methodIds !== [] && $feeMethodIds !== [] && array_intersect($methodIds, $feeMethodIds) !== []) {
+            return true;
+        }
+
         $cashAccountId = (int) ($context['cash_account_id'] ?? 0);
         if ($cashAccountId <= 0) {
             return false;

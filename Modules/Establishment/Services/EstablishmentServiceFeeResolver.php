@@ -48,6 +48,8 @@ final class EstablishmentServiceFeeResolver
                 'sort_order' => $sort++,
             ];
 
+            $payload = array_merge($payload, self::showOnInvoicePayload($row));
+
             $paymentMethodIds = self::normalizePaymentMethodIds($row);
             $payload['cashier_payment_method_id'] = $paymentMethodIds[0] ?? null;
             if (Schema::hasColumn('est_establishment_service_fees', 'cashier_payment_method_ids')) {
@@ -167,6 +169,7 @@ final class EstablishmentServiceFeeResolver
             'application_type' => (string) $row->application_type,
             'calculation_method' => (string) $row->calculation_method,
             'taxable' => (bool) $row->taxable,
+            'show_on_invoice' => $row->showOnInvoice(),
             'active' => (bool) $row->is_active,
             'is_active' => (bool) $row->is_active,
             'auto_apply_type' => $row->auto_apply_type !== null ? (string) $row->auto_apply_type : '',
@@ -219,6 +222,7 @@ final class EstablishmentServiceFeeResolver
         }
 
         $data['has_journal_accounts'] = $row->hasJournalAccounts();
+        $data['increases_customer_total'] = $row->increasesCustomerTotal();
 
         return $data;
     }
@@ -273,6 +277,52 @@ final class EstablishmentServiceFeeResolver
         }
 
         return $payload;
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private static function showOnInvoicePayload(array $row): array
+    {
+        if (! Schema::hasColumn('est_establishment_service_fees', 'show_on_invoice')) {
+            return [];
+        }
+
+        $direction = strtoupper((string) ($row['fee_direction'] ?? EstablishmentServiceFee::DIRECTION_COLLECTED));
+        $default = $direction !== EstablishmentServiceFee::DIRECTION_PAID;
+        if (! array_key_exists('show_on_invoice', $row) && ! array_key_exists('showOnInvoice', $row)) {
+            return ['show_on_invoice' => $default];
+        }
+
+        return [
+            'show_on_invoice' => filter_var($row['show_on_invoice'] ?? $row['showOnInvoice'] ?? $default, FILTER_VALIDATE_BOOL),
+        ];
+    }
+
+    /**
+     * Active payment-method-bound fees for one cashier method on a branch.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function feesBoundToPaymentMethod(int $establishmentId, int $paymentMethodId): array
+    {
+        if ($establishmentId <= 0 || $paymentMethodId <= 0) {
+            return [];
+        }
+
+        $out = [];
+        foreach (self::invoiceCatalog($establishmentId) as $fee) {
+            if ((string) ($fee['auto_apply_type'] ?? '') !== EstablishmentServiceFee::AUTO_PAYMENT) {
+                continue;
+            }
+            $ids = array_map('intval', (array) ($fee['cashier_payment_method_ids'] ?? []));
+            if (in_array($paymentMethodId, $ids, true)) {
+                $out[] = $fee;
+            }
+        }
+
+        return $out;
     }
 
     private static function normalizeFlag(mixed $value): string
@@ -345,6 +395,8 @@ final class EstablishmentServiceFeeResolver
                 'sort_order' => $sort++,
                 'establishment_id' => $assignedIds[0] ?? null,
             ];
+
+            $payload = array_merge($payload, self::showOnInvoicePayload($row));
 
             $paymentMethodIds = self::normalizePaymentMethodIds($row);
             $payload['cashier_payment_method_id'] = $paymentMethodIds[0] ?? null;

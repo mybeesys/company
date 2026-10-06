@@ -32,6 +32,7 @@ return [
         '7' => 'After 7 days',
         '9' => 'After 9 days',
         '0' => 'Same day as issuance',
+        '90' => 'After 90 days',
     ],
     'Enable Descrption' => 'Enable Descrption',
     'new_product' => 'New Product',

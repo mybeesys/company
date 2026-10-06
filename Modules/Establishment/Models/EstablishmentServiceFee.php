@@ -62,6 +62,7 @@ class EstablishmentServiceFee extends Model
     protected $casts = [
         'amount' => 'float',
         'taxable' => 'boolean',
+        'show_on_invoice' => 'boolean',
         'is_active' => 'boolean',
         'dining_type_ids' => 'array',
         'cashier_payment_method_ids' => 'array',
@@ -167,8 +168,21 @@ class EstablishmentServiceFee extends Model
      */
     public function hasJournalAccounts(): bool
     {
-        return $this->feeDirection() === self::DIRECTION_COLLECTED
-            && $this->resolvedFeeAccountId() > 0;
+        return $this->resolvedFeeAccountId() > 0;
+    }
+
+    public function increasesCustomerTotal(): bool
+    {
+        return $this->feeDirection() === self::DIRECTION_COLLECTED;
+    }
+
+    public function showOnInvoice(): bool
+    {
+        if ($this->getAttribute('show_on_invoice') === null) {
+            return $this->increasesCustomerTotal();
+        }
+
+        return (bool) $this->show_on_invoice;
     }
 
     public function displayName(?string $locale = null): string
