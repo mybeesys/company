@@ -6,11 +6,13 @@ namespace Modules\Sales\Services;
 
 use Illuminate\Http\Request;
 use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
+use Modules\Establishment\Services\EstablishmentServiceFeeResolver;
 use Modules\General\Models\Setting;
 
 /**
  * POS adapter for the same web invoice service-fee engine.
- * Does nothing unless the cashier explicitly sends selected fee ids.
+ * Payment-method-bound fees apply automatically from payments[].method_id.
+ * Optional applied_service_fee_ids still add cashier-selected (always-available) fees.
  */
 final class PosInvoiceServiceFeeApplier
 {
@@ -73,8 +75,12 @@ final class PosInvoiceServiceFeeApplier
         float $productBeforeTax,
         float $invoiceDiscount
     ): ?array {
-        $appliedIds = self::appliedIdsFromRequest($request);
-        if ($appliedIds === null || $establishmentId <= 0 || ! self::isEnabled()) {
+        $explicitIds = self::appliedIdsFromRequest($request);
+        $paymentMethodIds = self::paymentMethodIdsFromRequest($request, $establishmentId);
+        $paymentBoundIds = self::paymentBoundFeeIds($establishmentId, $paymentMethodIds);
+        $appliedIds = array_values(array_unique(array_merge($explicitIds ?? [], $paymentBoundIds)));
+
+        if ($appliedIds === [] || $establishmentId <= 0 || ! self::isEnabled()) {
             return null;
         }
 
@@ -99,22 +105,71 @@ final class PosInvoiceServiceFeeApplier
             $cashAccountId,
             self::transactionDate($request),
             self::nullablePositiveInt($request->input('guest_count')),
-            self::nullablePositiveInt($request->input('dining_type_id'))
+            self::nullablePositiveInt($request->input('dining_type_id')),
+            $paymentMethodIds
         );
 
-        $feeAmount = (float) $result['fee_amount'];
-        $feeTax = (float) $result['fee_tax'];
+        $lines = $result['lines'];
+        $customer = InvoiceServiceFeeAmounts::customerFacing($lines);
+        $feeAmount = $customer['fee_amount'];
+        $feeTax = $customer['fee_tax'];
 
         return [
             'fee_amount' => $feeAmount,
             'fee_tax' => $feeTax,
-            'lines' => $result['lines'],
+            'lines' => $lines,
             'applied_ids' => $result['applied_ids'],
             'product_tax' => $productTax,
             'product_total' => $productFinal,
             'tax_amount' => round($productTax + $feeTax, 2),
             'final_total' => round($productFinal + $feeAmount + $feeTax, 2),
         ];
+    }
+
+    /**
+     * @return list<int>
+     */
+    public static function paymentMethodIdsFromRequest(Request $request, int $establishmentId = 0): array
+    {
+        $ids = [];
+        $payments = $request->input('payments', []);
+        if (! is_array($payments)) {
+            return [];
+        }
+
+        foreach ($payments as $payment) {
+            $payment = is_array($payment) ? (object) $payment : $payment;
+            $methodId = (int) ($payment->method_id ?? 0);
+            if ($methodId === -1 && $establishmentId > 0) {
+                $methodId = EstablishmentPaymentAccountResolver::resolveCashMethodId($establishmentId) ?? 0;
+            }
+            if ($methodId > 0) {
+                $ids[] = $methodId;
+            }
+        }
+
+        $single = (int) ($request->input('method_id') ?: $request->input('payment_method_id') ?: 0);
+        if ($single > 0) {
+            $ids[] = $single;
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * @param  list<int>  $paymentMethodIds
+     * @return list<int>
+     */
+    public static function paymentBoundFeeIds(int $establishmentId, array $paymentMethodIds): array
+    {
+        $ids = [];
+        foreach ($paymentMethodIds as $methodId) {
+            foreach (EstablishmentServiceFeeResolver::feesBoundToPaymentMethod($establishmentId, (int) $methodId) as $fee) {
+                $ids[] = (int) ($fee['id'] ?? 0);
+            }
+        }
+
+        return array_values(array_unique(array_filter($ids, static fn (int $id) => $id > 0)));
     }
 
     /**

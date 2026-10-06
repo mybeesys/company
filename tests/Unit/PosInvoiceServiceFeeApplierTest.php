@@ -16,6 +16,19 @@ final class PosInvoiceServiceFeeApplierTest extends TestCase
         $request = Request::create('/', 'POST', []);
 
         $this->assertNull(PosInvoiceServiceFeeApplier::appliedIdsFromRequest($request));
+        $this->assertSame([], PosInvoiceServiceFeeApplier::paymentMethodIdsFromRequest($request));
+    }
+
+    public function test_reads_payment_method_ids_from_payments(): void
+    {
+        $request = Request::create('/', 'POST', [
+            'payments' => [
+                ['method_id' => 22, 'amount' => 115],
+                ['method_id' => 0, 'amount' => 0],
+            ],
+        ]);
+
+        $this->assertSame([22], PosInvoiceServiceFeeApplier::paymentMethodIdsFromRequest($request));
     }
 
     public function test_reads_selected_fee_ids_from_either_payload_shape(): void

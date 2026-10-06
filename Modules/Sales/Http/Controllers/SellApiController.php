@@ -150,16 +150,24 @@ class SellApiController extends Controller
                         ];
                     }, $products ?? []);
 
+                    $grossTaxable = (float) ($request->total_before_discount ?? 0);
+                    [$couponBase, $couponVatBase] = ApplyCouponService::preCouponTaxableAndVat(
+                        $grossTaxable,
+                        $totalAfterDiscount,
+                        $totalTax,
+                        $discountValue
+                    );
+
                     $couponUsage = app(ApplyCouponService::class)->applyForSale(
                         $couponCode,
                         (int) $request->customer_id,
                         (int) $establishment_id,
                         $couponProducts,
-                        $totalAfterDiscount,
-                        $totalTax,
+                        $couponBase,
+                        $couponVatBase,
                     );
 
-                    $discountValue += (float) $couponUsage['discount_amount'];
+                    $discountValue = (float) $couponUsage['discount_amount'];
                     $totalAfterDiscount = (float) $couponUsage['taxable_after'];
                     $totalTax = (float) $couponUsage['tax_amount'];
                     $finalTotal = (float) $couponUsage['final_total'];

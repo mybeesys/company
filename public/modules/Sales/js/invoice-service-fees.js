@@ -46,7 +46,13 @@ window.InvoiceServiceFees = (function () {
     }
 
     function shouldShowUi() {
-        return isFeatureEnabled() && !isInternalConsumption() && feesForEstablishment().length > 0;
+        return isFeatureEnabled() && !isInternalConsumption() && selectableFees().length > 0;
+    }
+
+    function selectableFees() {
+        return feesForEstablishment().filter(function (fee) {
+            return String(fee.auto_apply_type || "") !== AUTO_PAYMENT;
+        });
     }
 
     function clearAmounts() {
@@ -345,11 +351,27 @@ window.InvoiceServiceFees = (function () {
 
         $list.empty();
 
+        const allFees = feesForEstablishment();
+        allFees.forEach(function (fee) {
+            if (String(fee.auto_apply_type || "") !== AUTO_PAYMENT) {
+                return;
+            }
+            if (!shouldAutoApply(fee)) {
+                return;
+            }
+            $list.append(
+                '<input type="hidden" name="applied_service_fee_ids[]" value="' + String(fee.id) + '" class="invoice-service-fee-payment-bound">'
+            );
+        });
+
         if (!syncVisibility()) {
-            clearAmounts();
+            if ($list.find(".invoice-service-fee-payment-bound").length === 0) {
+                clearAmounts();
+            }
             return;
         }
 
+        const fees = selectableFees();
         fees.forEach(function (fee) {
             const id = String(fee.id);
             let checked = shouldAutoApply(fee);
@@ -382,10 +404,11 @@ window.InvoiceServiceFees = (function () {
 
     function applyToTotals(productContext) {
         try {
-            if (!syncVisibility()) {
+            if (!isFeatureEnabled() || isInternalConsumption()) {
                 clearAmounts();
                 return { feeAmount: 0, feeTax: 0 };
             }
+            syncVisibility();
 
             const context = Object.assign({}, productContext || {});
             if (!Array.isArray(context.lines)) {
@@ -393,7 +416,7 @@ window.InvoiceServiceFees = (function () {
             }
 
             const fees = feesForEstablishment();
-            const checkedIds = $("#invoice-service-fees .invoice-service-fee-check:checked")
+            const checkedIds = $("#invoice-service-fees .invoice-service-fee-check:checked, #invoice-service-fees .invoice-service-fee-payment-bound")
                 .map(function () {
                     return String($(this).val());
                 })
@@ -409,6 +432,8 @@ window.InvoiceServiceFees = (function () {
             fees.forEach(function (fee) {
                 const feeId = String(fee.id);
                 if (checkedIds.indexOf(feeId) === -1) {
+                    const boundOn = String(fee.auto_apply_type || "") === AUTO_PAYMENT && shouldAutoApply(fee);
+                    if (!boundOn) {
                     $('.invoice-service-fee-amount[data-fee-id="' + feeId + '"]').text("0.00");
                     try {
                         paintFeeLineBreakdown(feeId, { application_type: fee.application_type, line_amounts: [] });
@@ -416,10 +441,14 @@ window.InvoiceServiceFees = (function () {
                         /* ignore paint errors */
                     }
                     return;
+                    }
                 }
                 const computed = computeFee(fee, context);
-                feeAmount += computed.fee_amount;
-                feeTax += computed.tax_amount;
+                const paid = String(fee.fee_direction || "COLLECTED").toUpperCase() === "PAID";
+                if (!paid) {
+                    feeAmount += computed.fee_amount;
+                    feeTax += computed.tax_amount;
+                }
                 $('.invoice-service-fee-amount[data-fee-id="' + feeId + '"]').text(
                     formatMoney(computed.fee_amount, computed.tax_amount)
                 );
