@@ -191,7 +191,7 @@ final class InvoiceServiceFeeCalculator
             }
         }
 
-        $locale = app()->getLocale();
+        $locale = method_exists(app(), 'getLocale') ? app()->getLocale() : 'en';
 
         return [
             'id' => (int) ($fee['id'] ?? 0),

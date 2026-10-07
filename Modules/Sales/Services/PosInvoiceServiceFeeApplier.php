@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Sales\Services;
 
 use Illuminate\Http\Request;
+use Modules\Establishment\Models\EstablishmentServiceFee;
 use Modules\Establishment\Services\EstablishmentPaymentAccountResolver;
 use Modules\Establishment\Services\EstablishmentServiceFeeResolver;
 use Modules\General\Models\Setting;
@@ -78,7 +79,11 @@ final class PosInvoiceServiceFeeApplier
         $explicitIds = self::appliedIdsFromRequest($request);
         $paymentMethodIds = self::paymentMethodIdsFromRequest($request, $establishmentId);
         $paymentBoundIds = self::paymentBoundFeeIds($establishmentId, $paymentMethodIds);
-        $appliedIds = array_values(array_unique(array_merge($explicitIds ?? [], $paymentBoundIds)));
+        $appliedIds = self::mergeAppliedFeeIds(
+            $explicitIds,
+            $paymentBoundIds,
+            self::paymentBoundCatalogIds($establishmentId)
+        );
 
         if ($appliedIds === [] || $establishmentId <= 0 || ! self::isEnabled()) {
             return null;
@@ -151,6 +156,48 @@ final class PosInvoiceServiceFeeApplier
         $single = (int) ($request->input('method_id') ?: $request->input('payment_method_id') ?: 0);
         if ($single > 0) {
             $ids[] = $single;
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Payment-method fees apply only from payments[].method_id, never from the cashier picker.
+     *
+     * @param  list<int>|null  $explicitIds
+     * @param  list<int>  $paymentBoundIds
+     * @param  list<int>  $paymentBoundCatalogIds
+     * @return list<int>
+     */
+    public static function mergeAppliedFeeIds(?array $explicitIds, array $paymentBoundIds, array $paymentBoundCatalogIds): array
+    {
+        $boundSet = array_fill_keys(array_map('intval', $paymentBoundCatalogIds), true);
+        $explicit = [];
+        foreach ($explicitIds ?? [] as $id) {
+            $id = (int) $id;
+            if ($id <= 0 || isset($boundSet[$id])) {
+                continue;
+            }
+            $explicit[] = $id;
+        }
+
+        return array_values(array_unique(array_merge($explicit, array_map('intval', $paymentBoundIds))));
+    }
+
+    /**
+     * @return list<int>
+     */
+    public static function paymentBoundCatalogIds(int $establishmentId): array
+    {
+        $ids = [];
+        foreach (EstablishmentServiceFeeResolver::invoiceCatalog($establishmentId) as $fee) {
+            if ((string) ($fee['auto_apply_type'] ?? '') !== EstablishmentServiceFee::AUTO_PAYMENT) {
+                continue;
+            }
+            $id = (int) ($fee['id'] ?? 0);
+            if ($id > 0) {
+                $ids[] = $id;
+            }
         }
 
         return array_values(array_unique($ids));
