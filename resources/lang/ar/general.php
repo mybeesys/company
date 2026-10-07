@@ -29,7 +29,7 @@ return [
     'screens' => 'الشاشات',
     'open' => 'فتح',
     'back_to_system' => 'العودة للنظام',
-    'periodic_inventory_requires_periodic_policy' => 'يتطلب تفعيل سياسة الجرد الدوري من الإعدادات العامة',
+    'periodic_inventory_requires_periodic_policy' => 'يتطلب تفعيل سياسة الجرد المستمر من الإعدادات العامة',
     'policy_locked' => 'مقفل بالسياسة',
     'notifications' => 'الإشعارات',
     'no_notifications' => 'لا يوجد اشعارات',

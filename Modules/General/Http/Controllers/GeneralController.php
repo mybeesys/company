@@ -411,8 +411,8 @@ class GeneralController extends Controller
                     ->count();
                 if ($openReviews > 0) {
                     return redirect()->back()->with('error', app()->getLocale() === 'ar'
-                        ? 'لا يمكن التحويل للجرد المستمر ووجود جرد دوري قيد المراجعة. اعتمد أو احذف سجلات المراجعة أولاً.'
-                        : 'Cannot switch to perpetual while periodic counts are still in review. Approve or delete them first.');
+                        ? 'لا يمكن التحويل للجرد الدوري ووجود جرد مستمر قيد المراجعة. اعتمد أو احذف سجلات المراجعة أولاً.'
+                        : 'Cannot switch to periodic while perpetual counts are still in review. Approve or delete them first.');
                 }
             }
 
