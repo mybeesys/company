@@ -105,6 +105,7 @@ class PaymentMethodsResource extends JsonResource
                 'show_on_invoice' => (bool) ($fee['show_on_invoice'] ?? true),
                 'auto_apply' => 'payment_method',
                 'auto_apply_type' => '2',
+                'selectable_on_cashier' => false,
             ];
         }
 

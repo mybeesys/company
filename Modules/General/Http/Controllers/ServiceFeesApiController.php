@@ -26,6 +26,11 @@ class ServiceFeesApiController extends Controller
         $fees = EstablishmentServiceFee::query()
             ->forEstablishment($establishmentId)
             ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('auto_apply_type')
+                    ->orWhere('auto_apply_type', '')
+                    ->orWhere('auto_apply_type', '<>', EstablishmentServiceFee::AUTO_PAYMENT);
+            })
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();

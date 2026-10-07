@@ -1373,9 +1373,13 @@ class SellController extends Controller
                     PosInvoiceServiceFeeApplier::paymentBoundFeeIds($establishment_id, $paymentMethodIds),
                     $fromPaymentGl
                 ))));
-                $mergedIds = $appliedIds;
-                if ($fromPayment !== []) {
-                    $mergedIds = array_values(array_unique(array_filter(array_merge($appliedIds ?? [], $fromPayment))));
+                $mergedIds = PosInvoiceServiceFeeApplier::mergeAppliedFeeIds(
+                    $appliedIds,
+                    $fromPayment,
+                    PosInvoiceServiceFeeApplier::paymentBoundCatalogIds($establishment_id)
+                );
+                if ($appliedIds === null && $fromPayment === []) {
+                    $mergedIds = null;
                 }
 
                 $serviceFeeResult = InvoiceServiceFeeCalculator::forInvoice(

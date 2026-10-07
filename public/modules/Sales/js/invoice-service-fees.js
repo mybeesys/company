@@ -343,7 +343,6 @@ window.InvoiceServiceFees = (function () {
             return;
         }
 
-        const fees = feesForEstablishment();
         const previousChecked = {};
         $list.find(".invoice-service-fee-check").each(function () {
             previousChecked[String($(this).val())] = $(this).is(":checked");

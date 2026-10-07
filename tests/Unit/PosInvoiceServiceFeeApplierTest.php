@@ -31,6 +31,24 @@ final class PosInvoiceServiceFeeApplierTest extends TestCase
         $this->assertSame([22], PosInvoiceServiceFeeApplier::paymentMethodIdsFromRequest($request));
     }
 
+    public function test_payment_bound_ids_are_not_applied_from_the_cashier_picker(): void
+    {
+        $merged = PosInvoiceServiceFeeApplier::mergeAppliedFeeIds(
+            [8, 3, 8],
+            [8],
+            [8]
+        );
+
+        $this->assertSame([3, 8], $merged);
+
+        $cashOnly = PosInvoiceServiceFeeApplier::mergeAppliedFeeIds(
+            [8],
+            [],
+            [8]
+        );
+        $this->assertSame([], $cashOnly);
+    }
+
     public function test_reads_selected_fee_ids_from_either_payload_shape(): void
     {
         $byList = Request::create('/', 'POST', [

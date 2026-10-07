@@ -46,6 +46,7 @@ class EstablishmentServiceFeeResource extends JsonResource
             'is_active' => (bool) $fee->is_active,
             'auto_apply_type' => $autoApplyType,
             'auto_apply' => $fee->autoApplyKey(),
+            'selectable_on_cashier' => $fee->autoApplyKey() !== 'payment_method',
             'dining_type_ids' => array_values(array_map('intval', $fee->dining_type_ids ?? [])),
             'guest_count' => $fee->guest_count ? (int) $fee->guest_count : null,
             'cashier_payment_method_id' => $paymentMethodIds[0] ?? null,

@@ -1,5 +1,7 @@
 # My Bee Cashier (Flutter) — رسوم طريقة الدفع (عمولة جاهز وغيرها)
 
+> **تحديث 2026-10-07:** احذف قسم رسوم الخدمة المنفصل بالكامل. الملف التنفيذي: `docs/flutter-cashier-remove-standalone-service-fees-ar.md`.
+
 > **الغرض:** ملف واحد لمطوّر Flutter **الكاشير**. مرّره لـ Cursor ونفّذ كل بند.  
 > **التاريخ:** 2026-10-06  
 > **النطاق:** عند اختيار طريقة دفع مربوطة برسم خدمة (إعداد الفرع: تطبيق تلقائي حسب طريقة الدفع) تُطبَّق الرسوم **تلقائياً**. لا يظهر مختار «رسوم الخدمة» لهذه الرسوم.  
@@ -17,7 +19,7 @@ Read docs/flutter-cashier-payment-method-service-fees-ar.md and implement:
 3) When the cashier selects that method, apply those fees automatically — do NOT show a separate fee picker for them
 4) COLLECTED fees increase the amount the customer pays; PAID fees do not
 5) On store you may omit applied_service_fee_ids for these fees — backend applies them from payments[].method_id
-6) Optional always-available fees still use GET /api/service-fees + applied_service_fee_ids
+6) Do NOT call GET /api/service-fees and do NOT show a standalone fee picker
 7) Internal consumption: ignore all service fees
 Follow every checklist item.
 ```
@@ -31,7 +33,7 @@ Follow every checklist item.
 - [ ] إن `increases_customer_total === false` أو `fee_direction === "PAID"`: لا تزد إجمالي العميل؛ يمكن عرض تلميح داخلي للكاشير فقط
 - [ ] إن `increases_customer_total === true`: أضف `amount` (+ ضريبة الرسم إن `taxable`) إلى ما يدفعه العميل
 - [ ] عند الحفظ: `payments[].method_id` = `id` الطريقة. لا حاجة لإرسال `applied_service_fee_ids` لرسوم الطريقة
-- [ ] رسوم «يختارها الكاشير» (`auto_apply === always`) ما زالت من `GET /api/service-fees` إن وُجدت
+- [ ] لا تستدعِ `GET /api/service-fees` ولا تعرض قسم رسوم خدمة منفصل
 - [ ] استهلاك داخلي: لا طرق دفع، لا رسوم
 - [ ] `payments` تغطي **إجمالي العميل** فقط (منتجات ± خصم ± VAT منتجات ± الرسوم المحصلة فقط)
 - [ ] أعد جلب الطرق عند تبديل الفرع
