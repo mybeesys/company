@@ -1875,8 +1875,8 @@ class SellController extends Controller
         if (! $inventoryAccountId || ! $cogsAccountId) {
             throw ValidationException::withMessages([
                 'inventory_policy' => app()->getLocale() === 'ar'
-                    ? 'لا يمكن ترحيل أثر الجرد المستمر محاسبياً. يرجى ضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
-                    : 'Perpetual inventory accounting impact cannot be posted. Please configure Inventory and COGS in Accounts Routing.',
+                    ? 'لا يمكن ترحيل أثر الجرد الدوري محاسبياً. يرجى ضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
+                    : 'Periodic inventory accounting impact cannot be posted. Please configure Inventory and COGS in Accounts Routing.',
             ]);
         }
 

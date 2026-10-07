@@ -18,7 +18,7 @@ return [
     'cashier_payment_constraint_failed' => 'Could not save because a payment method is still linked to other records. Remove related fees/assignments or edit the row instead of deleting it.',
     'cashier_payment_save_failed' => 'Could not save payment methods. Check the following:',
     'internal_consumption_expense_account_required' => 'No internal consumption expense account is configured for this branch. Set it from Cashier internal consumption settings.',
-    'internal_consumption_inventory_account_required' => 'Could not resolve an inventory account for the internal consumption journal. Check perpetual inventory and branch inventory account settings.',
+    'internal_consumption_inventory_account_required' => 'Could not resolve an inventory account for the internal consumption journal. Check periodic inventory and branch inventory account settings.',
     'internal_consumption_cost_required' => 'Could not calculate item cost for the internal consumption journal.',
     'internal_consumption_type_required' => 'No internal consumption type is configured for this branch. Add one from Cashier internal consumption settings and assign it to the branch.',
     'internal_consumption_type_account_required' => 'Internal consumption type «:type» has no linked collection account. Configure it in Cashier internal consumption settings.',

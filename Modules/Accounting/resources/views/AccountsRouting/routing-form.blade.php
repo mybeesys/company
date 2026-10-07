@@ -3,9 +3,9 @@
     <div class="alert alert-light-warning border border-warning border-dashed mb-5">
         <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
         @if (app()->getLocale() === 'ar')
-            بعد استيراد دليل الحسابات، اضبط حساب المخزون وتكلفة البضائع المباعة من تبويب «المخزون». عند عدم توفر حساب تسوية الجرد الدوري، قد يُستخدم حساب المشتريات/تكلفة المبيعات كملاذ أخير حتى لا تتوقف القيود.
+            بعد استيراد دليل الحسابات، اضبط حساب المخزون وتكلفة البضائع المباعة من تبويب «المخزون». عند عدم توفر حساب تسوية الجرد المستمر، قد يُستخدم حساب المشتريات/تكلفة المبيعات كملاذ أخير حتى لا تتوقف القيود.
         @else
-            After importing a chart of accounts, set Inventory and COGS under the «Inventory» tab. If no periodic inventory adjustment account is set, Purchases/COGS may still be used as a last resort so posting does not fail.
+            After importing a chart of accounts, set Inventory and COGS under the «Inventory» tab. If no perpetual inventory adjustment account is set, Purchases/COGS may still be used as a last resort so posting does not fail.
         @endif
     </div>
     <div class="d-flex flex-row-fluid gap-5">

@@ -30,8 +30,8 @@ class PeriodicInventoryController extends Controller
         if (! Setting::isPeriodicInventory()) {
             return redirect('/productInventory')
                 ->with('error', app()->getLocale() === 'ar'
-                    ? 'ميزة الجرد الدوري غير متاحة لأن سياسة الجرد الحالية هي الجرد المستمر.'
-                    : 'Periodic inventory is disabled because the current inventory policy is perpetual.');
+                    ? 'ميزة الجرد المستمر غير متاحة لأن سياسة الجرد الحالية هي الجرد الدوري.'
+                    : 'Perpetual inventory is disabled because the current inventory policy is periodic.');
         }
 
         return null;

@@ -29,7 +29,7 @@ return [
     'screens' => 'Screens',
     'open' => 'Open',
     'back_to_system' => 'Back to system',
-    'periodic_inventory_requires_periodic_policy' => 'Requires enabling periodic inventory policy from general settings',
+    'periodic_inventory_requires_periodic_policy' => 'Requires enabling perpetual inventory policy from general settings',
     'policy_locked' => 'Policy locked',
     'notifications' => 'Notifications',
     'no_notifications' => 'No notifications',

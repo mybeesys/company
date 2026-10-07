@@ -251,8 +251,8 @@ class AccountingUtil
             );
             if ($inventoryAccountId <= 0) {
                 throw new RuntimeException(app()->getLocale() === 'ar'
-                    ? 'تعذّر تحديد حساب المشتريات/التكلفة لقيد الاستهلاك الداخلي تحت الجرد الدوري.'
-                    : 'Could not resolve purchases/COGS account for internal consumption under periodic inventory.');
+                    ? 'تعذّر تحديد حساب المشتريات/التكلفة لقيد الاستهلاك الداخلي تحت الجرد المستمر.'
+                    : 'Could not resolve purchases/COGS account for internal consumption under perpetual inventory.');
             }
         }
 
@@ -786,8 +786,8 @@ class AccountingUtil
 
         if (! $inventoryAccountId || ! $cogsAccountId) {
             throw new \RuntimeException(app()->getLocale() === 'ar'
-                ? 'لا يمكن ترحيل أثر الجرد المستمر. اضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
-                : 'Perpetual inventory impact cannot be posted. Configure Inventory and COGS in Accounts Routing.');
+                ? 'لا يمكن ترحيل أثر الجرد الدوري. اضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
+                : 'Periodic inventory impact cannot be posted. Configure Inventory and COGS in Accounts Routing.');
         }
 
         $costing = app(\Modules\Inventory\Services\InventoryCostingService::class);
@@ -2195,8 +2195,8 @@ class AccountingUtil
                 'updated_at' => Carbon::now(),
             ],
             [
-                'name_en' => 'Periodic inventory adjustment',
-                'name_ar' => 'تسوية جرد دوري',
+                'name_en' => 'Perpetual inventory adjustment',
+                'name_ar' => 'تسوية جرد مستمر',
                 'account_primary_type' => 'expenses',
                 'account_type' => 'expenses',
                 'account_sub_type_id' => $Cost_Sales_id,

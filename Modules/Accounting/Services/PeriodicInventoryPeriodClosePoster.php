@@ -83,7 +83,7 @@ final class PeriodicInventoryPeriodClosePoster
         return DB::transaction(function () use ($inventory, $operationDate, $userId, $lines) {
             $mapping = AccountingAccTransMapping::create([
                 'ref_no' => AccountingUtil::generateReferenceNumber('journal_entry'),
-                'note' => 'إقفال جرد دوري — تكلفة المبيعات والمخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
+                'note' => 'إقفال جرد مستمر — تكلفة المبيعات والمخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
                 'type' => 'journal_entry',
                 'created_by' => $userId,
                 'operation_date' => $operationDate,
@@ -143,8 +143,8 @@ final class PeriodicInventoryPeriodClosePoster
 
         if ($inventoryId <= 0 || $purchasesId <= 0 || $cogsId <= 0) {
             throw new \RuntimeException(app()->getLocale() === 'ar'
-                ? 'لا يمكن ترحيل إقفال الجرد الدوري. اضبط حسابات المخزون والمشتريات وتكلفة المبيعات / تسوية الجرد من توجيه الحسابات.'
-                : 'Cannot post periodic inventory close. Configure Inventory, Purchases, and COGS / periodic adjustment accounts in Accounts Routing.');
+                ? 'لا يمكن ترحيل إقفال الجرد المستمر. اضبط حسابات المخزون والمشتريات وتكلفة المبيعات / تسوية الجرد من توجيه الحسابات.'
+                : 'Cannot post perpetual inventory close. Configure Inventory, Purchases, and COGS / perpetual adjustment accounts in Accounts Routing.');
         }
 
         return [
@@ -171,8 +171,8 @@ final class PeriodicInventoryPeriodClosePoster
 
         if (abs($debit - $credit) > 0.02) {
             throw new \RuntimeException(app()->getLocale() === 'ar'
-                ? 'قيد إقفال الجرد الدوري غير متوازن. راجع قيم أول المدة والمشتريات وآخر المدة.'
-                : 'Periodic inventory close journal is unbalanced. Review opening, purchases, and closing values.');
+                ? 'قيد إقفال الجرد المستمر غير متوازن. راجع قيم أول المدة والمشتريات وآخر المدة.'
+                : 'Perpetual inventory close journal is unbalanced. Review opening, purchases, and closing values.');
         }
     }
 }
