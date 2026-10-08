@@ -160,7 +160,7 @@ class SellApiController extends Controller
 
                     $couponUsage = app(ApplyCouponService::class)->applyForSale(
                         $couponCode,
-                        (int) $request->customer_id,
+                        (int) (PosSalesInvoiceMapper::resolveContactId($request) ?? 0),
                         (int) $establishment_id,
                         $couponProducts,
                         $couponBase,
@@ -225,7 +225,7 @@ class SellApiController extends Controller
             if ($couponUsage && ($request->status ?? '') !== 'draft') {
                 app(ApplyCouponService::class)->registerUsage(
                     (int) $couponUsage['coupon']->id,
-                    (int) $request->customer_id,
+                    (int) (PosSalesInvoiceMapper::resolveContactId($request) ?? 0),
                     (int) $transaction->id,
                 );
             }
