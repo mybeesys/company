@@ -30,4 +30,18 @@ class BillingAddress extends Model
     {
         return $this->belongsTo(Country::class, 'country');
     }
+
+    public function countryLabel(): string
+    {
+        $en = trim((string) ($this->country_?->name_en ?? ''));
+        $ar = trim((string) ($this->country_?->name_ar ?? ''));
+        if ($en === '' && $ar === '') {
+            return '';
+        }
+        if ($en === '' || $ar === '') {
+            return $en !== '' ? $en : $ar;
+        }
+
+        return $en.' - '.$ar;
+    }
 }

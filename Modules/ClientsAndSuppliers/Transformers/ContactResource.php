@@ -13,12 +13,14 @@ class ContactResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
+            'id' => (int) $this->id,
+            'name' => (string) $this->name,
+            'client_name' => (string) $this->name,
+            'business_type' => (string) ($this->business_type ?? 'customer'),
             'mobile_number' => $this->mobile_number,
             'phone_number' => $this->phone_number,
             // 'website' => $this->website,
-            'point_of_sale_client' => $this->point_of_sale_client,
+            'point_of_sale_client' => (int) ($this->point_of_sale_client ?? 0) === 1 ? 1 : 0,
             // 'payment_terms' => $this->payment_terms,
             'email' => $this->email,
             // 'commercial_register' => $this->commercial_register,
@@ -32,7 +34,7 @@ class ContactResource extends JsonResource
             'state' => $this->billingAddress?->state ?? '',
             'postal_code' => $this->billingAddress?->postal_code ?? '',
             'building_number' => $this->billingAddress?->building_number ?? '',
-            'country' => $this->billingAddress?->country_->name_en.' - '.$this->billingAddress?->country_->name_ar ?? '',
+            'country' => $this->billingAddress?->countryLabel() ?? '',
 
             // 'shipping_address' => new ShippingAddressResource($this->shippingAddress),
             // 'client_contact' => ClientContactResource::collection($this->clientContacts),

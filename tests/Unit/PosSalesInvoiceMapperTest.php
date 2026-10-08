@@ -43,7 +43,27 @@ final class PosSalesInvoiceMapperTest extends TestCase
         $this->assertEqualsWithDelta(1.7, (float) $transaction['tax_amount'], 0.0001);
         $this->assertEqualsWithDelta(13.0, (float) $transaction['final_total'], 0.0001);
         $this->assertSame('محلي', $transaction['order_type']);
+        $this->assertSame(6, $transaction['contact_id']);
         $this->assertArrayNotHasKey('total_after_discount', $transaction);
+    }
+
+    public function test_resolves_contact_id_from_customer_contact_or_nested_id(): void
+    {
+        $empty = Request::create('/api/stor-sales-invoice', 'POST', [
+            'customer_id' => '',
+            'created_at' => '2026-06-29 03:51',
+        ]);
+        $this->assertNull(PosSalesInvoiceMapper::resolveContactId($empty));
+
+        $nested = Request::create('/api/stor-sales-invoice', 'POST', [
+            'customer_id' => ['id' => 12, 'name' => 'Ahmed'],
+        ]);
+        $this->assertSame(12, PosSalesInvoiceMapper::resolveContactId($nested));
+
+        $alias = Request::create('/api/stor-sales-invoice', 'POST', [
+            'contact_id' => 9,
+        ]);
+        $this->assertSame(9, PosSalesInvoiceMapper::resolveContactId($alias));
     }
 
     public function test_internal_consumption_type_id_forces_expense_purpose(): void

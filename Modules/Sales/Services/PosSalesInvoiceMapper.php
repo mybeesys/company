@@ -209,7 +209,7 @@ final class PosSalesInvoiceMapper
             'invoice_type' => self::resolveInvoiceType($request),
             'due_date' => null,
             'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-            'contact_id' => $request->customer_id,
+            'contact_id' => self::resolveContactId($request),
             'discount_amount' => $discountValue,
             'discount_type' => $discountType !== '' ? $discountType : null,
             'total_before_tax' => $totalBeforeTax,
@@ -254,7 +254,7 @@ final class PosSalesInvoiceMapper
             'invoice_type' => self::resolveInvoiceType($request),
             'due_date' => null,
             'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-            'contact_id' => $request->customer_id,
+            'contact_id' => self::resolveContactId($request),
             'parent_id' => $overrides['parent_id'] ?? null,
             'discount_amount' => $discountValue,
             'discount_type' => $discountType !== '' ? $discountType : null,
@@ -473,8 +473,18 @@ final class PosSalesInvoiceMapper
         ];
     }
 
+    public static function resolveContactId(Request $request): ?int
+    {
+        return self::nullablePositiveInt(
+            $request->input('customer_id') ?? $request->input('contact_id') ?? $request->input('client_id')
+        );
+    }
+
     private static function nullablePositiveInt(mixed $value): ?int
     {
+        if (is_array($value)) {
+            $value = $value['id'] ?? $value['customer_id'] ?? $value['contact_id'] ?? null;
+        }
         if ($value === null || $value === '') {
             return null;
         }
