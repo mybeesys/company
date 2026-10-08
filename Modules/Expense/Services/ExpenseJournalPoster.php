@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Expense\Models\Expense;
 use Modules\Expense\Support\VatLedgerAccount;
@@ -44,7 +45,12 @@ final class ExpenseJournalPoster
             $mapping->is_manual = 0;
             $mapping->created_by = Auth::id();
             $mapping->operation_date = $expense->date->format('Y-m-d H:i:s');
-            $mapping->note = '[Expense #'.$expense->id.'] '.mb_substr((string) $expense->description, 0, 500);
+            $mapping->note = AccountingNote::compose(
+                app()->getLocale() === 'ar' ? 'مصروف' : 'Expense',
+                mb_substr((string) $expense->description, 0, 500),
+                null,
+                (int) $expense->id
+            );
             $mapping->save();
 
             $opDate = $mapping->operation_date;

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Utils\AutoJournalGuard;
@@ -299,10 +300,7 @@ class TransactionUtils
 
         $ref_number = $this->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
-        $sourceTypeAr = in_array($transaction->type, ['purchases', 'purchase'], true)
-            ? 'مشتريات'
-            : ($transaction->type === 'sell' ? 'مبيعات' : $transaction->type);
-        $acc_trans_mapping->note = $sourceTypeAr;
+        $acc_trans_mapping->note = AccountingNote::forSettlement((string) $transaction->type, $transaction);
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
         $acc_trans_mapping->is_manual = 0;
@@ -524,10 +522,7 @@ class TransactionUtils
 
         $ref_number = $this->generateReferenceNumber('journal_entry');
         $acc_trans_mapping->ref_no = $ref_number;
-        $sourceTypeAr = in_array($transaction->type, ['purchases', 'purchase'], true)
-            ? 'مشتريات'
-            : ($transaction->type === 'sell' ? 'مبيعات' : $transaction->type);
-        $acc_trans_mapping->note = $sourceTypeAr;
+        $acc_trans_mapping->note = AccountingNote::forSettlement((string) $transaction->type, $transaction);
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = Auth::user()->id;
         $acc_trans_mapping->is_manual = 0;
