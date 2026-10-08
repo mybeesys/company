@@ -13,6 +13,7 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountingCostCenter;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 use Modules\ClientsAndSuppliers\Models\Contact;
@@ -852,7 +853,7 @@ class PurchasesController extends Controller
                 $acc_trans_mapping = new AccountingAccTransMapping;
                 $ref_number = $accountUtil->generateReferenceNumber('journal_entry');
                 $acc_trans_mapping->ref_no = $ref_number;
-                $acc_trans_mapping->note = 'مشتريات';
+                $acc_trans_mapping->note = AccountingNote::forTransactionType('purchases', $transaction);
                 $acc_trans_mapping->type = 'journal_entry';
                 $acc_trans_mapping->created_by = Auth::user()->id;
                 $acc_trans_mapping->is_manual = 0;

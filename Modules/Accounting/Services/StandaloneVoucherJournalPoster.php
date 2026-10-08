@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\AutoJournalGuard;
 
@@ -75,8 +76,6 @@ final class StandaloneVoucherJournalPoster
 
     private static function mappingNote(string $voucherLabel, string $note): string
     {
-        $note = trim($note);
-
-        return $note !== '' ? $voucherLabel.' — '.$note : $voucherLabel;
+        return AccountingNote::compose($voucherLabel, trim($note) !== '' ? $note : null);
     }
 }

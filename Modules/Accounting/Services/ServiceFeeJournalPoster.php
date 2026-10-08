@@ -12,6 +12,7 @@ use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\ClientsAndSuppliers\Models\Contact;
@@ -31,9 +32,9 @@ final class ServiceFeeJournalPoster
 {
     public const SUB_TYPE = 'service_fee';
 
-    public const NOTE_AR = 'قيد رسوم خدمة';
+    public const NOTE_AR = 'رسوم خدمة';
 
-    public const NOTE_EN = 'Service fee entry';
+    public const NOTE_EN = 'Service fee';
 
     /**
      * @return list<AccountingAccTransMapping>
@@ -163,17 +164,7 @@ final class ServiceFeeJournalPoster
                     throw new \RuntimeException('Customer receivable account is required to post the service fee journal.');
                 }
 
-                $feeName = trim((string) (
-                    app()->getLocale() === 'ar'
-                        ? ($feeLine['name_ar'] ?? $feeLine['name'] ?? $feeLine['name_en'] ?? '')
-                        : ($feeLine['name_en'] ?? $feeLine['name'] ?? $feeLine['name_ar'] ?? '')
-                ));
-                $invoiceRef = (string) ($transaction->ref_no ?? $transaction->invoice_no ?? $transaction->id);
-                $noteLabel = app()->getLocale() === 'ar' ? self::NOTE_AR : self::NOTE_EN;
-                $note = $noteLabel
-                    .($feeName !== '' ? ' — '.$feeName : '')
-                    .' — '.$invoiceRef
-                    .' [#'.$feeId.']';
+                $note = self::feeNote($transaction, $feeLine, $feeId);
 
                 $mapping = new AccountingAccTransMapping;
                 $mapping->ref_no = AccountingUtil::generateReferenceNumber('journal_entry');
@@ -350,13 +341,13 @@ final class ServiceFeeJournalPoster
                 ? ($feeLine['name_ar'] ?? $feeLine['name'] ?? $feeLine['name_en'] ?? '')
                 : ($feeLine['name_en'] ?? $feeLine['name'] ?? $feeLine['name_ar'] ?? '')
         ));
-        $invoiceRef = (string) ($transaction->ref_no ?? $transaction->invoice_no ?? $transaction->id);
-        $noteLabel = app()->getLocale() === 'ar' ? self::NOTE_AR : self::NOTE_EN;
 
-        return $noteLabel
-            .($feeName !== '' ? ' — '.$feeName : '')
-            .' — '.$invoiceRef
-            .' [#'.$feeId.']';
+        return AccountingNote::compose(
+            app()->getLocale() === 'ar' ? self::NOTE_AR : self::NOTE_EN,
+            $feeName !== '' ? $feeName : null,
+            AccountingNote::documentRef($transaction),
+            $feeId
+        );
     }
 
     /**

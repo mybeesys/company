@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\ClientsAndSuppliers\Models\Contact;
 
@@ -69,7 +70,11 @@ class ContactUtils
 
             $type = $transaction->type ?? '';
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = 'رصيد متبقي للعميل';
+            $acc_trans_mapping->note = AccountingNote::compose(
+                'رصيد متبقي للعميل',
+                $customer->name,
+                AccountingNote::documentRef($transaction)
+            );
             $acc_trans_mapping->type = $type;
             $acc_trans_mapping->created_by = Auth::user()->id;
             $acc_trans_mapping->operation_date = now()->format('Y-m-d H:i:s');
@@ -80,7 +85,7 @@ class ContactUtils
                 'acc_trans_mapping_id' => $acc_trans_mapping->id,
                 'type' => 'credit',
                 'sub_type' => $type,
-                'note' => 'رصيد متبقي للعميل',
+                'note' => $acc_trans_mapping->note,
                 'operation_date' => now()->format('Y-m-d'),
                 'created_by' => Auth::user()->id,
                 'accounting_account_id' => $customer->account->id,
@@ -102,7 +107,11 @@ class ContactUtils
 
             $type = $transaction->type ?? '';
             $acc_trans_mapping->ref_no = $ref_number;
-            $acc_trans_mapping->note = 'رصيد متبقي للمورد';
+            $acc_trans_mapping->note = AccountingNote::compose(
+                'رصيد متبقي للمورد',
+                $supplier->name,
+                AccountingNote::documentRef($transaction)
+            );
             $acc_trans_mapping->type = $type;
             $acc_trans_mapping->created_by = Auth::user()->id;
             $acc_trans_mapping->operation_date = now()->format('Y-m-d H:i:s');
@@ -114,7 +123,7 @@ class ContactUtils
                 'acc_trans_mapping_id' => $acc_trans_mapping->id,
                 'type' => 'debit',
                 'sub_type' => $type,
-                'note' => 'رصيد متبقي للمورد',
+                'note' => $acc_trans_mapping->note,
                 'operation_date' => now()->format('Y-m-d'),
                 'created_by' => Auth::user()->id,
                 'accounting_account_id' => $supplier->account->id,

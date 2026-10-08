@@ -11,6 +11,7 @@ use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
@@ -279,9 +280,11 @@ class AccountingUtil
 
         $acc_trans_mapping = new AccountingAccTransMapping;
         $acc_trans_mapping->ref_no = $this->generateReferenceNumber('journal_entry');
-        $acc_trans_mapping->note = app()->getLocale() === 'ar'
-            ? 'استهلاك داخلي — '.$type->displayName()
-            : 'Internal consumption — '.$type->displayName();
+        $acc_trans_mapping->note = AccountingNote::compose(
+            app()->getLocale() === 'ar' ? 'استهلاك داخلي' : 'Internal consumption',
+            $type->displayName(),
+            AccountingNote::documentRef($transaction)
+        );
         $acc_trans_mapping->type = 'journal_entry';
         $acc_trans_mapping->created_by = $createdBy;
         $acc_trans_mapping->is_manual = 0;
@@ -501,14 +504,10 @@ class AccountingUtil
             $acc_trans_mapping = new AccountingAccTransMapping;
             $ref_number = $this->generateReferenceNumber('journal_entry');
             $acc_trans_mapping->ref_no = $ref_number;
-            $sourceTypeAr = match ($transaction->type) {
-                'sell' => 'مبيعات',
-                'purchases' => 'مشتريات',
-                'sell-return' => 'مردود مبيعات',
-                'purchases-return' => 'مردود مشتريات',
-                default => $transaction->type,
-            };
-            $acc_trans_mapping->note = $sourceTypeAr;
+            $acc_trans_mapping->note = AccountingNote::forTransactionType(
+                (string) $transaction->type,
+                $transaction
+            );
             $acc_trans_mapping->type = 'journal_entry';
             $acc_trans_mapping->created_by = $transaction->created_by;
             $acc_trans_mapping->is_manual = 0;
@@ -733,7 +732,7 @@ class AccountingUtil
         $finalTotal = round((float) ($transaction->final_total ?? 0), 2);
         $taxAmount = round((float) ($transaction->tax_amount ?? 0), 2);
 
-        // Collected fees with a dedicated GL account post as separate «قيد رسوم خدمة».
+        // Collected fees with a dedicated GL account post as a separate service-fee journal.
         // Strip fee net only — taxable fee VAT stays in the sales invoice VAT line.
         if ((string) ($transaction->type ?? '') === 'sell') {
             $separate = \Modules\Accounting\Services\ServiceFeeJournalPoster::separatelyAccountedTotals($transaction);

@@ -11,6 +11,7 @@ use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Models\PeriodicInventory;
 use Modules\Accounting\Services\FiscalPeriod\PeriodicInventoryFiscalGuard;
+use Modules\Accounting\Support\AccountingNote;
 use Modules\Accounting\Utils\AccountingUtil;
 use Modules\Accounting\Utils\PerpetualInventoryAccountResolver;
 
@@ -83,7 +84,12 @@ final class PeriodicInventoryPeriodClosePoster
         return DB::transaction(function () use ($inventory, $operationDate, $userId, $lines) {
             $mapping = AccountingAccTransMapping::create([
                 'ref_no' => AccountingUtil::generateReferenceNumber('journal_entry'),
-                'note' => 'إقفال جرد مستمر — تكلفة المبيعات والمخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
+                'note' => AccountingNote::compose(
+                    'إقفال جرد مستمر',
+                    'تكلفة المبيعات والمخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
+                    null,
+                    (int) $inventory->id
+                ),
                 'type' => 'journal_entry',
                 'created_by' => $userId,
                 'operation_date' => $operationDate,
