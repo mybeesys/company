@@ -97,7 +97,7 @@ class TransactionUtils
     //     return true;
     // }
 
-    public function createOrUpdatePaymentLines($transaction, $request)
+    public function createOrUpdatePaymentLines($transaction, $request, bool $postJournal = true)
     {
         $accountUtil = new AccountingUtil;
 
@@ -180,16 +180,16 @@ class TransactionUtils
             return true;
         }
 
-        // قيد واحد لكل فاتورة: حساب التحصيل = حساب طريقة الدفع (حتى مع shift_id).
+        // قيد واحد لكل فاتورة. للكاشير متعدد الدفعات: يُرحَّل بعد آخر سطر دفع حتى ينقسم الصندوق/البنك.
         $alreadyPosted = in_array($transaction->type, ['sell', 'sell-return'], true)
             && AccountingAccountsTransaction::query()
                 ->where('transaction_id', $transaction->id)
                 ->where('sub_type', $transaction->type)
                 ->exists();
 
-        if (! $alreadyPosted) {
+        if ($postJournal && ! $alreadyPosted) {
             $accountUtil->accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request);
-        } elseif (in_array($transaction->type, ['sell'], true)) {
+        } elseif ($postJournal && in_array($transaction->type, ['sell'], true)) {
             // Sales JE already exists — still post missing service-fee journals (idempotent).
             \Modules\Accounting\Services\ServiceFeeJournalPoster::postForTransaction($transaction);
         }

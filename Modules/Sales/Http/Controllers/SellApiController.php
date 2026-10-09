@@ -357,11 +357,15 @@ class SellApiController extends Controller
                 }
             } else {
                 $payments = json_decode(json_encode($request->payments ?? []));
+                $payable = [];
                 foreach ($payments ?? [] as $payment) {
                     if (! ($payment->amount ?? null)) {
                         continue;
                     }
-
+                    $payable[] = $payment;
+                }
+                $payableCount = count($payable);
+                foreach ($payable as $index => $payment) {
                     $methodId = (int) ($payment->method_id ?? 0);
                     if ($methodId === -1) {
                         $methodId = EstablishmentPaymentAccountResolver::resolveCashMethodId((int) $transaction->establishment_id) ?? 0;
@@ -384,7 +388,11 @@ class SellApiController extends Controller
                         $resolved['method_id']
                     ));
 
-                    $transactionUtil->createOrUpdatePaymentLines($transaction, $request);
+                    $transactionUtil->createOrUpdatePaymentLines(
+                        $transaction,
+                        $request,
+                        $index === $payableCount - 1
+                    );
                 }
                 $transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
             }

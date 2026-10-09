@@ -11,10 +11,12 @@ use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
+use Modules\Accounting\Services\SellCashCollectionSplitter;
 use Modules\Accounting\Support\AccountingNote;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Setting;
 use Modules\General\Models\Transaction;
+use Modules\General\Models\TransactionPayments;
 use Modules\General\Models\TransactionSellLine;
 use Modules\Establishment\Services\EstablishmentInternalConsumptionTypeResolver;
 use Modules\Sales\Support\TransactionPurpose;
@@ -532,18 +534,19 @@ class AccountingUtil
 
                 if ($invoiceType === 'cash') {
 
-                    $cashAccountId = (int) $cash_account_id;
-                    if ($cashAccountId <= 0) {
-                        throw new RuntimeException('Cash/bank account is missing for sell (cash). Please select a payment account on the invoice.');
-                    }
                     if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
                         throw new RuntimeException('Accounting routing missing for sell (cash). Please configure sales_sales and sales_vat_calculation in Accounts Routing.');
                     }
 
                     if (! $transactionPayment->payment_for) {
-                        $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $finalTotal;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        $this->debitSellCashCollections(
+                            $transactionPayment,
+                            $transaction,
+                            $cash_account_id,
+                            $finalTotal,
+                            $acc_trans_mapping_id,
+                            $request
+                        );
                         $transactionPayment->account_id = $sales_sales->account_id;
                         $transactionPayment->amount = $salesGrossBeforeDiscount;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
@@ -578,9 +581,14 @@ class AccountingUtil
                         $transactionPayment->amount = $finalTotal;
                         $this->saveAccountRouteTransaction('credit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
 
-                        $transactionPayment->account_id = $cash_account_id;
-                        $transactionPayment->amount = $finalTotal;
-                        $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+                        $this->debitSellCashCollections(
+                            $transactionPayment,
+                            $transaction,
+                            $cash_account_id,
+                            $finalTotal,
+                            $acc_trans_mapping_id,
+                            $request
+                        );
                     }
                 } else {
                     // due / credit / legacy: Dr customer AR (or branch collection GL when provided)
@@ -766,6 +774,59 @@ class AccountingUtil
             'discount_amount' => $discountAmount,
             'sales_gross_before_discount' => $salesGrossBeforeDiscount,
         ];
+    }
+
+    /**
+     * Cash sell: Dr each payment-method GL for its share of the invoice collection.
+     * One method (web cash invoice) stays a single debit on that account.
+     */
+    private function debitSellCashCollections(
+        $transactionPayment,
+        $transaction,
+        $cash_account_id,
+        float $finalTotal,
+        $acc_trans_mapping_id,
+        $request
+    ): void {
+        $splits = SellCashCollectionSplitter::split(
+            $this->sellPaymentCollectionRows($transaction),
+            (int) $cash_account_id,
+            $finalTotal
+        );
+
+        if ($splits === []) {
+            throw new RuntimeException('Cash/bank account is missing for sell (cash). Please select a payment account on the invoice.');
+        }
+
+        foreach ($splits as $split) {
+            $transactionPayment->account_id = $split['account_id'];
+            $transactionPayment->amount = $split['amount'];
+            $this->saveAccountRouteTransaction('debit', $transactionPayment, $transaction, $acc_trans_mapping_id, $request);
+        }
+    }
+
+    /**
+     * @return list<array{account_id: int, amount: float}>
+     */
+    private function sellPaymentCollectionRows($transaction): array
+    {
+        $transactionId = (int) ($transaction->id ?? 0);
+        if ($transactionId <= 0) {
+            return [];
+        }
+
+        return TransactionPayments::query()
+            ->where('transaction_id', $transactionId)
+            ->where(function ($query) {
+                $query->whereNull('is_return')->orWhere('is_return', 0);
+            })
+            ->orderBy('id')
+            ->get(['account_id', 'amount'])
+            ->map(static fn (TransactionPayments $payment): array => [
+                'account_id' => (int) $payment->account_id,
+                'amount' => (float) $payment->amount,
+            ])
+            ->all();
     }
 
     private function appendPerpetualCogsEntries($transactionPayment, $transaction, int $accTransMappingId, $request): void
