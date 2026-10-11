@@ -154,7 +154,7 @@ return [
         ],
         'setting.inventory policy' => [
             'title' => 'Inventory policy',
-            'body' => 'System-wide inventory tracking policy (e.g. periodic).',
+            'body' => 'System-wide inventory tracking policy (e.g. perpetual).',
         ],
         'setting.modules' => [
             'title' => 'Module management',

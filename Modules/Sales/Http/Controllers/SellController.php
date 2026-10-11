@@ -38,6 +38,7 @@ use Modules\Product\Models\RecipeProduct;
 use Modules\Sales\Models\Coupon;
 use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\InvoiceServiceFeeAmounts;
+use Modules\Sales\Services\InvoiceMoneyReconciler;
 use Modules\Sales\Services\InvoiceServiceFeeCalculator;
 use Modules\Sales\Services\PosInvoiceServiceFeeApplier;
 use Modules\Sales\Services\WebSellModifiersCombosService;
@@ -1211,18 +1212,25 @@ class SellController extends Controller
             ]);
         }
 
-        $products = json_decode(json_encode($request->products ?? []));
-
-        // Browser totals include selected service fees. Strip them first so coupon
-        // and VAT math stay on product amounts only; fees are re-applied after.
         if (! $isInternalConsumption) {
-            $clientFeeAmount = (float) $request->input('service_fee_amount', 0);
-            $clientFeeTax = (float) $request->input('service_fee_tax', 0);
+            $reconciled = InvoiceMoneyReconciler::reconcile(
+                (array) $request->input('products', []),
+                $request->input('invoice_discount'),
+                $request->input('invoiced_discount_type')
+            );
             $request->merge([
-                'totalVat' => round(max(0, (float) ($request->totalVat ?? 0) - $clientFeeTax), 2),
-                'totalAfterVat' => round(max(0, (float) ($request->totalAfterVat ?? 0) - $clientFeeAmount - $clientFeeTax), 2),
+                'products' => $reconciled['products'],
+                'totalBeforeVat' => $reconciled['total_before_vat'],
+                'totalAfterDiscount' => $reconciled['total_after_discount'],
+                'totalVat' => $reconciled['total_vat'],
+                'totalAfterVat' => $reconciled['total_after_vat'],
             ]);
         }
+
+        $products = json_decode(json_encode($request->products ?? []));
+
+        // Header totals from InvoiceMoneyReconciler are product-only (halalas).
+        // Service fees are re-applied below; do not subtract browser fee totals again.
 
         $couponUsage = null;
         $couponCode = trim((string) $request->input('coupon_code', ''));
@@ -1880,8 +1888,8 @@ class SellController extends Controller
         if (! $inventoryAccountId || ! $cogsAccountId) {
             throw ValidationException::withMessages([
                 'inventory_policy' => app()->getLocale() === 'ar'
-                    ? 'لا يمكن ترحيل أثر الجرد الدوري محاسبياً. يرجى ضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
-                    : 'Periodic inventory accounting impact cannot be posted. Please configure Inventory and COGS in Accounts Routing.',
+                    ? 'لا يمكن ترحيل أثر الجرد المستمر محاسبياً. يرجى ضبط حسابي المخزون وتكلفة البضائع المباعة من توجيه الحسابات.'
+                    : 'Perpetual inventory accounting impact cannot be posted. Please configure Inventory and COGS in Accounts Routing.',
             ]);
         }
 

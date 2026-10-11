@@ -461,7 +461,7 @@
             <input type="hidden" class="is-tax-group" name="products[${salesRowIndex}][is_tax_group]">
             <input type="hidden" class="sub-taxes" name="products[${salesRowIndex}][sub_taxes]">
             <input type="hidden" class="minimum-limits" name="products[${salesRowIndex}][minimum_limits]">
-        </td>                       <td><input type="number" step="any" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 80px;"></td>
+        </td>                       <td><input type="number" step="0.01" readonly class="form-control vat_value-field" name="products[${salesRowIndex}][vat_value]" placeholder="0.00" style="width: 110px;"></td>
             <td>
                 <input type="number" step="any" readonly class="form-control total_after_vat-field" name="products[${salesRowIndex}][total_after_vat]" placeholder="0.00" style="width: 107px;">
             </td>

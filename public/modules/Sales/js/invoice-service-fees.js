@@ -19,6 +19,9 @@ window.InvoiceServiceFees = (function () {
     }
 
     function round2(value) {
+        if (window.BeeMoney && typeof window.BeeMoney.round === "function") {
+            return window.BeeMoney.round(value);
+        }
         return Math.round((Number(value) || 0) * 100) / 100;
     }
 
@@ -138,13 +141,13 @@ window.InvoiceServiceFees = (function () {
     }
 
     function readSalesLine($row) {
-        const qty = parseFloat($row.find(".qty-field").val()) || 0;
-        const net = parseFloat($row.find(".total_before_vat-field").val()) || 0;
-        const vat = parseFloat($row.find(".vat_value-field").val()) || 0;
-        const gross = parseFloat($row.find(".total_after_vat-field").val()) || 0;
-        let taxRate = parseFloat($row.find(".qty-field").closest("tr").find('[name$="[tax_vat]"]').first().val()) || 0;
+        const qty = round2($row.find(".qty-field").val());
+        const net = round2($row.find(".total_before_vat-field").val());
+        const vat = round2($row.find(".vat_value-field").val());
+        const gross = round2($row.find(".total_after_vat-field").val());
+        let taxRate = round2($row.find(".qty-field").closest("tr").find('[name$="[tax_vat]"]').first().val());
         if (!taxRate) {
-            taxRate = parseFloat($row.find("select[name*='[tax_vat]']").val()) || 0;
+            taxRate = round2($row.find("select[name*='[tax_vat]']").val());
         }
         if (taxRate <= 0 && net > 0 && vat > 0) {
             taxRate = (vat / net) * 100;

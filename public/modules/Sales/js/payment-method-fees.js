@@ -69,11 +69,12 @@ window.PaymentMethodFees = (function () {
     }
 
     function readSalesLine($row) {
-        var qty = parseFloat($row.find('.qty-field').val()) || 0;
-        var net = parseFloat($row.find('.total_before_vat-field').val()) || 0;
-        var vat = parseFloat($row.find('.vat_value-field').val()) || 0;
-        var gross = parseFloat($row.find('.total_after_vat-field').val()) || 0;
-        var taxRate = parseFloat($row.find("select[name*='[tax_vat]']").val()) || 0;
+        var money = window.BeeMoney;
+        var qty = money ? money.parse($row.find('.qty-field').val()) : (parseFloat($row.find('.qty-field').val()) || 0);
+        var net = money ? money.parse($row.find('.total_before_vat-field').val()) : (parseFloat($row.find('.total_before_vat-field').val()) || 0);
+        var vat = money ? money.parse($row.find('.vat_value-field').val()) : (parseFloat($row.find('.vat_value-field').val()) || 0);
+        var gross = money ? money.parse($row.find('.total_after_vat-field').val()) : (parseFloat($row.find('.total_after_vat-field').val()) || 0);
+        var taxRate = money ? money.parse($row.find("select[name*='[tax_vat]']").val()) : (parseFloat($row.find("select[name*='[tax_vat]']").val()) || 0);
         if (taxRate <= 0 && net > 0 && vat > 0) {
             taxRate = (vat / net) * 100;
         }

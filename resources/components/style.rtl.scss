@@ -6,8 +6,17 @@
   src: url("https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=League+Gothic&display=swap") format("stylesheet");
 }
 
+@font-face {
+  font-family: "BeeLatinDigits";
+  src: local("Inter"), local("Segoe UI"), local("Tahoma"), local("Arial");
+  unicode-range: U+0030-0039, U+002B, U+002C, U+002D, U+002E, U+0025;
+  font-display: swap;
+}
+
 body {
-  font-family: "Cairo";
+  font-family: BeeLatinDigits, "Cairo", sans-serif;
+  -webkit-locale: "en";
+  font-feature-settings: "locl" 0;
 }
 
 

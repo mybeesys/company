@@ -15,6 +15,7 @@ use Modules\Accounting\Utils\AutoJournalGuard;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
+use Modules\General\Support\Money;
 use Modules\Product\Models\Product;
 
 class TransactionUtils
@@ -353,18 +354,18 @@ class TransactionUtils
 
     public function calculatePaymentStatus($transaction_id, $final_amount = null)
     {
-        $total_paid = (float) ($this->getTotalPaid($transaction_id) ?? 0);
+        $total_paid = Money::round($this->getTotalPaid($transaction_id) ?? 0);
         if (is_null($final_amount)) {
             $final_amount = Transaction::find($transaction_id)->final_total;
         }
 
-        $final_amount = (float) $final_amount;
+        $final_amount = Money::round($final_amount);
 
         if ($total_paid <= 0) {
             return 'due';
         }
 
-        if ($total_paid + 0.000001 >= $final_amount) {
+        if (Money::remaining($final_amount, $total_paid) <= 0) {
             return 'paid';
         }
 
@@ -377,7 +378,7 @@ class TransactionUtils
             ->select(DB::raw('SUM(IF( is_return = 0, amount, amount*1)) as total_paid'))
             ->first();
 
-        return (float) ($row->total_paid ?? 0);
+        return Money::round($row->total_paid ?? 0);
     }
 
     public function generateReferenceNumber($type)

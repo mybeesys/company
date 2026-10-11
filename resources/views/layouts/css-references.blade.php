@@ -4,6 +4,8 @@
 @endphp
 <link rel="canonical" href="http://preview.keenthemes.comindex.html" />
 <link rel="shortcut icon" href="/assets/media/logos/1-14.png" />
+<link href="/assets/css/latin-digits.css" rel="stylesheet" type="text/css" />
+<script src="/assets/js/latin-digits.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
 <link href="/assets/plugins/custom/fullcalendar/fullcalendar.bundle{{ $rtl_files }}.css" rel="stylesheet"
@@ -56,7 +58,7 @@
     }
 
     body {
-        font-family: 'Cairo', sans-serif;
+        font-family: BeeLatinDigits, 'Cairo', sans-serif;
         font-optical-sizing: 'auto';
         font-style: normal;
     }
