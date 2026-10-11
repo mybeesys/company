@@ -237,10 +237,10 @@
                                             value="{{ json_encode($tax->sub_taxes->pluck('minimum_limit')->toArray() ?? []) }}"
                                             class="minimum-limits">
                                     </td>
-                                    <td><input type="number" step="any" readonly {{-- @if ($line->line_status == 'completed') disabled @endif --}}
+                                    <td><input type="number" step="0.01" readonly {{-- @if ($line->line_status == 'completed') disabled @endif --}}
                                             class="form-control vat_value-field"
                                             name="products[{{ $index }}][vat_value]" placeholder="0.00"
-                                            style="width: 80px;"></td>
+                                            style="width: 110px;"></td>
                                     <td>
                                         <input type="number" step="any" readonly {{-- @if ($line->line_status == 'completed') disabled @endif --}}
                                             class="form-control total_after_vat-field"

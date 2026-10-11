@@ -11,6 +11,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
+use Modules\General\Support\Money;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Purchases\Support\PurchasesAccess;
 use Modules\Purchases\Support\PurchasesPermissions;
@@ -257,21 +258,18 @@ class Transaction extends Model
 
                 $paid_amount = $transactionUtil->getTotalPaid($row->id);
 
-                return number_format($paid_amount, 2);
+                return number_format($paid_amount, 2, '.', '');
             })
             ->editColumn('remaining_amount', function ($row) {
                 $transactionUtil = new TransactionUtils;
 
                 $paid_amount = $transactionUtil->getTotalPaid($row->id);
-                $amount = $row->final_total - $paid_amount;
-                if ($amount < 0) {
-                    $amount = 0;
-                }
+                $amount = Money::remaining($row->final_total, $paid_amount);
 
-                return number_format($amount, 2);
+                return number_format($amount, 2, '.', '');
             })
             ->editColumn('final_total', function ($row) {
-                return number_format($row->final_total, 2) ?? '0.00';
+                return number_format(Money::round($row->final_total), 2, '.', '');
             })
             ->editColumn('payment_status', function ($row) {
                 if (($row->type === 'sell' || $row->type === 'purchases') && $row->isDraft()) {
