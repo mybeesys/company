@@ -48,9 +48,10 @@ final class InvoiceMoneyReconciler
                 $vat = Money::sub($afterDiscount, $net);
                 $gross = $afterDiscount;
             } elseif ($taxRate > 0) {
-                $net = $afterDiscount;
-                $vat = Money::percent($net, $taxRate);
-                $gross = Money::add($net, $vat);
+                $taxed = self::exclusiveTaxedLine($qty, $afterDiscount, $taxRate);
+                $net = $taxed['net'];
+                $vat = $taxed['vat'];
+                $gross = $taxed['gross'];
             } else {
                 $net = $afterDiscount;
                 $vat = 0.0;
@@ -65,6 +66,7 @@ final class InvoiceMoneyReconciler
             $row['total_after_vat'] = $gross;
             $row['_tax_rate'] = $taxRate;
             $row['_inclusive'] = $inclusive;
+            $row['_qty'] = $qty;
 
             $lines[] = $row;
             $totalBeforeVatH += Money::halalas($net);
@@ -104,13 +106,14 @@ final class InvoiceMoneyReconciler
                 $adjustedGross = Money::round($rowGross * ($adjustedNet / $net));
                 $lineVat = Money::sub($adjustedGross, $adjustedNet);
             } elseif ($taxRate > 0) {
-                $lineVat = Money::percent($adjustedNet, $taxRate);
+                $qty = Money::parse($row['qty'] ?? 0);
+                $lineVat = self::exclusiveTaxedLine($qty, $adjustedNet, $taxRate)['vat'];
             } else {
                 $lineVat = (float) $row['vat_value'];
             }
 
             $vatH += Money::halalas($lineVat);
-            unset($row['_tax_rate'], $row['_inclusive']);
+            unset($row['_tax_rate'], $row['_inclusive'], $row['_qty']);
         }
         unset($row);
 
@@ -126,6 +129,35 @@ final class InvoiceMoneyReconciler
             'total_vat' => $totalVat,
             'total_after_vat' => $totalAfterVat,
         ];
+    }
+
+    /**
+     * Exclusive VAT: round the tax-inclusive unit price to 2dp, then × qty.
+     * 3 × 33.91 @ 15% → unit 39.00, line 117.00 (not 116.99 from tax-on-line-net).
+     *
+     * @return array{net: float, vat: float, gross: float}
+     */
+    public static function exclusiveTaxedLine(float $qty, float $net, float $ratePercent): array
+    {
+        $net = Money::round($net);
+        if ($ratePercent <= 0) {
+            return ['net' => $net, 'vat' => 0.0, 'gross' => $net];
+        }
+        if ($qty <= 0) {
+            $vat = Money::percent($net, $ratePercent);
+
+            return ['net' => $net, 'vat' => $vat, 'gross' => Money::add($net, $vat)];
+        }
+
+        $unitGross = Money::round(($net / $qty) * (1 + $ratePercent / 100));
+        $gross = Money::round($unitGross * $qty);
+        $vat = Money::sub($gross, $net);
+        if ($vat < 0) {
+            $vat = 0.0;
+            $gross = $net;
+        }
+
+        return ['net' => $net, 'vat' => $vat, 'gross' => $gross];
     }
 
     private static function isTruthy(mixed $value): bool

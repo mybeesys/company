@@ -43,6 +43,25 @@ window.BeeMoney = window.BeeMoney || {
     format: function (value) {
         return this.round(value).toFixed(2);
     },
+    exclusiveTaxedLine: function (qty, net, rate) {
+        net = this.round(net);
+        rate = this.parse(rate);
+        if (!(rate > 0)) {
+            return { net: net, vat: 0, gross: net };
+        }
+        if (!(this.parse(qty) > 0)) {
+            var vatOnly = this.round(net * (rate / 100));
+            return { net: net, vat: vatOnly, gross: this.round(net + vatOnly) };
+        }
+        var unitGross = this.round((net / this.parse(qty)) * (1 + rate / 100));
+        var gross = this.round(unitGross * this.parse(qty));
+        var vat = this.round(gross - net);
+        if (vat < 0) {
+            vat = 0;
+            gross = net;
+        }
+        return { net: net, vat: vat, gross: gross };
+    },
 };
 
 function updateSalesTotals() {
@@ -153,12 +172,14 @@ function updateSalesTotals() {
             totalRow = BeeMoney.round(totalBeforeDiscount + vatAmount);
             totalBeforeDiscountForVat += totalBeforeDiscount;
         } else if (taxType > 0) {
-            vatAmount = BeeMoney.round(totalBeforeDiscount * (taxType / 100));
+            const taxed = BeeMoney.exclusiveTaxedLine(qty, totalBeforeDiscount, taxType);
+            vatAmount = taxed.vat;
+            totalRow = taxed.gross;
             if (minimumLimits[0] && vatAmount < BeeMoney.parse(minimumLimits[0])) {
                 vatAmount = BeeMoney.parse(minimumLimits[0]);
+                totalRow = BeeMoney.round(totalBeforeDiscount + vatAmount);
             }
             totalBeforeDiscountForVat += totalBeforeDiscount;
-            totalRow = BeeMoney.round(totalBeforeDiscount + vatAmount);
         }
 
         $(this)
@@ -253,7 +274,14 @@ function updateSalesTotals() {
             const rowAdjustedTotal = BeeMoney.round(
                 rowTotalBeforeDiscount - rowDiscountShare
             );
-            adjustedVat += BeeMoney.round(rowAdjustedTotal * (taxType / 100));
+            const qty = BeeMoney.parse(
+                $(this).find(`[name="products[${index}][qty]"]`).val()
+            );
+            adjustedVat += BeeMoney.exclusiveTaxedLine(
+                qty,
+                rowAdjustedTotal,
+                taxType
+            ).vat;
         } else {
             adjustedVat += BeeMoney.round(rowVat);
         }
