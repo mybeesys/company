@@ -26,6 +26,8 @@
     <link rel="shortcut icon" href="/assets/media/logos/1-14.png" />
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link href="/assets/css/latin-digits.css" rel="stylesheet" type="text/css" />
+    <script src="/assets/js/latin-digits.js"></script>
     <link href="/assets/css/brand-theme.css" rel="stylesheet" type="text/css" />
     <link href="/assets/css/menu-simple-pro.css?v=20260810-card-compact" rel="stylesheet" type="text/css" />
 

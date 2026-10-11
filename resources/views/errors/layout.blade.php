@@ -29,12 +29,16 @@
 
         * { box-sizing: border-box; }
         html, body { min-height: 100%; }
+        html { -webkit-locale: "en"; }
         body {
             margin: 0;
-            font-family: Cairo, "Segoe UI", Tahoma, sans-serif;
+            font-family: "Segoe UI", Tahoma, Cairo, sans-serif;
             color: var(--err-ink);
             background: var(--err-bg);
             -webkit-font-smoothing: antialiased;
+            -webkit-locale: "en";
+            font-feature-settings: "locl" 0;
+            font-variant-numeric: lining-nums tabular-nums;
         }
 
         .err-page {

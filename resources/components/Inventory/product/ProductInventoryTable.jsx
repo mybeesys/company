@@ -160,7 +160,7 @@ const ProductInventoryTable = ({ dir, translations, p_type }) => {
                         <div className="card-body py-3 d-flex justify-content-between align-items-center">
                             <div>
                                 <div className="text-muted fs-7">{labels.total_cost}</div>
-                                <div className="fw-bold fs-2">{summaryLoading ? "..." : (summary?.kpis?.total_cost_value ?? 0).toLocaleString()}</div>
+                                <div className="fw-bold fs-2">{summaryLoading ? "..." : (summary?.kpis?.total_cost_value ?? 0).toLocaleString('en-US', { numberingSystem: 'latn' })}</div>
                             </div>
                             {!!criticalCsvUrl && (
                                 <a href={criticalCsvUrl} className="btn btn-sm btn-light-primary">

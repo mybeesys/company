@@ -1,0 +1,46 @@
+/**
+ * Force Western (Latin) digits 0-9 everywhere, including Arabic UI and Arabic OS.
+ * Cairo/Tajawal + html[lang=ar] otherwise substitute Eastern Arabic numerals via OpenType locl.
+ */
+@font-face {
+    font-family: 'BeeLatinDigits';
+    src: local('Inter'), local('Segoe UI'), local('Tahoma'), local('Arial');
+    unicode-range: U+0030-0039, U+002B, U+002C, U+002D, U+002E, U+0025;
+    font-display: swap;
+}
+
+html {
+    -webkit-locale: 'en';
+}
+
+html,
+body,
+input,
+textarea,
+select,
+button,
+option,
+pre,
+code,
+table,
+.form-control,
+.form-select,
+.select2-container,
+.select2-selection__rendered,
+.app-header,
+.menu-link {
+    font-feature-settings: 'locl' 0;
+    font-variant-numeric: lining-nums tabular-nums;
+    -webkit-locale: 'en';
+}
+
+body {
+    font-family: BeeLatinDigits, 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+}
+
+input,
+textarea,
+select,
+button {
+    font-family: BeeLatinDigits, 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+}

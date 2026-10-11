@@ -1,3 +1,4 @@
+<script src="/assets/js/latin-digits.js"></script>
 <script src="{{ url('/js/general.js') }}"></script>
 <script src="{{ url('/js/date-picker.js') }}"></script>
 <script src="/assets/plugins/global/plugins.bundle.js"></script>

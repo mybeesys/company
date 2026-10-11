@@ -4,7 +4,10 @@ import { chartPalette, useAppTheme } from '../hooks/useAppTheme';
 function formatAmount(value, locale) {
     const amount = Number(value) || 0;
     try {
-        return amount.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { maximumFractionDigits: 0 });
+        return amount.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+            maximumFractionDigits: 0,
+            numberingSystem: 'latn',
+        });
     } catch {
         return String(Math.round(amount));
     }

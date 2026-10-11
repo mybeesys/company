@@ -60,7 +60,7 @@ export default function FinancialTrendChart({ data, locale, onBarClick, compareU
                 },
                 yaxis: {
                     labels: {
-                        formatter: (v) => Number(v || 0).toLocaleString(),
+                        formatter: (v) => Number(v || 0).toLocaleString('en-US', { numberingSystem: 'latn' }),
                         style: { colors: palette.fore },
                     },
                 },
