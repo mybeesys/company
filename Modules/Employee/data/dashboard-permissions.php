@@ -1974,28 +1974,28 @@ return [
 
     [
         'name' => 'accounting.Periodic inventory.show',
-        'name_ar' => 'الجرد المستمر',
+        'name_ar' => 'جرد المخزون',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
         'name' => 'accounting.Periodic inventory.print',
-        'name_ar' => 'الجرد المستمر',
+        'name_ar' => 'جرد المخزون',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
         'name' => 'accounting.Periodic inventory.create',
-        'name_ar' => 'الجرد المستمر',
+        'name_ar' => 'جرد المخزون',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',
     ],
     [
         'name' => 'accounting.Periodic inventory.update',
-        'name_ar' => 'الجرد المستمر',
+        'name_ar' => 'جرد المخزون',
         'description' => '',
         'description_ar' => '',
         'type' => 'ems',

@@ -85,7 +85,7 @@ final class PeriodicInventoryPeriodClosePoster
             $mapping = AccountingAccTransMapping::create([
                 'ref_no' => AccountingUtil::generateReferenceNumber('journal_entry'),
                 'note' => AccountingNote::compose(
-                    'إقفال جرد مستمر',
+                    'إقفال جرد المخزون',
                     'تكلفة المبيعات والمخزون للفترة من '.$inventory->start_date.' إلى '.$inventory->end_date,
                     null,
                     (int) $inventory->id
@@ -149,8 +149,8 @@ final class PeriodicInventoryPeriodClosePoster
 
         if ($inventoryId <= 0 || $purchasesId <= 0 || $cogsId <= 0) {
             throw new \RuntimeException(app()->getLocale() === 'ar'
-                ? 'لا يمكن ترحيل إقفال الجرد المستمر. اضبط حسابات المخزون والمشتريات وتكلفة المبيعات / تسوية الجرد من توجيه الحسابات.'
-                : 'Cannot post perpetual inventory close. Configure Inventory, Purchases, and COGS / perpetual adjustment accounts in Accounts Routing.');
+                ? 'لا يمكن ترحيل إقفال جرد المخزون. اضبط حسابات المخزون والمشتريات وتكلفة المبيعات / تسوية الجرد من توجيه الحسابات.'
+                : 'Cannot post Inventory Count close. Configure Inventory, Purchases, and COGS / count adjustment accounts in Accounts Routing.');
         }
 
         return [
@@ -177,8 +177,8 @@ final class PeriodicInventoryPeriodClosePoster
 
         if (abs($debit - $credit) > 0.02) {
             throw new \RuntimeException(app()->getLocale() === 'ar'
-                ? 'قيد إقفال الجرد المستمر غير متوازن. راجع قيم أول المدة والمشتريات وآخر المدة.'
-                : 'Perpetual inventory close journal is unbalanced. Review opening, purchases, and closing values.');
+                ? 'قيد إقفال جرد المخزون غير متوازن. راجع قيم أول المدة والمشتريات وآخر المدة.'
+                : 'Inventory Count close journal is unbalanced. Review opening, purchases, and closing values.');
         }
     }
 }

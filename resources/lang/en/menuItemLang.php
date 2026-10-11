@@ -153,7 +153,7 @@ return [
     'expense-report' => 'Expense report',
     'cash-flow' => 'Cash Flow Statement',
     'customers-suppliers-statement' => 'Customers and suppliers statement of account',
-    'periodic' => 'Perpetual',
+    'periodic' => 'Inventory Count',
     'sales-dashbord' => 'Sales dashbord',
     'purchase-dashbord' => 'Purchase dashbord',
 
