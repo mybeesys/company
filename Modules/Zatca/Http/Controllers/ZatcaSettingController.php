@@ -17,6 +17,7 @@ use Modules\Zatca\Services\ZatcaCredentialService;
 use Modules\Zatca\Services\ZatcaOperationsService;
 use Modules\Zatca\Services\ZatcaSellSyncService;
 use Modules\Zatca\Services\ZatcaSetupReadinessService;
+use Modules\Establishment\Models\Establishment;
 use Modules\Zatca\Support\ZatcaPermissions;
 use Throwable;
 
@@ -109,6 +110,7 @@ class ZatcaSettingController extends Controller
                 '1000' => __('zatca::lang.invoice_type_standard'),
                 '1100' => __('zatca::lang.invoice_type_both'),
             ],
+            'zatcaBranches' => $this->zatcaBranches(),
         ]);
     }
 
@@ -267,6 +269,35 @@ class ZatcaSettingController extends Controller
                 ->route('zatca.settings.edit', ['tab' => 'operations'])
                 ->with('error', $e->getMessage())
                 ->with('active_tab', 'operations');
+        }
+    }
+
+    /**
+     * @return list<array{value: string, label: string}>
+     */
+    private function zatcaBranches(): array
+    {
+        try {
+            return Establishment::query()
+                ->notMain()
+                ->orderBy('name')
+                ->get(['id', 'name', 'name_en'])
+                ->map(function (Establishment $branch): array {
+                    $value = trim((string) ($branch->name ?: $branch->name_en));
+                    $en = trim((string) ($branch->name_en ?: ''));
+                    $label = $value;
+                    if ($en !== '' && $en !== $value) {
+                        $label .= ' — '.$en;
+                    }
+
+                    return ['value' => $value, 'label' => $label];
+                })
+                ->filter(fn (array $row): bool => $row['value'] !== '')
+                ->unique('value')
+                ->values()
+                ->all();
+        } catch (\Throwable) {
+            return [];
         }
     }
 }

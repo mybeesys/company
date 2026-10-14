@@ -199,7 +199,12 @@
             if (!$field.length) return;
             const current = String($field.val() || '').trim();
             if (onlyEmpty && current !== '') return;
-            $field.val(sample[key]).trigger('change');
+            const next = sample[key];
+            if ($field.is('select') && next != null && String(next) !== ''
+                && $field.find('option').filter(function () { return this.value === String(next); }).length === 0) {
+                $field.append($('<option>', { value: String(next), text: String(next) }));
+            }
+            $field.val(next).trigger('change');
         });
         syncAppKeyVisibility();
     }

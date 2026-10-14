@@ -5,6 +5,7 @@ namespace Modules\Zatca\Services;
 use App\Models\Company;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Establishment\Models\Establishment;
 use Modules\Zatca\Models\ZatcaSetting;
 
 /**
@@ -61,12 +62,12 @@ class ZatcaCompanyDefaultsService
         if ($vat !== '' && preg_match('/^3\d{13}3$/', $vat)) {
             $values['vat_number'] = $vat;
             $sources['vat_number'] = $label;
-            // ZATCA OU is the 10-digit TIN of the onboarded member — digits 2..11 of a valid VAT.
-            $values['organization_unit'] = substr($vat, 1, 10);
-            $sources['organization_unit'] = $label;
-        } elseif (strlen($vat) === 10 && ctype_digit($vat)) {
-            $values['organization_unit'] = $vat;
-            $sources['organization_unit'] = $label;
+        }
+
+        $branchName = $this->resolveBranchName();
+        if ($branchName !== null) {
+            $values['organization_unit'] = $branchName;
+            $sources['organization_unit'] = __('zatca::lang.from_branch_details');
         }
 
         $email = trim((string) ($company->email ?? ''));
@@ -178,6 +179,27 @@ class ZatcaCompanyDefaultsService
             'values' => $values,
             'applied_from_company' => $applied,
         ];
+    }
+
+    private function resolveBranchName(): ?string
+    {
+        try {
+            if (! class_exists(Establishment::class) || ! Schema::hasTable('est_establishments')) {
+                return null;
+            }
+
+            $branch = Establishment::query()
+                ->notMain()
+                ->orderBy('id')
+                ->first(['id', 'name', 'name_en']);
+
+            return $this->firstFilled([
+                $branch?->name,
+                $branch?->name_en,
+            ]);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function resolveCompany(): ?object
