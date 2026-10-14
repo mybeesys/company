@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Establishment\Http\Controllers\CashierCatalogSettingsController;
+use Modules\Establishment\Http\Controllers\CashierOrderSettingsController;
 use Modules\Establishment\Http\Controllers\CompanyController;
 use Modules\Establishment\Http\Controllers\DeviceController;
 use Modules\Establishment\Http\Controllers\EstablishmentController;
@@ -48,6 +49,15 @@ Route::middleware([
             Route::patch('/service-fees', 'updateServiceFees')
                 ->middleware($perm(EstablishmentPermissions::ESTABLISHMENT_UPDATE))
                 ->name('service-fees.update');
+        });
+
+        Route::controller(CashierOrderSettingsController::class)->prefix('settings')->name('cashier-settings.')->group(function () use ($perm) {
+            Route::get('/cashier-orders', 'edit')
+                ->middleware($perm(EstablishmentPermissions::ESTABLISHMENT_UPDATE))
+                ->name('orders');
+            Route::patch('/cashier-orders', 'update')
+                ->middleware($perm(EstablishmentPermissions::ESTABLISHMENT_UPDATE))
+                ->name('orders.update');
         });
 
         Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments.')->group(function () use ($perm) {

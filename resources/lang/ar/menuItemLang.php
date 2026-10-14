@@ -87,6 +87,7 @@ return [
     'cashier_payment_methods' => 'طرق الدفع',
     'internal_consumption_types' => 'مصروف الاستهلاك الداخلي للكاشير',
     'cashier_service_fees' => 'رسوم الخدمات',
+    'cashier_order_settings' => 'إعدادات طلبات الكاشير',
     'taxes' => 'الضرائب',
 
     'quotations' => 'عروض الأسعار',

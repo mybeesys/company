@@ -465,6 +465,11 @@ return [
                 'url' => 'settings/service-fees',
                 'permission' => 'establishments.establishment.update',
             ],
+            [
+                'name' => 'cashier_order_settings',
+                'url' => 'settings/cashier-orders',
+                'permission' => 'establishments.establishment.update',
+            ],
             /*      [
                 'name' => 'devices',
                 'url' => 'devices',
