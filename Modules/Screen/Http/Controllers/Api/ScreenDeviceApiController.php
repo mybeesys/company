@@ -3,6 +3,7 @@
 namespace Modules\Screen\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\EntitlementGate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -12,7 +13,8 @@ use Modules\Screen\Services\ScreenEstablishmentService;
 class ScreenDeviceApiController extends Controller
 {
     public function __construct(
-        protected ScreenEstablishmentService $establishments
+        protected ScreenEstablishmentService $establishments,
+        protected EntitlementGate $gate,
     ) {}
 
     public function index(): JsonResponse
@@ -49,6 +51,12 @@ class ScreenDeviceApiController extends Controller
             $rules['establishment_id'] = ['required', 'integer', 'exists:est_establishments,id'];
         }
         $validated = $request->validate($rules);
+
+        if (! $this->gate->canAddScreenDevice()) {
+            return response()->json([
+                'message' => $this->gate->screenDevicesDenialMessage(),
+            ], 422);
+        }
 
         $payload = ['code' => $validated['code']];
         if ($hasEstablishmentColumn) {

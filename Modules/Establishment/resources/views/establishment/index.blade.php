@@ -117,10 +117,8 @@
                         <label for="deviceType" class="form-label">@lang('establishment::general.device_type')<span class="text-danger">*</span></label>
                         <select class="form-select" id="deviceType" required>
                             <option value="" disabled selected>@lang('establishment::general.select_device_type')</option>
-                            <option value="kitchen screen">@lang('establishment::general.kitchen_screen')</option>
-                            <option value="cashier">@lang('establishment::general.cashier')</option>
-                            <option value="waiters">@lang('establishment::general.waiters')</option>
                         </select>
+                        <div class="form-text text-muted" id="deviceTypeHint"></div>
                     </div>
                     <div class="mb-3">
                         <label for="deviceRef" class="form-label">@lang('establishment::fields.ref')<span class="text-danger">*</span></label>
@@ -152,6 +150,7 @@
 <script src="/vfs_fonts.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+@include('establishment::device.partials.entitlement-script')
 
 <script>
     "use strict";
@@ -277,7 +276,9 @@
         }).on('ready.jstree open_node.jstree refresh.jstree', appendEstTreeSettingsLinks);
         // Add Device Modal
         $('#addDeviceBtn').on('click', function() {
-            $('#addDeviceModal').modal('show');
+            window.refreshDeviceEntitlements().always(function () {
+                $('#addDeviceModal').modal('show');
+            });
         });
 
         $('#saveDeviceBtn').on('click', function() {
@@ -327,13 +328,16 @@
                         establishment_id: newEstablishment,
                         _token: '{{ csrf_token() }}'
                     },
-                    success: function() {
+                    success: function(response) {
                         $('#addDeviceModal').modal('hide');
                         $('#addDeviceForm')[0].reset();
+                        if (response.entitlements) {
+                            window.applyDeviceEntitlements(response.entitlements);
+                        }
                         dataTableDevices.ajax.reload();
                     },
                     error: function(xhr) {
-                        console.error('Error:', xhr);
+                        window.notifyDeviceEntitlementError(xhr);
                     }
                 });
             }

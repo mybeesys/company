@@ -107,6 +107,7 @@ class SubscriptionOverviewService
             'modules' => $modules,
             'quotas' => $quotas,
             'manage_url' => $this->manageUrl(),
+            'addon_url' => $this->manageUrl('addon'),
             'status' => $status,
             'days_remaining' => $daysRemaining,
             'plan_name' => $entitlement
@@ -121,9 +122,15 @@ class SubscriptionOverviewService
         ];
     }
 
-    public function manageUrl(): string
+    public function manageUrl(?string $mode = null): string
     {
-        return url('/subscription/manage');
+        $url = url('/subscription/manage');
+
+        if ($mode === 'addon') {
+            return $url.'?mode=addon';
+        }
+
+        return $url;
     }
 
     protected function entitlementRow(int $companyId): ?object
@@ -202,9 +209,19 @@ class SubscriptionOverviewService
             'employees_quota' => 'employees',
             'establishments_quota' => 'establishments',
             'screen_devices_quota' => 'screen_devices',
+            'pos_devices_quota' => 'pos_devices',
+            'waiter_seats_quota' => 'waiter_seats',
+            'kitchen_devices_quota' => 'kitchen_devices',
         ] as $column => $key) {
             $value = (int) ($row->{$column} ?? 0);
-            if ($key === 'screen_devices' && $value <= 0 && ! in_array('digital_screens', $modules, true)) {
+            $moduleGate = match ($key) {
+                'screen_devices' => 'digital_screens',
+                'pos_devices' => 'cashier_pos',
+                'waiter_seats' => 'waiter_app',
+                'kitchen_devices' => 'kitchen_app',
+                default => null,
+            };
+            if ($moduleGate && $value <= 0 && ! in_array($moduleGate, $modules, true)) {
                 continue;
             }
 
@@ -245,6 +262,9 @@ class SubscriptionOverviewService
             'employees' => ['en' => 'Employees', 'ar' => 'الموظفون'],
             'establishments' => ['en' => 'Branches', 'ar' => 'الفروع'],
             'screen_devices' => ['en' => 'Screen devices', 'ar' => 'أجهزة الشاشات'],
+            'pos_devices' => ['en' => 'POS devices', 'ar' => 'أجهزة الكاشير'],
+            'waiter_seats' => ['en' => 'Waiter seats', 'ar' => 'مقاعد الويتر'],
+            'kitchen_devices' => ['en' => 'Kitchen devices', 'ar' => 'أجهزة المطبخ'],
         ];
 
         if (isset($fallback[$key])) {

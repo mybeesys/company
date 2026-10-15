@@ -131,7 +131,7 @@ class GeneralController extends Controller
         return view('general::subscription.index', $overview);
     }
 
-    public function manageSubscription()
+    public function manageSubscription(\Illuminate\Http\Request $request)
     {
         $user = auth()->user();
         if (! $user) {
@@ -152,11 +152,15 @@ class GeneralController extends Controller
                 ->with('error', __('general::general.subscription_manage_unavailable'));
         }
 
+        $redirectTo = $request->query('mode') === 'addon'
+            ? '/subscribe?mode=addon'
+            : '/subscribe';
+
         try {
             $url = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
                 email: $email,
                 companyId: (int) $companyId,
-                redirectTo: '/subscribe',
+                redirectTo: $redirectTo,
             );
         } catch (\Throwable $e) {
             report($e);

@@ -106,6 +106,9 @@ Route::middleware([
         Route::get('/devices', [DeviceController::class, 'index'])
             ->middleware($perm(...EstablishmentPermissions::deviceShowAny()))
             ->name('device.index');
+        Route::get('/devices/entitlements', [DeviceController::class, 'entitlementStatus'])
+            ->middleware($perm(...EstablishmentPermissions::deviceShowAny()))
+            ->name('device.entitlements');
         Route::post('/devices/store', [DeviceController::class, 'store'])
             ->middleware($perm(EstablishmentPermissions::ESTABLISHMENT_UPDATE))
             ->name('device.store');

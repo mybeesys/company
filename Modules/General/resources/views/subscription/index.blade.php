@@ -44,6 +44,12 @@
             </div>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            @if ($entitlement)
+                <a href="{{ $addon_url }}" class="btn btn-light-warning">
+                    <i class="fas fa-plus me-1"></i>
+                    @lang('general::general.buy_extra_quotas')
+                </a>
+            @endif
             <a href="{{ $manage_url }}" class="btn btn-warning">
                 <i class="fas fa-sync-alt me-1"></i>
                 @lang('general::general.renew_or_upgrade')
@@ -311,6 +317,14 @@
 
                     <div class="separator separator-dashed mb-7"></div>
 
+                    @if ($entitlement)
+                        <a href="{{ $addon_url }}" class="btn btn-light-warning w-100 mb-3">
+                            @lang('general::general.buy_extra_quotas')
+                        </a>
+                        <div class="text-muted fs-8 text-center mb-4">
+                            @lang('general::general.buy_extra_quotas_hint')
+                        </div>
+                    @endif
                     <a href="{{ $manage_url }}" class="btn btn-warning w-100 mb-3">
                         @lang('general::general.renew_or_upgrade')
                     </a>
