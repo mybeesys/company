@@ -73,6 +73,8 @@ return [
     'invoice_breakdown' => 'Invoice breakdown',
     'no_previous_subscriptions' => 'No previous subscriptions.',
     'renew_or_upgrade' => 'Renew or upgrade',
+    'buy_extra_quotas' => 'Buy extra quotas',
+    'buy_extra_quotas_hint' => 'Add a branch, device, or employee only — without re-paying modules.',
     'renew_hint' => 'You can change modules and quotas from the subscription management page.',
     'per_month' => 'per month',
     'manage_subscription' => 'Manage subscription',

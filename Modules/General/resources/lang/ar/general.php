@@ -72,6 +72,8 @@ return [
     'invoice_breakdown' => 'تفصيل الفاتورة',
     'no_previous_subscriptions' => 'لا توجد اشتراكات سابقة.',
     'renew_or_upgrade' => 'تجديد أو ترقية',
+    'buy_extra_quotas' => 'اشترِ حصصاً إضافية',
+    'buy_extra_quotas_hint' => 'فرع أو جهاز أو موظف إضافي فقط — بدون إعادة دفع الوحدات.',
     'renew_hint' => 'يمكنك تعديل الوحدات والحصص من صفحة إدارة الاشتراك.',
     'per_month' => 'شهرياً',
     'manage_subscription' => 'إدارة الاشتراك',

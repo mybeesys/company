@@ -3,6 +3,7 @@
 namespace Modules\Establishment\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\EntitlementGate;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -40,8 +41,9 @@ class EstablishmentController extends Controller
         $establishments = $this->getEstablishment();
         $columns = EstablishmentTable::getEstablishmentColumns();
         $deviceColumns = EstablishmentTable::getDeviceColumns();
+        $deviceEntitlements = app(EntitlementGate::class)->estPosEntitlementSnapshot();
 
-        return view('establishment::establishment.index', compact('columns', 'establishments', 'deviceColumns'));
+        return view('establishment::establishment.index', compact('columns', 'establishments', 'deviceColumns', 'deviceEntitlements'));
     }
 
     public function createLiveValidation(StoreEstablishmentRequest $request) {}

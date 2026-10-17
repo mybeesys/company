@@ -30,7 +30,7 @@ class UpdateZatcaSettingRequest extends FormRequest
             'seller_name' => ['required', 'string', 'max:191'],
             'vat_number' => ['required', 'regex:/^3\d{13}3$/'],
             'commercial_registration_number' => ['required', 'string', 'max:32'],
-            'organization_unit' => ['required', 'regex:/^\d{10}$/'],
+            'organization_unit' => ['required', 'string', 'max:64'],
             'organization_name' => ['required', 'string', 'max:191'],
             'country_code' => ['required', 'string', 'size:2'],
             'city' => ['required', 'string', 'max:191'],
@@ -53,7 +53,7 @@ class UpdateZatcaSettingRequest extends FormRequest
     {
         return [
             'vat_number.regex' => __('zatca::lang.vat_number_invalid'),
-            'organization_unit.regex' => __('zatca::lang.organization_unit_invalid'),
+            'organization_unit.required' => __('zatca::lang.organization_unit_invalid'),
             'building_number.regex' => __('zatca::lang.zatca_err_building_number'),
             'postal_code.regex' => __('zatca::lang.zatca_err_postal_code'),
             'zatca_app_key.required' => __('zatca::lang.app_key_required_production'),
@@ -64,7 +64,7 @@ class UpdateZatcaSettingRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $vat = preg_replace('/\D+/', '', (string) $this->input('vat_number', ''));
-        $ou = preg_replace('/\D+/', '', (string) $this->input('organization_unit', ''));
+        $ou = trim((string) $this->input('organization_unit', ''));
         $building = preg_replace('/\D+/', '', (string) $this->input('building_number', ''));
         $postal = preg_replace('/\D+/', '', (string) $this->input('postal_code', ''));
 

@@ -1,0 +1,122 @@
+.cashier-order-settings .mw-800px {
+    max-width: 800px;
+}
+
+.cashier-order-options {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.cashier-order-options-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cashier-order-options-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cashier-order-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 1.1rem 1.15rem;
+    border: 1px dashed var(--bs-gray-400);
+    border-radius: 0.65rem;
+    background: var(--bs-body-bg);
+    cursor: pointer;
+    min-height: 100%;
+    text-align: inherit;
+    color: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.cashier-order-option:hover {
+    border-color: var(--bs-primary);
+}
+
+.cashier-order-option.is-active {
+    border-style: solid;
+    border-color: var(--bs-primary);
+    background: var(--bs-primary-light, rgba(var(--bs-primary-rgb), 0.08));
+    box-shadow: 0 0 0 1px var(--bs-primary);
+}
+
+.cashier-order-option .btn-check {
+    position: absolute;
+    clip: rect(0, 0, 0, 0);
+}
+
+.cashier-order-option-title {
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--bs-gray-900);
+}
+
+.cashier-order-option-hint {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--bs-gray-600);
+}
+
+.cashier-order-preview-sticky {
+    position: sticky;
+    top: 1.25rem;
+}
+
+.cashier-order-preview-display {
+    padding: 1.25rem 1.1rem;
+    border-radius: 0.75rem;
+    background: var(--bs-gray-100);
+    border: 1px solid var(--bs-gray-300);
+    text-align: center;
+}
+
+.cashier-order-preview-number {
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--bs-gray-900);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.cashier-order-preview-display[data-size="normal"] .cashier-order-preview-number {
+    font-size: 1.75rem;
+}
+
+.cashier-order-preview-display[data-size="large"] .cashier-order-preview-number,
+.cashier-order-preview-display:not([data-size]) .cashier-order-preview-number {
+    font-size: 2.35rem;
+}
+
+.cashier-order-preview-display[data-size="xlarge"] .cashier-order-preview-number {
+    font-size: 3rem;
+}
+
+.cashier-order-preview-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--bs-gray-300);
+    border-radius: 0.575rem;
+    background: var(--bs-body-bg);
+}
+
+@media (max-width: 1199.98px) {
+    .cashier-order-preview-sticky {
+        position: static;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .cashier-order-options-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .cashier-order-options-2 {
+        grid-template-columns: 1fr;
+    }
+}

@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Establishment\Http\Controllers\CashierCatalogSettingsController;
+use Modules\Establishment\Http\Controllers\CashierOrderSettingsController;
 use Modules\Establishment\Http\Controllers\CompanyController;
 use Modules\Establishment\Http\Controllers\DeviceController;
 use Modules\Establishment\Http\Controllers\EstablishmentController;
@@ -50,6 +51,15 @@ Route::middleware([
                 ->name('service-fees.update');
         });
 
+        Route::controller(CashierOrderSettingsController::class)->prefix('settings')->name('cashier-settings.')->group(function () use ($perm) {
+            Route::get('/cashier-orders', 'edit')
+                ->middleware($perm(EstablishmentPermissions::ESTABLISHMENT_UPDATE))
+                ->name('orders');
+            Route::patch('/cashier-orders', 'update')
+                ->middleware($perm(EstablishmentPermissions::ESTABLISHMENT_UPDATE))
+                ->name('orders.update');
+        });
+
         Route::controller(EstablishmentController::class)->prefix('establishment')->name('establishments.')->group(function () use ($perm) {
             Route::get('', 'index')
                 ->middleware($perm(EstablishmentPermissions::ESTABLISHMENTS_SHOW, EstablishmentPermissions::ESTABLISHMENT_SHOW))
@@ -96,6 +106,9 @@ Route::middleware([
         Route::get('/devices', [DeviceController::class, 'index'])
             ->middleware($perm(...EstablishmentPermissions::deviceShowAny()))
             ->name('device.index');
+        Route::get('/devices/entitlements', [DeviceController::class, 'entitlementStatus'])
+            ->middleware($perm(...EstablishmentPermissions::deviceShowAny()))
+            ->name('device.entitlements');
         Route::post('/devices/store', [DeviceController::class, 'store'])
             ->middleware($perm(EstablishmentPermissions::ESTABLISHMENT_UPDATE))
             ->name('device.store');

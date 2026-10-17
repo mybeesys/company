@@ -3,6 +3,7 @@
 namespace Modules\Screen\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\EntitlementGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,8 @@ use Yajra\DataTables\Facades\DataTables;
 class DeviceController extends Controller
 {
     public function __construct(
-        protected ScreenEstablishmentService $establishments
+        protected ScreenEstablishmentService $establishments,
+        protected EntitlementGate $gate,
     ) {}
 
     public function index(Request $request)
@@ -71,6 +73,12 @@ class DeviceController extends Controller
             $rules['establishment_id'] = ['required', 'integer', 'exists:est_establishments,id'];
         }
         $validated = $request->validate($rules);
+
+        if (! $this->gate->canAddScreenDevice()) {
+            return response()->json([
+                'message' => $this->gate->screenDevicesDenialMessage(),
+            ], 422);
+        }
 
         $payload = ['code' => $validated['code']];
         if ($hasEstablishmentColumn) {

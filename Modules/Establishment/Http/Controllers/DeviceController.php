@@ -3,6 +3,7 @@
 namespace Modules\Establishment\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Services\EntitlementGate;
 use Illuminate\Http\Request;
 use Modules\Establishment\Classes\EstablishmentTable;
 use Modules\Establishment\Models\Establishment;
@@ -10,6 +11,10 @@ use Modules\Establishment\Models\EstPos;
 
 class DeviceController extends Controller
 {
+    public function __construct(
+        protected EntitlementGate $gate,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -20,8 +25,14 @@ class DeviceController extends Controller
             return EstablishmentTable::getDeviceTable($establishments);
         }
         $columns = EstablishmentTable::getDeviceColumns();
+        $deviceEntitlements = $this->gate->estPosEntitlementSnapshot();
 
-        return view('establishment::device.index', compact('columns', 'establishments'));
+        return view('establishment::device.index', compact('columns', 'establishments', 'deviceEntitlements'));
+    }
+
+    public function entitlementStatus()
+    {
+        return response()->json($this->gate->estPosEntitlementSnapshot());
     }
 
     public function getDevice()
@@ -51,14 +62,39 @@ class DeviceController extends Controller
             'establishment_id' => 'required|numeric',
         ]);
 
+        $type = (string) $request->type;
+        $normalized = $this->gate->normalizeEstPosType($type);
+
+        if (! isset(EntitlementGate::EST_POS_TYPE_MAP[$normalized])) {
+            return response()->json([
+                'message' => __('establishment::general.device_type_unsupported'),
+            ], 422);
+        }
+
+        if (! $this->gate->canAddEstPosDevice($type)) {
+            return response()->json([
+                'message' => $this->gate->estPosDenialMessage($type),
+                'entitlements' => $this->gate->estPosEntitlementSnapshot(),
+            ], 422);
+        }
+
+        // Persist canonical type values for reliable quota counting.
+        $storedType = match ($normalized) {
+            'kitchen_screen' => 'kitchen screen',
+            default => $normalized,
+        };
+
         EstPos::create([
             'name' => $request->name,
-            'type' => $request->type,
+            'type' => $storedType,
             'ref' => $request->ref,
             'establishment_id' => $request->establishment_id,
         ]);
 
-        return response()->json(['success' => 'Device added successfully']);
+        return response()->json([
+            'success' => __('establishment::general.device_added_successfully'),
+            'entitlements' => $this->gate->estPosEntitlementSnapshot(),
+        ]);
     }
 
     public function getEstablishment()
@@ -83,6 +119,9 @@ class DeviceController extends Controller
 
         $device->delete();
 
-        return response()->json(['message' => 'Done']);
+        return response()->json([
+            'message' => 'Done',
+            'entitlements' => $this->gate->estPosEntitlementSnapshot(),
+        ]);
     }
 }

@@ -90,6 +90,7 @@ return [
     'cashier_payment_methods' => 'Payment methods',
     'internal_consumption_types' => 'Cashier internal consumption',
     'cashier_service_fees' => 'Service fees',
+    'cashier_order_settings' => 'Cashier order settings',
     'taxes' => 'Taxes',
 
     'quotations' => 'Quotations',

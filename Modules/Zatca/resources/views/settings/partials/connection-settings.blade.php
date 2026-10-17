@@ -19,13 +19,15 @@
 
         return old($key, $fallback);
     };
-    $fromCompanyHint = static function (string $key) use ($appliedFromCompany) {
+    $fromCompanyHint = static function (string $key) use ($appliedFromCompany, $companyDefaults) {
         if (empty($appliedFromCompany[$key])) {
             return '';
         }
 
+        $source = (string) ($companyDefaults['sources'][$key] ?? __('zatca::lang.from_company_details'));
+
         return '<div class="z-help text-primary mt-1"><i class="fa fa-building me-1"></i>'
-            .e(__('zatca::lang.from_company_details'))
+            .e($source)
             .'</div>';
     };
 @endphp
@@ -141,9 +143,25 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label required" for="organization_unit">{{ __('zatca::lang.organization_unit') }}</label>
-                    <input type="text" name="organization_unit" id="organization_unit" class="form-control form-control-solid"
-                           value="{{ $fv('organization_unit') }}"
-                           maxlength="10" inputmode="numeric" pattern="\d{10}" required>
+                    @php
+                        $zatcaBranches = $zatcaBranches ?? [];
+                        $currentOu = (string) $fv('organization_unit');
+                        $branchValues = array_column($zatcaBranches, 'value');
+                    @endphp
+                    @if ($zatcaBranches !== [])
+                        <select name="organization_unit" id="organization_unit" class="form-select form-select-solid select-2" required>
+                            <option value="">{{ __('establishment::general.select_establishment') }}</option>
+                            @foreach ($zatcaBranches as $branch)
+                                <option value="{{ $branch['value'] }}" @selected($currentOu === $branch['value'])>{{ $branch['label'] }}</option>
+                            @endforeach
+                            @if ($currentOu !== '' && ! in_array($currentOu, $branchValues, true))
+                                <option value="{{ $currentOu }}" selected>{{ $currentOu }} — {{ __('zatca::lang.organization_unit_current') }}</option>
+                            @endif
+                        </select>
+                    @else
+                        <input type="text" name="organization_unit" id="organization_unit" class="form-control form-control-solid"
+                               value="{{ $currentOu }}" maxlength="64" required>
+                    @endif
                     <div class="z-help">{{ __('zatca::lang.organization_unit_help') }}</div>
                     {!! $fromCompanyHint('organization_unit') !!}
                 </div>

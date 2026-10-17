@@ -133,7 +133,6 @@ class ZatcaSetupReadinessService
     private function sellerGroup(ZatcaSetting $setting): array
     {
         $vat = preg_replace('/\D+/', '', (string) $setting->vat_number) ?: '';
-        $ou = preg_replace('/\D+/', '', (string) $setting->organization_unit) ?: '';
 
         return [
             'key' => 'seller',
@@ -144,7 +143,7 @@ class ZatcaSetupReadinessService
                 $this->item('organization_name', __('zatca::lang.organization_name'), filled(trim((string) $setting->organization_name)), __('zatca::lang.readiness_hint_required'), '#organization_name'),
                 $this->item('vat_number', __('zatca::lang.vat_number'), (bool) preg_match('/^3\d{13}3$/', $vat), __('zatca::lang.vat_number_help'), '#vat_number'),
                 $this->item('commercial_registration_number', __('zatca::lang.commercial_registration_number'), filled(trim((string) $setting->commercial_registration_number)), __('zatca::lang.readiness_hint_required'), '#commercial_registration_number'),
-                $this->item('organization_unit', __('zatca::lang.organization_unit'), (bool) preg_match('/^\d{10}$/', $ou), __('zatca::lang.organization_unit_help'), '#organization_unit'),
+                $this->item('organization_unit', __('zatca::lang.organization_unit'), filled(trim((string) $setting->organization_unit)), __('zatca::lang.organization_unit_help'), '#organization_unit'),
                 $this->item('business_category', __('zatca::lang.business_category'), filled(trim((string) $setting->business_category)), __('zatca::lang.readiness_hint_required'), '#business_category'),
                 $this->item('invoice_type', __('zatca::lang.invoice_type'), in_array((string) $setting->invoice_type, ['0100', '1000', '1100'], true), __('zatca::lang.readiness_hint_invoice_type'), '#invoice_type'),
             ],
@@ -257,7 +256,6 @@ class ZatcaSetupReadinessService
     private function canGenerate(ZatcaSetting $setting): bool
     {
         $vat = preg_replace('/\D+/', '', (string) $setting->vat_number) ?: '';
-        $ou = preg_replace('/\D+/', '', (string) $setting->organization_unit) ?: '';
         $isProd = $setting->zatca_environment === 'production';
         $hasAppKey = filled($setting->zatca_app_key) || filled(config('zatca.app.key'));
 
@@ -267,7 +265,7 @@ class ZatcaSetupReadinessService
             && filled(trim((string) $setting->organization_name))
             && (bool) preg_match('/^3\d{13}3$/', $vat)
             && filled(trim((string) $setting->commercial_registration_number))
-            && (bool) preg_match('/^\d{10}$/', $ou)
+            && filled(trim((string) $setting->organization_unit))
             && filled(trim((string) $setting->business_category))
             && filled(trim((string) $setting->city))
             && filled(trim((string) $setting->district))
