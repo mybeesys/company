@@ -127,8 +127,13 @@ class GeneralController extends Controller
     public function subscription(\Illuminate\Http\Request $request)
     {
         $overview = app(\App\Services\SubscriptionOverviewService::class)->forCompany();
+        $cardsRepo = app(\App\Services\SavedPaymentCardRepository::class);
 
-        $tab = $request->query('tab') === 'past' ? 'past' : 'current';
+        $tab = match ($request->query('tab')) {
+            'past' => 'past',
+            'cards' => 'cards',
+            default => 'current',
+        };
         $perPage = 5;
 
         $currentInvoices = collect($overview['invoices'])->where('is_current', true)->values();
@@ -146,12 +151,96 @@ class GeneralController extends Controller
             ]
         );
 
+        $companyId = (int) ($overview['company']->id ?? 0);
+        $savedCards = $companyId > 0 ? $cardsRepo->forCompany($companyId) : collect();
+
         return view('general::subscription.index', array_merge($overview, [
             'active_tab' => $tab,
             'current_invoices' => $currentInvoices,
             'past_invoices' => $pastPaginator,
             'past_invoices_total' => $pastInvoices->count(),
+            'saved_cards' => $savedCards,
+            'saved_cards_repo' => $cardsRepo,
         ]));
+    }
+
+    public function addSavedCard()
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $companyId = get_company_id();
+        $email = (string) ($user->email ?? '');
+        if (! $companyId || $email === '') {
+            return redirect()
+                ->route('subscription', ['tab' => 'cards'])
+                ->with('error', __('general::general.subscription_manage_unavailable'));
+        }
+
+        try {
+            $handoffUrl = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
+                email: $email,
+                companyId: (int) $companyId,
+                redirectTo: '/subscribe?mode=add-card&embed=1',
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('subscription', ['tab' => 'cards'])
+                ->with('error', __('general::general.saved_card_action_failed'));
+        }
+
+        return view('general::subscription.manage-embed', [
+            'handoffUrl' => $handoffUrl,
+            'mode' => 'add-card',
+        ]);
+    }
+
+    public function setDefaultSavedCard(int $cardId)
+    {
+        $companyId = (int) get_company_id();
+        $ok = app(\App\Services\SavedPaymentCardRepository::class)->setDefault($companyId, $cardId);
+
+        return redirect()
+            ->route('subscription', ['tab' => 'cards'])
+            ->with($ok ? 'success' : 'error', $ok
+                ? __('general::general.saved_card_default_updated')
+                : __('general::general.saved_card_action_failed'));
+    }
+
+    public function updateSavedCard(\Illuminate\Http\Request $request, int $cardId)
+    {
+        $companyId = (int) get_company_id();
+        $data = $request->validate([
+            'nickname' => ['nullable', 'string', 'max:80'],
+            'holder' => ['nullable', 'string', 'max:120'],
+            'is_default' => ['nullable', 'boolean'],
+        ]);
+
+        $data['is_default'] = $request->boolean('is_default');
+
+        $ok = app(\App\Services\SavedPaymentCardRepository::class)->update($companyId, $cardId, $data);
+
+        return redirect()
+            ->route('subscription', ['tab' => 'cards'])
+            ->with($ok ? 'success' : 'error', $ok
+                ? __('general::general.saved_card_updated')
+                : __('general::general.saved_card_action_failed'));
+    }
+
+    public function deleteSavedCard(int $cardId)
+    {
+        $companyId = (int) get_company_id();
+        $ok = app(\App\Services\SavedPaymentCardRepository::class)->delete($companyId, $cardId);
+
+        return redirect()
+            ->route('subscription', ['tab' => 'cards'])
+            ->with($ok ? 'success' : 'error', $ok
+                ? __('general::general.saved_card_deleted')
+                : __('general::general.saved_card_action_failed'));
     }
 
     public function printSubscriptionInvoice(int $subscriptionId)
