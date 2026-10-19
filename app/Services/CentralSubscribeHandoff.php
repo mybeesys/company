@@ -33,7 +33,7 @@ class CentralSubscribeHandoff
      */
     public function createUrl(int $userId, ?int $companyId = null, string $redirectTo = '/subscribe'): string
     {
-        $base = rtrim((string) config('referrals.central_app_url', config('app.url')), '/');
+        $base = $this->centralBaseUrl();
         $central = $this->centralConnection();
 
         if (! Schema::connection($central)->hasTable('subscription_handoff_tokens')) {
@@ -58,6 +58,28 @@ class CentralSubscribeHandoff
             ->delete();
 
         return $base.'/subscribe/handoff/'.$plain;
+    }
+
+    /**
+     * Prefer HTTPS so an HTTPS tenant can embed the handoff URL without mixed-content blocking.
+     */
+    protected function centralBaseUrl(): string
+    {
+        $base = rtrim((string) config('referrals.central_app_url', config('app.url')), '/');
+
+        $requestIsHttps = request()->isSecure()
+            || str_starts_with(strtolower((string) request()->header('X-Forwarded-Proto', '')), 'https');
+
+        $host = parse_url($base, PHP_URL_HOST) ?: '';
+        $isLocal = in_array($host, ['localhost', '127.0.0.1', '::1'], true)
+            || str_ends_with($host, '.localhost')
+            || str_ends_with($host, '.test');
+
+        if (($requestIsHttps || ! $isLocal) && str_starts_with(strtolower($base), 'http://')) {
+            $base = 'https://'.substr($base, 7);
+        }
+
+        return rtrim($base, '/');
     }
 
     public function resolveCentralUserIdByEmail(?string $email): ?int
