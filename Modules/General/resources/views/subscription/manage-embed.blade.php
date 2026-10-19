@@ -4,20 +4,47 @@
 
 @section('css')
     <style>
+        /* Kill Metronic content gutters so the iframe is edge-to-edge in the main pane. */
+        body:has(.sub-manage-embed) #kt_app_content.app-content {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #f7f4eb !important;
+        }
+        body:has(.sub-manage-embed) #kt_app_content_container.app-container {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: none !important;
+            width: 100% !important;
+            --bs-gutter-x: 0 !important;
+            --bs-gutter-y: 0 !important;
+        }
+        body:has(.sub-manage-embed) #kt_app_main > .d-flex.flex-column.flex-column-fluid {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #f7f4eb !important;
+        }
+        body:has(.sub-manage-embed) #kt_app_footer {
+            display: none !important;
+        }
+
         .sub-manage-embed {
             display: flex;
             flex-direction: column;
-            margin: -0.25rem 0 0;
-            min-height: calc(100vh - 160px);
-            height: calc(100vh - 160px);
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: calc(100vh - 75px);
+            height: calc(100vh - 75px);
+            background: #f7f4eb;
         }
         .sub-manage-embed__frame-wrap {
             position: relative;
             flex: 1 1 auto;
             min-height: 0;
+            width: 100%;
             height: 100%;
             border: 0;
-            border-radius: 0.85rem;
+            border-radius: 0;
             overflow: hidden;
             background: #f7f4eb;
         }
