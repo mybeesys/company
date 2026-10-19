@@ -37,6 +37,17 @@ Route::middleware([
         Route::get('/subscription/invoice/{subscriptionId}', [GeneralController::class, 'printSubscriptionInvoice'])
             ->whereNumber('subscriptionId')
             ->name('subscription.invoice.print');
+        Route::get('/subscription/cards/add', [GeneralController::class, 'addSavedCard'])
+            ->name('subscription.cards.add');
+        Route::post('/subscription/cards/{cardId}/default', [GeneralController::class, 'setDefaultSavedCard'])
+            ->whereNumber('cardId')
+            ->name('subscription.cards.default');
+        Route::put('/subscription/cards/{cardId}', [GeneralController::class, 'updateSavedCard'])
+            ->whereNumber('cardId')
+            ->name('subscription.cards.update');
+        Route::delete('/subscription/cards/{cardId}', [GeneralController::class, 'deleteSavedCard'])
+            ->whereNumber('cardId')
+            ->name('subscription.cards.delete');
 
         Route::post('store-sidebar-status', [GeneralController::class, 'storeSidebarState'])->name('store-sidebar-status');
 

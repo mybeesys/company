@@ -527,6 +527,11 @@
                     @lang('general::general.subscription_view_history')
                     <span class="ms-1">({{ $pastTotal }})</span>
                 </a>
+                <a href="{{ route('subscription', ['tab' => 'cards']) }}"
+                   class="sub-tab {{ $activeTab === 'cards' ? 'is-active' : '' }}">
+                    @lang('general::general.subscription_view_cards')
+                    <span class="ms-1">({{ ($saved_cards ?? collect())->count() }})</span>
+                </a>
             </div>
 
             @if ($activeTab === 'current')
@@ -539,6 +544,11 @@
                         @endforeach
                     </div>
                 @endif
+            @elseif ($activeTab === 'cards')
+                @include('general::subscription.partials.saved-cards', [
+                    'savedCards' => $saved_cards ?? collect(),
+                    'cardsRepo' => $saved_cards_repo ?? null,
+                ])
             @else
                 @if ($pastTotal === 0)
                     <div class="sub-empty">@lang('general::general.no_previous_subscriptions')</div>

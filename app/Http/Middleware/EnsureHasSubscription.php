@@ -35,6 +35,10 @@ class EnsureHasSubscription
             'subscription',
             'subscription.manage',
             'subscription.invoice.print',
+            'subscription.cards.add',
+            'subscription.cards.default',
+            'subscription.cards.update',
+            'subscription.cards.delete',
             // Public menu / QR: no subscription DB round-trip on every guest page load
             'reservation.menu',
             'reservation.menuSimple',
