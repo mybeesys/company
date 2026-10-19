@@ -72,16 +72,26 @@ class SubscriptionOverviewService
 
         $quotas = $entitlement['quotas'] ?? [];
 
-        $history = $subscriptions->map(function ($sub) use ($plans, $localeIsAr, $currentSubscription) {
+        $history = $subscriptions->map(function ($sub) use ($plans, $localeIsAr, $currentSubscription, $entitlement) {
             $plan = $plans->get($sub->plan_id);
+            $isCurrent = $currentSubscription && (int) $currentSubscription->id === (int) $sub->id;
 
             return [
                 'id' => $sub->id,
-                'plan_name' => $this->planName($plan, $localeIsAr),
+                'plan_name' => $isCurrent && $entitlement
+                    ? ($localeIsAr ? 'باقة مخصصة' : 'Custom package')
+                    : $this->planName($plan, $localeIsAr),
                 'started_at' => $sub->started_at,
                 'expired_at' => $sub->expired_at,
                 'suppressed_at' => $sub->suppressed_at ?? null,
-                'is_current' => $currentSubscription && (int) $currentSubscription->id === (int) $sub->id,
+                'is_current' => $isCurrent,
+                'amount' => $isCurrent && $entitlement
+                    ? (float) $entitlement['period_total']
+                    : (float) ($plan->price_after_discount ?? $plan->price ?? 0),
+                'currency' => $isCurrent && $entitlement
+                    ? ($entitlement['currency'] ?? 'SAR')
+                    : 'SAR',
+                'print_url' => url('/subscription/invoice/'.$sub->id),
             ];
         })->values()->all();
 
@@ -355,7 +365,10 @@ class SubscriptionOverviewService
                 'period' => $period,
                 'status' => $status,
                 'date' => $sub->started_at,
+                'ended_at' => $sub->expired_at,
+                'is_current' => $isCurrent,
                 'line_items' => $isCurrent && $entitlement ? ($entitlement['line_items'] ?? []) : [],
+                'print_url' => url('/subscription/invoice/'.$sub->id),
             ];
         }
 

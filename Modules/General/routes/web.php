@@ -34,6 +34,9 @@ Route::middleware([
 
         Route::get('/subscription', [GeneralController::class, 'subscription'])->name('subscription');
         Route::get('/subscription/manage', [GeneralController::class, 'manageSubscription'])->name('subscription.manage');
+        Route::get('/subscription/invoice/{subscriptionId}', [GeneralController::class, 'printSubscriptionInvoice'])
+            ->whereNumber('subscriptionId')
+            ->name('subscription.invoice.print');
 
         Route::post('store-sidebar-status', [GeneralController::class, 'storeSidebarState'])->name('store-sidebar-status');
 
