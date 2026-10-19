@@ -131,6 +131,21 @@ class GeneralController extends Controller
         return view('general::subscription.index', $overview);
     }
 
+    public function printSubscriptionInvoice(int $subscriptionId)
+    {
+        try {
+            $data = \App\Services\SubscriptionInvoicePrintPresenter::build($subscriptionId);
+
+            return view('general::transactions.unified-invoice-print', $data);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('subscription')
+                ->with('error', __('general::general.subscription_invoice_print_failed'));
+        }
+    }
+
     public function manageSubscription(\Illuminate\Http\Request $request)
     {
         $user = auth()->user();
@@ -152,12 +167,13 @@ class GeneralController extends Controller
                 ->with('error', __('general::general.subscription_manage_unavailable'));
         }
 
-        $redirectTo = $request->query('mode') === 'addon'
-            ? '/subscribe?mode=addon'
-            : '/subscribe';
+        $mode = $request->query('mode') === 'addon' ? 'addon' : null;
+        $redirectTo = $mode === 'addon'
+            ? '/subscribe?mode=addon&embed=1'
+            : '/subscribe?embed=1';
 
         try {
-            $url = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
+            $handoffUrl = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
                 email: $email,
                 companyId: (int) $companyId,
                 redirectTo: $redirectTo,
@@ -170,7 +186,11 @@ class GeneralController extends Controller
                 ->with('error', __('general::general.subscription_manage_unavailable'));
         }
 
-        return redirect()->away($url);
+        return view('general::subscription.manage-embed', [
+            'handoffUrl' => $handoffUrl,
+            'mode' => $mode,
+            'backUrl' => route('subscription'),
+        ]);
     }
 
     public function updateModules(Request $request)
