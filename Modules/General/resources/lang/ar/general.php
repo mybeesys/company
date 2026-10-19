@@ -83,6 +83,8 @@ return [
     'subscription_manage_back' => 'العودة للاشتراكات',
     'subscription_manage_reload' => 'إعادة التحميل',
     'subscription_manage_loading' => 'جاري فتح صفحة الاشتراك…',
+    'subscription_manage_load_failed_title' => 'تعذر تحميل صفحة الاشتراك',
+    'subscription_manage_load_failed_body' => 'تحقق من الاتصال ثم أعد التحميل. إن استمرت المشكلة حاول مرة أخرى بعد قليل.',
     'subscription_modules_locked' => 'لا يمكن تعديل الوحدات يدوياً. غيّر الباقة من صفحة الاشتراك.',
     'subscription_hub_kicker' => 'خلية اشتراكك',
     'subscription_hub_subtitle' => 'تابع باقتك الحالية، الفواتير، وسجل التجديدات من مكان واحد.',

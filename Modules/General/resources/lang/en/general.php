@@ -84,6 +84,8 @@ return [
     'subscription_manage_back' => 'Back to subscriptions',
     'subscription_manage_reload' => 'Reload',
     'subscription_manage_loading' => 'Opening subscription page…',
+    'subscription_manage_load_failed_title' => 'Could not load subscription page',
+    'subscription_manage_load_failed_body' => 'Check your connection, then reload. If it keeps failing, try again in a moment.',
     'subscription_modules_locked' => 'Modules cannot be changed manually. Update your package from the subscription page.',
     'subscription_hub_kicker' => 'Your subscription hive',
     'subscription_hub_subtitle' => 'Track your current plan, invoices, and renewal history in one place.',

@@ -124,11 +124,34 @@ class GeneralController extends Controller
         return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'inventoryCountFrequency', 'unit'));
     }
 
-    public function subscription()
+    public function subscription(\Illuminate\Http\Request $request)
     {
         $overview = app(\App\Services\SubscriptionOverviewService::class)->forCompany();
 
-        return view('general::subscription.index', $overview);
+        $tab = $request->query('tab') === 'past' ? 'past' : 'current';
+        $perPage = 5;
+
+        $currentInvoices = collect($overview['invoices'])->where('is_current', true)->values();
+        $pastInvoices = collect($overview['invoices'])->where('is_current', false)->values();
+
+        $pastPage = max(1, (int) $request->query('page', 1));
+        $pastPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pastInvoices->forPage($pastPage, $perPage)->values(),
+            $pastInvoices->count(),
+            $perPage,
+            $pastPage,
+            [
+                'path' => $request->url(),
+                'query' => array_merge($request->query(), ['tab' => 'past']),
+            ]
+        );
+
+        return view('general::subscription.index', array_merge($overview, [
+            'active_tab' => $tab,
+            'current_invoices' => $currentInvoices,
+            'past_invoices' => $pastPaginator,
+            'past_invoices_total' => $pastInvoices->count(),
+        ]));
     }
 
     public function printSubscriptionInvoice(int $subscriptionId)
@@ -189,7 +212,6 @@ class GeneralController extends Controller
         return view('general::subscription.manage-embed', [
             'handoffUrl' => $handoffUrl,
             'mode' => $mode,
-            'backUrl' => route('subscription'),
         ]);
     }
 
