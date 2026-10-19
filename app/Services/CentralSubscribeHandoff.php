@@ -37,7 +37,7 @@ class CentralSubscribeHandoff
         $central = $this->centralConnection();
 
         if (! Schema::connection($central)->hasTable('subscription_handoff_tokens')) {
-            return $base.'/subscribe';
+            throw new RuntimeException('Subscription handoff tokens table is missing on the central database.');
         }
 
         $plain = Str::random(64);

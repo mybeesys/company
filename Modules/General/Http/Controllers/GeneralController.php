@@ -124,11 +124,49 @@ class GeneralController extends Controller
         return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'inventoryCountFrequency', 'unit'));
     }
 
-    public function subscription()
+    public function subscription(\Illuminate\Http\Request $request)
     {
         $overview = app(\App\Services\SubscriptionOverviewService::class)->forCompany();
 
-        return view('general::subscription.index', $overview);
+        $tab = $request->query('tab') === 'past' ? 'past' : 'current';
+        $perPage = 5;
+
+        $currentInvoices = collect($overview['invoices'])->where('is_current', true)->values();
+        $pastInvoices = collect($overview['invoices'])->where('is_current', false)->values();
+
+        $pastPage = max(1, (int) $request->query('page', 1));
+        $pastPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pastInvoices->forPage($pastPage, $perPage)->values(),
+            $pastInvoices->count(),
+            $perPage,
+            $pastPage,
+            [
+                'path' => $request->url(),
+                'query' => array_merge($request->query(), ['tab' => 'past']),
+            ]
+        );
+
+        return view('general::subscription.index', array_merge($overview, [
+            'active_tab' => $tab,
+            'current_invoices' => $currentInvoices,
+            'past_invoices' => $pastPaginator,
+            'past_invoices_total' => $pastInvoices->count(),
+        ]));
+    }
+
+    public function printSubscriptionInvoice(int $subscriptionId)
+    {
+        try {
+            $data = \App\Services\SubscriptionInvoicePrintPresenter::build($subscriptionId);
+
+            return view('general::transactions.unified-invoice-print', $data);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('subscription')
+                ->with('error', __('general::general.subscription_invoice_print_failed'));
+        }
     }
 
     public function manageSubscription(\Illuminate\Http\Request $request)
@@ -152,12 +190,13 @@ class GeneralController extends Controller
                 ->with('error', __('general::general.subscription_manage_unavailable'));
         }
 
-        $redirectTo = $request->query('mode') === 'addon'
-            ? '/subscribe?mode=addon'
-            : '/subscribe';
+        $mode = $request->query('mode') === 'addon' ? 'addon' : null;
+        $redirectTo = $mode === 'addon'
+            ? '/subscribe?mode=addon&embed=1'
+            : '/subscribe?embed=1';
 
         try {
-            $url = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
+            $handoffUrl = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
                 email: $email,
                 companyId: (int) $companyId,
                 redirectTo: $redirectTo,
@@ -170,7 +209,10 @@ class GeneralController extends Controller
                 ->with('error', __('general::general.subscription_manage_unavailable'));
         }
 
-        return redirect()->away($url);
+        return view('general::subscription.manage-embed', [
+            'handoffUrl' => $handoffUrl,
+            'mode' => $mode,
+        ]);
     }
 
     public function updateModules(Request $request)
