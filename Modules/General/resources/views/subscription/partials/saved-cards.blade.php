@@ -295,21 +295,30 @@
         font-size: 0.78rem;
         font-weight: 700;
     }
-    .bee-modal--wide { width: min(520px, 100%); }
+    .bee-modal--wide { width: min(760px, 96vw); }
+    .bee-modal--add {
+        max-height: min(92vh, 860px);
+    }
+    .bee-modal--add .bee-modal__head {
+        padding: 1.05rem 1.35rem;
+    }
+    .bee-modal--add .bee-modal__head h3 {
+        font-size: 1.25rem;
+    }
     .bee-modal--add .bee-modal__body {
-        padding: 0.65rem 0.9rem 0.85rem;
+        padding: 0.85rem 1.35rem 1.15rem;
         overflow: hidden;
     }
     .bee-modal--add .bee-modal__note {
-        margin: 0 0 0.55rem;
-        font-size: 0.78rem;
+        margin: 0 0 0.75rem;
+        font-size: 0.9rem;
     }
     .bee-modal__frame {
         width: 100%;
-        height: 430px;
-        max-height: 55vh;
+        height: min(68vh, 620px);
+        min-height: 520px;
         border: 0;
-        border-radius: 0.75rem;
+        border-radius: 0.9rem;
         background: #fff;
         overflow: hidden;
     }
