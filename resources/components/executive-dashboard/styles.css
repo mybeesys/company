@@ -402,7 +402,7 @@
 }
 
 .ed-charts > * { grid-column: span 6; }
-.ed-bottom > * { grid-column: span 4; }
+.ed-bottom > * { grid-column: span 6; }
 
 .ed-signals,
 .ed-product-lists {
