@@ -164,7 +164,7 @@ class GeneralController extends Controller
         ]));
     }
 
-    public function addSavedCard()
+    public function addSavedCard(\Illuminate\Http\Request $request)
     {
         $user = auth()->user();
         if (! $user) {
@@ -191,6 +191,12 @@ class GeneralController extends Controller
             return redirect()
                 ->route('subscription', ['tab' => 'cards'])
                 ->with('error', __('general::general.saved_card_action_failed'));
+        }
+
+        if ($request->boolean('modal')) {
+            return response()->view('general::subscription.cards-add-frame', [
+                'handoffUrl' => $handoffUrl,
+            ]);
         }
 
         return view('general::subscription.manage-embed', [
