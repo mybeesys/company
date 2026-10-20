@@ -93,7 +93,7 @@ return [
     'saved_card_expiry' => 'Expires',
     'saved_card_add' => 'Add card',
     'saved_card_add_short' => 'No charge now',
-    'saved_card_add_modal_hint' => 'Enter the card here. Nothing is charged now — you will use it later for payment and renewal.',
+    'saved_card_add_modal_hint' => 'No charge now — used later for payment and renewal.',
     'saved_card_edit' => 'Edit',
     'saved_card_edit_title' => 'Edit card',
     'saved_card_delete_title' => 'Delete card',

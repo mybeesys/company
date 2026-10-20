@@ -92,7 +92,7 @@ return [
     'saved_card_expiry' => 'الانتهاء',
     'saved_card_add' => 'إضافة بطاقة',
     'saved_card_add_short' => 'بدون خصم الآن',
-    'saved_card_add_modal_hint' => 'أدخل بيانات البطاقة هنا. لن يُخصم أي مبلغ الآن — ستستخدمها لاحقاً للدفع والتجديد.',
+    'saved_card_add_modal_hint' => 'بدون خصم الآن — تُستخدم لاحقاً للدفع والتجديد.',
     'saved_card_edit' => 'تعديل',
     'saved_card_edit_title' => 'تعديل البطاقة',
     'saved_card_delete_title' => 'حذف البطاقة',

@@ -295,13 +295,23 @@
         font-size: 0.78rem;
         font-weight: 700;
     }
-    .bee-modal--wide { width: min(560px, 100%); }
+    .bee-modal--wide { width: min(520px, 100%); }
+    .bee-modal--add .bee-modal__body {
+        padding: 0.65rem 0.9rem 0.85rem;
+        overflow: hidden;
+    }
+    .bee-modal--add .bee-modal__note {
+        margin: 0 0 0.55rem;
+        font-size: 0.78rem;
+    }
     .bee-modal__frame {
         width: 100%;
-        height: min(64vh, 580px);
+        height: 430px;
+        max-height: 55vh;
         border: 0;
-        border-radius: 0.85rem;
+        border-radius: 0.75rem;
         background: #fff;
+        overflow: hidden;
     }
     .bee-card--add {
         background: linear-gradient(160deg, #fffdf8, #f7f1e3);
@@ -405,19 +415,20 @@
 
 {{-- Add card modal (MyBee form — stays on this page) --}}
 <div class="bee-modal-backdrop" id="bee-modal-add" role="dialog" aria-modal="true" aria-labelledby="bee-add-title">
-    <div class="bee-modal bee-modal--wide">
+    <div class="bee-modal bee-modal--wide bee-modal--add">
         <div class="bee-modal__head">
             <h3 id="bee-add-title">@lang('general::general.saved_card_add')</h3>
             <button type="button" class="bee-modal__close" data-bee-close aria-label="Close">&times;</button>
         </div>
         <div class="bee-modal__body">
-            <p class="bee-modal__note mb-3">@lang('general::general.saved_card_add_modal_hint')</p>
+            <p class="bee-modal__note">@lang('general::general.saved_card_add_modal_hint')</p>
             <iframe
                 class="bee-modal__frame"
                 id="bee-add-frame"
                 title="@lang('general::general.saved_card_add')"
                 src="about:blank"
                 allow="payment *"
+                scrolling="no"
             ></iframe>
         </div>
     </div>

@@ -183,7 +183,8 @@ class GeneralController extends Controller
             $handoffUrl = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
                 email: $email,
                 companyId: (int) $companyId,
-                redirectTo: '/subscribe?mode=add-card&embed=1',
+                // Skip ManageSubscription UI — go straight to the compact vault form.
+                redirectTo: '/subscribe/vault-card?embed=1',
             );
         } catch (\Throwable $e) {
             report($e);
