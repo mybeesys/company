@@ -5,6 +5,7 @@ namespace Modules\Employee\Http\Controllers;
 use App\Http\Controllers\Controller;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Modules\Employee\Classes\EmployeeTable;
 use Modules\Employee\Http\Requests\StoreEmployeeRequest;
@@ -20,21 +21,13 @@ use Modules\Establishment\Models\Establishment;
 
 class EmployeeController extends Controller
 {
-    protected $establishments;
+    protected ?Collection $establishments = null;
 
-    protected $dashboardRoles;
+    protected ?Collection $dashboardRoles = null;
 
-    protected $posRoles;
+    protected ?Collection $posRoles = null;
 
-    protected $allowances_types;
-
-    public function __construct()
-    {
-        $this->establishments = Establishment::active()->get(['id', 'name']);
-        $this->dashboardRoles = DashboardRole::get(['id', 'name']);
-        $this->posRoles = PosRole::get(['id', 'name']);
-        $this->allowances_types = PayrollAdjustmentType::allowance()->get();
-    }
+    protected ?Collection $allowances_types = null;
 
     public function generatePin()
     {
@@ -54,18 +47,30 @@ class EmployeeController extends Controller
     {
         return [
             'employee' => Employee::with(['allowances' => fn ($query) => $query->always(), 'dashboardRoles', 'posRoles'])->findOrFail($id),
-            'posRoles' => $this->posRoles,
-            'dashboardRoles' => $this->dashboardRoles,
-            'establishments' => $this->establishments,
-            'allowances_types' => $this->allowances_types,
+            'posRoles' => $this->posRoles(),
+            'dashboardRoles' => $this->dashboardRoles(),
+            'establishments' => $this->establishments(),
+            'allowances_types' => $this->allowancesTypes(),
         ];
     }
 
     public function index(Request $request)
     {
-        $employees = Employee::with('permissions:id,name')->select('id', 'name', 'name_en', 'phone_number', 'image', 'employment_start_date', 'employment_end_date', 'pos_is_active', 'ems_access', 'deleted_at');
-        if ($request->ajax()) {
+        // Keep the listing lean — DataTables never needs permission pivots.
+        $employees = Employee::query()->select(
+            'id',
+            'name',
+            'name_en',
+            'phone_number',
+            'image',
+            'employment_start_date',
+            'employment_end_date',
+            'pos_is_active',
+            'ems_access',
+            'deleted_at'
+        );
 
+        if ($request->ajax()) {
             if ($request->has('deleted_records') && ! empty($request->deleted_records)) {
                 $request->deleted_records == 'only_deleted_records'
                     ? $employees->onlyTrashed()
@@ -74,24 +79,37 @@ class EmployeeController extends Controller
 
             return EmployeeTable::getEmployeeTable($employees);
         }
-        $employees = $employees->get();
+
+        // Initial HTML only: shell + modal catalogs. Rows load via AJAX.
         $columns = EmployeeTable::getEmployeeColumns();
-        $permissions = Permission::where('type', 'pos')->orderByRaw('FIELD(name, "select_all_permissions") DESC')->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
-
+        $permissions = Permission::where('type', 'pos')
+            ->orderByRaw('FIELD(name, "select_all_permissions") DESC')
+            ->get(['id', 'name', 'name_ar', 'description', 'description_ar']);
         $modules = DashboardRoleService::getModulesPermissions();
+        $posRoles = $this->posRoles();
+        $establishments = $this->establishments();
+        $dashboardRoles = $this->dashboardRoles();
 
-        $posRoles = $this->posRoles;
-        $establishments = $this->establishments;
-        $dashboardRoles = $this->dashboardRoles;
-
-        return view('employee::employee.index', compact('columns', 'permissions', 'employees', 'modules', 'posRoles', 'establishments', 'dashboardRoles'));
+        return view('employee::employee.index', compact(
+            'columns',
+            'permissions',
+            'modules',
+            'posRoles',
+            'establishments',
+            'dashboardRoles'
+        ));
     }
 
     public function create()
     {
         return view(
             'employee::employee.create',
-            ['posRoles' => $this->posRoles, 'dashboardRoles' => $this->dashboardRoles, 'establishments' => $this->establishments, 'allowances_types' => $this->allowances_types]
+            [
+                'posRoles' => $this->posRoles(),
+                'dashboardRoles' => $this->dashboardRoles(),
+                'establishments' => $this->establishments(),
+                'allowances_types' => $this->allowancesTypes(),
+            ]
         );
     }
 
@@ -178,5 +196,25 @@ class EmployeeController extends Controller
         } else {
             return response()->json(['error' => __('employee::responses.something_wrong_happened')], 500);
         }
+    }
+
+    protected function establishments(): Collection
+    {
+        return $this->establishments ??= Establishment::active()->get(['id', 'name']);
+    }
+
+    protected function dashboardRoles(): Collection
+    {
+        return $this->dashboardRoles ??= DashboardRole::get(['id', 'name']);
+    }
+
+    protected function posRoles(): Collection
+    {
+        return $this->posRoles ??= PosRole::get(['id', 'name']);
+    }
+
+    protected function allowancesTypes(): Collection
+    {
+        return $this->allowances_types ??= PayrollAdjustmentType::allowance()->get();
     }
 }

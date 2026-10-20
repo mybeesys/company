@@ -5,7 +5,6 @@ namespace Modules\Inventory\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Transaction;
 
@@ -65,20 +64,8 @@ class InventoryStockHealthService
             ->where('qty', '=', 0)
             ->count();
 
-        $lowStockCount = 0;
-        if (Schema::hasTable('inventory_product_inventories')) {
-            $lowStockCount = (int) DB::table('inventory_product_inventories as i')
-                ->leftJoin(
-                    DB::raw('(SELECT product_id, SUM(qty) AS total_qty FROM product_inventories GROUP BY product_id) as s'),
-                    'i.product_id',
-                    '=',
-                    's.product_id'
-                )
-                ->whereNotNull('i.threshold')
-                ->where('i.threshold', '>', 0)
-                ->whereRaw('COALESCE(s.total_qty, 0) < i.threshold')
-                ->count();
-        }
+        // «تحت الحد» = same universe as critical items (on-hand qty ≤ 0).
+        $lowStockCount = $negativeCount + $zeroCount;
 
         $criticalItems = $empty
             ? collect()
