@@ -13,21 +13,28 @@ Route::middleware([
     Route::get('/set-locale/{locale}', function ($locale) {
         $locale = in_array($locale, ['ar', 'en'], true) ? $locale : config('app.locale', 'ar');
         session()->put('locale', $locale);
+        session()->save();
         app()->setLocale($locale);
 
+        $target = url('/');
         $redirect = request()->query('redirect');
         if (is_string($redirect) && $redirect !== '') {
             $parts = parse_url($redirect);
             $host = $parts['host'] ?? null;
-            $path = $parts['path'] ?? '/';
-            $query = isset($parts['query']) ? '?'.$parts['query'] : '';
-            // Same-host relative redirect only (safe against open redirects).
+            // Same-host only (safe against open redirects).
             if ($host === null || $host === request()->getHost()) {
-                return redirect()->to($path.$query);
+                $path = $parts['path'] ?? '/';
+                if ($path === '') {
+                    $path = '/';
+                }
+                $query = isset($parts['query']) ? '?'.$parts['query'] : '';
+                $target = $path.$query;
             }
         }
 
-        return redirect()->to(url()->previous(url('/')));
+        return redirect()->to($target)->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
     })->withoutMiddleware(LocalizationMiddleware::class)->name('set_locale');
 
 });
