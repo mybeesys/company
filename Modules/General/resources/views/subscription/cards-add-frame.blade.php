@@ -6,8 +6,8 @@
     <title>@lang('general::general.saved_card_add')</title>
     <style>
         html, body { margin: 0; height: 100%; overflow: hidden; background: #fff; }
-        .wrap { position: relative; width: 100%; height: 100%; min-height: 420px; }
-        iframe { display: block; width: 100%; height: 100%; min-height: 420px; border: 0; background: #fff; }
+        .wrap { position: relative; width: 100%; height: 100%; min-height: 560px; }
+        iframe { display: block; width: 100%; height: 100%; min-height: 560px; border: 0; background: #fff; }
         .overlay {
             position: absolute; inset: 0; display: grid; place-items: center;
             background: #fff; z-index: 2; transition: opacity .18s ease;
