@@ -192,9 +192,9 @@
         width: min(480px, 100%);
         max-height: min(90vh, 640px);
         overflow: auto;
-        background: #fffdf8;
+        background: #ffffff;
         border-radius: 1.15rem;
-        border: 1px solid var(--bv-line);
+        border: 1px solid rgba(26, 26, 26, 0.12);
         box-shadow: 0 24px 60px rgba(26, 26, 26, 0.22);
         animation: bee-modal-in .28s ease;
     }
@@ -242,11 +242,32 @@
     .bee-field input[type="text"],
     .bee-field input[type="password"] {
         width: 100%;
-        border: 1px solid var(--bv-line);
-        border-radius: 0.7rem;
-        padding: 0.55rem 0.75rem;
-        background: #fff;
+        border: 2px solid rgba(26, 26, 26, 0.28);
+        border-radius: 0.75rem;
+        padding: 0.7rem 0.85rem;
+        min-height: 2.85rem;
+        background: #ffffff;
+        color: #1a1a1a;
         font: inherit;
+        font-size: 1rem;
+        box-shadow: 0 0 0 3px rgba(235, 184, 30, 0.12);
+        outline: none;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .bee-field input[type="text"]:focus,
+    .bee-field input[type="password"]:focus {
+        border-color: #ebb81e;
+        box-shadow: 0 0 0 4px rgba(235, 184, 30, 0.28);
+    }
+    .bee-field input[type="password"]::placeholder {
+        color: #9ca3af;
+        opacity: 1;
+    }
+    .bee-modal {
+        background: #ffffff;
+    }
+    .bee-modal__body {
+        background: #ffffff;
     }
     .bee-check {
         display: flex;
@@ -349,7 +370,7 @@
 <div class="bee-modal-backdrop" id="bee-modal-edit" role="dialog" aria-modal="true" aria-labelledby="bee-edit-title">
     <div class="bee-modal">
         <div class="bee-modal__head">
-            <h3 id="bee-edit-title">@lang('general::general.saved_card_edit')</h3>
+            <h3 id="bee-edit-title">@lang('general::general.saved_card_edit_title')</h3>
             <button type="button" class="bee-modal__close" data-bee-close aria-label="Close">&times;</button>
         </div>
         <div class="bee-modal__body">
@@ -372,7 +393,9 @@
                 </label>
                 <div class="bee-field">
                     <label for="bee-edit-password">@lang('general::general.saved_card_password')</label>
-                    <input type="password" id="bee-edit-password" name="current_password" required autocomplete="current-password">
+                    <input type="password" id="bee-edit-password" name="current_password" required
+                           autocomplete="current-password"
+                           placeholder="{{ __('general::general.saved_card_password_placeholder') }}">
                 </div>
                 <p class="bee-modal__note">@lang('general::general.saved_card_edit_hint')</p>
                 <div class="bee-modal__actions">
@@ -388,7 +411,7 @@
 <div class="bee-modal-backdrop" id="bee-modal-delete" role="dialog" aria-modal="true" aria-labelledby="bee-delete-title">
     <div class="bee-modal">
         <div class="bee-modal__head">
-            <h3 id="bee-delete-title">@lang('general::general.saved_card_delete')</h3>
+            <h3 id="bee-delete-title">@lang('general::general.saved_card_delete_title')</h3>
             <button type="button" class="bee-modal__close" data-bee-close aria-label="Close">&times;</button>
         </div>
         <div class="bee-modal__body">
@@ -399,7 +422,9 @@
                 @method('DELETE')
                 <div class="bee-field">
                     <label for="bee-delete-password">@lang('general::general.saved_card_password')</label>
-                    <input type="password" id="bee-delete-password" name="current_password" required autocomplete="current-password">
+                    <input type="password" id="bee-delete-password" name="current_password" required
+                           autocomplete="current-password"
+                           placeholder="{{ __('general::general.saved_card_password_placeholder') }}">
                 </div>
                 <div class="bee-modal__actions">
                     <button type="button" class="sub-btn sub-btn--ghost" data-bee-close>@lang('general::general.saved_card_cancel')</button>
