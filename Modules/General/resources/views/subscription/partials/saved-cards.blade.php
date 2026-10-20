@@ -295,30 +295,40 @@
         font-size: 0.78rem;
         font-weight: 700;
     }
-    .bee-modal--wide { width: min(760px, 96vw); }
+    .bee-modal--wide { width: min(720px, 96vw); }
     .bee-modal--add {
-        max-height: min(92vh, 860px);
-    }
-    .bee-modal--add .bee-modal__head {
-        padding: 1.05rem 1.35rem;
-    }
-    .bee-modal--add .bee-modal__head h3 {
-        font-size: 1.25rem;
-    }
-    .bee-modal--add .bee-modal__body {
-        padding: 0.85rem 1.35rem 1.15rem;
+        max-height: min(94vh, 900px);
+        display: flex;
+        flex-direction: column;
         overflow: hidden;
     }
+    .bee-modal--add .bee-modal__head {
+        padding: 0.95rem 1.25rem;
+        flex: 0 0 auto;
+    }
+    .bee-modal--add .bee-modal__head h3 {
+        font-size: 1.2rem;
+    }
+    .bee-modal--add .bee-modal__body {
+        padding: 0.55rem 1.15rem 1rem;
+        overflow: hidden;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
     .bee-modal--add .bee-modal__note {
-        margin: 0 0 0.75rem;
-        font-size: 0.9rem;
+        margin: 0 0 0.55rem;
+        font-size: 0.86rem;
+        flex: 0 0 auto;
     }
     .bee-modal__frame {
         width: 100%;
-        height: min(68vh, 620px);
+        height: 560px;
         min-height: 520px;
+        flex: 1 1 auto;
         border: 0;
-        border-radius: 0.9rem;
+        border-radius: 0.85rem;
         background: #fff;
         overflow: hidden;
     }
@@ -437,7 +447,6 @@
                 title="@lang('general::general.saved_card_add')"
                 src="about:blank"
                 allow="payment *"
-                scrolling="no"
             ></iframe>
         </div>
     </div>
@@ -577,6 +586,16 @@
     });
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeModals();
+    });
+
+    window.addEventListener('message', function (event) {
+        var data = event.data || {};
+        if (!data || data.type !== 'vault-card-height' || !data.height) return;
+        var frame = document.getElementById('bee-add-frame');
+        if (!frame) return;
+        var h = Math.max(500, Math.min(720, Number(data.height) || 0));
+        frame.style.height = h + 'px';
+        frame.style.minHeight = h + 'px';
     });
 })();
 </script>

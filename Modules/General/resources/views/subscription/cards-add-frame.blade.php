@@ -6,8 +6,15 @@
     <title>@lang('general::general.saved_card_add')</title>
     <style>
         html, body { margin: 0; height: 100%; overflow: hidden; background: #fff; }
-        .wrap { position: relative; width: 100%; height: 100%; min-height: 560px; }
-        iframe { display: block; width: 100%; height: 100%; min-height: 560px; border: 0; background: #fff; }
+        .wrap { position: relative; width: 100%; height: 100%; min-height: 480px; }
+        iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-height: 480px;
+            border: 0;
+            background: #fff;
+        }
         .overlay {
             position: absolute; inset: 0; display: grid; place-items: center;
             background: #fff; z-index: 2; transition: opacity .18s ease;
@@ -24,15 +31,35 @@
 <body>
     <div class="wrap">
         <div class="overlay" id="overlay"><div class="spin" aria-hidden="true"></div></div>
-        <iframe id="frame" src="{{ $handoffUrl }}" title="@lang('general::general.saved_card_add')" allow="payment *" scrolling="no"></iframe>
+        <iframe id="frame" src="{{ $handoffUrl }}" title="@lang('general::general.saved_card_add')" allow="payment *"></iframe>
     </div>
     <script>
         (function () {
             var frame = document.getElementById('frame');
             var overlay = document.getElementById('overlay');
-            var hide = function () { overlay.classList.add('is-hidden'); };
+            var wrap = document.querySelector('.wrap');
+
+            function hide() { overlay.classList.add('is-hidden'); }
+
+            function applyHeight(h) {
+                h = Math.max(460, Math.min(720, Number(h) || 0));
+                frame.style.height = h + 'px';
+                wrap.style.minHeight = h + 'px';
+                try {
+                    window.parent.postMessage({ type: 'vault-card-height', height: h + 8 }, '*');
+                } catch (e) {}
+            }
+
             frame.addEventListener('load', hide);
-            setTimeout(hide, 6000);
+            setTimeout(hide, 7000);
+
+            window.addEventListener('message', function (event) {
+                var data = event.data || {};
+                if (data && data.type === 'vault-card-height' && data.height) {
+                    hide();
+                    applyHeight(data.height);
+                }
+            });
         })();
     </script>
 </body>
