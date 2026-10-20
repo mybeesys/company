@@ -453,7 +453,7 @@
                         </div>
                     </div>
 
-                    <div class="user-footer-picker" data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
+                    <div class="user-footer-picker" data-kt-menu-trigger="click"
                         data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-8px, 0">
                         <button type="button" class="user-footer-btn">
                             <img class="user-footer-flag"
@@ -461,16 +461,17 @@
                                 alt="" />
                             <span>{{ session('locale') == 'ar' ? 'العربية' : 'English' }}</span>
                         </button>
-                        <div class="menu menu-sub menu-sub-dropdown w-160px py-3">
-                            <div class="menu-item px-3">
-                                <a href="{{ route('set_locale', ['locale' => 'en']) }}"
+                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-3 fs-7 w-160px"
+                            data-kt-menu="true">
+                            <div class="menu-item px-3 my-0">
+                                <a href="{{ route('set_locale', ['locale' => 'en', 'redirect' => url()->full()]) }}"
                                     class="menu-link d-flex px-3 {{ session('locale') == 'en' ? 'active' : '' }}">
                                     <span class="symbol symbol-20px me-3">
                                         <img class="rounded-1" src="/assets/media/flags/united-states.svg" alt="" />
                                     </span>English</a>
                             </div>
-                            <div class="menu-item px-3">
-                                <a href="{{ route('set_locale', ['locale' => 'ar']) }}"
+                            <div class="menu-item px-3 my-0">
+                                <a href="{{ route('set_locale', ['locale' => 'ar', 'redirect' => url()->full()]) }}"
                                     class="menu-link d-flex px-3 {{ session('locale') == 'ar' ? 'active' : '' }}">
                                     <span class="symbol symbol-20px me-3">
                                         <img class="rounded-1" src="/assets/media/flags/saudi-arabia.svg" alt="" />
