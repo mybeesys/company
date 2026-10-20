@@ -164,6 +164,40 @@ class GeneralController extends Controller
         ]));
     }
 
+    public function addSavedCard(\Illuminate\Http\Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $companyId = get_company_id();
+        $email = (string) ($user->email ?? '');
+        if (! $companyId || $email === '') {
+            return redirect()
+                ->route('subscription', ['tab' => 'cards'])
+                ->with('error', __('general::general.subscription_manage_unavailable'));
+        }
+
+        try {
+            $handoffUrl = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
+                email: $email,
+                companyId: (int) $companyId,
+                redirectTo: '/subscribe?mode=add-card&embed=1',
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route('subscription', ['tab' => 'cards'])
+                ->with('error', __('general::general.saved_card_action_failed'));
+        }
+
+        return response()->view('general::subscription.cards-add-frame', [
+            'handoffUrl' => $handoffUrl,
+        ]);
+    }
+
     public function setDefaultSavedCard(int $cardId)
     {
         $companyId = (int) get_company_id();
