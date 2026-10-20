@@ -22,6 +22,14 @@ class EmployeeTable
     {
         $locale = app()->getLocale();
 
+        // Resolve once per DataTables response — not once per row.
+        $canUpdate = EmployeeAccess::can(EmployeePermissions::EMPLOYEE_UPDATE);
+        $canDelete = EmployeeAccess::can(EmployeePermissions::EMPLOYEE_DELETE);
+        $canShow = EmployeeAccess::can(EmployeePermissions::EMPLOYEE_SHOW);
+        $canPrint = EmployeeAccess::can(EmployeePermissions::EMPLOYEE_PRINT);
+        $canPosRoleUpdate = EmployeeAccess::can(EmployeePermissions::POS_ROLE_UPDATE);
+        $canDashboardRoleUpdate = EmployeeAccess::can(EmployeePermissions::DASHBOARD_ROLE_UPDATE);
+
         return DataTables::of($employees)
             ->addColumn('employee', function ($row) use ($locale) {
                 $primaryName = $locale === 'ar'
@@ -94,48 +102,48 @@ class EmployeeTable
             })
             ->addColumn(
                 'actions',
-                function ($row) {
+                function ($row) use ($canUpdate, $canDelete, $canShow, $canPrint, $canPosRoleUpdate, $canDashboardRoleUpdate) {
                     $emsAccess = $row->ems_access;
                     $actions = '<a href="#" class="btn btn-sm btn-icon btn-light btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" title="'.e(__('employee::fields.actions')).'"><i class="ki-outline ki-dots-horizontal fs-2"></i></a>
                     <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg-light-primary fw-semibold fs-7 w-200px py-4" data-kt-menu="true">';
 
                     if (! $row->deleted_at) {
-                        if (EmployeeAccess::can(EmployeePermissions::EMPLOYEE_UPDATE)) {
+                        if ($canUpdate) {
                             $actions .= '<div class="menu-item px-3">
                                    <a href="'.url("/employee/{$row->id}/edit").'" class="menu-link px-3">'.__('employee::fields.edit').'</a>
                                </div>';
                         }
-                        if (EmployeeAccess::can(EmployeePermissions::POS_ROLE_UPDATE)) {
+                        if ($canPosRoleUpdate) {
                             $actions .= '<div class="menu-item px-3">
                                    <a href="#" class="menu-link px-3 edit-pos-permission-button" data-id="'.$row->id.'">'.__('employee::general.edit_pos_permissions').'</a>
                                </div>';
                         }
                     }
 
-                    if ($emsAccess && ! $row->deleted_at && EmployeeAccess::can(EmployeePermissions::DASHBOARD_ROLE_UPDATE)) {
+                    if ($emsAccess && ! $row->deleted_at && $canDashboardRoleUpdate) {
                         $actions .= '<div class="menu-item px-3">
                                         <a href="#" class="menu-link px-3 edit-ems-permission-button" data-id="'.$row->id.'">'.__('employee::general.edit_dashboard_permissions').'</a>
                                     </div>';
                     }
-                    if (EmployeeAccess::can(EmployeePermissions::EMPLOYEE_DELETE)) {
+                    if ($canDelete) {
                         $actions .= '<div class="menu-item px-3">
                         <a class="menu-link px-3 delete-btn" data-id="'.$row->id.'" data-deleted="'.$row->deleted_at.'" data-name="'.($row->{get_name_by_lang()}).'">'.($row->deleted_at ? __('employee::fields.force_delete') : __('employee::fields.delete')).'</a>
                         </div>';
                     }
-                    if ($row->deleted_at && EmployeeAccess::can(EmployeePermissions::EMPLOYEE_UPDATE)) {
+                    if ($row->deleted_at && $canUpdate) {
                         $actions .=
                             '<div class="menu-item px-3">
                                     <a class="menu-link px-3 restore-btn" data-id="'.$row->id.'">'.__('employee::fields.restore').'</a>
                                 </div>';
 
                     } else {
-                        if (EmployeeAccess::can(EmployeePermissions::EMPLOYEE_SHOW)) {
+                        if ($canShow) {
                             $actions .= '<div class="menu-item px-3">
                             <a href="'.url("/employee/show/{$row->id}").'" class="menu-link px-3 show-btn" data-id="'.$row->id.'">'.__('employee::fields.show').'</a>
                             </div>';
                         }
                     }
-                    if (EmployeeAccess::can(EmployeePermissions::EMPLOYEE_PRINT)) {
+                    if ($canPrint) {
                         $actions .= '<div class="menu-item px-3">
                             <a href="#" class="menu-link px-3 print-btn" data-id="'.$row->id.'">'.__('employee::fields.print').'</a>
                             </div>';
