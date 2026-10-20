@@ -84,11 +84,11 @@
                                 <i class="ki-outline ki-down fs-5 text-muted m-0 login-lang-chevron" aria-hidden="true"></i>
                             </button>
                             <div class="login-lang-dropdown" id="login_lang_menu" role="menu" aria-labelledby="login_lang_btn">
-                                <a href="{{ route('set_locale', ['locale' => 'en']) }}" class="login-lang-link" role="menuitem">
+                                <a href="{{ route('set_locale', ['locale' => 'en', 'redirect' => url()->full()]) }}" class="login-lang-link" role="menuitem">
                                     <img class="rounded-1" width="20" height="20" src="{{ asset('assets/media/flags/united-states.svg') }}" alt="" />
                                     <span>English</span>
                                 </a>
-                                <a href="{{ route('set_locale', ['locale' => 'ar']) }}" class="login-lang-link" role="menuitem">
+                                <a href="{{ route('set_locale', ['locale' => 'ar', 'redirect' => url()->full()]) }}" class="login-lang-link" role="menuitem">
                                     <img class="rounded-1" width="20" height="20" src="{{ asset('assets/media/flags/saudi-arabia.svg') }}" alt="" />
                                     <span>العربية</span>
                                 </a>

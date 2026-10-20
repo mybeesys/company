@@ -31,6 +31,7 @@ class EnsureHasSubscription
             'login',
             'logout',
             'register',
+            'set_locale',
             // Allow renew / invoice print even when the plan is expired or missing.
             'subscription',
             'subscription.manage',
