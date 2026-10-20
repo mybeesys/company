@@ -164,47 +164,6 @@ class GeneralController extends Controller
         ]));
     }
 
-    public function addSavedCard(\Illuminate\Http\Request $request)
-    {
-        $user = auth()->user();
-        if (! $user) {
-            return redirect()->route('login');
-        }
-
-        $companyId = get_company_id();
-        $email = (string) ($user->email ?? '');
-        if (! $companyId || $email === '') {
-            return redirect()
-                ->route('subscription', ['tab' => 'cards'])
-                ->with('error', __('general::general.subscription_manage_unavailable'));
-        }
-
-        try {
-            $handoffUrl = app(\App\Services\CentralSubscribeHandoff::class)->createUrlForEmail(
-                email: $email,
-                companyId: (int) $companyId,
-                redirectTo: '/subscribe?mode=add-card&embed=1',
-            );
-        } catch (\Throwable $e) {
-            report($e);
-
-            return redirect()
-                ->route('subscription', ['tab' => 'cards'])
-                ->with('error', __('general::general.saved_card_action_failed'));
-        }
-
-        if ($request->boolean('modal')) {
-            return response()->view('general::subscription.cards-add-frame', [
-                'handoffUrl' => $handoffUrl,
-            ]);
-        }
-
-        return view('general::subscription.manage-embed', [
-            'handoffUrl' => $handoffUrl,
-            'mode' => 'add-card',
-        ]);
-    }
-
     public function setDefaultSavedCard(int $cardId)
     {
         $companyId = (int) get_company_id();
@@ -219,11 +178,16 @@ class GeneralController extends Controller
 
     public function updateSavedCard(\Illuminate\Http\Request $request, int $cardId)
     {
+        if ($redirect = $this->assertSavedCardPassword($request)) {
+            return $redirect;
+        }
+
         $companyId = (int) get_company_id();
         $data = $request->validate([
             'nickname' => ['nullable', 'string', 'max:80'],
             'holder' => ['nullable', 'string', 'max:120'],
             'is_default' => ['nullable', 'boolean'],
+            'current_password' => ['required', 'string'],
         ]);
 
         $data['is_default'] = $request->boolean('is_default');
@@ -237,8 +201,16 @@ class GeneralController extends Controller
                 : __('general::general.saved_card_action_failed'));
     }
 
-    public function deleteSavedCard(int $cardId)
+    public function deleteSavedCard(\Illuminate\Http\Request $request, int $cardId)
     {
+        if ($redirect = $this->assertSavedCardPassword($request)) {
+            return $redirect;
+        }
+
+        $request->validate([
+            'current_password' => ['required', 'string'],
+        ]);
+
         $companyId = (int) get_company_id();
         $ok = app(\App\Services\SavedPaymentCardRepository::class)->delete($companyId, $cardId);
 
@@ -247,6 +219,24 @@ class GeneralController extends Controller
             ->with($ok ? 'success' : 'error', $ok
                 ? __('general::general.saved_card_deleted')
                 : __('general::general.saved_card_action_failed'));
+    }
+
+    /**
+     * Require the signed-in user's login password before mutating saved cards.
+     */
+    protected function assertSavedCardPassword(\Illuminate\Http\Request $request): ?\Illuminate\Http\RedirectResponse
+    {
+        $password = (string) $request->input('current_password', '');
+        $user = auth()->user();
+
+        if ($password === '' || ! $user || ! \Illuminate\Support\Facades\Hash::check($password, (string) $user->password)) {
+            return redirect()
+                ->route('subscription', ['tab' => 'cards'])
+                ->with('error', __('general::general.saved_card_password_invalid'))
+                ->withInput($request->except('current_password'));
+        }
+
+        return null;
     }
 
     public function printSubscriptionInvoice(int $subscriptionId)

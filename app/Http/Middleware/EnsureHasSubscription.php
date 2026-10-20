@@ -35,7 +35,6 @@ class EnsureHasSubscription
             'subscription',
             'subscription.manage',
             'subscription.invoice.print',
-            'subscription.cards.add',
             'subscription.cards.default',
             'subscription.cards.update',
             'subscription.cards.delete',
