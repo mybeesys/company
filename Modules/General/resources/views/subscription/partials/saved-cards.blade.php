@@ -192,9 +192,9 @@
         width: min(480px, 100%);
         max-height: min(90vh, 640px);
         overflow: auto;
-        background: #fffdf8;
+        background: #ffffff;
         border-radius: 1.15rem;
-        border: 1px solid var(--bv-line);
+        border: 1px solid rgba(26, 26, 26, 0.12);
         box-shadow: 0 24px 60px rgba(26, 26, 26, 0.22);
         animation: bee-modal-in .28s ease;
     }
@@ -242,11 +242,32 @@
     .bee-field input[type="text"],
     .bee-field input[type="password"] {
         width: 100%;
-        border: 1px solid var(--bv-line);
-        border-radius: 0.7rem;
-        padding: 0.55rem 0.75rem;
-        background: #fff;
+        border: 2px solid rgba(26, 26, 26, 0.28);
+        border-radius: 0.75rem;
+        padding: 0.7rem 0.85rem;
+        min-height: 2.85rem;
+        background: #ffffff;
+        color: #1a1a1a;
         font: inherit;
+        font-size: 1rem;
+        box-shadow: 0 0 0 3px rgba(235, 184, 30, 0.12);
+        outline: none;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .bee-field input[type="text"]:focus,
+    .bee-field input[type="password"]:focus {
+        border-color: #ebb81e;
+        box-shadow: 0 0 0 4px rgba(235, 184, 30, 0.28);
+    }
+    .bee-field input[type="password"]::placeholder {
+        color: #9ca3af;
+        opacity: 1;
+    }
+    .bee-modal {
+        background: #ffffff;
+    }
+    .bee-modal__body {
+        background: #ffffff;
     }
     .bee-check {
         display: flex;
@@ -274,20 +295,52 @@
         font-size: 0.78rem;
         font-weight: 700;
     }
+    .bee-modal--wide { width: min(560px, 100%); }
+    .bee-modal__frame {
+        width: 100%;
+        height: min(64vh, 580px);
+        border: 0;
+        border-radius: 0.85rem;
+        background: #fff;
+    }
+    .bee-card--add {
+        background: linear-gradient(160deg, #fffdf8, #f7f1e3);
+        color: var(--bv-ink);
+        border: 1.5px dashed rgba(184, 137, 18, 0.45);
+        box-shadow: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        cursor: pointer;
+        min-height: 168px;
+    }
+    .bee-card--add::before { display: none; }
+    .bee-card--add .bee-card__plus {
+        width: 2.6rem; height: 2.6rem; display: grid; place-items: center;
+        border-radius: 999px; background: rgba(235, 184, 30, 0.2);
+        color: var(--bv-accent-2); font-size: 1.45rem; font-weight: 800; margin-bottom: 0.45rem;
+    }
 </style>
 
 <div class="bee-vault">
     <div class="bee-vault__toolbar">
         <p class="bee-vault__hint">@lang('general::general.saved_cards_hint')</p>
+        <button type="button" class="sub-btn sub-btn--primary" data-bee-open="add">
+            <i class="fas fa-plus"></i>
+            @lang('general::general.saved_card_add')
+        </button>
     </div>
 
     @if ($cards->isEmpty())
         <div class="bee-vault__empty">
             <p class="mb-3">@lang('general::general.saved_cards_empty')</p>
-            <a href="{{ $manage_url }}">@lang('general::general.subscription_renew_cta')</a>
+            <button type="button" class="sub-btn sub-btn--primary" data-bee-open="add">
+                @lang('general::general.saved_card_add')
+            </button>
         </div>
-    @else
-        <div class="bee-vault__grid">
+    @endif
+
+    <div class="bee-vault__grid">
             @foreach ($cards as $card)
                 @php
                     $brand = strtoupper((string) ($card->brand ?: 'CARD'));
@@ -341,15 +394,40 @@
                     </div>
                 </article>
             @endforeach
+
+        <button type="button" class="bee-card bee-card--add" data-bee-open="add">
+            <span class="bee-card__plus">+</span>
+            <strong>@lang('general::general.saved_card_add')</strong>
+            <span style="font-size:.78rem;color:var(--bv-muted);margin-top:.2rem;">@lang('general::general.saved_card_add_short')</span>
+        </button>
+    </div>
+</div>
+
+{{-- Add card modal (MyBee form — stays on this page) --}}
+<div class="bee-modal-backdrop" id="bee-modal-add" role="dialog" aria-modal="true" aria-labelledby="bee-add-title">
+    <div class="bee-modal bee-modal--wide">
+        <div class="bee-modal__head">
+            <h3 id="bee-add-title">@lang('general::general.saved_card_add')</h3>
+            <button type="button" class="bee-modal__close" data-bee-close aria-label="Close">&times;</button>
         </div>
-    @endif
+        <div class="bee-modal__body">
+            <p class="bee-modal__note mb-3">@lang('general::general.saved_card_add_modal_hint')</p>
+            <iframe
+                class="bee-modal__frame"
+                id="bee-add-frame"
+                title="@lang('general::general.saved_card_add')"
+                src="about:blank"
+                allow="payment *"
+            ></iframe>
+        </div>
+    </div>
 </div>
 
 {{-- Edit + password --}}
 <div class="bee-modal-backdrop" id="bee-modal-edit" role="dialog" aria-modal="true" aria-labelledby="bee-edit-title">
     <div class="bee-modal">
         <div class="bee-modal__head">
-            <h3 id="bee-edit-title">@lang('general::general.saved_card_edit')</h3>
+            <h3 id="bee-edit-title">@lang('general::general.saved_card_edit_title')</h3>
             <button type="button" class="bee-modal__close" data-bee-close aria-label="Close">&times;</button>
         </div>
         <div class="bee-modal__body">
@@ -372,7 +450,9 @@
                 </label>
                 <div class="bee-field">
                     <label for="bee-edit-password">@lang('general::general.saved_card_password')</label>
-                    <input type="password" id="bee-edit-password" name="current_password" required autocomplete="current-password">
+                    <input type="password" id="bee-edit-password" name="current_password" required
+                           autocomplete="current-password"
+                           placeholder="{{ __('general::general.saved_card_password_placeholder') }}">
                 </div>
                 <p class="bee-modal__note">@lang('general::general.saved_card_edit_hint')</p>
                 <div class="bee-modal__actions">
@@ -388,7 +468,7 @@
 <div class="bee-modal-backdrop" id="bee-modal-delete" role="dialog" aria-modal="true" aria-labelledby="bee-delete-title">
     <div class="bee-modal">
         <div class="bee-modal__head">
-            <h3 id="bee-delete-title">@lang('general::general.saved_card_delete')</h3>
+            <h3 id="bee-delete-title">@lang('general::general.saved_card_delete_title')</h3>
             <button type="button" class="bee-modal__close" data-bee-close aria-label="Close">&times;</button>
         </div>
         <div class="bee-modal__body">
@@ -399,7 +479,9 @@
                 @method('DELETE')
                 <div class="bee-field">
                     <label for="bee-delete-password">@lang('general::general.saved_card_password')</label>
-                    <input type="password" id="bee-delete-password" name="current_password" required autocomplete="current-password">
+                    <input type="password" id="bee-delete-password" name="current_password" required
+                           autocomplete="current-password"
+                           placeholder="{{ __('general::general.saved_card_password_placeholder') }}">
                 </div>
                 <div class="bee-modal__actions">
                     <button type="button" class="sub-btn sub-btn--ghost" data-bee-close>@lang('general::general.saved_card_cancel')</button>
@@ -415,6 +497,7 @@
 <script>
 (function () {
     var deleteTpl = @json(__('general::general.saved_card_delete_confirm_named'));
+    var addUrl = @json(route('subscription.cards.add'));
 
     function openModal(id) {
         var el = document.getElementById(id);
@@ -428,13 +511,21 @@
         document.documentElement.style.overflow = '';
         var editPw = document.getElementById('bee-edit-password');
         var delPw = document.getElementById('bee-delete-password');
+        var frame = document.getElementById('bee-add-frame');
         if (editPw) editPw.value = '';
         if (delPw) delPw.value = '';
+        if (frame) frame.src = 'about:blank';
     }
 
     document.querySelectorAll('[data-bee-open]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var kind = btn.getAttribute('data-bee-open');
+            if (kind === 'add') {
+                var frame = document.getElementById('bee-add-frame');
+                if (frame) frame.src = addUrl;
+                openModal('bee-modal-add');
+                return;
+            }
             if (kind === 'edit') {
                 var form = document.getElementById('bee-edit-form');
                 form.action = btn.getAttribute('data-action');

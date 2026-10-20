@@ -37,6 +37,8 @@ Route::middleware([
         Route::get('/subscription/invoice/{subscriptionId}', [GeneralController::class, 'printSubscriptionInvoice'])
             ->whereNumber('subscriptionId')
             ->name('subscription.invoice.print');
+        Route::get('/subscription/cards/add', [GeneralController::class, 'addSavedCard'])
+            ->name('subscription.cards.add');
         Route::post('/subscription/cards/{cardId}/default', [GeneralController::class, 'setDefaultSavedCard'])
             ->whereNumber('cardId')
             ->name('subscription.cards.default');
