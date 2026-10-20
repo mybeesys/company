@@ -162,9 +162,9 @@ export default function ExecutiveDashboardView() {
                         />
                     </WidgetFrame>
                 </WidgetErrorBoundary>
-                <WidgetErrorBoundary title={ar ? 'تحليل المبيعات الديناميكي' : 'Dynamic sales analysis'}>
+                <WidgetErrorBoundary title={ar ? 'المبيعات' : 'Sales'}>
                     <WidgetFrame
-                        title={ar ? 'تحليل المبيعات الديناميكي' : 'Dynamic sales analysis'}
+                        title={ar ? 'المبيعات' : 'Sales'}
                         status={dashboard.status === 'loading' ? 'loading' : (analysisItems.length ? 'success' : (dashboard.status === 'error' ? 'error' : 'empty'))}
                         error={dashboard.error}
                         emptyText={empty}
