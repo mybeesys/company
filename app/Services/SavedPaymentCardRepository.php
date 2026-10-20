@@ -30,6 +30,8 @@ class SavedPaymentCardRepository
             return collect();
         }
 
+        $this->dedupeForCompany($companyId);
+
         return DB::connection($this->connection())
             ->table('saved_payment_cards')
             ->where('company_id', $companyId)
@@ -38,6 +40,101 @@ class SavedPaymentCardRepository
             ->orderByDesc('is_default')
             ->orderByDesc('id')
             ->get();
+    }
+
+    /**
+     * Soft-delete active duplicates that share brand + last4 + expiry.
+     * Keeps the default card when present, otherwise the newest id.
+     */
+    public function dedupeForCompany(int $companyId): int
+    {
+        if (! $this->ready() || $companyId <= 0) {
+            return 0;
+        }
+
+        $db = DB::connection($this->connection());
+        $removed = 0;
+
+        $db->transaction(function () use ($db, $companyId, &$removed) {
+            $cards = $db->table('saved_payment_cards')
+                ->where('company_id', $companyId)
+                ->whereNull('deleted_at')
+                ->where('status', 'active')
+                ->orderByDesc('is_default')
+                ->orderByDesc('id')
+                ->get();
+
+            $seen = [];
+
+            foreach ($cards as $card) {
+                $brand = strtoupper(trim((string) ($card->brand ?? '')));
+                $lastFour = preg_replace('/\D+/', '', (string) ($card->last_four ?? '')) ?: '';
+                $lastFour = $lastFour !== '' ? substr($lastFour, -4) : '';
+                $month = preg_replace('/\D+/', '', (string) ($card->expiry_month ?? '')) ?: '';
+                $month = $month !== '' ? str_pad(substr($month, -2), 2, '0', STR_PAD_LEFT) : '';
+                $year = preg_replace('/\D+/', '', (string) ($card->expiry_year ?? '')) ?: '';
+                if (strlen($year) === 2) {
+                    $year = '20'.$year;
+                }
+                $year = $year !== '' ? substr($year, -4) : '';
+
+                if ($brand === '' || $lastFour === '' || $month === '' || $year === '') {
+                    continue;
+                }
+
+                $key = $brand.'|'.$lastFour.'|'.$month.'|'.substr($year, -2);
+
+                if (! isset($seen[$key])) {
+                    $seen[$key] = (int) $card->id;
+
+                    continue;
+                }
+
+                $db->table('saved_payment_cards')
+                    ->where('id', $card->id)
+                    ->where('company_id', $companyId)
+                    ->update([
+                        'registration_id' => mb_substr((string) $card->registration_id.'_dup'.$card->id, 0, 64),
+                        'is_default' => false,
+                        'status' => 'merged',
+                        'deleted_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                $removed++;
+            }
+
+            $default = $db->table('saved_payment_cards')
+                ->where('company_id', $companyId)
+                ->whereNull('deleted_at')
+                ->where('status', 'active')
+                ->where('is_default', true)
+                ->orderByDesc('id')
+                ->first();
+
+            if ($default) {
+                $db->table('saved_payment_cards')
+                    ->where('company_id', $companyId)
+                    ->where('id', '!=', $default->id)
+                    ->whereNull('deleted_at')
+                    ->update(['is_default' => false, 'updated_at' => now()]);
+            } else {
+                $next = $db->table('saved_payment_cards')
+                    ->where('company_id', $companyId)
+                    ->whereNull('deleted_at')
+                    ->where('status', 'active')
+                    ->orderByDesc('id')
+                    ->first();
+
+                if ($next) {
+                    $db->table('saved_payment_cards')
+                        ->where('id', $next->id)
+                        ->update(['is_default' => true, 'updated_at' => now()]);
+                }
+            }
+        });
+
+        return $removed;
     }
 
     public function findForCompany(int $companyId, int $cardId): ?object
