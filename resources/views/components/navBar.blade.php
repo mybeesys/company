@@ -453,32 +453,22 @@
                         </div>
                     </div>
 
-                    <div class="user-footer-picker" data-kt-menu-trigger="click"
-                        data-kt-menu-placement="{{ $menu_placement_x }}" data-kt-menu-offset="-8px, 0">
-                        <button type="button" class="user-footer-btn">
-                            <img class="user-footer-flag"
-                                src="/assets/media/flags/{{ session('locale') == 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
-                                alt="" />
-                            <span>{{ session('locale') == 'ar' ? 'العربية' : 'English' }}</span>
-                        </button>
-                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-3 fs-7 w-160px"
-                            data-kt-menu="true">
-                            <div class="menu-item px-3 my-0">
-                                <a href="{{ route('set_locale', ['locale' => 'en', 'redirect' => url()->full()]) }}"
-                                    class="menu-link d-flex px-3 {{ session('locale') == 'en' ? 'active' : '' }}">
-                                    <span class="symbol symbol-20px me-3">
-                                        <img class="rounded-1" src="/assets/media/flags/united-states.svg" alt="" />
-                                    </span>English</a>
-                            </div>
-                            <div class="menu-item px-3 my-0">
-                                <a href="{{ route('set_locale', ['locale' => 'ar', 'redirect' => url()->full()]) }}"
-                                    class="menu-link d-flex px-3 {{ session('locale') == 'ar' ? 'active' : '' }}">
-                                    <span class="symbol symbol-20px me-3">
-                                        <img class="rounded-1" src="/assets/media/flags/saudi-arabia.svg" alt="" />
-                                    </span>العربية</a>
-                            </div>
-                        </div>
-                    </div>
+                    @php
+                        $currentLocale = session('locale', app()->getLocale()) === 'en' ? 'en' : 'ar';
+                        $nextLocale = $currentLocale === 'ar' ? 'en' : 'ar';
+                        $localeRedirect = url()->full();
+                    @endphp
+                    {{-- Direct link (no nested KTMenu) — nested menus swallow navigation. --}}
+                    <a
+                        href="{{ route('set_locale', ['locale' => $nextLocale, 'redirect' => $localeRedirect]) }}"
+                        class="user-footer-btn user-footer-lang"
+                        title="{{ $nextLocale === 'en' ? 'Switch to English' : 'التبديل إلى العربية' }}"
+                    >
+                        <img class="user-footer-flag"
+                            src="/assets/media/flags/{{ $nextLocale === 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
+                            alt="" />
+                        <span>{{ $nextLocale === 'ar' ? 'العربية' : 'English' }}</span>
+                    </a>
                 </div>
 
                 <a href="{{ route('logout') }}" class="user-footer-logout">
@@ -1149,6 +1139,14 @@
         font-size: 0.72rem;
         font-weight: 600;
         line-height: 1.2;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    a.user-footer-lang:hover {
+        border-color: #d5dbe5;
+        background: #f8fafc;
+        color: #5e6278;
+        text-decoration: none;
     }
 
     .user-footer-btn i {
