@@ -22,6 +22,7 @@ const DIMENSIONS = [
     { id: 'by_category', ar: 'التصنيف', en: 'Category' },
     { id: 'by_customer', ar: 'العميل', en: 'Customer' },
     { id: 'by_salesman', ar: 'المندوب', en: 'Sales rep' },
+    { id: 'by_branch', ar: 'الفرع', en: 'Branch', requiresBranches: true },
 ];
 
 export default function ExecutiveDashboardView() {
@@ -29,7 +30,7 @@ export default function ExecutiveDashboardView() {
     const locale = root?.getAttribute('data-locale') || 'ar';
     const ar = locale === 'ar';
     const { applied, rememberNavigation, salesDimension, setSalesDimension, applyPatch } = useDashboardFilters();
-    const dimKey = ['by_product', 'by_category', 'by_customer', 'by_salesman'].includes(salesDimension)
+    const dimKey = ['by_product', 'by_category', 'by_customer', 'by_salesman', 'by_branch'].includes(salesDimension)
         ? salesDimension
         : 'by_product';
 
@@ -110,10 +111,18 @@ export default function ExecutiveDashboardView() {
     const currency = bootstrap?.currency || '';
     const payload = dashboard.data || {};
     const empty = payload.labels?.empty;
-    const analysisItems = payload.sales_analysis?.[dimKey] || [];
     const showBranches = payload.branches_visible && (payload.top_branches || []).length > 0
         && (bootstrap?.options?.branches || []).length > 1;
+    const salesDimensions = DIMENSIONS.filter((d) => !d.requiresBranches || showBranches);
+    const activeDim = salesDimensions.some((d) => d.id === dimKey) ? dimKey : 'by_product';
+    const analysisItems = payload.sales_analysis?.[activeDim] || [];
     const kpiStatus = dashboard.status === 'success' ? 'success' : dashboard.status;
+
+    useEffect(() => {
+        if (dimKey === 'by_branch' && !showBranches && salesDimension === 'by_branch') {
+            setSalesDimension('by_product');
+        }
+    }, [dimKey, showBranches, salesDimension, setSalesDimension]);
 
     return (
         <div className="ed-page">
@@ -161,11 +170,11 @@ export default function ExecutiveDashboardView() {
                         emptyText={empty}
                         actions={
                             <div className="ed-tabs">
-                                {DIMENSIONS.map((d) => (
+                                {salesDimensions.map((d) => (
                                     <button
                                         key={d.id}
                                         type="button"
-                                        className={`ed-tab ${dimKey === d.id ? 'is-active' : ''}`}
+                                        className={`ed-tab ${activeDim === d.id ? 'is-active' : ''}`}
                                         onClick={() => setSalesDimension(d.id)}
                                     >
                                         {ar ? d.ar : d.en}
@@ -174,7 +183,15 @@ export default function ExecutiveDashboardView() {
                             </div>
                         }
                     >
-                        <HorizontalBarChart items={analysisItems} color="#e9b71f" />
+                        <HorizontalBarChart
+                            items={analysisItems}
+                            color="#e9b71f"
+                            onSelect={activeDim === 'by_branch'
+                                ? (item) => {
+                                    if (item.id) applyPatch({ branch_ids: [String(item.id)] });
+                                }
+                                : undefined}
+                        />
                     </WidgetFrame>
                 </WidgetErrorBoundary>
             </div>
@@ -187,23 +204,6 @@ export default function ExecutiveDashboardView() {
                         <DecisionCenter alerts={payload.decision_alerts} locale={locale} onNavigate={go} />
                     )}
                 </WidgetErrorBoundary>
-                {showBranches && (
-                    <WidgetErrorBoundary title={ar ? 'المبيعات حسب الفروع' : 'Sales by branch'}>
-                        <WidgetFrame
-                            title={ar ? 'المبيعات حسب الفروع' : 'Sales by branch'}
-                            status="success"
-                            emptyText={empty}
-                        >
-                            <HorizontalBarChart
-                                items={payload.top_branches}
-                                color="#e9b71f"
-                                onSelect={(item) => {
-                                    if (item.id) applyPatch({ branch_id: String(item.id) });
-                                }}
-                            />
-                        </WidgetFrame>
-                    </WidgetErrorBoundary>
-                )}
                 <WidgetErrorBoundary title={ar ? 'توزيع المصروفات' : 'Expense distribution'}>
                     <WidgetFrame
                         title={ar ? 'توزيع المصروفات' : 'Expense distribution'}

@@ -245,14 +245,13 @@ class ExecutiveDashboardService
 
         $analysis = [
             'by_product' => [],
-            'by_service' => [],
             'by_category' => [],
             'by_customer' => [],
             'by_salesman' => [],
+            'by_branch' => [],
         ];
         $dimMap = [
             'product' => 'by_product',
-            'service' => 'by_service',
             'category' => 'by_category',
             'customer' => 'by_customer',
             'rep' => 'by_salesman',
@@ -263,6 +262,7 @@ class ExecutiveDashboardService
                 []
             );
         }
+        $analysis['by_branch'] = $branches['items'] ?? [];
 
         return [
             'kpis' => $kpis['contract'] ?? $this->emptyKpiContract(),
@@ -371,8 +371,8 @@ class ExecutiveDashboardService
                 'number',
                 'inventory.dashboard',
                 [
-                    'ar' => $stock['high_turnover'].' أصناف عالية الحركة',
-                    'en' => $stock['high_turnover'].' high-turnover items',
+                    'ar' => 'رصيد ≤ 0'.($stock['high_turnover'] ? ' · '.$stock['high_turnover'].' عالية الحركة' : ''),
+                    'en' => 'Qty ≤ 0'.($stock['high_turnover'] ? ' · '.$stock['high_turnover'].' high-turnover' : ''),
                 ],
                 [
                     'high_turnover' => $stock['high_turnover'],
@@ -617,9 +617,19 @@ class ExecutiveDashboardService
         }
 
         $dimension = $filters['dimension'] ?: 'product';
-        $allowed = ['product', 'service', 'category', 'customer', 'rep'];
+        $allowed = ['product', 'category', 'customer', 'rep', 'branch'];
         if (! in_array($dimension, $allowed, true)) {
             $dimension = 'product';
+        }
+
+        if ($dimension === 'branch') {
+            $branches = $this->branchSales($filters);
+
+            return [
+                'dimension' => 'branch',
+                'visible' => (bool) ($branches['visible'] ?? false),
+                'items' => $branches['items'] ?? [],
+            ];
         }
 
         $isAr = $filters['locale'] === 'ar';
@@ -925,12 +935,13 @@ class ExecutiveDashboardService
                 [
                     'id' => 'low_stock',
                     'level' => $low > 0 ? 'warning' : 'success',
-                    'title' => $isAr ? 'تنبيه مخزون منخفض' : 'Low stock alert',
+                    'title' => $isAr ? 'مخزون تحت الحد (رصيد ≤ 0)' : 'Low stock (qty ≤ 0)',
                     'badge' => $low > 0 ? ($isAr ? 'تحت الحد' : 'Below limit') : ($isAr ? 'ضمن الحد' : 'Within limit'),
                     'count' => $low,
+                    'examples' => $productNameList($snap['critical_items'] ?? []),
                     'body' => $isAr
-                        ? ($low > 0 ? "{$low} أصنافاً تحت حد إعادة الطلب." : 'كل الأصناف فوق حد إعادة الطلب.')
-                        : ($low > 0 ? "{$low} items are below reorder point." : 'All items are above reorder point.'),
+                        ? ($low > 0 ? "{$low} صنفاً برصيد صفر أو سالب." : 'لا توجد أصناف برصيد ≤ 0.')
+                        : ($low > 0 ? "{$low} SKUs have qty ≤ 0." : 'No SKUs at qty ≤ 0.'),
                 ],
                 [
                     'id' => 'waste-ops',
@@ -1099,8 +1110,8 @@ class ExecutiveDashboardService
         if ($stockCard && (int) $stockCard['value'] > 0) {
             $hot = (int) ($stockCard['meta']['high_turnover'] ?? 0);
             $items[] = $isAr
-                ? ((int) $stockCard['value'])." أصنافاً تحت حد إعادة الطلب".($hot ? " منها {$hot} عالية الحركة." : '.')
-                : ((int) $stockCard['value']).' items are below reorder point'.($hot ? ", including {$hot} high-turnover SKUs." : '.');
+                ? ((int) $stockCard['value']).' صنفاً برصيد ≤ 0'.($hot ? " منها {$hot} عالية الحركة." : '.')
+                : ((int) $stockCard['value']).' items with qty ≤ 0'.($hot ? ", including {$hot} high-turnover SKUs." : '.');
         }
 
         $recv = collect($kpis['cards'])->firstWhere('id', 'receivables');
@@ -1151,7 +1162,7 @@ class ExecutiveDashboardService
             'level' => 'warning',
             'label' => $isAr ? 'تحذير' : 'Warning',
             'count' => (int) $stock['count'],
-            'title' => $isAr ? 'أصناف تحت حد إعادة الطلب' : 'Items below reorder point',
+            'title' => $isAr ? 'أصناف برصيد ≤ 0' : 'Items with qty ≤ 0',
             'href' => $this->routeIfCan('inventory.dashboard', $filters),
         ];
 
@@ -1198,7 +1209,7 @@ class ExecutiveDashboardService
             [
                 'id' => 'low_stock',
                 'level' => 'warning',
-                'title' => $isAr ? 'أصناف تحت حد إعادة الطلب' : 'Items below reorder point',
+                'title' => $isAr ? 'أصناف برصيد ≤ 0' : 'Items with qty ≤ 0',
                 'count' => $stockCount,
                 'action_label' => $view,
                 'href' => $this->routeIfCan('inventory.dashboard', $filters),
@@ -1278,16 +1289,8 @@ class ExecutiveDashboardService
         $limit = $filters['limit'];
 
         if ($source === 'low_stock') {
-            return [
-                'title' => $isAr ? 'قائمة إعادة الطلب' : 'Reorder list',
-                'columns' => [
-                    ['key' => 'name', 'label' => $isAr ? 'الصنف' : 'Item'],
-                    ['key' => 'qty', 'label' => $isAr ? 'الكمية' : 'Qty'],
-                    ['key' => 'threshold', 'label' => $isAr ? 'الحد' : 'Limit'],
-                ],
-                'rows' => $this->lowStockRows($limit),
-                'report_url' => $this->routeIfCan('inventory.dashboard', $filters),
-            ];
+            // Same universe as «أهم العناصر الحرجة (رصيد ≤ 0)».
+            return $this->inventoryIssueDrilldown('critical-stock', $filters, max($limit, 50), $isAr);
         }
 
         if (in_array($source, ['zero-price', 'negative-margin'], true)) {
@@ -1664,27 +1667,42 @@ class ExecutiveDashboardService
     }
 
     /**
+     * Count of warehouse×product rows with on-hand qty ≤ 0 (matches critical items).
+     *
      * @return array{count: int, high_turnover: int}
      */
     protected function lowStock(array $filters): array
     {
         try {
-            $lowIds = DB::table('inventory_product_inventories as i')
-                ->leftJoin(DB::raw('(SELECT product_id, SUM(qty) AS total_qty FROM product_inventories GROUP BY product_id) as s'), 'i.product_id', '=', 's.product_id')
-                ->whereNotNull('i.threshold')
-                ->where('i.threshold', '>', 0)
-                ->whereRaw('COALESCE(s.total_qty, 0) < i.threshold')
-                ->pluck('i.product_id');
+            $stock = app(InventoryStockHealthService::class);
+            $warehouseIds = $stock->warehouseIds(
+                ! empty($filters['branch_id']) ? (int) $filters['branch_id'] : null,
+                $this->branchIds($filters)
+            );
 
-            $count = $lowIds->count();
+            if ($warehouseIds === []) {
+                return ['count' => 0, 'high_turnover' => 0];
+            }
+
+            $count = (int) DB::table('product_inventories')
+                ->whereIn('establishment_id', $warehouseIds)
+                ->where('qty', '<=', 0)
+                ->count();
+
             $high = 0;
             if ($count > 0 && $this->canSales()) {
+                $productIds = DB::table('product_inventories')
+                    ->whereIn('establishment_id', $warehouseIds)
+                    ->where('qty', '<=', 0)
+                    ->distinct()
+                    ->pluck('product_id');
+
                 $high = (int) DB::table('transaction_sell_lines as tsl')
                     ->join('transactions as t', 't.id', '=', 'tsl.transaction_id')
                     ->where('t.type', 'sell')
                     ->whereIn('t.status', self::VALID_STATUSES)
                     ->whereBetween('t.transaction_date', [$filters['start'], $filters['end']])
-                    ->whereIn('tsl.product_id', $lowIds)
+                    ->whereIn('tsl.product_id', $productIds)
                     ->distinct()
                     ->count('tsl.product_id');
             }
@@ -1692,35 +1710,6 @@ class ExecutiveDashboardService
             return ['count' => $count, 'high_turnover' => $high];
         } catch (\Throwable) {
             return ['count' => 0, 'high_turnover' => 0];
-        }
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    protected function lowStockRows(int $limit): array
-    {
-        try {
-            return DB::table('inventory_product_inventories as i')
-                ->leftJoin(DB::raw('(SELECT product_id, SUM(qty) AS total_qty FROM product_inventories GROUP BY product_id) as s'), 'i.product_id', '=', 's.product_id')
-                ->leftJoin('product_products as p', 'p.id', '=', 'i.product_id')
-                ->whereNotNull('i.threshold')
-                ->where('i.threshold', '>', 0)
-                ->whereRaw('COALESCE(s.total_qty, 0) < i.threshold')
-                ->selectRaw('i.product_id as id, COALESCE(p.name_ar, p.name_en) as name, COALESCE(s.total_qty, 0) as qty, i.threshold')
-                ->orderBy('qty')
-                ->limit($limit)
-                ->get()
-                ->map(fn ($row) => [
-                    'id' => (int) $row->id,
-                    'name' => (string) $row->name,
-                    'qty' => $this->formatNumber((float) $row->qty),
-                    'threshold' => $this->formatNumber((float) $row->threshold),
-                    'url' => $this->routeIfCan('productInventory.show', ['productInventory' => $row->id]) ?? $this->routeIfCan('inventory.dashboard', []),
-                ])
-                ->all();
-        } catch (\Throwable) {
-            return [];
         }
     }
 
