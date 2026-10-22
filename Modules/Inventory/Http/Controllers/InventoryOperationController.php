@@ -55,14 +55,27 @@ class InventoryOperationController extends Controller
             return response()->json(['message' => 'Not found'], 404);
         }
         $transaction->status = $validated['status'];
-        DB::transaction(function () use ($transaction) {
-            $transaction->save();
-            $related = Transaction::with('establishment')->where('parent_id', $transaction->id)->first();
-            if ($related) {
-                $related->status = $transaction->status;
-                $related->save();
-            }
-        });
+        try {
+            DB::transaction(function () use ($transaction) {
+                $transaction->save();
+                $related = Transaction::with('establishment')->where('parent_id', $transaction->id)->first();
+                if ($related) {
+                    $related->status = $transaction->status;
+                    $related->save();
+                }
+
+                if (\Modules\Accounting\Support\WasteDocument::isWaste($transaction)
+                    && in_array((string) $transaction->status, ['approved', 'final'], true)) {
+                    app(\Modules\Accounting\Services\WasteJournalPoster::class)
+                        ->postForTransaction($transaction->fresh(), null, true);
+                }
+            });
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'code' => 'waste_journal_failed',
+            ], 422);
+        }
         $transaction->status_name = $transaction->op_status;
 
         return response()->json($transaction);

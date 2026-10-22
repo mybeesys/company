@@ -16,6 +16,8 @@ const EditRowCompnent = ({
     submitTitle,
     submitAction,
     showSubmit = true,
+    layout = "split",
+    pageHint = "",
 }) => {
     const [disableSubmitButton, setSubmitdisableButton] = useState(false);
     const [menu, setMenu] = useState([]);
@@ -123,6 +125,78 @@ const EditRowCompnent = ({
         window.location.href = !!afterSubmitUrl ? afterSubmitUrl : `/${apiUrl}`;
     };
 
+    const pageTitle = !!!translations[type]
+        ? type
+        : `${!!!currentObject.id ? translations.Add : translations.Edit} ${
+              translations[type]
+          }`;
+
+    const submitButton = showSubmit ? (
+        <button
+            type="button"
+            onClick={!!!submitAction ? clickSubmit : submitAction}
+            disabled={disableSubmitButton}
+            className="btn btn-primary"
+        >
+            {!!!submitTitle ? translations.savechanges : submitTitle}
+        </button>
+    ) : null;
+
+    if (layout === "stacked") {
+        const extraSections = (defaultMenu || []).filter((_, index) => index > 0);
+
+        return (
+            <div className="waste-page" dir={dir}>
+                <SweetAlert2 />
+                <div className="waste-page-head">
+                    <div>
+                        <h1>{pageTitle}</h1>
+                        {pageHint ? <p>{pageHint}</p> : null}
+                    </div>
+                    <div className="waste-page-actions">
+                        <button
+                            type="button"
+                            className="btn btn-light"
+                            onClick={cancel}
+                        >
+                            {translations.cancel}
+                        </button>
+                        {submitButton}
+                    </div>
+                </div>
+                <form
+                    noValidate
+                    className="needs-validation"
+                    onSubmit={handleMainSubmit}
+                >
+                    <div className="card waste-card">
+                        <div className="card-header">
+                            <h2 className="card-title">
+                                {translations.wasteInfo ||
+                                    translations[defaultMenu[0]?.key] ||
+                                    pageTitle}
+                            </h2>
+                        </div>
+                        <div className="card-body p-0">
+                            {defaultMenu[0]?.comp}
+                        </div>
+                    </div>
+                    {extraSections.map((item) => (
+                        <div className="card waste-card" key={item.key}>
+                            <div className="card-header">
+                                <h2 className="card-title">
+                                    {translations[item.key] || item.key}
+                                </h2>
+                            </div>
+                            <div className="card-body">{item.comp}</div>
+                        </div>
+                    ))}
+                    <input type="submit" id="btnMainSubmit" hidden />
+                </form>
+            </div>
+        );
+    }
+
     return (
         <div>
             <SweetAlert2 />
@@ -131,13 +205,7 @@ const EditRowCompnent = ({
                     <div class="col-6">
                         <div class="d-flex align-items-center gap-2 gap-lg-3">
                             <h1>
-                                {!!!translations[type]
-                                    ? type
-                                    : `${
-                                          !!!currentObject.id
-                                              ? translations.Add
-                                              : translations.Edit
-                                      } ${translations[type]}`}
+                                {pageTitle}
                             </h1>
                         </div>
                     </div>

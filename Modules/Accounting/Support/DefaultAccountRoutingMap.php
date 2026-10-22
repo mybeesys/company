@@ -20,6 +20,27 @@ final class DefaultAccountRoutingMap
         return null;
     }
 
+    public static function firstAccountByNameNeedles(array $needles): ?AccountingAccount
+    {
+        foreach ($needles as $needle) {
+            $needle = trim((string) $needle);
+            if ($needle === '') {
+                continue;
+            }
+            $account = AccountingAccount::query()
+                ->where(function ($q) use ($needle) {
+                    $q->where('name_ar', 'like', '%'.$needle.'%')
+                        ->orWhere('name_en', 'like', '%'.$needle.'%');
+                })
+                ->first();
+            if ($account) {
+                return $account;
+            }
+        }
+
+        return null;
+    }
+
     public static function firstAccountByGlOrCategory(array $codes, array $categories = []): ?AccountingAccount
     {
         $account = self::firstAccountByGlCandidates($codes);
@@ -51,6 +72,10 @@ final class DefaultAccountRoutingMap
             $candidates['inventory_adjustment'],
             ['inventory_adjustment', 'COGS']
         ) ?? $cogs;
+        $wasteExpense = self::firstAccountByGlOrCategory($candidates['waste_expense'], ['inventory_adjustment', 'COGS'])
+            ?? self::firstAccountByNameNeedles(['هالك', 'إتلاف', 'اتلاف', 'Waste', 'Spoilage'])
+            ?? $inventoryAdj
+            ?? $cogs;
 
         $now = now();
         $stamp = [
@@ -138,6 +163,12 @@ final class DefaultAccountRoutingMap
                 'section' => 'perpetual_inventory',
                 'routing_type' => 'expense',
                 'account_id' => $cogs?->id,
+            ]),
+            array_merge($stamp, [
+                'type' => 'waste_expense',
+                'section' => 'waste',
+                'routing_type' => 'expense',
+                'account_id' => $wasteExpense?->id,
             ]),
         ];
     }

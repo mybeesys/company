@@ -29,6 +29,7 @@
                 '#perpetual_inventory_cogs_account',
                 '#periodic_inventory_adjustment_type_route',
                 '#periodic_inventory_adjustment_account',
+                '#waste_expense_account',
             ],
             '#accounts-routing-fiscal-close-tab': [
                 '#fiscal_close_current_period_result_account',

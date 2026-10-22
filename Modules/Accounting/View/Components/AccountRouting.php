@@ -22,6 +22,10 @@ class AccountRouting extends Component
 
     public $typeOptions;
 
+    public $selectedType;
+
+    public $selectedAccount;
+
     public function __construct(
         $section,
         $title,
@@ -30,7 +34,9 @@ class AccountRouting extends Component
         $accountSelectId,
         $accountSelectName,
         $accounts,
-        $typeOptions
+        $typeOptions,
+        $selectedType = null,
+        $selectedAccount = null
     ) {
         $this->section = $section;
         $this->title = $title;
@@ -40,6 +46,8 @@ class AccountRouting extends Component
         $this->accountSelectName = $accountSelectName;
         $this->accounts = $accounts;
         $this->typeOptions = $typeOptions;
+        $this->selectedType = $selectedType;
+        $this->selectedAccount = $selectedAccount;
     }
 
     public function render()

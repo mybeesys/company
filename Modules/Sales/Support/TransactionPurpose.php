@@ -14,6 +14,9 @@ final class TransactionPurpose
 
     public const INTERNAL_CONSUMPTION = 'internal_consumption';
 
+    /** Cashier / POS inventory write-off (إتلاف) — not a sales invoice. */
+    public const WASTE = 'waste';
+
     /** @deprecated alias accepted from mobile */
     public const STAFF_MEALS = 'staff_meals';
 
@@ -36,13 +39,18 @@ final class TransactionPurpose
             return self::INTERNAL_CONSUMPTION;
         }
 
+        if (in_array($value, ['waste', 'spoilage', 'inventory_waste'], true)) {
+            return self::WASTE;
+        }
+
         return self::STANDARD;
     }
 
     public static function isRequested(mixed $purpose, mixed $typeId = null): bool
     {
         $purposeStr = is_string($purpose) || $purpose === null ? $purpose : (string) $purpose;
-        if (self::normalize($purposeStr) === self::INTERNAL_CONSUMPTION) {
+        $normalized = self::normalize($purposeStr);
+        if ($normalized === self::INTERNAL_CONSUMPTION || $normalized === self::WASTE) {
             return true;
         }
 

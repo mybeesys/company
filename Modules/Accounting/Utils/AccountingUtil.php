@@ -179,6 +179,19 @@ class AccountingUtil
     }
 
     /**
+     * Waste write-off uses waste_expense routing; other expense invoices stay on the consumption type account.
+     */
+    public function postWasteOrInternalConsumptionJournal($transaction, $request = null, bool $required = false): bool
+    {
+        if (\Modules\Accounting\Support\WasteDocument::isWaste($transaction)) {
+            return app(\Modules\Accounting\Services\WasteJournalPoster::class)
+                ->postForTransaction($transaction, $request, $required);
+        }
+
+        return $this->postInternalConsumptionJournal($transaction, $request, $required);
+    }
+
+    /**
      * Internal consumption (staff meals / expense invoice): Dr expense account + Cr inventory at cost.
      * When charge differs from COGS, the difference is balanced on the same expense account.
      * No sales revenue / VAT / AR. Posts even when the POS shift is still open.
@@ -480,8 +493,8 @@ class AccountingUtil
 
     public function accounts_route($transactionPayment, $transaction, $cash_account_id, $due_account_id, $request)
     {
-        if (TransactionPurpose::isInternalConsumption($transaction)) {
-            return $this->postInternalConsumptionJournal($transaction, $request, true);
+        if (\Modules\Accounting\Support\WasteDocument::isExpenseLikePosDocument($transaction)) {
+            return $this->postWasteOrInternalConsumptionJournal($transaction, $request, true);
         }
 
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);

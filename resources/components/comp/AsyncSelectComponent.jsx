@@ -9,6 +9,7 @@ const AsyncSelectComponent = ({
     dir,
     searchUrl,
     isMulti,
+    classNamePrefix,
 }) => {
     const [selectedOption, setSelectedOption] = useState(null); // State to store the selected value
     const [options, setOptions] = useState([]); // State to store the options
@@ -121,20 +122,70 @@ const AsyncSelectComponent = ({
             options={options}
             defaultOptions={options}
             value={selectedOption}
+            classNamePrefix={classNamePrefix || undefined}
+            className={classNamePrefix || undefined}
             isDisabled={!field.editable && urlPar === "partiallyReceived"}
             styles={{
-                menuPortal: (base) => ({
+                container: (base) => ({
                     ...base,
-                    zIndex: 9999, // Ensure it’s above other elements
+                    width: "100%",
+                    minWidth: 0,
                 }),
+                control: (base) => ({
+                    ...base,
+                    minHeight: 42,
+                    height: 42,
+                    width: "100%",
+                    minWidth: 0,
+                    borderRadius: 8,
+                    boxShadow: "none",
+                }),
+                valueContainer: (base) => ({
+                    ...base,
+                    padding: "0 10px",
+                }),
+                singleValue: (base) => ({
+                    ...base,
+                    maxWidth: "100%",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                }),
+                option: (base) => ({
+                    ...base,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                }),
+                menu: (base) => ({
+                    ...base,
+                    width: "100%",
+                    minWidth: "100%",
+                    maxWidth: "100%",
+                    borderRadius: 8,
+                    overflow: "hidden",
+                }),
+                menuPortal: (base, props) => {
+                    const width =
+                        props?.rect?.width ||
+                        props?.controlElement?.getBoundingClientRect?.().width;
+                    return {
+                        ...base,
+                        zIndex: 100000,
+                        ...(width
+                            ? { width, minWidth: width, maxWidth: width }
+                            : {}),
+                    };
+                },
             }}
             menuPortalTarget={document.body}
             onChange={(e) =>
                 onBasicChange(field, {
+                    ...(e.data && typeof e.data === "object" ? e.data : {}),
                     id: e.value,
-                    name_er: e.label,
-                    name_en: e.label,
-                    name: e.label,
+                    name: e.data?.name ?? e.label,
+                    name_ar: e.data?.name_ar ?? e.data?.name ?? e.label,
+                    name_en: e.data?.name_en ?? e.label,
                     data: e.data,
                 })
             }

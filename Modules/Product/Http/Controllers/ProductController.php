@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\Establishment\Models\Establishment;
 use Modules\General\Models\Tax;
@@ -1189,13 +1190,71 @@ class ProductController extends Controller implements HasMiddleware
 
     public function getProductsByEstablishment($establishmentId)
     {
-        $products = DB::table('product_inventories')
-            ->join('product_products', 'product_inventories.product_id', '=', 'product_products.id')
-            ->where('product_inventories.establishment_id', $establishmentId)
-            ->select('product_products.*', 'product_inventories.*')
-            ->get();
+        $establishmentIds = $this->establishmentIdsWithChildren((int) $establishmentId);
+        $productIds = collect();
 
-        return response()->json($products);
+        if (Schema::hasTable('product_inventories')) {
+            $productIds = $productIds->merge(
+                DB::table('product_inventories')
+                    ->whereIn('establishment_id', $establishmentIds)
+                    ->pluck('product_id')
+            );
+        }
+
+        if (Schema::hasTable('product_establishment_products')) {
+            $assigned = DB::table('product_establishment_products')
+                ->whereIn('establishment_id', $establishmentIds);
+            if (Schema::hasColumn('product_establishment_products', 'deleted_at')) {
+                $assigned->whereNull('deleted_at');
+            }
+            $productIds = $productIds->merge($assigned->pluck('product_id'));
+        }
+
+        $productIds = $productIds
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        $query = Product::query()
+            ->whereIn('type', ['product', 'variable', 'ingredint', 'modifier'])
+            ->where(function ($inner) {
+                $inner->whereNull('active')->orWhere('active', 1);
+            });
+
+        if ($productIds->isNotEmpty()) {
+            $query->whereIn('id', $productIds);
+        }
+
+        $products = $query
+            ->orderBy('name_ar')
+            ->get(['id', 'name_ar', 'name_en', 'SKU', 'type', 'barcode']);
+
+        return response()->json($products->values());
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function establishmentIdsWithChildren(int $establishmentId): array
+    {
+        $ids = [$establishmentId];
+        if ($establishmentId <= 0) {
+            return $ids;
+        }
+
+        try {
+            $establishment = Establishment::query()->find($establishmentId);
+            if ($establishment) {
+                $ids = array_merge(
+                    $ids,
+                    $establishment->getAllDescendants()->pluck('id')->map(fn ($id) => (int) $id)->all()
+                );
+            }
+        } catch (\Throwable) {
+        }
+
+        return array_values(array_unique($ids));
     }
 
     public function getProductsByEstablishments(Request $request)

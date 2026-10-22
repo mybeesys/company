@@ -25,6 +25,7 @@ const TreeTableComponent = ({
     defaultValue,
     prepareData,
     validateObject,
+    hideCardTitle = false,
 }) => {
     const formRef = useRef(null);
 
@@ -624,9 +625,11 @@ const TreeTableComponent = ({
             <SweetAlert2 />
             <div class="card-header border-0 pt-5">
                 <h3 class="card-title align-items-start flex-column">
+                    {hideCardTitle ? null : (
                     <span class="card-label fw-bold fs-3 mb-1">
                         {translations[title]}
                     </span>
+                    )}
                 </h3>
                 <div class="card-toolbar">
                     <div class="d-flex align-items-center gap-2 gap-lg-3">

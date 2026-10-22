@@ -89,6 +89,7 @@ final class MyBeeMasterCoaRules
             'inventory' => ['11505', '11504', '11501', '1105'],
             'cogs' => ['51101', '50101'],
             'inventory_adjustment' => ['11601', '51101', '50105', '50101'],
+            'waste_expense' => ['51106', '11601', '51101'],
         ];
     }
 

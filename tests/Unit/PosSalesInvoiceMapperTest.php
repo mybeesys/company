@@ -99,6 +99,37 @@ final class PosSalesInvoiceMapperTest extends TestCase
         $this->assertEqualsWithDelta(0.0, (float) $transaction['discount_amount'], 0.0001);
     }
 
+    public function test_waste_purpose_is_not_overwritten_by_type_id(): void
+    {
+        $request = Request::create('/api/stor-sales-invoice', 'POST', [
+            'purpose' => 'waste',
+            'internal_consumption_type_id' => 9,
+            'invoice_type' => 'cash',
+            'total_before_discount' => 0,
+            'total_after_discount' => 0,
+            'total_tax' => 0,
+            'total_paid' => 8,
+            'discount_value' => 0,
+            'created_at' => '2026-10-22 12:00',
+            'customer_id' => null,
+            'user_id' => 1,
+            'establishment_id' => 6,
+            'status' => 'final',
+            'invoice_number' => 'WASTE-001',
+        ]);
+
+        $transaction = PosSalesInvoiceMapper::mapTransactionAttributes($request, [
+            'final_total' => 8,
+            'tax_amount' => 0,
+            'discount_amount' => 0,
+            'totalAfterDiscount' => 8,
+            'total_before_tax' => 8,
+            'purpose' => 'waste',
+        ]);
+
+        $this->assertSame('waste', $transaction['purpose']);
+    }
+
     public function test_maps_sell_line_when_price_after_discount_is_zero(): void
     {
         $item = (object) [

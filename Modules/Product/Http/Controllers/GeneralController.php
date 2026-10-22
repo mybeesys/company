@@ -12,13 +12,28 @@ class GeneralController extends Controller
 {
     public function searchEstablishments(Request $request)
     {
-        $query = $request->query('query');  // Get 'query' parameter
-        $key = $request->query('key', '');
-        $establishments = Establishment::where(function ($query) use ($key) {
-            $query->where('is_main', '=', 0);
-            $query->where('is_active', '=', 1);
-            $query->where('name', 'like', '%'.$key.'%');
-        })->take(10)->get();
+        $key = trim((string) $request->query('key', $request->query('query', '')));
+
+        $establishments = Establishment::query()
+            ->notMain()
+            ->active()
+            ->when($key !== '', function ($query) use ($key) {
+                $query->where(function ($inner) use ($key) {
+                    $inner->where('name', 'like', '%'.$key.'%')
+                        ->orWhere('name_en', 'like', '%'.$key.'%');
+                });
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'name_en'])
+            ->map(function (Establishment $establishment) {
+                return [
+                    'id' => $establishment->id,
+                    'name' => $establishment->name,
+                    'name_ar' => $establishment->name,
+                    'name_en' => $establishment->name_en,
+                ];
+            })
+            ->values();
 
         return response()->json($establishments);
     }
