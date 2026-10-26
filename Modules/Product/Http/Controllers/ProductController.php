@@ -52,9 +52,9 @@ class ProductController extends Controller implements HasMiddleware
         'active' => 'nullable|boolean',
         'SKU' => 'nullable|string',
         'barcode' => 'nullable|string',
-        'cost' => 'required|numeric',
-        'price' => 'numeric',
-        'price_with_tax' => 'numeric',
+        'cost' => 'nullable|numeric',
+        'price' => 'nullable|numeric',
+        'price_with_tax' => 'nullable|numeric',
         'description_ar' => 'nullable|string',
         'description_en' => 'nullable|string',
         'class' => 'nullable|string',
@@ -62,6 +62,7 @@ class ProductController extends Controller implements HasMiddleware
         'method' => 'nullable|string',
         'sold_by_weight' => 'nullable|boolean',
         'track_serial_number' => 'nullable|boolean',
+        'for_sell' => 'nullable|boolean',
         'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'image' => 'nullable|string',
         'color' => 'nullable|string',
@@ -75,7 +76,7 @@ class ProductController extends Controller implements HasMiddleware
         'promot_upsell' => 'nullable|numeric',
         'preparation_time' => 'nullable|numeric',
         'calories' => 'nullable|numeric',
-        'show_in_menu' => 'required|boolean',
+        'show_in_menu' => 'nullable|boolean',
         'allergens' => 'nullable',
     ];
 
@@ -284,6 +285,7 @@ class ProductController extends Controller implements HasMiddleware
     public function store(Request $request)
     {
         ProductAccess::authorizeMutation($request, 'product');
+        $this->normalizeProductRequest($request);
         error_log(json_encode($request->all()));
 
         $validated = $request->validate($this->requetsValidator);
@@ -317,6 +319,112 @@ class ProductController extends Controller implements HasMiddleware
         }
 
         return response()->json(['message' => 'Done']);
+    }
+
+    /**
+     * Axios multipart turns null into "" (then Laravel null) and booleans into
+     * "true"/"false". Those values fail numeric/boolean rules with HTTP 422.
+     */
+    protected function normalizeProductRequest(Request $request): void
+    {
+        $merge = [];
+
+        foreach (['cost', 'price', 'price_with_tax'] as $field) {
+            $value = $request->input($field);
+            if ($value === null || $value === '') {
+                $merge[$field] = 0;
+            }
+        }
+
+        foreach ([
+            'order',
+            'commissions',
+            'recipe_yield',
+            'promot_upsell',
+            'preparation_time',
+            'calories',
+            'tax_id',
+        ] as $field) {
+            if (! $request->exists($field)) {
+                continue;
+            }
+            $value = $request->input($field);
+            if ($value === null || $value === '') {
+                $merge[$field] = null;
+            }
+        }
+
+        foreach ([
+            'active',
+            'sold_by_weight',
+            'track_serial_number',
+            'show_in_menu',
+            'prep_recipe',
+            'group_combo',
+            'set_price',
+            'use_upcharge',
+            'linked_combo',
+            'for_sell',
+        ] as $field) {
+            if (! $request->exists($field)) {
+                continue;
+            }
+            $merge[$field] = $this->normalizeBooleanFlag($request->input($field));
+        }
+
+        if (! $request->exists('show_in_menu')) {
+            $merge['show_in_menu'] = 0;
+        }
+
+        if ($request->exists('allergens')) {
+            $allergens = $request->input('allergens');
+            if (is_string($allergens)) {
+                $decoded = json_decode($allergens, true);
+                $allergens = is_array($decoded) ? $decoded : [];
+            }
+            if (is_array($allergens)) {
+                $merge['allergens'] = array_values(array_filter(array_map(static function ($item) {
+                    if (is_array($item)) {
+                        $value = $item['value'] ?? null;
+
+                        return is_string($value) && $value !== '' ? $value : null;
+                    }
+
+                    return is_string($item) && $item !== '' ? $item : null;
+                }, $allergens)));
+            } else {
+                $merge['allergens'] = [];
+            }
+        }
+
+        if ($request->has('image_file') && ! $request->hasFile('image_file')) {
+            $request->request->remove('image_file');
+            $request->files->remove('image_file');
+        }
+
+        if ($merge !== []) {
+            $request->merge($merge);
+        }
+    }
+
+    protected function normalizeBooleanFlag(mixed $value): int
+    {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_numeric($value)) {
+            return ((int) $value) === 1 ? 1 : 0;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            if (in_array($normalized, ['1', 'true', 'on', 'yes'], true)) {
+                return 1;
+            }
+        }
+
+        return 0;
     }
 
     protected function saveProduct($validated, $request)

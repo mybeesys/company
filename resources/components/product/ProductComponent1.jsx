@@ -114,37 +114,111 @@ const ProductComponent1 = ({ translations, dir }) => {
         return res;
     };
 
-    const handleUniqueError = (data) => {
+    const showSaveError = (text, html = null) => {
         setShowAlert(true);
-        Swal.fire({
-            show: showAlert,
+        const options = {
             title: "Error",
-            html: `<div>${translations.exist}</div>${getErrorMessage(data)}`,
             icon: "error",
-            timer: 4000,
+            timer: html ? 5000 : 2500,
             showCancelButton: false,
             showConfirmButton: false,
-        }).then(() => {
-            setShowAlert(false); // Reset the state after alert is dismissed
+        };
+        if (html) {
+            options.html = html;
+        } else {
+            options.text = text || translations.technicalerror;
+        }
+        Swal.fire(options).then(() => {
+            setShowAlert(false);
         });
     };
+
+    const handleUniqueError = (data) => {
+        showSaveError(
+            null,
+            `<div>${translations.exist}</div>${getErrorMessage(data)}`
+        );
+    };
+
+    const toFlag = (value) => (value ? 1 : 0);
+
+    const toNumberOrZero = (value) => {
+        if (value === null || value === undefined || value === "") {
+            return 0;
+        }
+        const n = Number(value);
+        return Number.isFinite(n) ? n : 0;
+    };
+
+    const normalizeAllergens = (value) => {
+        let allergens = value;
+        if (typeof allergens === "string") {
+            try {
+                allergens = JSON.parse(allergens);
+            } catch (e) {
+                return [];
+            }
+        }
+        if (!Array.isArray(allergens)) {
+            return [];
+        }
+        return allergens
+            .map((item) => (item && typeof item === "object" ? item.value : item))
+            .filter((item) => typeof item === "string" && item !== "");
+    };
+
+    const validationErrorHtml = (errors) => {
+        if (!errors || typeof errors !== "object") {
+            return null;
+        }
+        const messages = Object.values(errors)
+            .flat()
+            .filter(Boolean);
+        if (!messages.length) {
+            return null;
+        }
+        return `<div>${messages
+            .map((msg) => `<div>${msg}</div>`)
+            .join("")}</div>`;
+    };
+
     const saveChanges = async () => {
         try {
             setSubmitdisableButton(true);
             let r = { ...currentObject };
 
-            r["active"] ? (r["active"] = 1) : (r["active"] = 0);
-            r["for_sell"] ? (r["for_sell"] = 1) : (r["for_sell"] = 0);
-            r["show_in_menu"]
-                ? (r["show_in_menu"] = 1)
-                : (r["show_in_menu"] = 0);
-            r["track_serial_number"]
-                ? (r["track_serial_number"] = 1)
-                : (r["track_serial_number"] = 0);
-            r["sold_by_weight"]
-                ? (r["sold_by_weight"] = 1)
-                : (r["sold_by_weight"] = 0);
-            r["modifiers"] = [...currentModifiers];
+            r.active = toFlag(r.active);
+            r.for_sell = toFlag(r.for_sell);
+            r.show_in_menu = toFlag(r.show_in_menu);
+            r.track_serial_number = toFlag(r.track_serial_number);
+            r.sold_by_weight = toFlag(r.sold_by_weight);
+            r.prep_recipe = toFlag(r.prep_recipe);
+            r.group_combo = toFlag(r.group_combo);
+            r.set_price = toFlag(r.set_price);
+            r.use_upcharge = toFlag(r.use_upcharge);
+            r.linked_combo = toFlag(r.linked_combo);
+            r.cost = toNumberOrZero(r.cost);
+            r.price = toNumberOrZero(r.price);
+            r.price_with_tax = toNumberOrZero(r.price_with_tax);
+            r.allergens = normalizeAllergens(r.allergens);
+
+            if (!(r.image_file instanceof File) && !(r.image_file instanceof Blob)) {
+                delete r.image_file;
+            }
+
+            [
+                "category",
+                "subcategory",
+                "tax",
+                "unitTransfer",
+                "created_at",
+                "updated_at",
+                "deleted_at",
+            ].forEach((key) => {
+                delete r[key];
+            });
+
+            r.modifiers = [...currentModifiers];
             let transfer = [...unitTransfer];
 
             if (!!productUnit) {
@@ -156,13 +230,14 @@ const ProductComponent1 = ({ translations, dir }) => {
                         transfer: -100,
                         primary: -100,
                     });
-                else transfer.push(productUnit); //{ id: 0 , unit1: productUnit , unit2: -100 , transfer: -100 , primary :-100});
+                else transfer.push(productUnit);
             }
             const sortedItems = [...transfer].sort((a, b) => a.id - b.id);
-            r["transfer"] = [...sortedItems];
-            r["establishments"] = selectedEstablishments.map((id) => ({
+            r.transfer = [...sortedItems];
+            r.establishments = selectedEstablishments.map((id) => ({
                 id: id,
             }));
+
             const response = await axios.post(producturl, r, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -173,32 +248,14 @@ const ProductComponent1 = ({ translations, dir }) => {
             } else if (response.data.message == "UNIQUE") {
                 handleUniqueError(response.data.data);
             } else {
-                setShowAlert(true);
-                Swal.fire({
-                    show: showAlert,
-                    title: "Error",
-                    text: translations.technicalerror,
-                    icon: "error",
-                    timer: 2000,
-                    showCancelButton: false,
-                    showConfirmButton: false,
-                }).then(() => {
-                    setShowAlert(false); // Reset the state after alert is dismissed
-                });
+                showSaveError(translations.technicalerror);
             }
         } catch (error) {
-            setShowAlert(true);
-            Swal.fire({
-                show: showAlert,
-                title: "Error",
-                text: translations.technicalerror,
-                icon: "error",
-                timer: 2000,
-                showCancelButton: false,
-                showConfirmButton: false,
-            }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
-            });
+            const html = validationErrorHtml(error?.response?.data?.errors);
+            showSaveError(
+                error?.response?.data?.message || translations.technicalerror,
+                html
+            );
             console.error("There was an error adding the product!", error);
         }
         setSubmitdisableButton(false);
@@ -403,18 +460,7 @@ const ProductComponent1 = ({ translations, dir }) => {
             document.getElementById("linkedCombo_tab").click();
         }
         if (!valid) {
-            setShowAlert(true);
-            Swal.fire({
-                show: showAlert,
-                title: "Error",
-                text: errorMessage,
-                icon: "error",
-                timer: 4000,
-                showCancelButton: false,
-                showConfirmButton: false,
-            }).then(() => {
-                setShowAlert(false); // Reset the state after alert is dismissed
-            });
+            showSaveError(errorMessage);
             return false;
         }
         return true;
