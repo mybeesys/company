@@ -802,6 +802,16 @@
             background: var(--category-overlay);
         }
 
+        .category-card .image-wrapper--placeholder .overlay {
+            background:
+                linear-gradient(180deg, rgba(15, 23, 42, 0.16) 0%, rgba(15, 23, 42, 0.42) 100%),
+                rgba(15, 23, 42, 0.18);
+        }
+
+        .category-card .image-wrapper--placeholder img {
+            filter: saturate(0.92) brightness(0.96);
+        }
+
         .category-card .category-title {
             position: absolute;
             bottom: 10px;
@@ -2313,14 +2323,13 @@
                         @foreach ($categories as $category)
                             @php
                                 $firstProduct = $category->products->first();
-                                $imageUrl =
-                                    $firstProduct && $firstProduct->image
-                                        ? asset($firstProduct->image)
-                                        : asset('menuplacholder.jpg');
+                                $categoryImage = menu_product_image($firstProduct->image ?? null);
+                                $imageUrl = $categoryImage['url'];
+                                $isCategoryPlaceholder = $categoryImage['is_placeholder'];
                             @endphp
 
                             <a href="#category-{{ $category->id }}" class="category-card">
-                                <div class="image-wrapper">
+                                <div class="image-wrapper{{ $isCategoryPlaceholder ? ' image-wrapper--placeholder' : '' }}">
                                     <img src="{{ $imageUrl }}"
                                         alt="{{ app()->currentLocale() == 'ar' ? $category->name_ar : $category->name_en }}">
                                     <div class="overlay"></div>
