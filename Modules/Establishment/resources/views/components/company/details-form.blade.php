@@ -149,13 +149,9 @@
 
         @php
             $logoPath = $company?->logo;
-            if ($logoPath && function_exists('central_public_storage_url_for_path')) {
-                $logoUrl = central_public_storage_url_for_path((string) $logoPath);
-            } elseif ($logoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($logoPath)) {
-                $logoUrl = asset('storage/' . ltrim($logoPath, '/'));
-            } else {
-                $logoUrl = asset('assets/media/svg/avatars/blank.svg');
-            }
+            $logoUrl = ($logoPath && function_exists('resolve_public_storage_url'))
+                ? resolve_public_storage_url((string) $logoPath)
+                : asset('assets/media/svg/avatars/blank.svg');
         @endphp
 
         <div class="image-input image-input-outline company-logo-image-input image-input-placeholder mb-3" data-kt-image-input="true">
@@ -246,10 +242,9 @@
         $coverSetting = $settings->where('key', 'menu_cover_image')->first();
         $coverPath = $coverSetting?->value;
 
-        if ($coverPath && Storage::disk('public')->exists($coverPath)) {
+        if ($coverPath && function_exists('resolve_public_storage_url')) {
             $version = $coverSetting?->updated_at?->timestamp ?? now()->timestamp;
-            $tenantPrefix = tenancy()->tenant ? ('tenant' . tenancy()->tenant->id . '/') : '';
-            $coverUrl = asset('storage/' . $tenantPrefix . ltrim($coverPath, '/')) . '?v=' . $version;
+            $coverUrl = resolve_public_storage_url((string) $coverPath).'?v='.$version;
         } else {
             $coverUrl = asset('assets/media/svg/avatars/blank.svg');
         }

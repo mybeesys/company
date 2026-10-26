@@ -474,7 +474,7 @@ class OrderController extends Controller
         $socialLinks = Setting::whereIn('key', $socialKeys)->pluck('value', 'key')->toArray();
 
         $companyLogoUrl = ($company && ! empty($company->logo))
-            ? central_public_storage_url_for_path((string) $company->logo)
+            ? resolve_public_storage_url((string) $company->logo)
             : asset('assets/media/avatars/blank.png');
 
         $mapLat = $menuToken->map_lat;

@@ -2155,7 +2155,7 @@
     @php
         $coverPath = $socialLinks['menu_cover_image'] ?? null;
         $menuCoverUrl = $coverPath
-            ? tenant_public_storage_url_for_db_path((string) $coverPath)
+            ? resolve_public_storage_url((string) $coverPath)
             : asset('11.jpeg');
         if ($coverPath && preg_match('/-(\d+)\.[A-Za-z0-9]+$/', (string) $coverPath, $coverVer)) {
             $menuCoverUrl .= (str_contains($menuCoverUrl, '?') ? '&' : '?') . 'v=' . $coverVer[1];

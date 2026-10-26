@@ -226,6 +226,38 @@ if (! function_exists('central_public_storage_url_for_path')) {
     }
 }
 
+if (! function_exists('resolve_public_storage_url')) {
+    /**
+     * Company logo and menu cover are stored on the tenant public disk.
+     * Prefer the tenant URL (/storage/tenant{id}/...) so nginx can serve the file.
+     * Fall back to the central /storage path only for older files that are not on the tenant disk.
+     */
+    function resolve_public_storage_url(string $path): string
+    {
+        $relative = str_replace('\\', '/', trim($path));
+        if (preg_match('#^https?://#i', $relative)) {
+            return $relative;
+        }
+        if (str_starts_with($relative, '/storage/')) {
+            $relative = ltrim(substr($relative, 9), '/');
+        } elseif (str_starts_with($relative, 'storage/')) {
+            $relative = ltrim(substr($relative, 8), '/');
+        }
+        $relative = ltrim($relative, '/');
+
+        $onTenantDisk = $relative !== ''
+            && function_exists('tenancy')
+            && tenancy()->tenant
+            && \Illuminate\Support\Facades\Storage::disk('public')->exists($relative);
+
+        if ($onTenantDisk) {
+            return tenant_public_storage_url_for_db_path($path);
+        }
+
+        return central_public_storage_url_for_path($path);
+    }
+}
+
 if (! function_exists('convertToHoursMinutesHelper')) {
     function convertToHoursMinutesHelper($totalMinutes)
     {
