@@ -108,7 +108,7 @@ class CompanyController extends Controller
                 if ($request->hasFile('logo')) {
                     $file = $request->file('logo');
                     $oldLogoPath = $company->logo ?? null;
-                    $fileName = 'company-'.$companyId.'-'.time().'.'.$file->getClientOriginalExtension();
+                    $fileName = 'company-'.$companyId.'-'.time().'.'.$this->uploadedImageExtension($file);
                     $path = $file->storeAs('companies/logos', $fileName, 'public');
                     $dataToUpdate['logo'] = $path;
 
@@ -130,19 +130,20 @@ class CompanyController extends Controller
                 }
 
                 foreach ($socialKeys as $key) {
-                    if ($request->has($key)) {
-                        Setting::updateOrCreate(
-                            ['key' => $key],
-                            ['value' => $request->input($key) ?? '']
-                        );
+                    if ($key === 'menu_cover_image' || ! $request->has($key) || $request->hasFile($key)) {
+                        continue;
                     }
+                    Setting::updateOrCreate(
+                        ['key' => $key],
+                        ['value' => $request->input($key) ?? '']
+                    );
                 }
 
                 if ($request->hasFile('menu_cover_image')) {
                     $file = $request->file('menu_cover_image');
                     $oldCoverPath = Setting::where('key', 'menu_cover_image')->value('value');
 
-                    $fileName = 'company-'.$companyId.'-'.time().'.'.$file->getClientOriginalExtension();
+                    $fileName = 'company-'.$companyId.'-'.time().'.'.$this->uploadedImageExtension($file);
                     $path = $file->storeAs('menu-covers', $fileName, 'public');
 
                     if ($oldCoverPath && Storage::disk('public')->exists($oldCoverPath)) {
@@ -168,5 +169,13 @@ class CompanyController extends Controller
                 return response()->json(['error' => __('establishment::responses.something_wrong_happened')], 500);
             }
         }
+    }
+
+    private function uploadedImageExtension($file): string
+    {
+        $extension = strtolower((string) ($file->getClientOriginalExtension() ?: $file->extension() ?: $file->guessExtension()));
+        $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?? '';
+
+        return in_array($extension, ['jpg', 'jpeg', 'png'], true) ? $extension : 'jpg';
     }
 }

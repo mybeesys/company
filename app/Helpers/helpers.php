@@ -228,29 +228,17 @@ if (! function_exists('central_public_storage_url_for_path')) {
 
 if (! function_exists('resolve_public_storage_url')) {
     /**
-     * Company logo and menu cover are stored on the tenant public disk.
-     * Prefer the tenant URL (/storage/tenant{id}/...) so nginx can serve the file.
-     * Fall back to the central /storage path only for older files that are not on the tenant disk.
+     * Company logo and menu cover live on the tenant public disk.
+     * Always use /storage/tenant{id}/... on a tenant host. The central
+     * /storage/... URL is blocked by nginx (403).
      */
     function resolve_public_storage_url(string $path): string
     {
-        $relative = str_replace('\\', '/', trim($path));
-        if (preg_match('#^https?://#i', $relative)) {
-            return $relative;
+        if (preg_match('#^https?://#i', trim($path))) {
+            return trim($path);
         }
-        if (str_starts_with($relative, '/storage/')) {
-            $relative = ltrim(substr($relative, 9), '/');
-        } elseif (str_starts_with($relative, 'storage/')) {
-            $relative = ltrim(substr($relative, 8), '/');
-        }
-        $relative = ltrim($relative, '/');
 
-        $onTenantDisk = $relative !== ''
-            && function_exists('tenancy')
-            && tenancy()->tenant
-            && \Illuminate\Support\Facades\Storage::disk('public')->exists($relative);
-
-        if ($onTenantDisk) {
+        if (function_exists('tenancy') && tenancy()->tenant) {
             return tenant_public_storage_url_for_db_path($path);
         }
 
