@@ -242,9 +242,9 @@
         $coverSetting = $settings->where('key', 'menu_cover_image')->first();
         $coverPath = $coverSetting?->value;
 
-        if ($coverPath && function_exists('resolve_public_storage_url')) {
+        if ($coverPath) {
             $version = $coverSetting?->updated_at?->timestamp ?? now()->timestamp;
-            $coverUrl = resolve_public_storage_url((string) $coverPath).'?v='.$version;
+            $coverUrl = route('reservation.menuCover').'?v='.$version;
         } else {
             $coverUrl = asset('assets/media/svg/avatars/blank.svg');
         }
