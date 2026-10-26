@@ -2154,11 +2154,12 @@
 
     @php
         $coverPath = $socialLinks['menu_cover_image'] ?? null;
-        $menuCoverUrl = $coverPath
-            ? resolve_public_storage_url((string) $coverPath)
-            : asset('11.jpeg');
-        if ($coverPath && preg_match('/-(\d+)\.[A-Za-z0-9]+$/', (string) $coverPath, $coverVer)) {
-            $menuCoverUrl .= (str_contains($menuCoverUrl, '?') ? '&' : '?') . 'v=' . $coverVer[1];
+        $menuCoverUrl = asset('11.jpeg');
+        if ($coverPath) {
+            $menuCoverUrl = route('reservation.menuCover');
+            if (preg_match('/-(\d+)/', (string) $coverPath, $coverVer)) {
+                $menuCoverUrl .= '?v='.$coverVer[1];
+            }
         }
         $mapEmbedUrl = null;
         if (!empty($mapLat) && !empty($mapLng)) {

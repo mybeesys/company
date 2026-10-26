@@ -49,21 +49,54 @@
             return 'height: 36.05px !important;  min-height: 36.05px !important;';
         });
 
-        $('form').on('submit', function(e) {
+        $('#company_settings_form').on('submit', function(e) {
             e.preventDefault();
 
-            ajaxRequest("{{ route('companies.update', ['id' => $company->id]) }}", "PATCH", $(this)
-                .serializeArray()).fail(
-                function(data) {
-                    $.each(data.responseJSON.errors, function(key, value) {
-                        $(`[name='${key}']`).addClass('is-invalid');
-                        $(`[name='${key}']`).after('<div class="invalid-feedback">' + value + '</div>');
-                    });
-                });
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').remove();
+
+            $.ajax({
+                url: "{{ route('companies.update', ['id' => $company->id]) }}",
+                type: "POST",
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'X-HTTP-Method-Override': 'PATCH'
+                },
+                success: function(response) {
+                    if (response.company_name) {
+                        $('.navbar-company-chip-name').text(response.company_name);
+                    }
+                    if (typeof showAlert === 'function') {
+                        showAlert(response.message, Lang.get('general.close'), undefined, "btn-primary", false, "success");
+                    }
+                },
+                error: function(data) {
+                    if (data.status === 422 && data.responseJSON && data.responseJSON.errors) {
+                        $.each(data.responseJSON.errors, function(key, value) {
+                            let input = $(`[name='${key}']`);
+                            let message = Array.isArray(value) ? value[0] : value;
+                            if (input.length) {
+                                input.addClass('is-invalid');
+                                input.after('<div class="invalid-feedback">' + message + '</div>');
+                            }
+                        });
+                        return;
+                    }
+                    if (typeof errorAlert === 'function') {
+                        errorAlert();
+                    }
+                }
+            });
         });
 
         $(`#company_settings_form input`).on('change', function() {
             let input = $(this);
+            if (input.attr('type') === 'file') {
+                return;
+            }
             validateField(input, "{{ route('companies.update.validation') }}", $(`#company_settings_form_button`));
         });
     </script>

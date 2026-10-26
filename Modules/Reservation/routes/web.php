@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\General\Support\SettingPermissions;
 use Modules\Reservation\Http\Controllers\AreaController;
+use Modules\Reservation\Http\Controllers\MenuCoverController;
 use Modules\Reservation\Http\Controllers\OrderController;
 use Modules\Reservation\Http\Controllers\TableController;
 use Modules\Reservation\Http\Controllers\TableStatusTypeController;
@@ -94,6 +95,7 @@ Route::middleware([
 
     Route::get('/menu/{id}', [OrderController::class, 'menu'])->name('reservation.menu');
     Route::get('/menuSimple/{token}', [OrderController::class, 'menuSimple'])->name('reservation.menuSimple');
+    Route::get('/menu-cover-image', [MenuCoverController::class, 'show'])->name('reservation.menuCover');
     Route::post('/menuSimple/{token}/feedback', [OrderController::class, 'storeMenuFeedback'])->name('reservation.menuSimple.feedback');
     Route::get('/order/products', [OrderController::class, 'products'])->name('order.products');
 });

@@ -43,6 +43,7 @@ class EnsureHasSubscription
             // Public menu / QR: no subscription DB round-trip on every guest page load
             'reservation.menu',
             'reservation.menuSimple',
+            'reservation.menuCover',
             'reservation.menuSimple.feedback',
             'order.products',
         ];

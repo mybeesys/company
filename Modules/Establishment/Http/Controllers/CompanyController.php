@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Support\TenantPublicImage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Log;
 use Modules\Establishment\Http\Requests\UpdateCompanyRequest;
 use Modules\General\Models\Setting;
@@ -108,12 +108,10 @@ class CompanyController extends Controller
                 if ($request->hasFile('logo')) {
                     $file = $request->file('logo');
                     $oldLogoPath = $company->logo ?? null;
-                    $fileName = 'company-'.$companyId.'-'.time().'.'.$this->uploadedImageExtension($file);
-                    $path = $file->storeAs('companies/logos', $fileName, 'public');
-                    $dataToUpdate['logo'] = $path;
+                    $dataToUpdate['logo'] = TenantPublicImage::store($file, 'companies/logos', $companyId);
 
-                    if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
-                        Storage::disk('public')->delete($oldLogoPath);
+                    if ($oldLogoPath && $oldLogoPath !== $dataToUpdate['logo']) {
+                        TenantPublicImage::delete($oldLogoPath);
                     }
                 }
 
@@ -142,12 +140,10 @@ class CompanyController extends Controller
                 if ($request->hasFile('menu_cover_image')) {
                     $file = $request->file('menu_cover_image');
                     $oldCoverPath = Setting::where('key', 'menu_cover_image')->value('value');
+                    $path = TenantPublicImage::store($file, 'menu-covers', $companyId);
 
-                    $fileName = 'company-'.$companyId.'-'.time().'.'.$this->uploadedImageExtension($file);
-                    $path = $file->storeAs('menu-covers', $fileName, 'public');
-
-                    if ($oldCoverPath && Storage::disk('public')->exists($oldCoverPath)) {
-                        Storage::disk('public')->delete($oldCoverPath);
+                    if ($oldCoverPath && $oldCoverPath !== $path) {
+                        TenantPublicImage::delete($oldCoverPath);
                     }
 
                     Setting::updateOrCreate(
@@ -171,11 +167,4 @@ class CompanyController extends Controller
         }
     }
 
-    private function uploadedImageExtension($file): string
-    {
-        $extension = strtolower((string) ($file->getClientOriginalExtension() ?: $file->extension() ?: $file->guessExtension()));
-        $extension = preg_replace('/[^a-z0-9]+/', '', $extension) ?? '';
-
-        return in_array($extension, ['jpg', 'jpeg', 'png'], true) ? $extension : 'jpg';
-    }
 }
