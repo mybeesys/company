@@ -8,13 +8,15 @@
     $unitName = optional($product->unitTransfers->first())->unit1;
     $modifiersCount = $product->modifiers?->count() ?? 0;
     $hasCombo = (bool) $product->group_combo || ($product->combos && $product->combos->isNotEmpty());
-    $imageUrl = $product->image ? asset($product->image) : asset('menuplacholder.jpg');
+    $productImage = menu_product_image($product->image ?? null);
+    $imageUrl = $productImage['url'];
+    $isPlaceholderImage = $productImage['is_placeholder'];
 @endphp
 
 <div class="pm-detail">
-    <div class="pm-detail__hero">
+    <div class="pm-detail__hero{{ $isPlaceholderImage ? ' pm-detail__hero--placeholder' : '' }}">
         <img src="{{ $imageUrl }}" alt="{{ $productName }}" class="pm-detail__image">
-        <div class="pm-detail__hero-fade"></div>
+        <div class="pm-detail__hero-fade" aria-hidden="true"></div>
         <div class="pm-detail__badges">
             @if ($product->promot_upsell)
                 <span class="pm-badge pm-badge--popular">@lang('reservation::lang.menu_product_badge_popular')</span>

@@ -246,6 +246,61 @@ if (! function_exists('resolve_public_storage_url')) {
     }
 }
 
+if (! function_exists('menu_product_placeholder_url')) {
+    function menu_product_placeholder_url(): string
+    {
+        return asset('menuplacholder.jpg');
+    }
+}
+
+if (! function_exists('menu_product_image_is_placeholder')) {
+    /**
+     * True when the product has no real photo (empty, default images.png, or blank asset).
+     */
+    function menu_product_image_is_placeholder(?string $image): bool
+    {
+        $image = trim(str_replace('\\', '/', (string) $image));
+        if ($image === '') {
+            return true;
+        }
+
+        $basename = strtolower(basename(parse_url($image, PHP_URL_PATH) ?: $image));
+
+        return in_array($basename, [
+            'menuplacholder.jpg',
+            'images.png',
+            'blank-image.svg',
+            'blank.png',
+            'blank.svg',
+        ], true);
+    }
+}
+
+if (! function_exists('menu_product_image')) {
+    /**
+     * @return array{url: string, is_placeholder: bool}
+     */
+    function menu_product_image(?string $image): array
+    {
+        if (menu_product_image_is_placeholder($image)) {
+            return [
+                'url' => menu_product_placeholder_url(),
+                'is_placeholder' => true,
+            ];
+        }
+
+        $path = trim((string) $image);
+        $url = preg_match('#^https?://#i', $path)
+            ? $path
+            : asset(ltrim($path, '/'));
+
+        return [
+            'url' => $url,
+            'is_placeholder' => false,
+        ];
+    }
+}
+
 if (! function_exists('convertToHoursMinutesHelper')) {
     function convertToHoursMinutesHelper($totalMinutes)
     {

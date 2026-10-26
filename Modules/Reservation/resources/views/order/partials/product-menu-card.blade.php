@@ -5,7 +5,9 @@
         ? ($locale === 'ar' ? ($product->subcategory->name_ar ?? '') : ($product->subcategory->name_en ?? ''))
         : '';
     $detailTplId = 'product-detail-tpl-' . $product->id . '-' . ($tplSuffix ?? 'main');
-    $imageUrl = $product->image ? asset($product->image) : asset('menuplacholder.jpg');
+    $productImage = menu_product_image($product->image ?? null);
+    $imageUrl = $productImage['url'];
+    $isPlaceholderImage = $productImage['is_placeholder'];
     $hasCombo = (bool) $product->group_combo || ($product->combos && $product->combos->isNotEmpty());
 @endphp
 
@@ -19,7 +21,7 @@
         aria-label="{{ $productName }} — @lang('reservation::lang.menu_product_view_details')"
         @include('reservation::order.partials.product-allergen-data-attr', ['product' => $product])
     >
-        <div class="pm-card__media product-card-image-wrap">
+        <div class="pm-card__media product-card-image-wrap{{ $isPlaceholderImage ? ' pm-card__media--placeholder' : '' }}">
             <img src="{{ $imageUrl }}" class="pm-card__image w-100" alt="{{ $productName }}" loading="lazy">
             <div class="pm-card__media-overlay" aria-hidden="true"></div>
             <div class="pm-card__badges">
