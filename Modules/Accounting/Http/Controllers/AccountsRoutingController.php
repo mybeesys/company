@@ -97,6 +97,7 @@ class AccountsRoutingController extends Controller
             'periodic_inventory_adjustment' => 'expense',
             'perpetual_inventory_asset' => 'asset',
             'perpetual_inventory_cogs' => 'expense',
+            'waste_expense' => 'expense',
             'fiscal_close_current_period_result' => 'equity',
             'fiscal_close_retained_earnings' => 'equity',
         ];
@@ -118,6 +119,8 @@ class AccountsRoutingController extends Controller
                 $section = 'perpetual_inventory';
             } elseif (str_starts_with((string) $key, 'periodic_inventory_')) {
                 $section = 'periodic_inventory';
+            } elseif (str_starts_with((string) $key, 'waste_')) {
+                $section = 'waste';
             } elseif (str_starts_with((string) $key, 'fiscal_close_')) {
                 $section = 'fiscal_close';
             }

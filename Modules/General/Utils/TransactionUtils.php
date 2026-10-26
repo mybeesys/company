@@ -175,8 +175,8 @@ class TransactionUtils
 
         app(\Modules\Inventory\Services\InventoryCostingService::class)->processTransaction($transaction);
 
-        if (\Modules\Sales\Support\TransactionPurpose::isInternalConsumption($transaction)) {
-            $accountUtil->postInternalConsumptionJournal($transaction, $request, true);
+        if (\Modules\Accounting\Support\WasteDocument::isExpenseLikePosDocument($transaction)) {
+            $accountUtil->postWasteOrInternalConsumptionJournal($transaction, $request, true);
 
             return true;
         }

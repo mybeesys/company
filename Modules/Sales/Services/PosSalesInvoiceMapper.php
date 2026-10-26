@@ -198,7 +198,7 @@ final class PosSalesInvoiceMapper
         $purpose = \Modules\Sales\Support\TransactionPurpose::normalize(
             $overrides['purpose'] ?? $request->input('purpose')
         );
-        if ($typeId) {
+        if ($typeId && $purpose !== \Modules\Sales\Support\TransactionPurpose::WASTE) {
             $purpose = \Modules\Sales\Support\TransactionPurpose::INTERNAL_CONSUMPTION;
         }
 

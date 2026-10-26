@@ -5,6 +5,7 @@ import DropdownMenu from "../../comp/DropdownMenu";
 import TreeTableComponent from "../../comp/TreeTableComponent";
 import Swal from "sweetalert2";
 import { emsCan } from "../../emsCan";
+import "./waste-page.css";
 
 const WasteTable = ({ dir, translations }) => {
     const rootElement = document.getElementById("root");
@@ -29,7 +30,18 @@ const WasteTable = ({ dir, translations }) => {
                 });
             })
             .catch((ex) => {
-                console.error("Error updating status:", ex);
+                const message =
+                    ex?.response?.data?.message ||
+                    translations.technicalerror ||
+                    "Error";
+                Swal.fire({
+                    title: "Error",
+                    text: message,
+                    icon: "error",
+                    timer: 4000,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                });
             });
     };
 
@@ -37,7 +49,7 @@ const WasteTable = ({ dir, translations }) => {
         return !!editMode ? (
             <></>
         ) : (
-            <span className={`status status-${data[key]}`}>
+            <span className={`waste-status waste-status-${data[key]}`}>
                 {translations[data[key]]}
             </span>
         );
@@ -71,13 +83,17 @@ const WasteTable = ({ dir, translations }) => {
     };
 
     const showDetails = (data) => {
-        const details = data.sell_lines.map((line) => ({
+        const details = (data.sell_lines || []).map((line) => ({
             product:
-                dir === "rtl" ? line.product.name_ar : line.product.name_en,
+                dir === "rtl"
+                    ? line.product?.name_ar || ""
+                    : line.product?.name_en || line.product?.name_ar || "",
             reason: data.description || "",
             quantity: line.qyt,
             employee:
-                dir === "rtl" ? data.created_by.name : data.created_by.name_en,
+                dir === "rtl"
+                    ? data.created_by?.name || ""
+                    : data.created_by?.name_en || data.created_by?.name || "",
             date: data.transaction_date,
         }));
 
@@ -98,34 +114,14 @@ const WasteTable = ({ dir, translations }) => {
         Swal.fire({
             title: translations["waste_details"],
             html: `<div style="overflow-x:auto;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 16px;">
+                <table class="waste-swal-table">
                     <thead>
                         <tr>
-                            <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
-                                dir === "rtl"
-                                    ? translations.products
-                                    : translations.products
-                            }</th> 
-                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
-                            dir === "rtl"
-                                ? translations.reason
-                                : translations.reason
-                        }</th> 
-                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
-                            dir === "rtl"
-                                ? translations.quantity
-                                : translations.quantity
-                        }</th> 
-                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
-                            dir === "rtl"
-                                ? translations.employee
-                                : translations.employee
-                        }</th> 
-                        <th style="border: 1px solid #ddd; padding: 12px; background-color: #f2f2f2;">${
-                            dir === "rtl"
-                                ? translations.date
-                                : translations.date
-                        }</th>  
+                            <th>${translations.products}</th>
+                            <th>${translations.reason}</th>
+                            <th>${translations.quantity}</th>
+                            <th>${translations.employee}</th>
+                            <th>${translations.date}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,6 +129,7 @@ const WasteTable = ({ dir, translations }) => {
                     </tbody>
                 </table>
             </div>`,
+            customClass: { popup: "waste-swal" },
             showCloseButton: true,
             focusConfirm: false,
             confirmButtonText: translations["close"],
@@ -154,7 +151,13 @@ const WasteTable = ({ dir, translations }) => {
     };
 
     return (
-        <div>
+        <div className="waste-page" dir={dir}>
+            <div className="waste-page-head">
+                <div>
+                    <h1>{translations.waste}</h1>
+                    <p>{translations.waste_page_hint}</p>
+                </div>
+            </div>
             <SweetAlert2 />
             <TreeTableComponent
                 translations={translations}
@@ -164,6 +167,7 @@ const WasteTable = ({ dir, translations }) => {
                 addUrl={"waste/create"}
                 canEditRow={canEditRow}
                 canAddInline={false}
+                hideCardTitle={true}
                 title="waste"
                 cols={[
                     {

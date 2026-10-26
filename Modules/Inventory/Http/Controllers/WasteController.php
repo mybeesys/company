@@ -182,11 +182,47 @@ class WasteController extends Controller implements HasMiddleware
             'items' => 'required|array|min:1',
             'items.*.product.id' => 'required|integer|exists:product_products,id',
             'items.*.qty' => 'required|numeric|min:0.01',
+            'items.*.unit.id' => 'required|integer|exists:product_unit_transfer,id',
             'transaction_date' => 'nullable|date',
             'description' => 'nullable',
         ]);
 
         try {
+            $establishmentId = (int) $validated['establishment']['id'];
+            $productIds = collect($request->items)->pluck('product.id')->map(fn ($id) => (int) $id)->unique()->values();
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+            $prodTotals = ProductInventoryTotal::where('establishment_id', $establishmentId)
+                ->whereIn('product_id', $productIds)
+                ->get()
+                ->keyBy(fn ($row) => (int) $row->product_id);
+
+            foreach ($request->items as $item) {
+                $productId = (int) $item['product']['id'];
+                $requestedQty = (float) $item['qty'];
+                $product = $products->get($productId);
+                $prodTotal = $prodTotals->get($productId);
+                $unitTransfer = UnitTransfer::query()->find((int) ($item['unit']['id'] ?? 0));
+
+                $availableQty = $prodTotal ? (float) $prodTotal->qty : 0.0;
+                if ($unitTransfer && $unitTransfer->unit2) {
+                    $availableQty *= (float) $unitTransfer->transfer;
+                }
+
+                if (! $prodTotal || $availableQty < $requestedQty) {
+                    $result[] = [
+                        'name_ar' => $product?->name_ar,
+                        'name_en' => $product?->name_en,
+                        'qty' => $prodTotal
+                            ? rtrim(rtrim(number_format($availableQty, 6, '.', ''), '0'), '.').($unitTransfer->unit1 ?? '')
+                            : 0,
+                    ];
+                }
+            }
+
+            if (count($result) > 0) {
+                return response()->json($result);
+            }
+
             DB::beginTransaction();
 
             $transactionId = $validated['id'] ?? null;
@@ -195,9 +231,8 @@ class WasteController extends Controller implements HasMiddleware
                 $transaction = Transaction::findOrFail($transactionId);
                 $transaction->update([
                     'transaction_date' => $validated['transaction_date'] ?? now(),
-                    'establishment_id' => $validated['establishment']['id'],
-                    'description' => isset($validated['description']) ? $validated['description'] : null,
-
+                    'establishment_id' => $establishmentId,
+                    'description' => $validated['description'] ?? null,
                 ]);
                 $requestedItemIds = collect($request->items)->pluck('id')->filter()->all();
                 TransactionSellLine::where('transaction_id', $transaction->id)
@@ -210,71 +245,28 @@ class WasteController extends Controller implements HasMiddleware
                     'ref_no' => self::generatePoNo('WASTE'),
                     'created_by' => Auth::user()->id,
                     'transaction_date' => $validated['transaction_date'] ?? now(),
-                    'description' => isset($validated['description']) ? $validated['description'] : null,
-                    'establishment_id' => $validated['establishment']['id'],
+                    'description' => $validated['description'] ?? null,
+                    'establishment_id' => $establishmentId,
                 ]);
             }
-            $products = Product::whereIn('id', collect($request->items)->pluck('product.id'))->get();
-            $prodIds = $products->pluck('id')->toArray();
-            $prodTotals = ProductInventoryTotal::where('establishment_id', '=', $validated['establishment']['id'])
-                ->whereIn('product_id', $prodIds)->get();
 
             foreach ($request->items as $item) {
                 $itemId = $item['id'] ?? null;
-                $productId = $item['product']['id'];
-                $requestedQty = $item['qty'];
+                $linePayload = [
+                    'qyt' => $item['qty'],
+                    'unit_price' => $item['product']['cost'] ?? 0,
+                    'unit_price_before_discount' => $item['product']['cost'] ?? 0,
+                    'product_id' => $item['product']['id'],
+                    'unit_id' => $item['unit']['id'] ?? null,
+                ];
 
-                // Check inventory for the product
-                $prodTotal = $prodTotals->firstWhere('product_id', $productId);
-                if (! $prodTotal) {
-                    $product = Product::find($productId);
-                    $result[] = [
-                        'name_ar' => $product->name_ar,
-                        'name_en' => $product->name_en,
-                        'qty' => 0,
-                    ];
-                }
-
-                $wasteProduct = UnitTransfer::where('id', $item['unit']['id'])
-                    ->first();
-                Log::info($item['unit']['id']);
-                $totalQty = $prodTotal->qty;
-                $unitId = $prodTotal->unit_id;
-                if ($wasteProduct->unit2) {
-                    $totalQty *= $wasteProduct->transfer;
-                }
-
-                if ($totalQty < $requestedQty) {
-                    $product = Product::find($productId);
-                    $result[] = [
-                        'name_ar' => $product->name_ar,
-                        'name_en' => $product->name_en,
-                        'qty' => $totalQty.''.$wasteProduct->unit1,
-                    ];
-                }
-
-                if (count($result) > 0) {
-                    return $result;
-                }
-
-                if ($transactionId) {
+                if ($transactionId && $itemId) {
                     $line = TransactionSellLine::findOrFail($itemId);
-                    $line->update([
-                        'qyt' => $item['qty'],
-                        'unit_price' => $item['product']['cost'] ?? 0,
-                        'unit_price_before_discount' => $item['product']['cost'] ?? 0,
-                        'product_id' => $item['product']['id'],
-                        'unit_id' => $item['unit']['id'] ?? null,
-                    ]);
+                    $line->update($linePayload);
                 } else {
-                    TransactionSellLine::create([
+                    TransactionSellLine::create(array_merge($linePayload, [
                         'transaction_id' => $transaction->id,
-                        'product_id' => $item['product']['id'],
-                        'qyt' => $item['qty'],
-                        'unit_id' => $item['unit']['id'] ?? null,
-                        'unit_price' => $item['product']['cost'] ?? 0,
-                        'unit_price_before_discount' => $item['product']['cost'] ?? 0,
-                    ]);
+                    ]));
                 }
             }
 

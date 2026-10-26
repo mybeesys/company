@@ -78,10 +78,11 @@ class SellApiController extends Controller
                 return response()->json(['message' => 'Cash register not recognized with id', $request->device_id], 404);
             }
 
+            $isWastePurpose = TransactionPurpose::normalize($request->input('purpose')) === TransactionPurpose::WASTE;
             $isInternalConsumption = PosInternalConsumptionPricer::isRequested($request);
             if ($isInternalConsumption) {
                 $typeId = (int) $request->input('internal_consumption_type_id');
-                if ($typeId <= 0) {
+                if ($typeId <= 0 && ! $isWastePurpose) {
                     DB::rollBack();
 
                     return response()->json([
@@ -99,21 +100,30 @@ class SellApiController extends Controller
                     ], 422);
                 }
 
-                $resolvedType = EstablishmentInternalConsumptionTypeResolver::resolveForCashier(
-                    (int) $establishment_id,
-                    $typeId
-                );
-                if (! $resolvedType['ok']) {
-                    DB::rollBack();
+                if ($typeId > 0) {
+                    $resolvedType = EstablishmentInternalConsumptionTypeResolver::resolveForCashier(
+                        (int) $establishment_id,
+                        $typeId
+                    );
+                    if (! $resolvedType['ok']) {
+                        DB::rollBack();
 
-                    return response()->json([
-                        'message' => $resolvedType['message'],
-                        'code' => $resolvedType['code'],
-                    ], $resolvedType['status']);
+                        return response()->json([
+                            'message' => $resolvedType['message'],
+                            'code' => $resolvedType['code'],
+                        ], $resolvedType['status']);
+                    }
+                    if (\Modules\Accounting\Support\WasteDocument::consumptionTypeLooksLikeWaste($resolvedType['type'])) {
+                        $isWastePurpose = true;
+                    }
                 }
 
                 $this->internalConsumptionPricer->applyToRequest($request, (int) $establishment_id);
-                $request->merge(['purpose' => TransactionPurpose::INTERNAL_CONSUMPTION]);
+                $request->merge([
+                    'purpose' => $isWastePurpose
+                        ? TransactionPurpose::WASTE
+                        : TransactionPurpose::INTERNAL_CONSUMPTION,
+                ]);
             }
 
             $products = json_decode(json_encode($request->items));
@@ -213,7 +223,7 @@ class SellApiController extends Controller
                     'final_total' => $finalTotal,
                     'total_before_tax' => $isInternalConsumption ? $finalTotal : null,
                     'purpose' => $isInternalConsumption
-                        ? TransactionPurpose::INTERNAL_CONSUMPTION
+                        ? TransactionPurpose::normalize($request->input('purpose'))
                         : $request->input('purpose'),
                     'service_fee_amount' => $serviceFeeAmount,
                     'service_fee_tax' => $serviceFeeTax,
@@ -321,29 +331,35 @@ class SellApiController extends Controller
                 }
             }
 
-            if (TransactionPurpose::isInternalConsumption($transaction)) {
+            if (\Modules\Accounting\Support\WasteDocument::isExpenseLikePosDocument($transaction)
+                || TransactionPurpose::isInternalConsumption($transaction)) {
                 if (($request->status ?? '') !== 'draft') {
-                    $resolved = EstablishmentInternalConsumptionTypeResolver::resolveForCashier(
-                        (int) $establishment_id,
-                        $transaction->internal_consumption_type_id ? (int) $transaction->internal_consumption_type_id : null
-                    );
-                    if (! $resolved['ok']) {
-                        DB::rollBack();
+                    $typeId = $transaction->internal_consumption_type_id
+                        ? (int) $transaction->internal_consumption_type_id
+                        : null;
+                    if ($typeId) {
+                        $resolved = EstablishmentInternalConsumptionTypeResolver::resolveForCashier(
+                            (int) $establishment_id,
+                            $typeId
+                        );
+                        if (! $resolved['ok']) {
+                            DB::rollBack();
 
-                        return response()->json([
-                            'message' => $resolved['message'],
-                            'code' => $resolved['code'],
-                        ], $resolved['status']);
-                    }
+                            return response()->json([
+                                'message' => $resolved['message'],
+                                'code' => $resolved['code'],
+                            ], $resolved['status']);
+                        }
 
-                    if ($resolved['type']->id > 0) {
-                        $transaction->internal_consumption_type_id = (int) $resolved['type']->id;
-                        $transaction->save();
+                        if ($resolved['type']->id > 0) {
+                            $transaction->internal_consumption_type_id = (int) $resolved['type']->id;
+                            $transaction->save();
+                        }
                     }
 
                     try {
                         app(InventoryCostingService::class)->processTransaction($transaction->fresh());
-                        (new AccountingUtil)->postInternalConsumptionJournal($transaction->fresh(), $request, true);
+                        (new AccountingUtil)->postWasteOrInternalConsumptionJournal($transaction->fresh(), $request, true);
                         $transaction->payment_status = 'paid';
                         $transaction->save();
                     } catch (\Throwable $e) {
@@ -351,7 +367,9 @@ class SellApiController extends Controller
 
                         return response()->json([
                             'message' => $e->getMessage(),
-                            'code' => 'internal_consumption_failed',
+                            'code' => \Modules\Accounting\Support\WasteDocument::isWaste($transaction)
+                                ? 'waste_journal_failed'
+                                : 'internal_consumption_failed',
                         ], 422);
                     }
                 }

@@ -31,6 +31,28 @@
 
     <div class="col-12 mt-2 mb-4">
         <hr class="my-4">
+        <h6 class="fw-bold text-gray-700 mb-0">@lang('accounting::lang.waste_expense_routing_tab')</h6>
+        <p class="text-muted fs-8 mb-0 mt-1">@lang('accounting::lang.waste_expense_routing_help')</p>
+    </div>
+    @php
+        $wasteRouting = $accountsRoting->where('type', 'waste_expense')->where('section', 'waste')->first();
+    @endphp
+    <div class="col-6">
+        <x-accounting::account-routing
+            :section="'waste_routing'"
+            :title="__('accounting::lang.waste_expense_account')"
+            :typeSelectId="'waste_expense_type_route'"
+            :typeSelectName="'waste_expense_type_route'"
+            :accountSelectId="'waste_expense_account'"
+            :accountSelectName="'waste_expense_account'"
+            :accounts="$accounts"
+            :typeOptions="$options"
+            :selectedType="optional($wasteRouting)->direction ?? ''"
+            :selectedAccount="optional($wasteRouting)->account_id ?? ''" />
+    </div>
+
+    <div class="col-12 mt-2 mb-4">
+        <hr class="my-4">
         <h6 class="fw-bold text-gray-700 mb-0">@lang('accounting::lang.periodic_inventory_routing_tab')</h6>
     </div>
 

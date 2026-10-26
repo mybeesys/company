@@ -11,6 +11,68 @@ import MultiDropDown from "./MultiDropDown";
 import { Calendar } from "primereact/calendar";
 
 const animatedComponents = makeAnimated();
+const tableSelectStyles = {
+    container: (base) => ({
+        ...base,
+        width: "100%",
+        minWidth: 0,
+    }),
+    control: (base) => ({
+        ...base,
+        minHeight: 42,
+        height: 42,
+        width: "100%",
+        minWidth: 0,
+        borderRadius: 8,
+        boxShadow: "none",
+    }),
+    valueContainer: (base) => ({
+        ...base,
+        padding: "0 10px",
+    }),
+    indicatorsContainer: (base) => ({
+        ...base,
+        height: 42,
+    }),
+    singleValue: (base) => ({
+        ...base,
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    }),
+    option: (base) => ({
+        ...base,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    }),
+    menuList: (base) => ({
+        ...base,
+        maxHeight: 260,
+        padding: 4,
+    }),
+    menu: (base) => ({
+        ...base,
+        width: "100%",
+        minWidth: "100%",
+        maxWidth: "100%",
+        borderRadius: 8,
+        overflow: "hidden",
+    }),
+    menuPortal: (base, props) => {
+        const width =
+            props?.rect?.width ||
+            props?.controlElement?.getBoundingClientRect?.().width;
+        return {
+            ...base,
+            zIndex: 100000,
+            ...(width
+                ? { width, minWidth: width, maxWidth: width }
+                : {}),
+        };
+    },
+};
 const TreeTableEditorLocal = ({
     translations,
     dir,
@@ -62,11 +124,33 @@ const TreeTableEditorLocal = ({
         }
     };
 
+    const colsRef = useRef(cols);
+    colsRef.current = cols;
+
+    const resolveOptions = (col) => {
+        if (!col) return [];
+        if (typeof col.getOptions === "function") {
+            const live = col.getOptions();
+            return Array.isArray(live) ? live : [];
+        }
+        return Array.isArray(col.options) ? col.options : [];
+    };
+
+    const currentNodesList = Array.isArray(currentNodes) ? currentNodes : [];
+    const currentNodesSignature = JSON.stringify(
+        currentNodesList.map((item) => [
+            item?.id ?? null,
+            item?.product?.id ??
+                (typeof item?.product === "object" ? null : item?.product) ??
+                null,
+        ])
+    );
+
     useEffect(() => {
-        let t = currentNodes.map((item, index) => {
+        let t = currentNodesList.map((item, index) => {
             return { key: index + "", data: item };
         });
-        let index = currentNodes.length > 0 ? currentNodes.length + "" : "0";
+        let index = currentNodesList.length > 0 ? currentNodesList.length + "" : "0";
         if (!!addNewRow) {
             t.push({
                 key: index,
@@ -81,7 +165,7 @@ const TreeTableEditorLocal = ({
             });
         }
         setNodes([...t]);
-    }, [currentNodes]);
+    }, [currentNodesSignature, addNewRow, type]);
 
     const openDeleteModel = (data) => {
         setUrl(JSON.parse(rootElement.getAttribute(`${data.type}-url`)));
@@ -475,11 +559,48 @@ const TreeTableEditorLocal = ({
     };
 
     const renderDropDownCell = (node, col, firstCell) => {
-        const val = findDropdownOption(col.options, node.data[col.key]);
+        const options = resolveOptions(col);
+        const val = findDropdownOption(options, node.data[col.key]);
 
         const indent = node.key.toString().split("-").length;
         if (!!node.data.empty) {
-            if (!!firstCell)
+            if (!!firstCell) {
+                if (options.length > 0) {
+                    return (
+                        <Select
+                            key={`${col.key}-${node.key}-empty-${options.length}`}
+                            classNamePrefix="waste-select"
+                            className="waste-select"
+                            placeholder={
+                                translations.select ||
+                                `${translations.Add} ${translations[node.data.type]}`
+                            }
+                            isMulti={false}
+                            options={options}
+                            getOptionLabel={(option) => option.label}
+                            getOptionValue={(option) => String(option.value)}
+                            closeMenuOnSelect={true}
+                            components={animatedComponents}
+                            value={null}
+                            onChange={(selected) => {
+                                addInline(
+                                    node.key,
+                                    node.data.type,
+                                    node.data.parentKey
+                                );
+                                handleEditorChange(
+                                    selected?.value,
+                                    col.key,
+                                    node.key,
+                                    col.onChangeValue
+                                );
+                            }}
+                            menuPortalTarget={document.body}
+                            menuPosition="fixed"
+                            styles={tableSelectStyles}
+                        />
+                    );
+                }
                 return (
                     <a
                         href="javascript:void(0);"
@@ -492,28 +613,32 @@ const TreeTableEditorLocal = ({
                         }
                     >{`${translations.Add} ${translations[node.data.type]}`}</a>
                 );
+            }
         } else {
             return !!col.editable ? (
                 <Select
-                    id="col.key"
+                    key={`${col.key}-${node.key}-${options.length}`}
+                    classNamePrefix="waste-select"
+                    className="waste-select"
+                    placeholder={translations.select || "..."}
                     isMulti={false}
-                    options={col.options}
+                    options={options}
+                    getOptionLabel={(option) => option.label}
+                    getOptionValue={(option) => String(option.value)}
                     closeMenuOnSelect={true}
                     components={animatedComponents}
-                    defaultValue={val}
                     value={val}
-                    onChange={(val) =>
+                    onChange={(selected) =>
                         handleEditorChange(
-                            val.value,
+                            selected?.value,
                             col.key,
                             node.key,
                             col.onChangeValue
                         )
                     }
                     menuPortalTarget={document.body}
-                    styles={{
-                        menuPortal: (base) => ({ ...base, zIndex: 100000 }),
-                    }}
+                    menuPosition="fixed"
+                    styles={tableSelectStyles}
                 />
             ) : (
                 <span>
@@ -571,6 +696,7 @@ const TreeTableEditorLocal = ({
                     dir={dir}
                     searchUrl={url}
                     isMulti={col.isMulti}
+                    classNamePrefix="waste-select"
                     currentObject={node.data[col.key]}
                     onBasicChange={(field, val) => {
                         handleEditorChange(
@@ -776,12 +902,8 @@ const TreeTableEditorLocal = ({
                             }
                             body={(node) => {
                                 return (
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}
-                                    >
+                                    <div className="tree-table-cell">
+
                                         {index === 0 &&
                                             urlPar === "partiallyReceived" && (
                                                 <a
@@ -813,13 +935,22 @@ const TreeTableEditorLocal = ({
                                                     ></i>
                                                 </a>
                                             )}
-                                        {renderCell(node, col, index)}
+                                        {renderCell(
+                                            node,
+                                            colsRef.current[index] || col,
+                                            index
+                                        )}
                                     </div>
                                 );
                             }}
                         />
                     ))}
-                    <Column body={(node) => actionTemplate(node, actions)} />
+                    {!!onDelete || (actions && actions.length > 0) ? (
+                        <Column
+                            style={{ width: "8%" }}
+                            body={(node) => actionTemplate(node, actions)}
+                        />
+                    ) : null}
                 </TreeTable>
                 <button
                     id="btnSubmit1"

@@ -10,17 +10,22 @@ export const getName = (name_en, name_ar, dir) => {
  */
 export const getRowName = (row, dir) => {
     if (!row || typeof row !== "object") return "";
-    const nameAr = row.name_ar ?? row.nameAr;
-    const nameEn = row.name_en ?? row.nameEn;
+    const nameAr = firstName(row.name_ar ?? row.nameAr, row.name);
+    const nameEn = firstName(row.name_en ?? row.nameEn);
     const d = String(dir ?? "").trim().toLowerCase();
     if (d === "ltr") {
-        if (nameEn != null && String(nameEn).length) return String(nameEn);
-        if (nameAr != null && String(nameAr).length) return String(nameAr);
-        return row.name != null ? String(row.name) : "";
+        return nameEn || nameAr || "";
     }
-    if (nameAr != null && String(nameAr).length) return String(nameAr);
-    if (nameEn != null && String(nameEn).length) return String(nameEn);
-    return row.name != null ? String(row.name) : "";
+    return nameAr || nameEn || "";
+};
+
+const firstName = (...values) => {
+    for (const value of values) {
+        if (value != null && String(value).trim() !== "") {
+            return String(value);
+        }
+    }
+    return "";
 };
 
 export const toDate = (dateTimeString, type) =>{

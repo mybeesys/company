@@ -952,6 +952,9 @@ return [
     'css_invoice_payment_for' => 'Payment for invoice :ref',
 
     'inventory_routing_tab' => 'Inventory',
+    'waste_expense_routing_tab' => 'Inventory waste',
+    'waste_expense_account' => 'Inventory waste expense',
+    'waste_expense_routing_help' => 'Debited when a waste operation is approved or a cashier waste invoice is posted. Credit: inventory asset (perpetual) or purchases (periodic).',
     'periodic_inventory_routing_tab' => 'Inventory Count',
     'periodic_inventory_adjustment_account' => 'Inventory count adjustment (offset account)',
     'periodic_inventory_routing_locked' => 'Configure the inventory policy to «Inventory Count» in General Settings to enable these routing fields.',

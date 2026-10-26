@@ -42,4 +42,12 @@ class TransactionPurposeTest extends TestCase
         $this->assertTrue(TransactionPurpose::isRequested('standard', 4));
         $this->assertFalse(TransactionPurpose::isRequested('standard', null));
     }
+
+    public function test_normalize_maps_waste_purpose(): void
+    {
+        $this->assertSame(TransactionPurpose::WASTE, TransactionPurpose::normalize('waste'));
+        $this->assertSame(TransactionPurpose::WASTE, TransactionPurpose::normalize('spoilage'));
+        $this->assertTrue(TransactionPurpose::isRequested('waste', null));
+        $this->assertFalse(TransactionPurpose::isInternalConsumption('waste'));
+    }
 }

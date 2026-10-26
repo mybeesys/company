@@ -81,6 +81,7 @@ final class AccountingNote
             'purchases-return' => $ar ? 'مردود مشتريات' : 'Purchase return',
             'receipt_voucher' => $ar ? 'سند قبض' : 'Receipt voucher',
             'payment_voucher' => $ar ? 'سند صرف' : 'Payment voucher',
+            'WASTE', 'waste' => $ar ? 'إتلاف مخزون' : 'Inventory waste',
             default => $type !== null && $type !== ''
                 ? (string) $type
                 : ($ar ? 'حركة' : 'Entry'),
