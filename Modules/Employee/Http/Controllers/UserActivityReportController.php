@@ -17,8 +17,8 @@ class UserActivityReportController extends Controller
     {
         $employees = Employee::query()
             ->where('ems_access', true)
-            ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name', 'email', 'user_name']);
+            ->orderBy('name')
+            ->get(['id', 'name', 'name_en', 'email', 'user_name']);
 
         return view('employee::user-activity.index', [
             'employees' => $employees,
@@ -48,7 +48,7 @@ class UserActivityReportController extends Controller
 
         return DataTables::of($query)
             ->addColumn('display_name', function (Employee $row) {
-                return e(trim($row->first_name.' '.$row->last_name));
+                return e((string) ($row->translated_name ?? $row->name ?? '—'));
             })
             ->addColumn('last_activity_at_fmt', function (Employee $row) {
                 if (empty($row->last_activity_at)) {
