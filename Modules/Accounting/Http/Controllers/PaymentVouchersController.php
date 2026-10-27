@@ -14,6 +14,7 @@ use Modules\Accounting\Exceptions\FiscalPeriodException;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Services\StandaloneVoucherJournalPoster;
 use Modules\Accounting\Utils\StandaloneVoucherHelper;
+use Modules\General\Models\TransactionPayments;
 use Mpdf\Mpdf;
 
 class PaymentVouchersController extends Controller
@@ -34,15 +35,11 @@ class PaymentVouchersController extends Controller
     public function index(Request $request)
     {
         $transactions = AccountingAccountsTransaction::standaloneVoucherSubType('payment_voucher')
-            ->orderBy('id')
+            ->with(['account', 'createdBy', 'transactionPayments'])
+            ->orderByDesc('id')
             ->get();
 
         if ($request->ajax()) {
-
-            $transactions = AccountingAccountsTransaction::standaloneVoucherSubType('payment_voucher')
-                ->orderBy('id')
-                ->get();
-
             return AccountingAccountsTransaction::getReceiptsTable($transactions, 'payment_voucher');
         }
 
@@ -292,9 +289,16 @@ class PaymentVouchersController extends Controller
         try {
             [$debit, $credit] = StandaloneVoucherHelper::paymentLines((int) $id);
             DB::beginTransaction();
+            $paymentId = $debit->transaction_payment_id ?: $credit->transaction_payment_id;
             StandaloneVoucherJournalPoster::deleteMappingForLines($debit, $credit);
             $debit->delete();
             $credit->delete();
+            if ($paymentId) {
+                TransactionPayments::query()
+                    ->whereKey($paymentId)
+                    ->whereNull('transaction_id')
+                    ->delete();
+            }
             DB::commit();
             return response()->json(['status' => true]);
         } catch (ModelNotFoundException $e) {

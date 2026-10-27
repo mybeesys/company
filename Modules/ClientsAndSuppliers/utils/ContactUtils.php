@@ -131,36 +131,46 @@ class ContactUtils
         $costCenterId = $costCenterId ? (int) $costCenterId : null;
         $createdBy = Auth::id() ?? 1;
 
-        $customerLineType = $isSupplier ? 'debit' : 'credit';
-        $cashLineType = $isSupplier ? 'credit' : 'debit';
+        // Pair like accounting receipt/payment vouchers (transaction_id ↔ partner line)
+        // so they appear and open correctly on /receipt-vouchers and /payment-vouchers.
+        if ($isSupplier) {
+            $debitAccountId = (int) $contact->account_id;
+            $creditAccountId = $cashAccountId;
+        } else {
+            $debitAccountId = $cashAccountId;
+            $creditAccountId = (int) $contact->account_id;
+        }
 
-        AccountingAccountsTransaction::create([
+        $debit = AccountingAccountsTransaction::create([
             'amount' => $amount,
-            'accounting_account_id' => (int) $contact->account_id,
-            'type' => $customerLineType,
+            'accounting_account_id' => $debitAccountId,
+            'type' => 'debit',
             'sub_type' => $subType,
             'note' => $note,
             'operation_date' => $paymentOn,
             'created_by' => $createdBy,
-            'transaction_id' => $linkedTransaction->id ?? null,
+            'transaction_id' => null,
             'transaction_payment_id' => $payment->id,
             'acc_trans_mapping_id' => $mapping->id,
             'cost_center_id' => $costCenterId,
         ]);
 
-        AccountingAccountsTransaction::create([
+        $credit = AccountingAccountsTransaction::create([
             'amount' => $amount,
-            'accounting_account_id' => $cashAccountId,
-            'type' => $cashLineType,
+            'accounting_account_id' => $creditAccountId,
+            'type' => 'credit',
             'sub_type' => $subType,
             'note' => $note,
             'operation_date' => $paymentOn,
             'created_by' => $createdBy,
-            'transaction_id' => $linkedTransaction->id ?? null,
+            'transaction_id' => $debit->id,
             'transaction_payment_id' => $payment->id,
             'acc_trans_mapping_id' => $mapping->id,
             'cost_center_id' => $costCenterId,
         ]);
+
+        $debit->transaction_id = $credit->id;
+        $debit->save();
 
         AutoJournalGuard::assertBalanced((int) $mapping->id);
 
