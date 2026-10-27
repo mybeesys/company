@@ -32,10 +32,15 @@ class ReceiptsController extends Controller
         $query = TransactionPayments::query()
             ->with(['transaction', 'client'])
             ->where(function ($q) {
+                // Invoice collections (linked sell invoices) + advance/overpayment receipts
+                // (payment_type=debit, often without transaction_id).
                 $q->where('payment_type', 'debit')
                     ->orWhereHas('transaction', function ($q) {
                         $q->whereIn('type', ['sell']);
                     });
+            })
+            ->whereHas('client', function ($q) {
+                $q->where('business_type', 'customer');
             })
             ->orderByDesc('id');
 
@@ -198,10 +203,24 @@ class ReceiptsController extends Controller
                 ]);
             }
 
+            $lastSettled = $settledTransactions === []
+                ? null
+                : $settledTransactions[array_key_last($settledTransactions)];
+
             if ($contact->business_type === 'supplier') {
-                $contactUtils->addRemainingAmountToSupplierAccount($request->client_id, $paid_amount);
+                $contactUtils->addRemainingAmountToSupplierAccount(
+                    $request->client_id,
+                    $paid_amount,
+                    $lastSettled,
+                    $request
+                );
             } else {
-                $contactUtils->addRemainingAmountToCustomerAccount($request->client_id, $paid_amount);
+                $contactUtils->addRemainingAmountToCustomerAccount(
+                    $request->client_id,
+                    $paid_amount,
+                    $lastSettled,
+                    $request
+                );
             }
         }
 
@@ -257,6 +276,12 @@ class ReceiptsController extends Controller
         SalesAccess::authorizeReceipt($payment, 'update');
         PurchasesAccess::authorizeReceipt($payment, 'update');
 
+        if (! $transaction) {
+            return redirect()
+                ->route('receipts')
+                ->with('error', __('sales::lang.receipt_advance_edit_unsupported'));
+        }
+
         $supplier = in_array($transaction->type, ['purchases', 'purchase'], true);
         $accounts = AccountingAccount::forDropdown();
         $cost_centers = AccountingCostCenter::forDropdown();
@@ -292,6 +317,12 @@ class ReceiptsController extends Controller
         $transaction = $this->assertEligibleReceiptPayment($payment);
         SalesAccess::authorizeReceipt($payment, 'update');
         PurchasesAccess::authorizeReceipt($payment, 'update');
+
+        if (! $transaction) {
+            return redirect()
+                ->route('receipts')
+                ->with('error', __('sales::lang.receipt_advance_edit_unsupported'));
+        }
 
         $validated = $request->validate([
             'client_id' => ['required', 'integer', 'min:1'],
@@ -341,7 +372,7 @@ class ReceiptsController extends Controller
         $transaction = $this->assertEligibleReceiptPayment($payment);
         SalesAccess::authorizeReceipt($payment, 'delete');
         PurchasesAccess::authorizeReceipt($payment, 'delete');
-        $redirectRoute = in_array($transaction->type, ['purchases', 'purchase'], true)
+        $redirectRoute = ($transaction && in_array($transaction->type, ['purchases', 'purchase'], true))
             ? 'suppliers-receipts'
             : 'receipts';
 
@@ -349,9 +380,11 @@ class ReceiptsController extends Controller
             DB::beginTransaction();
             $transactionUtil = new TransactionUtils;
             $transactionUtil->deleteReceiptPaymentJournal($payment);
-            $tid = (int) $payment->transaction_id;
+            $tid = $payment->transaction_id ? (int) $payment->transaction_id : null;
             $payment->delete();
-            $transactionUtil->updatePaymentStatus($tid, $transaction->final_total);
+            if ($transaction && $tid) {
+                $transactionUtil->updatePaymentStatus($tid, $transaction->final_total);
+            }
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -374,17 +407,21 @@ class ReceiptsController extends Controller
         $transaction = $this->assertEligibleReceiptPayment($payment);
         SalesAccess::authorizeReceipt($payment, 'create');
         PurchasesAccess::authorizeReceipt($payment, 'create');
-        $targetRoute = in_array($transaction->type, ['purchases', 'purchase'], true)
+        $targetRoute = ($transaction && in_array($transaction->type, ['purchases', 'purchase'], true))
             ? 'create-suppliers-receipts'
             : 'create-receipts';
 
         return redirect()->route($targetRoute, ['from_payment' => $payment->id]);
     }
 
-    private function assertEligibleReceiptPayment(TransactionPayments $payment): Transaction
+    private function assertEligibleReceiptPayment(TransactionPayments $payment): ?Transaction
     {
         $transaction = $payment->transaction;
         if (! $transaction) {
+            // Advance / overpayment receipt (no invoice link).
+            if ((string) $payment->payment_type === 'debit' && $payment->payment_for) {
+                return null;
+            }
             abort(404);
         }
         if (! in_array($transaction->type, ['sell', 'purchases', 'purchase'], true)) {

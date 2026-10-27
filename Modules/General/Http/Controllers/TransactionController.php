@@ -116,9 +116,14 @@ class TransactionController extends Controller
 
         $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
-        $title = $transaction->transaction?->type === 'purchases' || $transaction->transaction?->type === 'purchase'
-            ? __('menuItemLang.supplier_receipt')
-            : __('menuItemLang.customer_receipt');
+        $linkedType = $transaction->transaction?->type;
+        if ($linkedType === 'purchases' || $linkedType === 'purchase') {
+            $title = __('menuItemLang.supplier_receipt');
+        } elseif (! $transaction->transaction_id && (string) $transaction->payment_type === 'debit') {
+            $title = __('sales::lang.receipt_advance_invoice_label');
+        } else {
+            $title = __('menuItemLang.customer_receipt');
+        }
 
         return view('general::transactions.show-receipts-payments', compact('transaction', 'qrCode', 'title', 'company'));
     }
@@ -151,9 +156,14 @@ class TransactionController extends Controller
 
         $qrCode = QrCode::format('svg')->size(150)->generate($qrData);
 
-        $title = $transaction->transaction?->type === 'purchases' || $transaction->transaction?->type === 'purchase'
-            ? __('menuItemLang.supplier_receipt')
-            : __('menuItemLang.customer_receipt');
+        $linkedType = $transaction->transaction?->type;
+        if ($linkedType === 'purchases' || $linkedType === 'purchase') {
+            $title = __('menuItemLang.supplier_receipt');
+        } elseif (! $transaction->transaction_id && (string) $transaction->payment_type === 'debit') {
+            $title = __('sales::lang.receipt_advance_invoice_label');
+        } else {
+            $title = __('menuItemLang.customer_receipt');
+        }
 
         // Use a dedicated PDF view that mirrors the show page (no JS)
         $html = view('general::transactions.receipts-payments-pdf', compact('transaction', 'qrCode', 'title', 'company'))->render();

@@ -73,17 +73,18 @@ class TransactionPayments extends Model
         }
 
         $payment = self::with('transaction')->find($paymentId);
-        if (! $payment || ! $payment->transaction) {
+        if (! $payment || ! $payment->account_id || ! $payment->payment_for) {
             return null;
         }
 
         $transaction = $payment->transaction;
-        $isSupplierInvoice = in_array($transaction->type, ['purchases', 'purchase'], true);
-        if ($forSupplierContext !== $isSupplierInvoice) {
-            return null;
-        }
-
-        if (! $payment->account_id) {
+        if ($transaction) {
+            $isSupplierInvoice = in_array($transaction->type, ['purchases', 'purchase'], true);
+            if ($forSupplierContext !== $isSupplierInvoice) {
+                return null;
+            }
+        } elseif ($forSupplierContext) {
+            // Advance receipts without invoice are customer-side by default.
             return null;
         }
 
@@ -147,7 +148,7 @@ class TransactionPayments extends Model
             ->editColumn('transaction_ref_no', function ($row) {
                 $tx = $row->transaction;
                 if (! $tx) {
-                    return '--';
+                    return e(__('sales::lang.receipt_advance_invoice_label'));
                 }
 
                 return '<a class="text-gray-900 fw-bold text-hover-primary mb-1 fs-6" href="'.url("/transaction-show/{$tx->id}").'">'.$tx->ref_no.'</a>';

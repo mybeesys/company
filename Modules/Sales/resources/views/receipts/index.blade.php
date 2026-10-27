@@ -15,7 +15,7 @@
 
     <div class="mb-6">
         <div class="text-muted">
-            سندات العملاء مرتبطة بـ <span class="fw-semibold">فواتير المبيعات</span>، وتظهر هنا جميع عمليات التحصيل/السداد التي تمت على الفواتير.
+            @lang('sales::lang.receipts_page_hint')
         </div>
     </div>
 
