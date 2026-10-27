@@ -104,6 +104,10 @@ final class EmployeePermissions
 
     public const ALLOWANCE_DELETE = 'employees.allowance_deduction.delete';
 
+    public const USER_ACTIVITY_SHOW = 'employees.user_activity.show';
+
+    public const USER_ACTIVITY_PRINT = 'employees.user_activity.print';
+
     /**
      * Sidebar parent: visible when the wildcard or any list-level show is granted.
      *
@@ -122,6 +126,7 @@ final class EmployeePermissions
             self::TIMECARDS_SHOW,
             self::PAYROLLS_SHOW,
             self::PAYROLLS_GROUPS_SHOW,
+            self::USER_ACTIVITY_SHOW,
         ];
     }
 
@@ -222,6 +227,10 @@ final class EmployeePermissions
                 'create' => self::ALLOWANCE_CREATE,
                 'update' => self::ALLOWANCE_UPDATE,
                 'delete' => self::ALLOWANCE_DELETE,
+            ],
+            'user_activity' => [
+                'show' => self::USER_ACTIVITY_SHOW,
+                'print' => self::USER_ACTIVITY_PRINT,
             ],
             default => throw new \InvalidArgumentException("Unknown employees EMS entity [{$entity}]"),
         };

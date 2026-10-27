@@ -1,0 +1,36 @@
+<?php
+
+return [
+    'page_title' => 'متابعة حركات المستخدمين',
+    'page_subtitle' => 'سجل تدقيق كامل لكل ما يفعله مستخدمي لوحة التحكم — إنشاء، تعديل، حذف، تصدير، وتسجيل الدخول — مع تفاصيل قبل الحذف عند توفرها.',
+    'users_overview' => 'المستخدمون وملخص النشاط',
+    'last_activity' => 'آخر نشاط',
+    'events_count' => 'عدد الأحداث',
+    'actions' => 'إجراءات',
+    'open_timeline' => 'عرض السجل',
+    'timeline_for' => 'سجل حركات: :name',
+    'back_to_users' => 'العودة لقائمة المستخدمين',
+    'event_type' => 'نوع الحدث',
+    'all_events' => 'كل الأحداث',
+    'date_from' => 'من تاريخ',
+    'date_to' => 'إلى تاريخ',
+    'apply_filter' => 'تطبيق التصفية',
+    'when' => 'الوقت',
+    'description' => 'الوصف',
+    'context' => 'السياق',
+    'details' => 'التفاصيل',
+    'entry_details' => 'تفاصيل الحدث',
+
+    'event_auth' => 'مصادقة',
+    'event_created' => 'إنشاء',
+    'event_updated' => 'تعديل',
+    'event_deleted' => 'حذف',
+    'event_viewed' => 'عرض',
+    'event_export' => 'تصدير / طباعة',
+    'event_other' => 'أخرى',
+
+    'auth_login' => 'تسجيل دخول إلى لوحة التحكم',
+    'auth_logout' => 'تسجيل خروج من لوحة التحكم',
+    'auth_tenant_switch' => 'تبديل الشركة (تسجيل دخول عبر شركة أخرى)',
+    'auth_login_failed' => 'محاولة تسجيل دخول فاشلة',
+];

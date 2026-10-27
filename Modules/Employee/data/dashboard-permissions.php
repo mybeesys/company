@@ -247,6 +247,21 @@ return [
     ],
 
     [
+        'name' => 'employees.user_activity.show',
+        'name_ar' => 'متابعة حركات المستخدمين',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+    [
+        'name' => 'employees.user_activity.print',
+        'name_ar' => 'متابعة حركات المستخدمين',
+        'description' => '',
+        'description_ar' => '',
+        'type' => 'ems',
+    ],
+
+    [
         'name' => 'employees.pos_roles.show',
         'name_ar' => 'أدوار نقاط البيع',
         'description' => '',

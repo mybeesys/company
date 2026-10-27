@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Rules\EmailOrUserNameExists;
+use Modules\Employee\Services\UserActivityLogger;
 
 class AuthController extends Controller
 {
@@ -45,6 +46,8 @@ class AuthController extends Controller
 
         session()->regenerate();
 
+        app(UserActivityLogger::class)->logAuth('login', $user);
+
         return to_route('dashboard')
             ->with('show_post_login_splash', true)
             ->with('success', __('employee::responses.logged_in_successfully'));
@@ -52,6 +55,11 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $user = auth()->user();
+        if ($user instanceof Employee) {
+            app(UserActivityLogger::class)->logAuth('logout', $user);
+        }
+
         auth()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

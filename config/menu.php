@@ -371,6 +371,11 @@ return [
                 'permission' => 'employees.employees.show',
             ],
             [
+                'name' => 'user_activity',
+                'url' => 'user-activity',
+                'permission' => 'employees.user_activity.show',
+            ],
+            [
                 'name' => 'pos_roles',
                 'url' => 'pos-role',
                 'permission' => 'employees.pos_roles.show',
