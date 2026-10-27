@@ -97,9 +97,16 @@
             </td>
             <td style="width:66%; padding-left:10px;">
                 <div class="card">
-                    <div class="card-h">@lang('general::lang.invoice_info')</div>
+                    <div class="card-h">
+                        @if ($transaction->transaction)
+                            @lang('general::lang.invoice_info')
+                        @else
+                            @lang('sales::lang.receipt_advance_invoice_label')
+                        @endif
+                    </div>
                     <div class="card-b">
                         <table class="kv">
+                            @if ($transaction->transaction)
                             <tr>
                                 <td class="label">@lang('sales::fields.ref_no')</td>
                                 <td class="value">{{ $transaction->transaction->ref_no ?? 'N/A' }}</td>
@@ -124,6 +131,7 @@
                                 <td class="label">@lang('sales::fields.payment_status')</td>
                                 <td class="value">{{ $transaction->transaction?->payment_status ? __('general::lang.' . $transaction->transaction->payment_status) : '--' }}</td>
                             </tr>
+                            @endif
                             <tr>
                                 <td class="label">@lang('sales::lang.paid_amount')</td>
                                 <td class="value">{{ number_format((float) ($transaction->amount ?? 0), 2) }}</td>
@@ -137,6 +145,7 @@
         </tr>
     </table>
 
+    @if ($transaction->transaction)
     <div class="sep"></div>
 
     <div class="card">
@@ -176,6 +185,7 @@
             </table>
         </div>
     </div>
+    @endif
 
     <div class="sep"></div>
 

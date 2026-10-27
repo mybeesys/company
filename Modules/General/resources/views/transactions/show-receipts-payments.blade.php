@@ -2,20 +2,18 @@
 
 
 @php
-    $title =
-        $transaction->transaction->type == 'purchases' ||
-        $transaction->transaction->type == 'purchases-order' ||
-        $transaction->transaction->type == 'sell-return'
+    $linkedType = $transaction->transaction?->type;
+    $isSupplierReceipt = in_array($linkedType, ['purchases', 'purchase', 'purchases-order', 'sell-return'], true);
+    $title = $title
+        ?? ($isSupplierReceipt
             ? __('menuItemLang.supplier_receipt')
-            : __('menuItemLang.customer_receipt');
+            : ($transaction->transaction_id
+                ? __('menuItemLang.customer_receipt')
+                : __('sales::lang.receipt_advance_invoice_label')));
 
-    $contact =
-        $transaction->transaction->type == 'purchases' ||
-        $transaction->transaction->type == 'purchases-order' ||
-        $transaction->transaction->type == 'sell-return'
-            ? __('purchases::general.supplier')
-            : __('sales::fields.client');
-
+    $contact = $isSupplierReceipt
+        ? __('purchases::general.supplier')
+        : __('sales::fields.client');
 @endphp
 @section('title', $title . '-' . $transaction?->payment_ref_no)
 @section('css')
@@ -185,9 +183,16 @@
             <div class="col-md-8">
                 <div class="card mb-3">
                     <div class="card-header py-1" style="background: #f9f9f9; min-height: 40px;">
-                        <h3 class="card-title fw-bold">@lang('general::lang.invoice_info')</h3>
+                        <h3 class="card-title fw-bold">
+                            @if ($transaction->transaction)
+                                @lang('general::lang.invoice_info')
+                            @else
+                                @lang('sales::lang.receipt_advance_invoice_label')
+                            @endif
+                        </h3>
                     </div>
                     <div class="card-body py-0">
+                        @if ($transaction->transaction)
                         <div class="row mt-1">
                             <div class="col-md-4 mb-3">
                                 <label class="form-label text-muted">@lang('sales::fields.ref_no')</label>
@@ -232,9 +237,19 @@
                                 </p>
                             </div>
                         </div>
+                        @else
+                        <div class="row mt-3 mb-3">
+                            <div class="col-12">
+                                <p class="fs-6 fw-semibold mb-1">@lang('sales::lang.receipt_advance_invoice_label')</p>
+                                <p class="text-muted mb-0">{{ $transaction->note }}</p>
+                                <p class="fs-6 fw-bold mt-3 mb-0">{{ number_format((float) $transaction->amount, 2) }}</p>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
+            @if ($transaction->transaction)
             <div class="col-md-12">
 
                 <div class="card">
@@ -337,6 +352,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
 
 
