@@ -31,6 +31,7 @@ return [
     'accounting_dashboard' => 'لوحة التحكم المحاسبية',
     'journalEntry' => 'القيود اليومية',
     'employees' => 'الموظفون',
+    'user_activity' => 'متابعة حركات المستخدمين',
     'employees-dashboard' => 'لوحة تحكم الموظفين',
     'pos_permissions' => 'أذونات نقاط البيع',
     'dashboard_permissions' => 'أذونات لوحة التحكم',

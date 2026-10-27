@@ -32,6 +32,7 @@ return [
     'accounting_dashboard' => 'Accounting Dashboard',
     'journalEntry' => 'Journal Entry',
     'employees' => 'Employees',
+    'user_activity' => 'User activity audit',
     'employees-dashboard' => 'Employees dashboard',
     'pos_permissions' => 'POS permissions',
     'dashboard_permissions' => 'Dashboard permissions',

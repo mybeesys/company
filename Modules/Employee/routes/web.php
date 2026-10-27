@@ -17,6 +17,7 @@ use Modules\Employee\Http\Controllers\ProfileController;
 use Modules\Employee\Http\Controllers\ShiftController;
 use Modules\Employee\Http\Controllers\TimeCardController;
 use Modules\Employee\Http\Controllers\TimeSheetRuleController;
+use Modules\Employee\Http\Controllers\UserActivityReportController;
 use Modules\Employee\Http\Middleware\EnureTimeSheetRulesExists;
 use Modules\Employee\Models\DashboardRole;
 use Modules\Employee\Models\Employee;
@@ -86,6 +87,18 @@ Route::middleware([
         Route::get('/referrals', [ReferralController::class, 'index'])
             ->middleware($perm(ReferralsPermissions::SHOW))
             ->name('referrals.index');
+
+        Route::controller(UserActivityReportController::class)
+            ->middleware($perm(EmployeePermissions::USER_ACTIVITY_SHOW))
+            ->prefix('user-activity')
+            ->name('activity.')
+            ->group(function () {
+                Route::get('', 'index')->name('index');
+                Route::get('/data/users', 'usersData')->name('users.data');
+                Route::get('/entry/{log}', 'activityEntry')->name('entry')->whereNumber('log');
+                Route::get('/{employee}/data', 'activityData')->name('data');
+                Route::get('/{employee}', 'show')->name('show');
+            });
         Route::post('/referrals/copy', [ReferralController::class, 'recordCopy'])
             ->middleware($perm(ReferralsPermissions::SHOW))
             ->name('referrals.copy');

@@ -55,6 +55,11 @@ class EmployeeServiceProvider extends ServiceProvider
         });
 
         $this->registerPolicies();
+
+        $this->app->make('router')->pushMiddlewareToGroup(
+            'web',
+            \Modules\Employee\Http\Middleware\LogUserActivityMiddleware::class
+        );
     }
 
     /**
@@ -123,6 +128,7 @@ class EmployeeServiceProvider extends ServiceProvider
     {
         $this->publishes([module_path($this->name, 'config/config.php') => config_path($this->nameLower.'.php')], 'config');
         $this->mergeConfigFrom(module_path($this->name, 'config/config.php'), $this->nameLower);
+        $this->mergeConfigFrom(module_path($this->name, 'config/activity_log.php'), $this->nameLower.'.activity_log');
     }
 
     /**

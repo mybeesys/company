@@ -7,6 +7,7 @@ use App\Support\TenantSwitchToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Modules\Employee\Models\Employee;
+use Modules\Employee\Services\UserActivityLogger;
 
 class TenantSwitchAuthController extends Controller
 {
@@ -36,6 +37,10 @@ class TenantSwitchAuthController extends Controller
 
         Auth::login($employee, true);
         $request->session()->regenerate();
+
+        app(UserActivityLogger::class)->logAuth('tenant_switch', $employee, [
+            'tenant_id' => $tenantId,
+        ]);
 
         return redirect()->route('dashboard')
             ->with('success', __('employee::my_companies.switch_success'));

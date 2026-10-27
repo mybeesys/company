@@ -1,0 +1,36 @@
+<?php
+
+return [
+    'page_title' => 'User activity audit',
+    'page_subtitle' => 'A complete audit trail of dashboard users — create, update, delete, export, and sign-in events — including snapshots before delete when available.',
+    'users_overview' => 'Users & activity summary',
+    'last_activity' => 'Last activity',
+    'events_count' => 'Events',
+    'actions' => 'Actions',
+    'open_timeline' => 'Open timeline',
+    'timeline_for' => 'Activity timeline: :name',
+    'back_to_users' => 'Back to users',
+    'event_type' => 'Event type',
+    'all_events' => 'All events',
+    'date_from' => 'From date',
+    'date_to' => 'To date',
+    'apply_filter' => 'Apply filter',
+    'when' => 'When',
+    'description' => 'Description',
+    'context' => 'Context',
+    'details' => 'Details',
+    'entry_details' => 'Event details',
+
+    'event_auth' => 'Authentication',
+    'event_created' => 'Created',
+    'event_updated' => 'Updated',
+    'event_deleted' => 'Deleted',
+    'event_viewed' => 'Viewed',
+    'event_export' => 'Export / print',
+    'event_other' => 'Other',
+
+    'auth_login' => 'Signed in to the dashboard',
+    'auth_logout' => 'Signed out of the dashboard',
+    'auth_tenant_switch' => 'Switched company (cross-tenant sign-in)',
+    'auth_login_failed' => 'Failed sign-in attempt',
+];
