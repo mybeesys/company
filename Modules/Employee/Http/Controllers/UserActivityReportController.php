@@ -9,19 +9,24 @@ use Illuminate\View\View;
 use Modules\Employee\Models\Employee;
 use Modules\Employee\Models\UserActivityLog;
 use Modules\Employee\Services\UserActivityLogger;
+use Modules\Employee\Services\UserActivityPresenter;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserActivityReportController extends Controller
 {
+    public function __construct(protected UserActivityPresenter $presenter) {}
+
     public function index(): View
     {
-        $employees = Employee::query()
-            ->where('ems_access', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'name_en', 'email', 'user_name']);
+        $stats = [
+            'dashboard_users' => Employee::query()->where('ems_access', true)->count(),
+            'events_today' => UserActivityLog::query()->whereDate('created_at', today())->count(),
+            'events_week' => UserActivityLog::query()->where('created_at', '>=', now()->subDays(7))->count(),
+            'last_log_at' => UserActivityLog::query()->max('created_at'),
+        ];
 
         return view('employee::user-activity.index', [
-            'employees' => $employees,
+            'stats' => $stats,
             'eventTypes' => $this->eventTypeOptions(),
         ]);
     }
@@ -47,36 +52,55 @@ class UserActivityReportController extends Controller
             );
 
         return DataTables::of($query)
-            ->addColumn('display_name', function (Employee $row) {
-                return e((string) ($row->translated_name ?? $row->name ?? '—'));
+            ->addColumn('user_cell', function (Employee $row) {
+                $name = e((string) ($row->translated_name ?? $row->name ?? '—'));
+                $initial = mb_strtoupper(mb_substr((string) ($row->name ?? '?'), 0, 1));
+
+                return '<div class="d-flex align-items-center gap-3">'
+                    .'<span class="symbol symbol-40px symbol-circle bg-light-primary text-primary fw-bold">'.$initial.'</span>'
+                    .'<div><div class="fw-semibold text-gray-900">'.$name.'</div>'
+                    .'<div class="text-muted fs-7">'.e((string) $row->user_name).'</div></div></div>';
             })
             ->addColumn('last_activity_at_fmt', function (Employee $row) {
                 if (empty($row->last_activity_at)) {
-                    return '<span class="text-muted">—</span>';
+                    return '<span class="text-muted">'.e(__('employee::activity.no_activity_yet')).'</span>';
                 }
 
-                return e(\Carbon\Carbon::parse($row->last_activity_at)->format('Y-m-d H:i'));
+                $at = \Carbon\Carbon::parse($row->last_activity_at);
+                $when = $this->presenter->formatWhen($at);
+
+                return '<div class="text-gray-900">'.$when['absolute'].'</div>'
+                    .'<div class="text-muted fs-7">'.$when['relative'].'</div>';
             })
             ->addColumn('activity_count_fmt', function (Employee $row) {
                 $count = (int) ($row->activity_count ?? 0);
 
-                return '<span class="badge badge-light-primary">'.number_format($count).'</span>';
+                return '<span class="badge badge-light-primary fs-7">'.number_format($count).' '
+                    .e(__('employee::activity.events_short'))
+                    .'</span>';
             })
             ->addColumn('action', function (Employee $row) {
                 $url = route('activity.show', ['employee' => $row->id]);
 
-                return '<a href="'.e($url).'" class="btn btn-sm btn-light-primary">'
+                return '<a href="'.e($url).'" class="btn btn-sm btn-primary">'
                     .e(__('employee::activity.open_timeline'))
                     .'</a>';
             })
-            ->rawColumns(['last_activity_at_fmt', 'activity_count_fmt', 'action'])
+            ->rawColumns(['user_cell', 'last_activity_at_fmt', 'activity_count_fmt', 'action'])
             ->make(true);
     }
 
     public function show(Employee $employee): View
     {
+        $summary = [
+            'total' => UserActivityLog::query()->where('employee_id', $employee->id)->count(),
+            'today' => UserActivityLog::query()->where('employee_id', $employee->id)->whereDate('created_at', today())->count(),
+            'deletions' => UserActivityLog::query()->where('employee_id', $employee->id)->where('event', UserActivityLogger::EVENT_DELETED)->count(),
+        ];
+
         return view('employee::user-activity.show', [
             'employee' => $employee,
+            'summary' => $summary,
             'eventTypes' => $this->eventTypeOptions(),
         ]);
     }
@@ -100,47 +124,41 @@ class UserActivityReportController extends Controller
         }
 
         return DataTables::of($query)
-            ->addColumn('created_at_fmt', fn (UserActivityLog $row) => $row->created_at?->format('Y-m-d H:i:s') ?? '')
-            ->addColumn('event_badge', function (UserActivityLog $row) {
-                return $this->eventBadge($row->event);
-            })
-            ->addColumn('description_fmt', fn (UserActivityLog $row) => e($row->description ?? '—'))
-            ->addColumn('context', function (UserActivityLog $row) {
-                $parts = array_filter([
-                    $row->http_method,
-                    $row->route_name,
-                    $row->ip_address,
-                ]);
+            ->addColumn('when_cell', function (UserActivityLog $row) {
+                $when = $this->presenter->formatWhen($row->created_at);
 
-                return e(implode(' · ', $parts));
+                return '<div class="fw-semibold text-gray-900">'.$when['absolute'].'</div>'
+                    .'<div class="text-muted fs-7">'.$when['relative'].'</div>';
+            })
+            ->addColumn('event_badge', fn (UserActivityLog $row) => $this->eventBadge($row->event))
+            ->addColumn('headline_cell', function (UserActivityLog $row) {
+                return '<div class="text-gray-900 fw-semibold">'.e($this->presenter->headline($row)).'</div>';
+            })
+            ->addColumn('area_cell', function (UserActivityLog $row) {
+                return '<span class="badge badge-light-secondary">'.e($this->presenter->areaLabel($row)).'</span>';
             })
             ->addColumn('action', function (UserActivityLog $row) {
                 $url = route('activity.entry', ['log' => $row->id]);
 
-                return '<button type="button" class="btn btn-sm btn-light js-activity-detail" data-url="'.e($url).'">'
+                return '<button type="button" class="btn btn-sm btn-light-primary js-activity-detail" data-url="'.e($url).'">'
                     .e(__('employee::activity.details'))
                     .'</button>';
             })
-            ->rawColumns(['event_badge', 'action'])
+            ->rawColumns(['when_cell', 'event_badge', 'headline_cell', 'area_cell', 'action'])
             ->make(true);
     }
 
     public function activityEntry(UserActivityLog $log): JsonResponse
     {
+        $when = $this->presenter->formatWhen($log->created_at);
+
         return response()->json([
-            'id' => $log->id,
-            'event' => $log->event,
-            'description' => $log->description,
-            'created_at' => $log->created_at?->toIso8601String(),
-            'route_name' => $log->route_name,
-            'http_method' => $log->http_method,
-            'url' => $log->url,
-            'ip_address' => $log->ip_address,
-            'user_agent' => $log->user_agent,
-            'status_code' => $log->status_code,
-            'subject_type' => $log->subject_type,
-            'subject_id' => $log->subject_id,
-            'properties' => $log->properties,
+            'headline' => $this->presenter->headline($log),
+            'event_label' => $this->presenter->eventLabel($log->event),
+            'area_label' => $this->presenter->areaLabel($log),
+            'when' => $when['absolute'],
+            'when_relative' => $when['relative'],
+            'sections' => $this->presenter->detailSections($log),
         ]);
     }
 
@@ -173,7 +191,7 @@ class UserActivityReportController extends Controller
         ];
         $class = $map[$event] ?? 'badge-light';
 
-        $label = $this->eventTypeOptions()[$event] ?? $event;
+        $label = $this->presenter->eventLabel($event);
 
         return '<span class="badge '.$class.'">'.e($label).'</span>';
     }

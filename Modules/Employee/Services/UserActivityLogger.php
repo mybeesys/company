@@ -79,7 +79,7 @@ class UserActivityLogger
         }
 
         $event = $this->inferEvent($request);
-        $description = $this->buildDescription($request, $event);
+        $description = app(UserActivityPresenter::class)->describeRequest($request, $event);
         $properties = [
             'input' => $this->sanitizedInput($request),
             'route_parameters' => $this->routeParameterSummary($request),
@@ -193,28 +193,6 @@ class UserActivityLogger
         }
 
         return self::EVENT_VIEWED;
-    }
-
-    private function buildDescription(Request $request, string $event): string
-    {
-        $routeName = $request->route()?->getName();
-        $method = $request->method();
-        $path = '/'.$request->path();
-
-        $eventLabel = match ($event) {
-            self::EVENT_CREATED => __('employee::activity.event_created'),
-            self::EVENT_UPDATED => __('employee::activity.event_updated'),
-            self::EVENT_DELETED => __('employee::activity.event_deleted'),
-            self::EVENT_VIEWED => __('employee::activity.event_viewed'),
-            self::EVENT_EXPORT => __('employee::activity.event_export'),
-            default => __('employee::activity.event_other'),
-        };
-
-        if ($routeName) {
-            return "{$eventLabel}: {$routeName} ({$method})";
-        }
-
-        return "{$eventLabel}: {$path} ({$method})";
     }
 
     private function inferLogName(Request $request): ?string
