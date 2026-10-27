@@ -5,11 +5,17 @@
 @parent
 <style>
     .ua-hero {
-        background: linear-gradient(135deg, #1e3a5f 0%, #0d9488 100%);
+        background: var(--bs-primary, #e9b71f);
         border-radius: 0.85rem;
-        color: #fff;
+        color: var(--bs-primary-inverse, #1e2129);
     }
-    .ua-hero p { color: rgba(255,255,255,.88); max-width: 42rem; }
+    .ua-hero .ua-hero-text {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        line-height: 1.6;
+        color: inherit;
+    }
     .ua-stat-card {
         border: 1px solid var(--bs-gray-200);
         border-radius: 0.75rem;
@@ -26,9 +32,8 @@
 @section('content')
 <div class="post d-flex flex-column-fluid" id="kt_post">
     <div id="kt_content_container" class="container-xxl">
-        <div class="ua-hero p-6 mb-6">
-            <h1 class="text-white fw-bold mb-2">@lang('employee::activity.page_title')</h1>
-            <p class="mb-0 fs-6">@lang('employee::activity.page_subtitle')</p>
+        <div class="ua-hero p-5 mb-6">
+            <p class="ua-hero-text">@lang('employee::activity.page_subtitle')</p>
         </div>
 
         <div class="row g-4 mb-6">
