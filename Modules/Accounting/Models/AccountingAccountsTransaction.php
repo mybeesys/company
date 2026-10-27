@@ -102,13 +102,18 @@ class AccountingAccountsTransaction extends Model
     }
 
     /**
-     * Standalone receipt/payment vouchers store two paired rows in accounting_accounts_transactions.
-     * Invoice payment journals reuse the same sub_type labels but set transaction_payment_id; they must
-     * not appear in the standalone voucher UI (pairing uses transaction_id differently).
+     * Receipt/payment voucher list: pure accounting vouchers, plus customer/supplier advances
+     * posted from sales/purchases receipts (payment row with no invoice transaction_id).
+     * Invoice settlement journals reuse the same sub_type but stay off this screen.
      */
     public function scopeStandaloneVoucherSubType($query, string $subType)
     {
-        return $query->where('sub_type', $subType)->whereNull('transaction_payment_id');
+        return $query->where('sub_type', $subType)->where(function ($q) {
+            $q->whereNull('transaction_payment_id')
+                ->orWhereHas('transactionPayments', function ($p) {
+                    $p->whereNull('transaction_id');
+                });
+        });
     }
 
     public static function getAccountTransactionType($tansaction_type)
@@ -155,7 +160,12 @@ class AccountingAccountsTransaction extends Model
                             </div>";
             })
             ->editColumn('account', function ($row) {
-                return $row->account->gl_code.' - '.(App::getLocale() == 'en' ? $row->account->name_en : $row->account->name_ar);
+                $account = $row->account;
+                if (! $account) {
+                    return '--';
+                }
+
+                return $account->gl_code.' - '.(App::getLocale() == 'en' ? $account->name_en : $account->name_ar);
             })
             ->editColumn('operation_date', function ($row) {
                 return $row->operation_date ?? '--';
@@ -168,7 +178,7 @@ class AccountingAccountsTransaction extends Model
                 return $row->amount;
             })
             ->editColumn('created_by', function ($row) {
-                return $row->createdBy->name;
+                return $row->createdBy->name ?? '--';
             })
 
             ->editColumn('note', function ($row) {
