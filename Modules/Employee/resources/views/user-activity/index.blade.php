@@ -56,7 +56,7 @@ $(function () {
         order: [[3, 'desc']],
         ajax: '{{ route('activity.users.data') }}',
         columns: [
-            { data: 'display_name', name: 'first_name' },
+            { data: 'display_name', name: 'name' },
             { data: 'email', name: 'email' },
             { data: 'user_name', name: 'user_name' },
             { data: 'last_activity_at_fmt', name: 'last_activity_at', searchable: false },

@@ -1,6 +1,6 @@
 @extends('employee::layouts.master')
 
-@section('title', __('employee::activity.timeline_for', ['name' => trim($employee->first_name.' '.$employee->last_name)]))
+@section('title', __('employee::activity.timeline_for', ['name' => $employee->translated_name ?? $employee->name ?? '']))
 @section('css')
 @parent
 <style>
@@ -26,7 +26,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-6 gap-3">
             <div class="ua-timeline-header">
                 <a href="{{ route('activity.index') }}" class="text-muted fs-7 d-block mb-1">← @lang('employee::activity.back_to_users')</a>
-                <h1 class="fw-bold mb-0">@lang('employee::activity.timeline_for', ['name' => trim($employee->first_name.' '.$employee->last_name)])</h1>
+                <h1 class="fw-bold mb-0">@lang('employee::activity.timeline_for', ['name' => $employee->translated_name ?? $employee->name ?? ''])</h1>
                 <p class="text-muted mb-0">{{ $employee->email }} · {{ $employee->user_name }}</p>
             </div>
         </div>
