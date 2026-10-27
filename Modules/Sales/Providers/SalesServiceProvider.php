@@ -54,6 +54,7 @@ class SalesServiceProvider extends ServiceProvider
     {
         $this->commands([
             \Modules\Sales\Console\RepairSellReturnsCommand::class,
+            \Modules\Sales\Console\RepairLegacyReceiptAdvancesCommand::class,
             \Modules\Sales\Console\SyncSalesPermissionsCommand::class,
         ]);
     }
