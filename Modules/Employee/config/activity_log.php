@@ -48,4 +48,17 @@ return [
         '/^auth\.tenant-switch$/',
         '/^password\./',
     ],
+
+    /**
+     * Map URL path / route-name fragments to a human area label.
+     * Keys are matched against route name, first path segment, and full URL path (longest wins by order).
+     * Values are translation keys (employee::activity.* or menuItemLang.*) resolved in UserActivityPresenter.
+     *
+     * Example: 'my-custom-module' => 'menuItemLang.products',
+     */
+    'area_labels' => [
+        // Examples (uncomment or copy):
+        // 'my-module' => 'employee::activity.area_general',
+        // 'custom-path-segment' => 'menuItemLang.zatca_einvoicing',
+    ],
 ];

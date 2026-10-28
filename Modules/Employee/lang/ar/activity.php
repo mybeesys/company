@@ -71,6 +71,11 @@ return [
     'area_profile' => 'الملف الشخصي',
     'area_payroll' => 'الرواتب',
     'area_permissions' => 'الصلاحيات',
+    'area_cashier' => 'إعدادات الكاشير',
+    'area_cash_register' => 'الصندوق النقدي',
+    'area_pos' => 'نقاط البيع',
+    'area_screens_promo' => 'شاشات العرض — العروض',
+    'area_screens_playlist' => 'شاشات العرض — قوائم التشغيل',
 
     'yes' => 'نعم',
     'no' => 'لا',
