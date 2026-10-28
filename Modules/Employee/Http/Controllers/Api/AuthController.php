@@ -3,6 +3,7 @@
 namespace Modules\Employee\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\RealtimeClientConfig;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Modules\Employee\Http\Requests\Api\Auth\LoginRequest;
@@ -88,20 +89,20 @@ class AuthController extends Controller
         );
 
         if ($timeCard['status']) {
-            return response()->json([
+            return response()->json(array_merge([
                 'employee_id' => $employee->id,
                 'timecard_id' => $timeCard['id'],
                 'message' => 'Login successful',
-            ]);
+            ], ['realtime' => RealtimeClientConfig::forRequest()]));
         } else {
             if ($timeCard['status_code'] == 409) {
                 $existingTimeCard = $employee->timecards()->whereNull('clock_out_time')->latest()->first();
 
-                return response()->json([
+                return response()->json(array_merge([
                     'employee_id' => $employee->id,
                     'timecard_id' => $existingTimeCard ? $existingTimeCard->id : null,
                     'message' => 'Employee already clocked in, proceeding to login.',
-                ]);
+                ], ['realtime' => RealtimeClientConfig::forRequest()]));
             }
 
             return response()->json(['error' => $timeCard['message']], $timeCard['status_code']);
@@ -128,7 +129,10 @@ class AuthController extends Controller
         $timeCard = $this->timeCardService->storeClockInTimecard($employee->id, $establishment_id, $clock_in_time, $date);
 
         if ($timeCard['status']) {
-            return response()->json(['employee_id' => $employee->id, 'timecard_id' => $timeCard['id']]);
+            return response()->json(array_merge([
+                'employee_id' => $employee->id,
+                'timecard_id' => $timeCard['id'],
+            ], ['realtime' => RealtimeClientConfig::forRequest()]));
         } else {
             if ($timeCard['status_code'] == 409) {
                 return response()->json([
