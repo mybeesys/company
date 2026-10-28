@@ -18,11 +18,12 @@ final class CashierApiError
     public static function toResponse(Throwable $e): JsonResponse
     {
         if ($e instanceof ValidationException) {
-            $message = collect($e->errors())->flatten()->first() ?: $e->getMessage();
+            $message = (string) (collect($e->errors())->flatten()->first() ?: $e->getMessage());
+            $mapped = self::mapRuntimeMessage($message);
 
             return response()->json([
-                'message' => (string) $message,
-                'code' => 'validation_error',
+                'message' => $mapped['message'] ?? $message,
+                'code' => $mapped['code'] ?? 'validation_error',
                 'errors' => $e->errors(),
             ], 422);
         }
@@ -80,6 +81,9 @@ final class CashierApiError
             'Customer account is missing' => 'customer_account_missing',
             'Please link an accounting account to the customer' => 'customer_account_missing',
             'غير مربوط بحساب محاسبي' => 'customer_account_missing',
+            'cannot_add_child_account_has_movements' => 'customer_parent_has_movements',
+            'ويجب أن يبقى حساباً نهائياً' => 'customer_parent_has_movements',
+            'must remain a final' => 'customer_parent_has_movements',
             'Customer accounting account' => 'customer_account_invalid',
             'Collection accounting account' => 'collection_account_invalid',
             'Cash account #' => 'cash_account_invalid',

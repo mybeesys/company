@@ -145,6 +145,7 @@ return [
     'contact_accounts_show_in_coa' => 'Show customer/supplier accounts in the chart and reports',
     'contact_accounts_show_in_coa_help' => 'Organizational only: when disabled, balances roll into the parent on the chart of accounts and reports.',
     'contact_accounts_parent_missing' => 'Cannot auto-create the account: parent GL :gl was not found. Set it in Accounting settings.',
+    'contact_accounts_parent_has_movements' => 'Cannot create a customer account under :name (:gl) because it has movements. Choose a grouping account with no movements in Accounting settings (for example Trade Receivables - Local).',
     'main_account_employee_receivables' => 'Main account employee receivables',
     'main_account_requests_approvals' => 'Main account requests and approvals',
     'main_account_other_receivables' => 'Main account other receivables',
@@ -995,6 +996,7 @@ return [
         'account_missing' => 'Cannot complete the invoice: the selected accounting account does not exist. Re-link the customer or Accounts Routing, then retry.',
         'collection_account_invalid' => 'Cannot complete the invoice: the collection account is invalid. Check the customer account link, then retry.',
         'journal_unbalanced' => 'The accounting journal could not be posted because it is not balanced. Contact support.',
+        'customer_parent_has_movements' => 'Cannot create a customer GL account: the selected parent already has movements. Choose a grouping account with no movements in Accounting settings (for example 11301 Trade Receivables - Local), then retry.',
     ],
 
 ];
