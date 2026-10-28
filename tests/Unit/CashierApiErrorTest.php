@@ -59,12 +59,24 @@ final class CashierApiErrorTest extends TestCase
     public function test_validation_exception_returns_first_arabic_or_original_message(): void
     {
         $response = CashierApiError::toResponse(ValidationException::withMessages([
-            'client_id' => ['هذا العميل غير مربوط بحساب محاسبي. اربط الحساب من بطاقة العميل قبل إتمام فاتورة البيع.'],
+            'email' => ['صيغة البريد الإلكتروني غير صحيحة.'],
         ]));
 
         $this->assertSame(422, $response->getStatusCode());
         $payload = $response->getData(true);
         $this->assertSame('validation_error', $payload['code']);
-        $this->assertStringContainsString('غير مربوط بحساب محاسبي', $payload['message']);
+        $this->assertSame('صيغة البريد الإلكتروني غير صحيحة.', $payload['message']);
+    }
+
+    public function test_parent_has_movements_validation_maps_to_cashier_code(): void
+    {
+        $response = CashierApiError::toResponse(ValidationException::withMessages([
+            'account_id' => ['لا يمكن إضافة حساب فرعي: هذا الحساب عليه حركات ويجب أن يبقى حساباً نهائياً (بدون أبناء).'],
+        ]));
+
+        $this->assertSame(422, $response->getStatusCode());
+        $payload = $response->getData(true);
+        $this->assertSame('customer_parent_has_movements', $payload['code']);
+        $this->assertStringContainsString('تجميعياً', $payload['message']);
     }
 }
