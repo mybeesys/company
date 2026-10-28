@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\CentralCompanyMembershipService;
 use App\Services\CompanyTokenService;
+use App\Support\RealtimeClientConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -69,10 +70,17 @@ class CompanyAuthController extends Controller
             $revokePrevious,
         );
 
+        $company = $companies->firstWhere('tenant_id', $tenantId) ?? $companies->first();
+        $realtime = $request->getHost() !== ''
+            && ! in_array($request->getHost(), ['localhost', '127.0.0.1'], true)
+            ? RealtimeClientConfig::forRequest($request)
+            : RealtimeClientConfig::forTenantDomain((string) $company->domain, 'https');
+
         return response()->json([
             'token' => $accessToken->plainTextToken,
             'tenant_id' => $tenantId,
             'expires_at' => $accessToken->accessToken->expires_at?->toIso8601String(),
+            'realtime' => $realtime,
         ]);
     }
 

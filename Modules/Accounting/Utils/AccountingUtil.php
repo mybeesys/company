@@ -10,6 +10,7 @@ use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Models\AccountingAccountTypes;
 use Modules\Accounting\Models\AccountingAccTransMapping;
 use Modules\Accounting\Models\AccountsRoting;
+use Modules\Accounting\Exceptions\AccountingPostingException;
 use Modules\Accounting\Services\FiscalPeriod\FiscalPeriodGatekeeper;
 use Modules\Accounting\Services\SellCashCollectionSplitter;
 use Modules\Accounting\Support\AccountingNote;
@@ -102,10 +103,10 @@ class AccountingUtil
     {
         $accountId = (int) ($transactionPayment->account_id ?? 0);
         if ($accountId <= 0) {
-            throw new RuntimeException('Accounting line is missing account_id. Please check Accounts Routing and customer/supplier linked accounts.');
+            throw new AccountingPostingException('account_line_missing');
         }
         if (! AccountingAccount::whereKey($accountId)->exists()) {
-            throw new RuntimeException("Accounting account #{$accountId} does not exist. Please re-link the customer/supplier or Accounts Routing.");
+            throw new AccountingPostingException('account_missing');
         }
 
         $costCenterId = null;
@@ -148,12 +149,12 @@ class AccountingUtil
     public function resolveCustomerReceivableAccountId(?Contact $client, string $context = 'sale'): int
     {
         if (! $client || ! $client->account_id) {
-            throw new RuntimeException("Customer account is missing for {$context}. Please link an accounting account to the customer.");
+            throw new AccountingPostingException('customer_account_missing');
         }
 
         $accountId = (int) $client->account_id;
         if ($accountId <= 0 || ! AccountingAccount::whereKey($accountId)->exists()) {
-            throw new RuntimeException("Customer accounting account #{$accountId} is invalid for {$context}. Please re-link the customer to a valid GL account.");
+            throw new AccountingPostingException('customer_account_invalid');
         }
 
         return $accountId;
@@ -172,7 +173,7 @@ class AccountingUtil
         $route = AccountsRoting::where('type', 'sales_discount_allowed')->first();
         $accountId = (int) ($route?->account_id ?? 0);
         if ($accountId <= 0) {
-            throw new RuntimeException('Invoice discount is present but sales_discount_allowed is not configured in Accounts Routing.');
+            throw new AccountingPostingException('discount_routing_missing');
         }
 
         return $accountId;
@@ -548,7 +549,7 @@ class AccountingUtil
                 if ($invoiceType === 'cash') {
 
                     if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
-                        throw new RuntimeException('Accounting routing missing for sell (cash). Please configure sales_sales and sales_vat_calculation in Accounts Routing.');
+                        throw new AccountingPostingException('routing_missing_sell');
                     }
 
                     if (! $transactionPayment->payment_for) {
@@ -606,14 +607,14 @@ class AccountingUtil
                 } else {
                     // due / credit / legacy: Dr customer AR (or branch collection GL when provided)
                     if (! $sales_sales?->account_id || ! $sales_vat_calculation?->account_id) {
-                        throw new RuntimeException('Accounting routing missing for sell (due). Please configure sales_sales and sales_vat_calculation in Accounts Routing.');
+                        throw new AccountingPostingException('routing_missing_sell');
                     }
                     $collectionAccountId = (int) ($due_account_id ?: $cash_account_id);
                     if ($collectionAccountId <= 0) {
                         $client = Contact::find($transactionPayment->payment_for ?: $transaction->contact_id);
                         $collectionAccountId = $this->resolveCustomerReceivableAccountId($client, 'sell (due)');
                     } elseif (! AccountingAccount::whereKey($collectionAccountId)->exists()) {
-                        throw new RuntimeException("Collection accounting account #{$collectionAccountId} is invalid for sell (due).");
+                        throw new AccountingPostingException('collection_account_invalid');
                     }
                     $transactionPayment->account_id = $collectionAccountId;
                     $transactionPayment->amount = $finalTotal;
@@ -646,7 +647,7 @@ class AccountingUtil
                 $sales_vat_calculation = AccountsRoting::where('type', 'sales_vat_calculation')->first();
 
                 if (! $sales_sell_return || ! $sales_sell_return->account_id || ! $sales_vat_calculation || ! $sales_vat_calculation->account_id) {
-                    throw new RuntimeException('Accounting routing missing for sell-return. Please configure Accounts Routing: sales_sell_return, sales_vat_calculation.');
+                    throw new AccountingPostingException('routing_missing_sell_return');
                 }
 
                 $amounts = $this->resolveSellRevenueAmounts($transaction);
@@ -682,7 +683,7 @@ class AccountingUtil
                     if ($cashTarget <= 0) {
                         $cashTarget = $customerAccountId;
                     } elseif (! AccountingAccount::whereKey($cashTarget)->exists()) {
-                        throw new RuntimeException("Cash account #{$cashTarget} is invalid for sell-return cash refund.");
+                        throw new AccountingPostingException('cash_account_invalid');
                     }
                     $transactionPayment->account_id = $cashTarget;
                     $transactionPayment->amount = $finalTotal;
@@ -808,7 +809,7 @@ class AccountingUtil
         );
 
         if ($splits === []) {
-            throw new RuntimeException('Cash/bank account is missing for sell (cash). Please select a payment account on the invoice.');
+            throw new AccountingPostingException('cash_account_missing');
         }
 
         foreach ($splits as $split) {

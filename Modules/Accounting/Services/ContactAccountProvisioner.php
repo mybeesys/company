@@ -57,6 +57,20 @@ final class ContactAccountProvisioner
     }
 
     /**
+     * Same dashboard rule: create/link the leaf GL and persist contacts.account_id.
+     */
+    public static function ensureLinked(Contact $contact): AccountingAccount
+    {
+        $account = self::ensureForContact($contact);
+        if ((int) $contact->account_id !== (int) $account->id) {
+            $contact->account_id = (int) $account->id;
+            $contact->save();
+        }
+
+        return $account;
+    }
+
+    /**
      * Resolve account id for create/update before the contact row exists.
      *
      * @throws ValidationException

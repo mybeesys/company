@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Accounting\Services\ContactAccountProvisioner;
 use Modules\Accounting\Utils\AccountingUtil;
+use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
 use Modules\Establishment\Models\EstPos;
@@ -25,6 +27,7 @@ use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\PosInternalConsumptionPricer;
 use Modules\Sales\Services\PosInvoiceServiceFeeApplier;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
+use Modules\Sales\Support\CashierApiError;
 use Modules\Sales\Support\TransactionPurpose;
 use Modules\Sales\Utils\SalesUtile;
 use Modules\Zatca\Services\ZatcaAutoSyncService;
@@ -232,6 +235,13 @@ class SellApiController extends Controller
                 ['ref_no' => $ref_no]
             ));
 
+            if (! $isInternalConsumption && (int) ($transaction->contact_id ?? 0) > 0) {
+                $saleContact = Contact::query()->find((int) $transaction->contact_id);
+                if ($saleContact) {
+                    ContactAccountProvisioner::ensureLinked($saleContact);
+                }
+            }
+
             if ($couponUsage && ($request->status ?? '') !== 'draft') {
                 app(ApplyCouponService::class)->registerUsage(
                     (int) $couponUsage['coupon']->id,
@@ -437,7 +447,7 @@ class SellApiController extends Controller
         } catch (Exception $e) {
             DB::rollBack();
 
-            return response()->json(['message' => 'something went wrong \n'.$e], 500);
+            return CashierApiError::toResponse($e);
         }
     }
 

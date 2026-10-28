@@ -56,6 +56,7 @@ return [
     'cannot_duplicate_missing_contact_account' => 'Cannot duplicate: the customer/supplier has no linked accounting account.',
     'contact_missing_accounting_account' => 'This customer has no linked accounting account. Link an account on the customer card before completing the sales invoice.',
     'contact_missing_accounting_account_short' => 'Customer has no linked accounting account',
+    'cashier_unexpected' => 'Could not complete the invoice. Try again or contact support.',
     'duplicate_receipt_prefill_hint' => 'Values were copied from the selected receipt. Choose allocation and invoices, then save.',
     'confirm_delete_receipt_payment' => 'Delete this receipt and its linked journal entry? You cannot undo this.',
     'delete_receipt_confirm_title' => 'Delete receipt?',

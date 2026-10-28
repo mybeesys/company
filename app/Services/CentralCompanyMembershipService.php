@@ -105,9 +105,9 @@ class CentralCompanyMembershipService
     public function tenantBaseUrl(string $domain): string
     {
         $scheme = request()->secure() ? 'https' : 'http';
-        $port = request()->getPort();
+        $port = (int) request()->getPort();
         $defaultPort = request()->secure() ? 443 : 80;
-        $portSuffix = ($port && (int) $port !== $defaultPort) ? ':'.$port : '';
+        $portSuffix = ($port > 0 && $port !== $defaultPort) ? ':'.$port : '';
 
         return $scheme.'://'.$domain.$portSuffix;
     }

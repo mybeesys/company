@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\CompanyAuthController;
+use App\Support\RealtimeClientConfig;
 use App\Support\SanctumBearerValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,14 @@ Route::get('/verify-token', function (Request $request) {
     }
 
     return response()->json(['ok' => true]);
+});
+
+Route::get('/realtime-config', function (Request $request) {
+    if (! SanctumBearerValidator::isValid($request->bearerToken())) {
+        return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
+
+    return response()->json(RealtimeClientConfig::forRequest($request));
 });
 
 Route::middleware(['socket.internal'])
