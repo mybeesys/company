@@ -983,4 +983,18 @@ return [
         'context_unknown' => ':context',
     ],
 
+    'cashier_posting' => [
+        'customer_account_missing' => 'Cannot complete the invoice: this customer has no linked accounting account. Link an account on the customer card, then retry.',
+        'customer_account_invalid' => 'Cannot complete the invoice: the accounting account linked to this customer is invalid. Re-link the customer to a valid account, then retry.',
+        'routing_missing_sell' => 'Cannot complete the invoice: sales or VAT account routing is incomplete. Check Accounts Routing, then retry.',
+        'routing_missing_sell_return' => 'Cannot complete the return: sales-return or VAT account routing is incomplete. Check Accounts Routing, then retry.',
+        'cash_account_missing' => 'Cannot complete the invoice: no cash/bank account is set for the payment method. Link the branch payment-method account, then retry.',
+        'cash_account_invalid' => 'Cannot complete the invoice: the selected cash/bank account is invalid. Check the branch payment-method account, then retry.',
+        'discount_routing_missing' => 'Cannot complete the invoice: a discount is present but sales_discount_allowed is not configured in Accounts Routing.',
+        'account_line_missing' => 'Cannot complete the invoice: an accounting line is missing its account. Check Accounts Routing and the customer account link.',
+        'account_missing' => 'Cannot complete the invoice: the selected accounting account does not exist. Re-link the customer or Accounts Routing, then retry.',
+        'collection_account_invalid' => 'Cannot complete the invoice: the collection account is invalid. Check the customer account link, then retry.',
+        'journal_unbalanced' => 'The accounting journal could not be posted because it is not balanced. Contact support.',
+    ],
+
 ];

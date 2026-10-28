@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Services\ContactAccountProvisioner;
 use Modules\ClientsAndSuppliers\Models\Contact;
+use Modules\Sales\Support\CashierApiError;
 use Modules\ClientsAndSuppliers\Transformers\ContactResource;
 use Modules\ClientsAndSuppliers\Transformers\CountriesResource;
 use Modules\General\Models\Country;
@@ -84,13 +85,14 @@ class ClientsAndSuppliersApiController extends Controller
                 $request->input('phone_number')
             );
             if ($existing) {
+                ContactAccountProvisioner::ensureLinked($existing);
                 $existing->load(['billingAddress.country_']);
                 DB::commit();
 
                 return $this->contactSavedResponse($existing, false);
             }
 
-            $accountId = $this->tryResolveAccountId($businessType, $name);
+            $accountId = ContactAccountProvisioner::resolveAccountIdForRequest($businessType, $name, null);
 
             $contact = Contact::create([
                 'name' => $name,
@@ -125,11 +127,11 @@ class ClientsAndSuppliersApiController extends Controller
         } catch (ValidationException $e) {
             DB::rollBack();
 
-            throw $e;
+            return CashierApiError::toResponse($e);
         } catch (Exception $e) {
             DB::rollBack();
 
-            return response()->json(['message' => 'something went wrong'], 500);
+            return CashierApiError::toResponse($e);
         }
     }
 
@@ -158,6 +160,12 @@ class ClientsAndSuppliersApiController extends Controller
         try {
             DB::beginTransaction();
             $name = trim((string) ($request->input('client_name') ?: $request->input('name') ?: $contact->name));
+            $accountId = ContactAccountProvisioner::resolveAccountIdForRequest(
+                (string) $contact->business_type,
+                $name !== '' ? $name : (string) $contact->name,
+                null,
+                $contact->account_id ? (int) $contact->account_id : null
+            );
             $contact->update([
                 'name' => $name !== '' ? $name : $contact->name,
                 'phone_number' => $request->exists('phone_number')
@@ -172,6 +180,7 @@ class ClientsAndSuppliersApiController extends Controller
                 'tax_number' => $request->exists('tax_number')
                     ? $this->nullableTrim($request->input('tax_number'))
                     : $contact->tax_number,
+                'account_id' => $accountId,
             ]);
 
             if (
@@ -193,10 +202,14 @@ class ClientsAndSuppliersApiController extends Controller
             DB::commit();
 
             return $this->contactSavedResponse($contact, false);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            return CashierApiError::toResponse($e);
         } catch (Exception $e) {
             DB::rollBack();
 
-            return response()->json(['message' => 'something went wrong'], 500);
+            return CashierApiError::toResponse($e);
         }
     }
 
@@ -262,15 +275,6 @@ class ClientsAndSuppliersApiController extends Controller
             'data' => $payload,
             'created' => $created,
         ]), $status > 0 ? $status : ($created ? 201 : 200));
-    }
-
-    private function tryResolveAccountId(string $businessType, string $name): ?int
-    {
-        try {
-            return ContactAccountProvisioner::resolveAccountIdForRequest($businessType, $name, null);
-        } catch (\Throwable) {
-            return null;
-        }
     }
 
     private function findExistingCashierContact(

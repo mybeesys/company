@@ -3,7 +3,7 @@
 namespace Modules\Accounting\Utils;
 
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
+use Modules\Accounting\Exceptions\AccountingPostingException;
 
 class AutoJournalGuard
 {
@@ -25,7 +25,7 @@ class AutoJournalGuard
         $credit = number_format((float) ($rows['credit'] ?? 0), 2, '.', '');
 
         if (self::compareMoney($debit, $credit) !== 0) {
-            throw new RuntimeException("Auto journal is not balanced for mapping {$accTransMappingId}: debit {$debit} != credit {$credit}");
+            throw new AccountingPostingException('journal_unbalanced');
         }
     }
 
