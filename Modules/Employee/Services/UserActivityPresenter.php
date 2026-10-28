@@ -149,9 +149,14 @@ class UserActivityPresenter
     {
         $route = strtolower((string) ($log->route_name ?? ''));
         $segment = strtolower((string) ($log->log_name ?? ''));
+        $path = strtolower((string) parse_url($log->url ?? '', PHP_URL_PATH));
 
         foreach ($this->areaMap() as $needle => $label) {
-            if ($needle !== '' && (str_contains($route, $needle) || $segment === $needle || str_starts_with($route, $needle.'.'))) {
+            if ($needle === '') {
+                continue;
+            }
+            $n = strtolower($needle);
+            if ($this->needleMatchesArea($n, $route, $segment, $path)) {
                 return $label;
             }
         }
@@ -163,38 +168,194 @@ class UserActivityPresenter
         return __('employee::activity.area_general');
     }
 
+    private function needleMatchesArea(string $needle, string $route, string $segment, string $path): bool
+    {
+        if ($segment === $needle) {
+            return true;
+        }
+
+        if (str_contains($route, $needle)) {
+            return true;
+        }
+
+        if (str_ends_with($needle, '.') && str_starts_with($route, $needle)) {
+            return true;
+        }
+
+        if (! str_ends_with($needle, '.') && str_starts_with($route, $needle.'.')) {
+            return true;
+        }
+
+        if ($path !== '' && (str_contains($path, '/'.$needle) || str_contains($path, '/'.$needle.'/'))) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
-     * @return array<string, string>
+     * @return array<string, string> needle => resolved label
      */
     private function areaMap(): array
     {
+        $keys = array_merge($this->defaultAreaLabelKeys(), config('employee.activity_log.area_labels', []));
+        $map = [];
+        foreach ($keys as $needle => $labelKey) {
+            $map[(string) $needle] = $this->resolveAreaLabel((string) $labelKey);
+        }
+
+        return $map;
+    }
+
+    /**
+     * Ordered list: more specific needles first.
+     *
+     * @return array<string, string> needle => translation key
+     */
+    private function defaultAreaLabelKeys(): array
+    {
         return [
-            'employees' => __('menuItemLang.employees'),
-            'employee' => __('menuItemLang.employees'),
-            'dashboard' => __('menuItemLang.dashboard'),
-            'accounting' => __('menuItemLang.accounting'),
-            'journal' => __('menuItemLang.journalEntry'),
-            'product' => __('menuItemLang.products'),
-            'inventory' => __('menuItemLang.inventory'),
-            'sell' => __('menuItemLang.sales'),
-            'sales' => __('menuItemLang.sales'),
-            'purchase' => __('employee::activity.area_purchases'),
-            'purchases' => __('employee::activity.area_purchases'),
-            'establishment' => __('menuItemLang.establishments'),
-            'report' => __('menuItemLang.reports'),
-            'payment-reports' => __('menuItemLang.reports_module'),
-            'client' => __('employee::activity.area_contacts'),
-            'supplier' => __('employee::activity.area_contacts'),
-            'referrals' => __('menuItemLang.referrals'),
-            'profile' => __('employee::activity.area_profile'),
-            'pos-role' => __('menuItemLang.pos_roles'),
-            'dashboard-role' => __('menuItemLang.dashboard_roles'),
-            'schedule' => __('menuItemLang.schedules'),
-            'payroll' => __('employee::activity.area_payroll'),
-            'adjustment' => __('menuItemLang.adjustments'),
-            'permission' => __('employee::activity.area_permissions'),
-            'activity' => __('menuItemLang.user_activity'),
+            // ZATCA / الفوترة الإلكترونية
+            'zatca-einvoicing' => 'menuItemLang.zatca_einvoicing',
+            'zatca-settings' => 'menuItemLang.zatca_settings',
+            'zatca.' => 'menuItemLang.zatca_einvoicing',
+
+            // كاشير / نقاط البيع
+            'cashier-payment-methods' => 'menuItemLang.cashier_payment_methods',
+            'cashier-orders' => 'menuItemLang.cashier_order_settings',
+            'cashier-service-fees' => 'menuItemLang.cashier_service_fees',
+            'internal-consumption' => 'menuItemLang.internal_consumption_types',
+            'cashier-settings.' => 'employee::activity.area_cashier',
+            'cashier' => 'employee::activity.area_cashier',
+            'cash-register' => 'employee::activity.area_cash_register',
+            'register-report' => 'menuItemLang.Register-Report',
+
+            // شاشات العرض
+            'screen.' => 'menuItemLang.screen_module',
+            'promo' => 'employee::activity.area_screens_promo',
+            'playlist' => 'employee::activity.area_screens_playlist',
+            'device' => 'menuItemLang.devices',
+
+            // تقارير محاسبية (محددة قبل accounting العام)
+            'income-statement' => 'menuItemLang.income-statement',
+            'trial-balance' => 'menuItemLang.trial-balance',
+            'balance_sheet' => 'menuItemLang.balance_sheet',
+            'cash-flow' => 'menuItemLang.cash-flow',
+            'ledger' => 'menuItemLang.ledger',
+            'journal-report' => 'menuItemLang.journal-report',
+            'accounting_reports' => 'menuItemLang.accounting_reports',
+            'payment-reports' => 'menuItemLang.payment-reports',
+            'sell-payment-report' => 'menuItemLang.sell-payment-report',
+            'purchase-payment-report' => 'menuItemLang.purchase-payment-report',
+            'product-sales-report' => 'menuItemLang.product-sales-report',
+            'profit-loss' => 'menuItemLang.Profit-Loss',
+            'register' => 'menuItemLang.Register-Report',
+
+            // مبيعات ومشتريات
+            'sell-return' => 'menuItemLang.sell-return',
+            'purchases-return' => 'menuItemLang.purchases-return',
+            'purchase-invoices' => 'menuItemLang.purchase_invoices',
+            'purchase-order' => 'menuItemLang.purchase-order',
+            'quotation' => 'menuItemLang.quotations',
+            'coupon' => 'menuItemLang.coupons',
+            'customer_receipt' => 'menuItemLang.customer_receipts',
+            'supplier_receipt' => 'menuItemLang.supplier_receipts',
+            'receipt_voucher' => 'menuItemLang.receipt_vouchers',
+            'payment_voucher' => 'menuItemLang.payment_vouchers',
+            'expense' => 'menuItemLang.expenses_manage',
+
+            // منتجات ومخزون
+            'import-product' => 'menuItemLang.importProduct',
+            'import-ingredient' => 'menuItemLang.importIngredient',
+            'product-barcode' => 'menuItemLang.productBarcode',
+            'price-tier' => 'menuItemLang.priceTier',
+            'linked-combo' => 'menuItemLang.linkedCombo',
+            'ingredient' => 'menuItemLang.ingredient',
+            'modifier' => 'menuItemLang.modifiers',
+            'attribute' => 'menuItemLang.attribute',
+            'waste' => 'menuItemLang.waste',
+            'transfer' => 'menuItemLang.transfer',
+            'prep' => 'menuItemLang.prep',
+            'periodic' => 'menuItemLang.periodic',
+            'rma' => 'menuItemLang.rma',
+
+            // عملاء وموردون وفرنشايز
+            'client-supplier' => 'menuItemLang.clients_suppliers_module',
+            'franchise.' => 'menuItemLang.franchise',
+            'custom-menu' => 'menuItemLang.customMenu',
+            'crm' => 'menuItemLang.crm',
+
+            // أفرع وشركة
+            'establishment' => 'menuItemLang.establishments',
+            'company' => 'menuItemLang.company_settings',
+            'areas' => 'menuItemLang.areas',
+            'tables' => 'menuItemLang.tables',
+            'menu-qr' => 'menuItemLang.menu_qr',
+
+            // موظفون وجدولة
+            'dashboard-role' => 'menuItemLang.dashboard_roles',
+            'pos-role' => 'menuItemLang.pos_roles',
+            'timesheet-rule' => 'menuItemLang.timesheet_rule',
+            'timecard' => 'menuItemLang.employees_working_hours',
+            'shift' => 'menuItemLang.shift_schedule',
+            'payroll' => 'menuItemLang.payroll',
+            'adjustment' => 'menuItemLang.adjustments',
+            'employees.' => 'menuItemLang.employees',
+            'employee' => 'menuItemLang.employees',
+            'activity.' => 'menuItemLang.user_activity',
+            'permission' => 'employee::activity.area_permissions',
+            'referrals' => 'menuItemLang.referrals',
+            'my-companies' => 'menuItemLang.my_companies',
+            'profile' => 'employee::activity.area_profile',
+
+            // محاسبة عامة
+            'chart-of-account' => 'menuItemLang.chart_of_accounts',
+            'cost-center' => 'menuItemLang.costCenter',
+            'journal' => 'menuItemLang.journalEntry',
+            'accounting.' => 'menuItemLang.accounting',
+            'accounting' => 'menuItemLang.accounting',
+
+            // إعدادات
+            'general-setting' => 'menuItemLang.general_setting',
+            'accounting_settings' => 'menuItemLang.accounting_settings',
+            'tax' => 'menuItemLang.taxes',
+            'settings' => 'menuItemLang.general_setting',
+
+            // لوحات ووحدات
+            'dashboard-v2' => 'menuItemLang.dashboard',
+            'dashboard' => 'menuItemLang.dashboard',
+            'sales-dashbord' => 'menuItemLang.sales-dashbord',
+            'purchase-dashbord' => 'menuItemLang.purchase-dashbord',
+            'product_dashboard' => 'menuItemLang.product_dashboard',
+            'inventory_dashboard' => 'menuItemLang.inventory_dashboard',
+
+            'inventory.' => 'menuItemLang.inventory',
+            'inventory' => 'menuItemLang.inventory',
+            'product.' => 'menuItemLang.products',
+            'product' => 'menuItemLang.products',
+            'purchases.' => 'menuItemLang.purchases',
+            'purchases' => 'menuItemLang.purchases',
+            'sales.' => 'menuItemLang.sales',
+            'sales' => 'menuItemLang.sales',
+            'sell.' => 'menuItemLang.sales',
+            'purchase.' => 'menuItemLang.purchases',
+            'report.' => 'menuItemLang.reports',
+            'report' => 'menuItemLang.reports',
+            'client' => 'employee::activity.area_contacts',
+            'supplier' => 'employee::activity.area_contacts',
+            'schedule' => 'menuItemLang.schedules',
         ];
+    }
+
+    private function resolveAreaLabel(string $key): string
+    {
+        if (str_contains($key, '::') || str_starts_with($key, 'menuItemLang.')) {
+            $translated = __($key);
+
+            return $translated !== $key ? $translated : Str::headline(str_replace(['menuItemLang.', '_', '.'], ['', ' ', ' '], $key));
+        }
+
+        return $key;
     }
 
     private function subjectTitle(UserActivityLog $log): ?string

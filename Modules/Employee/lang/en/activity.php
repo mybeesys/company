@@ -71,6 +71,11 @@ return [
     'area_profile' => 'Profile',
     'area_payroll' => 'Payroll',
     'area_permissions' => 'Permissions',
+    'area_cashier' => 'Cashier settings',
+    'area_cash_register' => 'Cash register',
+    'area_pos' => 'Point of sale',
+    'area_screens_promo' => 'Display screens — promos',
+    'area_screens_playlist' => 'Display screens — playlists',
 
     'yes' => 'Yes',
     'no' => 'No',
