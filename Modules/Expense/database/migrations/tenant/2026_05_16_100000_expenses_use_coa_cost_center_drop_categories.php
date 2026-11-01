@@ -8,22 +8,41 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('expenses', function (Blueprint $table) {
-            if (! Schema::hasColumn('expenses', 'cost_center_id')) {
-                $table->foreignId('cost_center_id')
-                    ->nullable()
-                    ->after('credit_accounting_account_id')
-                    ->constrained('accounting_cost_centers')
-                    ->cascadeOnUpdate()
-                    ->restrictOnDelete();
-            }
-        });
+        if (! Schema::hasTable('expenses')) {
+            Schema::dropIfExists('expense_categories');
+
+            return;
+        }
+
+        if (! Schema::hasColumn('expenses', 'cost_center_id')) {
+            Schema::table('expenses', function (Blueprint $table) {
+                if (Schema::hasTable('accounting_cost_centers')) {
+                    $table->foreignId('cost_center_id')
+                        ->nullable()
+                        ->after('credit_accounting_account_id')
+                        ->constrained('accounting_cost_centers')
+                        ->cascadeOnUpdate()
+                        ->restrictOnDelete();
+                } else {
+                    $table->unsignedBigInteger('cost_center_id')->nullable()->after('credit_accounting_account_id');
+                }
+            });
+        }
 
         if (Schema::hasColumn('expenses', 'expense_category_id')) {
-            Schema::table('expenses', function (Blueprint $table) {
-                $table->dropForeign(['expense_category_id']);
-                $table->dropColumn('expense_category_id');
-            });
+            try {
+                Schema::table('expenses', function (Blueprint $table) {
+                    $table->dropForeign(['expense_category_id']);
+                });
+            } catch (\Throwable) {
+                // Foreign key may already be gone on existing databases.
+            }
+
+            if (Schema::hasColumn('expenses', 'expense_category_id')) {
+                Schema::table('expenses', function (Blueprint $table) {
+                    $table->dropColumn('expense_category_id');
+                });
+            }
         }
 
         Schema::dropIfExists('expense_categories');

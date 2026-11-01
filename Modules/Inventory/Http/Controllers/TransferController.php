@@ -107,6 +107,10 @@ class TransferController extends Controller implements HasMiddleware
                 $transactionePurchasesLine->save();
             }
 
+            \Modules\General\Support\SystemNotify::send('inventory_transfer', [
+                'ref_no' => (string) ($transactionId->ref_no ?? $transactionId->id),
+            ], url('/transfer'));
+
             return response()->json(['message' => 'Done']);
         });
     }

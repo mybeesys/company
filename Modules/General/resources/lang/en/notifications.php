@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'center_kicker' => 'Notifications',
+    'center_subtitle' => '',
+    'module' => 'Module',
+    'all_modules' => 'All',
+    'unread_only' => 'Unread',
+    'unread_short' => 'unread',
+    'items_count' => 'notifications',
+    'apply_filters' => 'Apply',
+    'mark_all_read' => 'Mark all as read',
+    'mark_read' => 'Mark as read',
+    'open' => 'Open',
+    'open_in_system' => 'Open in system',
+    'view_all' => 'View all',
+    'empty_hint' => 'System and operations alerts will appear here as they happen.',
+    'severity_info' => 'Info',
+    'severity_warning' => 'Warning',
+    'severity_critical' => 'Critical',
+    'module_sales' => 'Sales',
+    'module_purchases' => 'Purchases',
+    'module_inventory' => 'Inventory',
+    'module_accounting' => 'Accounting',
+    'module_employee' => 'Employees',
+    'module_reservation' => 'Restaurant',
+    'module_system' => 'System',
+];

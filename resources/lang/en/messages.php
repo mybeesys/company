@@ -40,6 +40,7 @@ return [
     'yes' => 'Yes',
     'no' => 'No',
     'required_fields_warning' => 'Please fill in all required fields before proceeding.',
+    'field_is_required' => 'The :field field is required.',
     'no_data_found' => 'No data found',
     'reports' => 'Reports',
     'last_used' => 'Last used',

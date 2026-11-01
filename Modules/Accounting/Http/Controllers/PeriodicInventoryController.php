@@ -424,6 +424,11 @@ class PeriodicInventoryController extends Controller
             throw $e;
         }
 
+        \Modules\General\Support\SystemNotify::send('periodic_inventory_approved', [
+            'count_date' => (string) $inventory->end_date,
+            'establishment' => (string) ($inventory->establishment->name ?? $inventory->establishment_id),
+        ], url('/periodic-inventory'));
+
         return redirect()->route('periodic-inventory.index')->with('success', app()->getLocale() === 'ar'
             ? 'تم اعتماد الجرد بنجاح.'
             : 'Inventory approved successfully.');

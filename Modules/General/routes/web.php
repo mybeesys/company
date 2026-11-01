@@ -119,7 +119,9 @@ Route::middleware([
             ->middleware($perm(...SettingPermissions::for('inventory costing', 'update')))
             ->name('rebuild-inventory-costing');
 
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notification-mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notification-mark-all-as-read');
+        Route::post('notification-mark-as-read', [NotificationController::class, 'markAsRead'])->name('notification-mark-as-read');
         Route::post('notification-delete', [NotificationController::class, 'destroy'])->name('notification-delete');
         Route::get('fetch-notification', [NotificationController::class, 'fetchNotification'])->name('fetch-notification');
 

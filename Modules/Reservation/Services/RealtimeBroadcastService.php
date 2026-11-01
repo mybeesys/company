@@ -43,6 +43,9 @@ class RealtimeBroadcastService
 
         if ($table) {
             $this->tableUpdated($table, [], $waiterId);
+            \Modules\General\Support\SystemNotify::send('new_order', [
+                'table_code' => (string) ($table->code ?? $order->table_id),
+            ], url('/table'));
         }
         $this->orderUpdated($order->table_id, $waiterId);
     }

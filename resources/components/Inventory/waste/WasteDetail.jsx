@@ -17,12 +17,58 @@ const WasteDetail = ({ dir, translations }) => {
     const branchProductsRef = useRef([]);
     branchProductsRef.current = branchProducts;
 
+    const itemKindLabel = (product) => {
+        const type = String(product?.type || "");
+        const isVariant =
+            Number(product?.parent_id) > 0 &&
+            (type === "product" || type === "variable");
+        if (type === "modifier") {
+            return dir === "ltr" ? "Add-on" : "إضافة";
+        }
+        if (type === "ingredint") {
+            return dir === "ltr" ? "Component" : "مكون";
+        }
+        if (type === "variable" || isVariant) {
+            return dir === "ltr" ? "Variant" : "متغير";
+        }
+        return dir === "ltr" ? "Product" : "منتج";
+    };
+
+    const itemDisplayName = (product) => {
+        const name = getRowName(product, dir);
+        const parentName =
+            dir === "ltr"
+                ? product?.parent_name_en || product?.parent_name_ar
+                : product?.parent_name_ar || product?.parent_name_en;
+        if (parentName && name && parentName !== name) {
+            return `${parentName} — ${name}`;
+        }
+        return name;
+    };
+
+    const unitSearchUrlFor = (product) => {
+        if (!product?.id) {
+            return `${window.location.origin}/searchUnitTransfers`;
+        }
+        if (product.type === "modifier") {
+            return `${window.location.origin}/searchUnitTransfers?modifier_id=${product.id}&product_id=${product.id}`;
+        }
+        if (product.type === "ingredint") {
+            return `${window.location.origin}/searchUnitTransfers?ingredient_id=${product.id}&product_id=${product.id}`;
+        }
+        return `${window.location.origin}/searchUnitTransfers?product_id=${product.id}`;
+    };
+
     const productOptions = () =>
-        (branchProductsRef.current || []).map((product) => ({
-            ...product,
-            value: product.id,
-            label: getRowName(product, dir),
-        }));
+        (branchProductsRef.current || []).map((product) => {
+            const name = itemDisplayName(product);
+            const kind = itemKindLabel(product);
+            return {
+                ...product,
+                value: product.id,
+                label: name ? `${name} (${kind})` : kind,
+            };
+        });
 
     useEffect(() => {
         const establishmentId = currentObject.establishment?.id;
@@ -76,9 +122,7 @@ const WasteDetail = ({ dir, translations }) => {
         const urls = {};
         (currentObject.items || []).forEach((item, index) => {
             if (item.product && item.product.id) {
-                urls[
-                    index
-                ] = `${window.location.origin}/searchUnitTransfers?product_id=${item.product.id}`;
+                urls[index] = unitSearchUrlFor(item.product);
             }
         });
         setUnitSearchUrls(urls);
@@ -217,13 +261,11 @@ const WasteDetail = ({ dir, translations }) => {
                                                 product;
                                             setUnitSearchUrls((prev) => ({
                                                 ...prev,
-                                                [rowKey]: `${window.location.origin}/searchUnitTransfers?product_id=${productId}`,
+                                                [rowKey]: unitSearchUrlFor(product),
                                             }));
 
                                             axios
-                                                .get(
-                                                    `${window.location.origin}/searchUnitTransfers?product_id=${productId}`
-                                                )
+                                                .get(unitSearchUrlFor(product))
                                                 .then((response) => {
                                                     const units = response.data;
                                                     if (
