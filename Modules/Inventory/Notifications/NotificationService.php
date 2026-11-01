@@ -2,9 +2,6 @@
 
 namespace Modules\Inventory\Notifications;
 
-use Modules\Employee\Models\Employee;
-use Modules\General\Models\NotificationSetting;
-
 class NotificationService
 {
     public static function sendInventoryAlert($product, $total_qty, $threshold)
@@ -20,14 +17,5 @@ class NotificationService
             'threshold' => (string) $threshold,
             'total_qty' => (string) $total_qty,
         ], url('/productInventory'));
-
-        // Keep legacy mail path when only email template is configured (dispatcher also mails when critical).
-        $notification_setting = NotificationSetting::where('type', 'low_stock_alert_notification')
-            ->where('sendType', operator: 'email')
-            ->first();
-        if ($notification_setting?->is_active) {
-            // Dispatcher already sends critical mail; skip duplicate EmployeeCreated-style mail
-            // when SystemAlertNotification handles it. Legacy class kept for BC if needed elsewhere.
-        }
     }
 }

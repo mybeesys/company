@@ -3,7 +3,6 @@
 namespace Modules\General\Services\Notifications;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Employee\Models\Employee;
 use Modules\General\Models\NotificationSetting;
 use Modules\General\Notifications\SystemAlertNotification;
 
@@ -53,23 +52,21 @@ final class NotificationDispatcher
 
         $notifiedIds = [];
 
-        if ($this->recipients->isInternalChannelEnabled($definition['setting_type'] ?? null)) {
-            $internalRecipients = $this->recipients->forInternal(
-                $settingType,
-                $permissions,
-                $excludeId,
-                $notifyActor
-            );
+        // Internal inbox is always enabled (not gated by NotificationSetting toggles).
+        $internalRecipients = $this->recipients->forInternal(
+            $permissions,
+            $excludeId,
+            $notifyActor
+        );
 
-            foreach ($internalRecipients as $employee) {
-                $employee->notify(new SystemAlertNotification($payload, ['database']));
-                $notifiedIds[] = (int) $employee->id;
-            }
+        foreach ($internalRecipients as $employee) {
+            $employee->notify(new SystemAlertNotification($payload, ['database']));
+            $notifiedIds[] = (int) $employee->id;
         }
 
+        // Critical events always email permission holders (settings only customize copy).
         if (($definition['severity'] ?? '') === 'critical') {
             $mailRecipients = $this->recipients->forCriticalMail(
-                $settingType,
                 $permissions,
                 $excludeId,
                 $notifyActor
