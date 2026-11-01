@@ -103,6 +103,10 @@ class EmployeeActions
                 $notifiable_Employee->notify(new EmployeeCreated($employee, $this->request->get('password')));
             }
         }
+
+        \Modules\General\Support\SystemNotify::send('created_emp', [
+            'employee_name' => trim(($employee->name ?? '').' '.($employee->last_name ?? '')),
+        ], url('/employee/'.$employee->id));
     }
 
     public function update($employee)
@@ -112,6 +116,10 @@ class EmployeeActions
         ! empty($this->request->get('allowance_repeater')) ? $this->storeUpdateEmployeeAllowances($this->request->get('allowance_repeater'), $employee->id) : PayrollAdjustment::where('type', 'allowance')->where('employee_id', $employee->id)->delete();
 
         $this->assignEmployeeWage($this->request->get('wage_amount'), $this->request->get('wage_type'), $employee->id);
+
+        \Modules\General\Support\SystemNotify::send('employee_roles_changed', [
+            'employee_name' => trim(($employee->name ?? '').' '.($employee->last_name ?? '')),
+        ], url('/employee/'.$employee->id));
 
         $imageName = $this->request->has('image') ? $this->storeImage($this->request['image'], $employee->image) : null;
 

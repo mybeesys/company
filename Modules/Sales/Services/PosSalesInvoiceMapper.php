@@ -18,6 +18,10 @@ final class PosSalesInvoiceMapper
 {
     public static function resolveInvoiceType(Request $request): string
     {
+        if (CashierCustomerReceivablePayment::invoiceIsDue($request)) {
+            return 'due';
+        }
+
         $invoiceType = strtolower(trim((string) $request->input('invoice_type', '')));
         if ($invoiceType === 'credit') {
             $invoiceType = 'due';
@@ -209,7 +213,10 @@ final class PosSalesInvoiceMapper
             'invoice_type' => self::resolveInvoiceType($request),
             'due_date' => null,
             'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-            'contact_id' => self::resolveContactId($request),
+            'contact_id' => self::resolveContactId($request)
+                ?? (CashierCustomerReceivablePayment::invoiceIsDue($request)
+                    ? CashierCustomerReceivablePayment::contactIdFromPayments($request)
+                    : null),
             'discount_amount' => $discountValue,
             'discount_type' => $discountType !== '' ? $discountType : null,
             'total_before_tax' => $totalBeforeTax,
@@ -254,7 +261,10 @@ final class PosSalesInvoiceMapper
             'invoice_type' => self::resolveInvoiceType($request),
             'due_date' => null,
             'transaction_date' => Carbon::parse($request->created_at)->format('Y-m-d H:i:s'),
-            'contact_id' => self::resolveContactId($request),
+            'contact_id' => self::resolveContactId($request)
+                ?? (CashierCustomerReceivablePayment::invoiceIsDue($request)
+                    ? CashierCustomerReceivablePayment::contactIdFromPayments($request)
+                    : null),
             'parent_id' => $overrides['parent_id'] ?? null,
             'discount_amount' => $discountValue,
             'discount_type' => $discountType !== '' ? $discountType : null,

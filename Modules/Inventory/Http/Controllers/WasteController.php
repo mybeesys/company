@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionePurchasesLine;
 use Modules\General\Models\TransactionSellLine;
+use Modules\Inventory\Models\ModifierInventoryTotal;
 use Modules\Inventory\Models\ProductInventoryTotal;
 use Modules\Inventory\Models\TransactionUtil;
 use Modules\Product\Models\Product;
@@ -195,24 +196,31 @@ class WasteController extends Controller implements HasMiddleware
                 ->whereIn('product_id', $productIds)
                 ->get()
                 ->keyBy(fn ($row) => (int) $row->product_id);
+            $modTotals = ModifierInventoryTotal::where('establishment_id', $establishmentId)
+                ->whereIn('modifier_id', $productIds)
+                ->get()
+                ->keyBy(fn ($row) => (int) $row->modifier_id);
 
             foreach ($request->items as $item) {
                 $productId = (int) $item['product']['id'];
                 $requestedQty = (float) $item['qty'];
                 $product = $products->get($productId);
+                $itemType = (string) ($product?->type ?? $item['product']['type'] ?? 'product');
                 $prodTotal = $prodTotals->get($productId);
+                $modTotal = $itemType === 'modifier' ? $modTotals->get($productId) : null;
+                $stockRow = $prodTotal ?: $modTotal;
                 $unitTransfer = UnitTransfer::query()->find((int) ($item['unit']['id'] ?? 0));
 
-                $availableQty = $prodTotal ? (float) $prodTotal->qty : 0.0;
+                $availableQty = $stockRow ? (float) $stockRow->qty : 0.0;
                 if ($unitTransfer && $unitTransfer->unit2) {
                     $availableQty *= (float) $unitTransfer->transfer;
                 }
 
-                if (! $prodTotal || $availableQty < $requestedQty) {
+                if (! $stockRow || $availableQty < $requestedQty) {
                     $result[] = [
                         'name_ar' => $product?->name_ar,
                         'name_en' => $product?->name_en,
-                        'qty' => $prodTotal
+                        'qty' => $stockRow
                             ? rtrim(rtrim(number_format($availableQty, 6, '.', ''), '0'), '.').($unitTransfer->unit1 ?? '')
                             : 0,
                     ];
@@ -252,11 +260,14 @@ class WasteController extends Controller implements HasMiddleware
 
             foreach ($request->items as $item) {
                 $itemId = $item['id'] ?? null;
+                $productId = (int) $item['product']['id'];
+                $product = $products->get($productId);
+                $cost = $item['product']['cost'] ?? $product?->cost ?? 0;
                 $linePayload = [
                     'qyt' => $item['qty'],
-                    'unit_price' => $item['product']['cost'] ?? 0,
-                    'unit_price_before_discount' => $item['product']['cost'] ?? 0,
-                    'product_id' => $item['product']['id'],
+                    'unit_price' => $cost,
+                    'unit_price_before_discount' => $cost,
+                    'product_id' => $productId,
                     'unit_id' => $item['unit']['id'] ?? null,
                 ];
 
@@ -271,6 +282,10 @@ class WasteController extends Controller implements HasMiddleware
             }
 
             DB::commit();
+
+            \Modules\General\Support\SystemNotify::send('inventory_waste', [
+                'ref_no' => (string) ($transaction->ref_no ?? $transaction->id),
+            ], url('/waste'));
 
             return response()->json(['message' => 'Done']);
         } catch (\Exception $e) {

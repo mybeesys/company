@@ -4,6 +4,7 @@ namespace Modules\Product\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Modules\Product\Models\Unit;
 use Modules\Product\Models\UnitTransfer;
 
@@ -74,7 +75,12 @@ class UnitTransferController extends Controller
 
         if ($request->has('ingredient_id')) {
             $units = UnitTransfer::where('unit1', 'like', '%'.$key.'%')
-                ->where('product_id', '=', $ingredient_id)
+                ->where(function ($q) use ($ingredient_id) {
+                    $q->where('product_id', $ingredient_id);
+                    if (Schema::hasColumn('product_unit_transfer', 'ingredient_id')) {
+                        $q->orWhere('ingredient_id', $ingredient_id);
+                    }
+                })
                 ->take(10)
                 ->get();
         }

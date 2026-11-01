@@ -231,65 +231,211 @@
                 'd-none' => $unreadCount === 0,
             ]) style="font-size: 0.6rem;">{{ $unreadCount > 0 ? ($unreadCount > 9 ? '9+' : $unreadCount) : '' }}</span>
         </div>
-        <div class="menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px" data-kt-menu="true"
+        <div class="menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-400px" data-kt-menu="true"
             id="kt_menu_notifications">
-            <div class="d-flex flex-column bgi-no-repeat rounded-top"
-                style="background-image:url('/assets/media/misc/menu-header-bg.jpg')">
-                <h3 class="text-white fw-semibold px-5 my-6">@lang('general.notifications')
-                    <span
-                        class="fs-8 opacity-75 ps-1 notification-count">({{ auth()->user()->notifications->count() }})</span>
-                </h3>
-            </div>
-            <div id="kt_topbar_notifications_1" role="tabpanel">
-                @if (auth()->user()->notifications->isNotEmpty())
-                    <div class="scroll-y mh-325px my-5 px-5">
-                        @foreach (auth()->user()->notifications as $notification)
-                            @if ($notification->data['body'] && $notification->data['title'])
-                                <div @class([
-                                    "d-flex flex-stack py-4 notification-body notification-{$notification->id}",
-                                    'bg-secondary' => !$notification['read_at'],
-                                    'rounded-top' => $loop->first,
-                                    'rounded-bottom' => $loop->last,
-                                ])>
-                                    <div class="d-flex align-items-center">
-                                        <div class="symbol symbol-35px me-4">
-                                            <span class="symbol-label bg-light-primary">
-                                                <i @class([
-                                                    'fs-2 text-primary',
-                                                    'ki-outline ' . ($notification->data['icon'] ?? 'ki-notification'),
-                                                ])></i>
-                                                {{-- user-square abstract-28 information briefcase abstract-12 colors-square picture color-swatch purchase discount gear delivery notification information-5 --}}
-                                            </span>
-                                        </div>
-                                        <div class="mb-0 me-2">
-                                            <a href="#"
-                                                class="fs-6 text-gray-800 text-hover-primary fw-bold">{{ $notification->data['title'] ?? '' }}</a>
-                                            <div class="text-gray-500 fs-7">{{ $notification->data['body'] ?? '' }}
-                                            </div>
-                                        </div>
+            <style>
+                #kt_menu_notifications {
+                    padding: 0 !important;
+                    overflow: hidden;
+                    border-radius: 14px !important;
+                    box-shadow: 0 12px 40px rgba(30,33,41,.14) !important;
+                    border: 1px solid #eef0f4 !important;
+                    background: #fff !important;
+                }
+                #kt_menu_notifications .nb-shell { display:flex; flex-direction:column; width:100%; }
+                #kt_menu_notifications .nb-head {
+                    display:flex !important;
+                    flex-direction:row !important;
+                    align-items:center;
+                    justify-content:space-between;
+                    gap:.75rem;
+                    padding: .9rem 1rem;
+                    border-bottom: 1px solid #eff2f5;
+                    background: #fff;
+                }
+                #kt_menu_notifications .nb-head-title {
+                    font-size: .95rem;
+                    font-weight: 800;
+                    color: #1e2129 !important;
+                    line-height: 1.2;
+                    margin: 0;
+                }
+                #kt_menu_notifications .nb-head-meta {
+                    margin-top: .15rem;
+                    font-size: .72rem;
+                    color: #A1A5B7 !important;
+                }
+                #kt_menu_notifications .nb-mark-all {
+                    flex-shrink: 0;
+                    border: 1px solid #e4e6ef !important;
+                    background: #fff !important;
+                    color: #5e6278 !important;
+                    font-size: .72rem !important;
+                    font-weight: 700 !important;
+                    padding: .35rem .65rem !important;
+                    border-radius: 8px !important;
+                    white-space: nowrap;
+                }
+                #kt_menu_notifications .nb-mark-all:hover {
+                    border-color: rgba(233,183,31,.55) !important;
+                    color: #1e2129 !important;
+                    background: #fffdf6 !important;
+                }
+                #kt_menu_notifications .nb-mark-all.is-disabled {
+                    opacity: .45;
+                    pointer-events: none;
+                }
+                #kt_menu_notifications .nb-list {
+                    max-height: 320px;
+                    overflow-y: auto;
+                    background: #fff;
+                }
+                #kt_menu_notifications .nb-item {
+                    display: grid !important;
+                    grid-template-columns: auto 1fr auto;
+                    gap: .7rem;
+                    align-items: start;
+                    padding: .85rem 1rem;
+                    border-bottom: 1px solid #f5f6fa;
+                    cursor: pointer;
+                    transition: background .12s ease;
+                    text-align: start;
+                }
+                #kt_menu_notifications .nb-item:last-child { border-bottom: 0; }
+                #kt_menu_notifications .nb-item:hover { background: #fafbfc; }
+                #kt_menu_notifications .nb-item.is-unread { background: #fffdf6; }
+                #kt_menu_notifications .nb-ico {
+                    width: 36px; height: 36px; border-radius: 10px;
+                    display:flex; align-items:center; justify-content:center;
+                    background: #fdf6e3; color: #b88816; flex-shrink:0;
+                }
+                #kt_menu_notifications .nb-ico.sev-critical { background:#fff5f8; color:#f1416c; }
+                #kt_menu_notifications .nb-ico.sev-warning { background:#fff8dd; color:#c9a227; }
+                #kt_menu_notifications .nb-title {
+                    font-size:.84rem; font-weight:750; color:#1e2129 !important;
+                    line-height:1.35; margin:0 0 .15rem;
+                }
+                #kt_menu_notifications .nb-body {
+                    font-size:.74rem; color:#7e8299 !important; line-height:1.45; margin:0;
+                }
+                #kt_menu_notifications .nb-meta {
+                    margin-top:.35rem; display:flex; gap:.35rem; flex-wrap:wrap; align-items:center;
+                }
+                #kt_menu_notifications .nb-pill {
+                    font-size:.62rem; font-weight:700; padding:.12rem .4rem; border-radius:5px;
+                    background:#f4f6fa; color:#5e6278;
+                }
+                #kt_menu_notifications .nb-time { font-size:.65rem; color:#a1a5b7; white-space:nowrap; }
+                #kt_menu_notifications .nb-dot {
+                    width:7px; height:7px; border-radius:50%;
+                    background: var(--bs-primary, #e9b71f); display:inline-block;
+                    vertical-align: middle;
+                }
+                #kt_menu_notifications .nb-empty {
+                    display:flex; flex-direction:column; align-items:center; justify-content:center;
+                    text-align:center; padding: 2.4rem 1.25rem; gap: .55rem;
+                }
+                #kt_menu_notifications .nb-empty-ico {
+                    width: 48px; height: 48px; border-radius: 14px;
+                    display:flex; align-items:center; justify-content:center;
+                    background: #fdf6e3; color: #c9a227; margin-bottom: .15rem;
+                }
+                #kt_menu_notifications .nb-empty-title {
+                    font-size: .88rem; font-weight: 750; color: #3f4254 !important; margin: 0;
+                }
+                #kt_menu_notifications .nb-empty-sub {
+                    font-size: .75rem; color: #A1A5B7 !important; margin: 0; line-height: 1.45;
+                }
+                #kt_menu_notifications .nb-foot {
+                    padding: .75rem 1rem;
+                    border-top: 1px solid #eff2f5;
+                    background: #fafbfc;
+                }
+                #kt_menu_notifications .nb-view-all {
+                    display:flex !important;
+                    align-items:center;
+                    justify-content:center;
+                    width:100%;
+                    min-height: 36px;
+                    border-radius: 8px !important;
+                    background: #1e2129 !important;
+                    color: #fff !important;
+                    font-size: .78rem !important;
+                    font-weight: 700 !important;
+                    text-decoration: none !important;
+                    transition: background .15s ease;
+                }
+                #kt_menu_notifications .nb-view-all:hover {
+                    background: #2d3140 !important;
+                    color: #fff !important;
+                }
+            </style>
+            @php
+                $nbAllCount = auth()->user()->notifications()->count();
+                $nbUnreadCount = auth()->user()->unreadNotifications()->count();
+            @endphp
+            <div class="nb-shell">
+                <div class="nb-head">
+                    <div class="min-w-0">
+                        <div class="nb-head-title">@lang('general.notifications')</div>
+                        <div class="nb-head-meta">
+                            <span class="notification-count">{{ $nbAllCount }}</span>
+                            @lang('general::notifications.items_count')
+                            @if ($nbUnreadCount > 0)
+                                · <span class="text-dark fw-semibold notification-unread-count">{{ $nbUnreadCount }}</span> @lang('general::notifications.unread_short')
+                            @endif
+                        </div>
+                    </div>
+                    <button type="button"
+                        class="nb-mark-all notification-mark-all-btn {{ $nbUnreadCount === 0 ? 'is-disabled' : '' }}">
+                        @lang('general::notifications.mark_all_read')
+                    </button>
+                </div>
+                <div class="nb-list" id="navbar-notifications-list">
+                    @forelse (auth()->user()->notifications()->latest()->limit(20)->get() as $notification)
+                        @php
+                            $ndata = $notification->data ?? [];
+                            $sev = $ndata['severity'] ?? 'info';
+                            $mod = $ndata['module'] ?? 'system';
+                        @endphp
+                        @if (!empty($ndata['title']))
+                            <div @class([
+                                "nb-item notification-body notification-{$notification->id} notification-row",
+                                'is-unread' => !$notification->read_at,
+                            ])
+                                data-id="{{ $notification->id }}"
+                                data-url="{{ $ndata['url'] ?? '' }}"
+                                role="button">
+                                <div class="nb-ico sev-{{ $sev }}">
+                                    <i @class(['fs-4', 'ki-outline '.($ndata['icon'] ?? 'ki-notification')])></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="nb-title">
+                                        @if (!$notification->read_at)<span class="nb-dot me-1"></span>@endif
+                                        {{ $ndata['title'] }}
                                     </div>
-                                    <span
-                                        class="badge badge-light fs-8">{{ $notification->created_at->diffForHumans() }}</span>
-                                    <button class="btn btn-sm btn-icon btn-active-color-primary show menu-dropdown"
-                                        data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
-                                        <i class="ki-solid ki-dots-vertical fs-2x"></i>
-                                    </button>
-                                    <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3"
-                                        data-kt-menu="true">
-                                        <div class="menu-item px-3 my-1">
-                                            <a data-id="{{ $notification['id'] }}"
-                                                class="menu-link px-3 notification-delete-btn">@lang('employee::fields.delete')</a>
-                                        </div>
+                                    <p class="nb-body">{{ \Illuminate\Support\Str::limit($ndata['body'] ?? '', 88) }}</p>
+                                    <div class="nb-meta">
+                                        <span class="nb-pill">{{ __('general::notifications.module_'.$mod) }}</span>
+                                        <span class="nb-time">{{ $notification->created_at->diffForHumans() }}</span>
                                     </div>
                                 </div>
-                            @endif
-                        @endforeach
-                    </div>
-                @else
-                    <div class="mh-325px my-5 px-8 d-flex mx-auto">
-                        <span class="text-gray-500 mx-auto py-10">@lang('general.no_notifications')</span>
-                    </div>
-                @endif
+                                <button type="button" data-id="{{ $notification->id }}" class="notification-delete-btn btn btn-icon btn-sm btn-light" title="@lang('employee::fields.delete')">
+                                    <i class="ki-outline ki-trash fs-6 text-danger"></i>
+                                </button>
+                            </div>
+                        @endif
+                    @empty
+                        <div class="nb-empty empty-notifications-hint">
+                            <div class="nb-empty-ico"><i class="ki-outline ki-notification-on fs-2"></i></div>
+                            <p class="nb-empty-title">@lang('general.no_notifications')</p>
+                            <p class="nb-empty-sub">@lang('general::notifications.empty_hint')</p>
+                        </div>
+                    @endforelse
+                </div>
+                <div class="nb-foot">
+                    <a href="{{ route('notifications.index') }}" class="nb-view-all">@lang('general::notifications.view_all')</a>
+                </div>
             </div>
         </div>
     </div>
@@ -1352,96 +1498,159 @@
             });
         });
 
-        setInterval(fetchNotifications, 120000);
-        $('.notification_btn').on('click', function(e) {
-            if (unreadNotificationCount > 0) {
-                ajaxRequest("{{ route('notification-mark-all-as-read') }}", "POST", {}, false, false, false)
-                    .done(
-                        function(response) {
-                            $('.notification-mark-as-read-btn').hide();
-                            unreadNotificationCount = 0;
-                            updateUnreadBadgeHtml(0);
-                            setTimeout(() => {
-                                $(`.notification-body`).removeClass('bg-secondary');
-                            }, 1000);
-                        });
-            }
+        setInterval(fetchNotifications, 60000);
+        fetchNotifications();
+
+        $('.notification-mark-all-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            ajaxRequest("{{ route('notification-mark-all-as-read') }}", "POST", {}, false, false, false)
+                .done(function() {
+                    unreadNotificationCount = 0;
+                    updateUnreadBadgeHtml(0);
+                    $('.notification-mark-all-btn').addClass('is-disabled');
+                    $('.notification-unread-count').remove();
+                    $('.notification-body').removeClass('is-unread');
+                    fetchNotifications();
+                });
         });
+
+        (function loadDashboardNotificationSocket() {
+            const tenantId = @json((string) (tenancy()->tenant->id ?? ''));
+            const employeeId = @json((int) (auth()->id() ?? 0));
+            if (!tenantId || !employeeId) return;
+
+            function bindSocket() {
+                try {
+                    if (typeof io === 'undefined') return;
+                    const path = @json(config('realtime.client_path', '/socket.io/'));
+                    const socket = io({
+                        path: path,
+                        transports: @json(config('realtime.client_transports', ['websocket', 'polling'])),
+                        auth: { tenant_id: tenantId, employee_id: employeeId }
+                    });
+                    socket.on('connect', function () {
+                        socket.emit('join:user', { user_id: employeeId });
+                    });
+                    socket.on('notification:new', function () {
+                        fetchNotifications();
+                    });
+                } catch (e) {}
+            }
+
+            if (typeof io !== 'undefined') {
+                bindSocket();
+                return;
+            }
+            const s = document.createElement('script');
+            s.src = 'https://cdn.socket.io/4.7.5/socket.io.min.js';
+            s.async = true;
+            s.onload = bindSocket;
+            document.head.appendChild(s);
+        })();
     });
 
     $(document).on('click', '.notification-delete-btn', function(e) {
         e.preventDefault();
         e.stopPropagation();
         let id = $(this).data('id');
-        $(this).closest('.menu').removeClass('show');
         ajaxRequest("{{ route('notification-delete') }}", "POST", {
             id: id
         }, false, false).done(function(response) {
             $(`.notification-${id}`).fadeOut(300, function() {
                 $(this).remove();
             });
-            updateUnreadBadgeHtml(response.data);
+            updateUnreadBadgeHtml(response.unread_count ?? response.data);
+            fetchNotifications();
         });
     });
 
+    $(document).on('click', '.notification-row', function(e) {
+        if ($(e.target).closest('.notification-delete-btn').length) {
+            return;
+        }
+        const id = $(this).data('id');
+        const url = $(this).data('url');
+        ajaxRequest("{{ route('notification-mark-as-read') }}", "POST", { id: id }, false, false, false)
+            .done(function(res) {
+                updateUnreadBadgeHtml(res.unread_count ?? 0);
+                const target = url || res.url;
+                if (target) {
+                    window.location.href = target;
+                } else {
+                    $(`.notification-${id}`).removeClass('is-unread').find('.nb-dot').remove();
+                    fetchNotifications();
+                }
+            });
+    });
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, function (m) {
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);
+        });
+    }
+
+    function moduleLabel(mod) {
+        const map = {
+            sales: @json(__('general::notifications.module_sales')),
+            purchases: @json(__('general::notifications.module_purchases')),
+            inventory: @json(__('general::notifications.module_inventory')),
+            accounting: @json(__('general::notifications.module_accounting')),
+            employee: @json(__('general::notifications.module_employee')),
+            reservation: @json(__('general::notifications.module_reservation')),
+            system: @json(__('general::notifications.module_system'))
+        };
+        return map[mod] || map.system;
+    }
+
     function fetchNotifications() {
         ajaxRequest("{{ route('fetch-notification') }}", "GET", {}, false, false, false).done(function(response) {
-            $('#kt_topbar_notifications_1 .scroll-y').empty();
+            const list = $('#navbar-notifications-list');
+            list.empty();
             if (response.notifications && response.notifications.length > 0) {
-                response.notifications.forEach((notification, index) => {
+                response.notifications.slice(0, 20).forEach((notification) => {
+                    const unreadClass = !notification.read_at ? 'is-unread' : '';
+                    const sev = escapeHtml(notification.severity || 'info');
+                    const body = escapeHtml((notification.body || '').substring(0, 88));
+                    const dot = !notification.read_at ? '<span class="nb-dot me-1"></span>' : '';
                     const notificationHtml = `
-                    <div class="d-flex flex-stack py-4 notification-${notification.id} ${!notification.read_at ? 'bg-secondary' : ''} ${index === 0 ? 'rounded-top' : ''} ${index === response.notifications.length - 1 ? 'rounded-bottom' : ''}">
-                        <div class="d-flex align-items-center">
-                            <div class="symbol symbol-35px me-4">
-                                <span class="symbol-label bg-light-primary">
-                                    <i class="fs-2 text-primary ki-outline ${notification.icon}"></i>
-                                </span>
-                            </div>
-                            <div class="mb-0 me-2">
-                                <a href="#" class="fs-6 text-gray-800 text-hover-primary fw-bold">${notification.title}</a>
-                                <div class="text-gray-500 fs-7">${notification.body}</div>
+                    <div class="nb-item notification-body notification-${notification.id} notification-row ${unreadClass}"
+                        data-id="${notification.id}" data-url="${escapeHtml(notification.url || '')}" role="button">
+                        <div class="nb-ico sev-${sev}">
+                            <i class="fs-4 ki-outline ${escapeHtml(notification.icon || 'ki-notification')}"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="nb-title">${dot}${escapeHtml(notification.title)}</div>
+                            <p class="nb-body">${body}</p>
+                            <div class="nb-meta">
+                                <span class="nb-pill">${escapeHtml(moduleLabel(notification.module || 'system'))}</span>
+                                <span class="nb-time">${escapeHtml(notification.created_at)}</span>
                             </div>
                         </div>
-                        <span class="badge badge-light fs-8">${notification.created_at}</span>
-                        <div class="position-relative">
-                            <button type="button" 
-                                class="btn btn-sm btn-icon btn-active-color-primary" 
-                                data-kt-menu-trigger="click" 
-                                data-kt-menu-placement="bottom-end"
-                                data-kt-menu-flip="top-end">
-                                <i class="ki-solid ki-dots-vertical fs-2x"></i>
-                            </button>
-                            <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-3" 
-                                data-kt-menu="true" 
-                                style="z-index: 107;">
-                                ${!notification.read_at ? `
-                                <div class="menu-item px-3 my-1">
-                                    <a href="#" class="menu-link px-3 notification-mark-as-read-btn" data-id="${notification.id}">
-                                        @lang('general.mark_as_read')
-                                    </a>
-                                </div>` : ''}
-                                <div class="menu-item px-3 my-1">
-                                    <a href="#" class="menu-link px-3 notification-delete-btn" data-id="${notification.id}">
-                                        @lang('employee::fields.delete')
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                    $('#kt_topbar_notifications_1 .scroll-y').append(notificationHtml);
+                        <button type="button" data-id="${notification.id}" class="notification-delete-btn btn btn-icon btn-sm btn-light" title="@lang('employee::fields.delete')">
+                            <i class="ki-outline ki-trash fs-6 text-danger"></i>
+                        </button>
+                    </div>`;
+                    list.append(notificationHtml);
                 });
-                unreadNotificationCount = response.unread_count;
-                updateUnreadBadgeHtml(unreadNotificationCount);
+            } else {
+                list.append(`
+                    <div class="nb-empty empty-notifications-hint">
+                        <div class="nb-empty-ico"><i class="ki-outline ki-notification-on fs-2"></i></div>
+                        <p class="nb-empty-title">@lang('general.no_notifications')</p>
+                        <p class="nb-empty-sub">@lang('general::notifications.empty_hint')</p>
+                    </div>`);
+            }
+            unreadNotificationCount = response.unread_count || 0;
+            updateUnreadBadgeHtml(unreadNotificationCount);
+            if (typeof response.all_count !== 'undefined') {
                 $('.notification-count').html(response.all_count);
-                KTMenu.init();
-                KTMenu.createInstances();
-            } else if (typeof response.unread_count !== 'undefined') {
-                unreadNotificationCount = response.unread_count;
-                updateUnreadBadgeHtml(unreadNotificationCount);
-                if (typeof response.all_count !== 'undefined') {
-                    $('.notification-count').html(response.all_count);
-                }
+            }
+            const markAll = $('.notification-mark-all-btn');
+            if (unreadNotificationCount > 0) {
+                markAll.removeClass('is-disabled');
+            } else {
+                markAll.addClass('is-disabled');
             }
         });
     }

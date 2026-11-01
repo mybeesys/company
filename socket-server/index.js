@@ -498,6 +498,27 @@ app.post("/broadcast", (req, res) => {
     return res.json({ ok: true, screen_device: true, ...result });
   }
 
+  if (body.dashboard_notification === true || eventName === "notification:new") {
+    const userIds = Array.isArray(body.user_ids)
+      ? body.user_ids.map((id) => Number(id)).filter(Boolean)
+      : [];
+    const envelope = payload.event_id
+      ? payload
+      : {
+          event_id: randomUUID(),
+          schema_version: SCHEMA_VERSION,
+          ...payload,
+          event: payload.event || eventName,
+          timestamp: payload.timestamp || new Date().toISOString(),
+        };
+    const rooms =
+      userIds.length > 0
+        ? userIds.map((id) => `tenant:${tenantId}:user:${id}`)
+        : [`tenant:${tenantId}`];
+    emitToRooms(eventName, envelope, rooms);
+    return res.json({ ok: true, rooms, dashboard_notification: true });
+  }
+
   const isKitchen = body.kitchen === true || String(eventName).startsWith("kitchen:");
   const isPosOrders =
     body.pos_orders === true || String(eventName).startsWith("establishment_order.");
@@ -695,6 +716,7 @@ io.on("connection", (socket) => {
   }
   if (employeeId) {
     socket.join(`waiter:${employeeId}`);
+    socket.join(`tenant:${tenantId}:user:${employeeId}`);
   }
 
   socket.emit("connected", {
@@ -702,6 +724,16 @@ io.on("connection", (socket) => {
     tenant_id: tenantId,
     establishment_id: establishmentId,
     server_time: new Date().toISOString(),
+  });
+
+  socket.on("join:user", (body, ack) => {
+    const uid = Number(body?.user_id || employeeId || 0);
+    if (!uid) {
+      ack?.({ ok: false, message: "user_id required" });
+      return;
+    }
+    socket.join(`tenant:${tenantId}:user:${uid}`);
+    ack?.({ ok: true, room: `tenant:${tenantId}:user:${uid}` });
   });
 
   socket.on("join:table", async (body, ack) => {

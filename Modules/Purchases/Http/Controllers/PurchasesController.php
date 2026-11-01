@@ -904,6 +904,30 @@ class PurchasesController extends Controller
             }
         }
 
+        if (! $isDraft && in_array((string) $transaction->status, ['approved', 'final'], true)) {
+            $amount = number_format((float) $transaction->final_total, 2);
+            $ref = (string) ($transaction->ref_no ?? $transaction->id);
+            $type = (string) ($transaction->type ?? 'purchases');
+            if ($type === 'purchases-order') {
+                \Modules\General\Support\SystemNotify::send('purchase_order', [
+                    'ref_no' => $ref,
+                    'amount' => $amount,
+                ], url('/purchase-invoices'));
+            } elseif ($type === 'purchases') {
+                \Modules\General\Support\SystemNotify::send('new_purchase', [
+                    'ref_no' => $ref,
+                    'amount' => $amount,
+                ], url('/purchase-invoices'));
+            }
+            if ($status === 'error' && ! empty($credit_limit) && ! empty($totalOutstanding)) {
+                $contact = Contact::find($transaction->contact_id);
+                \Modules\General\Support\SystemNotify::send('supplier_overdue_critical', [
+                    'party_name' => (string) ($contact->name ?? ''),
+                    'amount' => number_format((float) $totalOutstanding, 2),
+                ], url('/purchase-invoices'));
+            }
+        }
+
         if ($request->action == 'save_print') {
             return $this->respondPurchasesInvoiceStoreSuccess(
                 $request,

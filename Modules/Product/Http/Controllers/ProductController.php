@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Modules\Establishment\Models\Establishment;
@@ -1318,6 +1319,22 @@ class ProductController extends Controller implements HasMiddleware
             $productIds = $productIds->merge($assigned->pluck('product_id'));
         }
 
+        if (Schema::hasTable('modifier_inventories')) {
+            $productIds = $productIds->merge(
+                DB::table('modifier_inventories')
+                    ->whereIn('establishment_id', $establishmentIds)
+                    ->pluck('modifier_id')
+            );
+        }
+
+        if (Schema::hasTable('ingredient_inventories')) {
+            $productIds = $productIds->merge(
+                DB::table('ingredient_inventories')
+                    ->whereIn('establishment_id', $establishmentIds)
+                    ->pluck('ingredient_id')
+            );
+        }
+
         $productIds = $productIds
             ->map(fn ($id) => (int) $id)
             ->filter(fn ($id) => $id > 0)
@@ -1325,20 +1342,55 @@ class ProductController extends Controller implements HasMiddleware
             ->values();
 
         $query = Product::query()
-            ->whereIn('type', ['product', 'variable', 'ingredint', 'modifier'])
+            ->whereIn('type', ['product', 'ingredint', 'modifier'])
             ->where(function ($inner) {
                 $inner->whereNull('active')->orWhere('active', 1);
             });
 
         if ($productIds->isNotEmpty()) {
-            $query->whereIn('id', $productIds);
+            $query->where(function ($inner) use ($productIds) {
+                $inner->whereIn('id', $productIds)
+                    ->orWhereIn('type', ['modifier', 'ingredint'])
+                    ->orWhere(function ($variant) use ($productIds) {
+                        $variant->where('type', 'product')
+                            ->whereNotNull('parent_id')
+                            ->whereIn('parent_id', $productIds);
+                    });
+            });
         }
 
         $products = $query
+            ->orderByRaw("CASE type WHEN 'product' THEN 0 WHEN 'ingredint' THEN 1 WHEN 'modifier' THEN 2 ELSE 3 END")
+            ->orderBy('parent_id')
             ->orderBy('name_ar')
-            ->get(['id', 'name_ar', 'name_en', 'SKU', 'type', 'barcode']);
+            ->get(['id', 'name_ar', 'name_en', 'SKU', 'type', 'barcode', 'parent_id', 'cost']);
 
-        return response()->json($products->values());
+        $parentIds = $products->pluck('parent_id')->filter()->unique()->values();
+        $parents = $parentIds->isEmpty()
+            ? collect()
+            : Product::query()
+                ->whereIn('id', $parentIds)
+                ->get(['id', 'name_ar', 'name_en'])
+                ->keyBy('id');
+
+        $payload = $products->map(function ($product) use ($parents) {
+            $parent = $product->parent_id ? $parents->get($product->parent_id) : null;
+
+            return [
+                'id' => $product->id,
+                'name_ar' => $product->name_ar,
+                'name_en' => $product->name_en,
+                'SKU' => $product->SKU,
+                'type' => $product->type,
+                'barcode' => $product->barcode,
+                'parent_id' => $product->parent_id,
+                'cost' => $product->cost,
+                'parent_name_ar' => $parent?->name_ar,
+                'parent_name_en' => $parent?->name_en,
+            ];
+        })->values();
+
+        return response()->json($payload);
     }
 
     /**
@@ -1547,29 +1599,23 @@ class ProductController extends Controller implements HasMiddleware
             })
             ->get();
 
-        try {
-            $inventoryMap = DB::table('product_inventories')
-                ->select('product_id', DB::raw('COALESCE(SUM(qty),0) as qty_sum'))
-                ->groupBy('product_id')
-                ->pluck('qty_sum', 'product_id');
-        } catch (\Illuminate\Database\QueryException $e) {
-            if (! str_contains($e->getMessage(), 'Division by zero')) {
-                throw $e;
-            }
-            $inventoryMap = collect();
-        }
+        $inventoryMap = $this->productInventoryQtyMap();
 
         $establishmentId = (int) $request->input('establishment_id');
         $inventoryCosts = [];
         if ($establishmentId > 0 && $products->isNotEmpty()) {
-            $preview = app(\Modules\Inventory\Services\InventoryCostingService::class)
-                ->previewOutboundCosts($establishmentId, $products->map(fn ($product) => [
-                    'product_id' => (int) $product->id,
-                    'qty' => 1,
-                    'unit_id' => null,
-                ])->all());
-            foreach ($preview as $row) {
-                $inventoryCosts[(int) $row['product_id']] = (float) $row['unit_cost'];
+            try {
+                $preview = app(\Modules\Inventory\Services\InventoryCostingService::class)
+                    ->previewOutboundCosts($establishmentId, $products->map(fn ($product) => [
+                        'product_id' => (int) $product->id,
+                        'qty' => 1,
+                        'unit_id' => null,
+                    ])->all());
+                foreach ($preview as $row) {
+                    $inventoryCosts[(int) $row['product_id']] = (float) $row['unit_cost'];
+                }
+            } catch (\Throwable $e) {
+                Log::warning('productsForSale inventory cost preview skipped: '.$e->getMessage());
             }
         }
 
@@ -1634,5 +1680,43 @@ class ProductController extends Controller implements HasMiddleware
             });
 
         return response()->json(['success' => true, 'data' => $products]);
+    }
+
+    /**
+     * Qty map for sell pickers. Never fail the product list if the inventory view errors
+     * (MySQL 1615 on views, division-by-zero inside the view, etc.).
+     *
+     * @return \Illuminate\Support\Collection<int|string, mixed>
+     */
+    private function productInventoryQtyMap()
+    {
+        $load = static function () {
+            return DB::table('product_inventories')
+                ->select('product_id', DB::raw('COALESCE(SUM(qty),0) as qty_sum'))
+                ->groupBy('product_id')
+                ->pluck('qty_sum', 'product_id');
+        };
+
+        try {
+            return $load();
+        } catch (\Illuminate\Database\QueryException $e) {
+            $message = $e->getMessage();
+            $retryable = str_contains($message, '1615')
+                || str_contains($message, 're-prepared')
+                || str_contains($message, 'Division by zero');
+            if ($retryable) {
+                try {
+                    return $load();
+                } catch (\Throwable $retry) {
+                    Log::warning('productsForSale inventory qty skipped: '.$retry->getMessage());
+
+                    return collect();
+                }
+            }
+
+            Log::warning('productsForSale inventory qty skipped: '.$message);
+
+            return collect();
+        }
     }
 }

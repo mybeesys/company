@@ -25,11 +25,20 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('status');
-            $table->foreign('transaction_id')
-                ->references('id')
-                ->on('transactions')
-                ->cascadeOnDelete();
         });
+
+        if (Schema::hasTable('transactions')) {
+            try {
+                Schema::table('zatca_invoice_syncs', function (Blueprint $table) {
+                    $table->foreign('transaction_id')
+                        ->references('id')
+                        ->on('transactions')
+                        ->cascadeOnDelete();
+                });
+            } catch (\Throwable) {
+                // Skip FK when the referenced table/engine/types cannot accept it.
+            }
+        }
     }
 
     public function down(): void

@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'center_kicker' => 'الإشعارات',
+    'center_subtitle' => '',
+    'module' => 'الوحدة',
+    'all_modules' => 'الكل',
+    'unread_only' => 'غير المقروء',
+    'unread_short' => 'غير مقروء',
+    'items_count' => 'إشعار',
+    'apply_filters' => 'تطبيق',
+    'mark_all_read' => 'تعليمليم الكل كمقروء',
+    'mark_read' => 'تعيين كمقروء',
+    'open' => 'فتح',
+    'open_in_system' => 'فتح في النظام',
+    'view_all' => 'عرض الكل',
+    'empty_hint' => 'ستظهر هنا تنبيهات النظام والعمليات فور حدوثها.',
+    'severity_info' => 'معلومة',
+    'severity_warning' => 'تحذير',
+    'severity_critical' => 'حرج',
+    'module_sales' => 'المبيعات',
+    'module_purchases' => 'المشتريات',
+    'module_inventory' => 'المخزون',
+    'module_accounting' => 'المحاسبة',
+    'module_employee' => 'الموظفون',
+    'module_reservation' => 'المطعم',
+    'module_system' => 'النظام',
+];

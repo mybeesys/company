@@ -225,6 +225,10 @@ class FinancialYearSettingsController extends Controller
         try {
             $period = $this->lifecycle->closePeriod($period);
 
+            \Modules\General\Support\SystemNotify::send('fiscal_period_closed', [
+                'period_label' => (string) ($period->name ?? $period->id),
+            ], url('/accounting/financial-years'));
+
             return response()->json([
                 'message' => __('accounting::financial_year.period_closed_success'),
                 'period' => FinancialYearApiPresenter::period($period),

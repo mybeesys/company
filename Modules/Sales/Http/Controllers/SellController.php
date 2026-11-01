@@ -1716,6 +1716,30 @@ class SellController extends Controller
 
         DB::commit();
 
+        if (! $isDraft && in_array((string) $transaction->status, ['approved', 'final'], true)) {
+            $amount = number_format((float) $transaction->final_total, 2);
+            $ref = (string) ($transaction->ref_no ?? $transaction->id);
+            if (($transaction->type ?? '') === 'sell-return') {
+                \Modules\General\Support\SystemNotify::send('sell_return', [
+                    'ref_no' => $ref,
+                    'amount' => $amount,
+                ], url('/sell-return'));
+            } elseif (($transaction->type ?? '') === 'sell') {
+                \Modules\General\Support\SystemNotify::send('new_sell', [
+                    'ref_no' => $ref,
+                    'amount' => $amount,
+                ], url('/invoices'));
+            }
+
+            if ($status === 'error' && ! empty($credit_limit) && ! empty($totalOutstanding)) {
+                $contact = Contact::find($transaction->contact_id);
+                \Modules\General\Support\SystemNotify::send('customer_overdue_critical', [
+                    'party_name' => (string) ($contact->name ?? ''),
+                    'amount' => number_format((float) $totalOutstanding, 2),
+                ], url('/invoices'));
+            }
+        }
+
         if (in_array((string) $transaction->status, ['approved', 'final'], true)) {
             app(ZatcaAutoSyncService::class)->queueIfInstant((int) $transaction->id);
         }

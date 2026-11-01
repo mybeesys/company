@@ -26,6 +26,7 @@ use Modules\Reservation\Support\KitchenOrderPayload;
 use Modules\Sales\Services\ApplyCouponService;
 use Modules\Sales\Services\PosInternalConsumptionPricer;
 use Modules\Sales\Services\PosInvoiceServiceFeeApplier;
+use Modules\Sales\Services\CashierCustomerReceivablePayment;
 use Modules\Sales\Services\PosSalesInvoiceMapper;
 use Modules\Sales\Support\CashierApiError;
 use Modules\Sales\Support\TransactionPurpose;
@@ -385,6 +386,7 @@ class SellApiController extends Controller
                 }
             } else {
                 $payments = json_decode(json_encode($request->payments ?? []));
+                $dueViaCustomerAccount = CashierCustomerReceivablePayment::invoiceIsDue($request);
                 $payable = [];
                 foreach ($payments ?? [] as $payment) {
                     if (! ($payment->amount ?? null)) {
@@ -409,12 +411,17 @@ class SellApiController extends Controller
                         return response()->json(['message' => $resolved['message']], $resolved['status']);
                     }
 
-                    $request->merge(PosSalesInvoiceMapper::paymentRequestAttributes(
+                    $paymentAttrs = PosSalesInvoiceMapper::paymentRequestAttributes(
                         $request,
                         $payment,
                         $resolved['account_id'],
                         $resolved['method_id']
-                    ));
+                    );
+                    if ($dueViaCustomerAccount) {
+                        $paymentAttrs['paid_amount'] = 0;
+                        $paymentAttrs['amount'] = 0;
+                    }
+                    $request->merge($paymentAttrs);
 
                     $transactionUtil->createOrUpdatePaymentLines(
                         $transaction,
