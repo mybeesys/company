@@ -1729,6 +1729,14 @@ class SellController extends Controller
                     'ref_no' => $ref,
                     'amount' => $amount,
                 ], url('/invoices'));
+
+                $paymentStatus = strtolower((string) ($transaction->payment_status ?? ''));
+                if (in_array($paymentStatus, ['paid', 'partial'], true)) {
+                    \Modules\General\Support\SystemNotify::send('payment_received', [
+                        'ref_no' => $ref,
+                        'amount' => $amount,
+                    ], url('/invoices'));
+                }
             }
 
             if ($status === 'error' && ! empty($credit_limit) && ! empty($totalOutstanding)) {

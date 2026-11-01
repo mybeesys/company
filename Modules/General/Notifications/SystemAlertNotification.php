@@ -2,15 +2,14 @@
 
 namespace Modules\General\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SystemAlertNotification extends Notification implements ShouldQueue
+/**
+ * Delivered synchronously so in-app alerts appear without a queue worker.
+ */
+class SystemAlertNotification extends Notification
 {
-    use Queueable;
-
     /**
      * @param  array{title: string, body: string, icon: string, url: ?string, module: string, severity: string, key: string, meta?: array<string, mixed>}  $payload
      * @param  list<string>  $channels
