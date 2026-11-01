@@ -439,6 +439,23 @@ class SellApiController extends Controller
                 && in_array((string) $transaction->status, ['approved', 'final'], true)
             ) {
                 app(ZatcaAutoSyncService::class)->queueIfInstant((int) $transaction->id);
+
+                $amount = number_format((float) $transaction->final_total, 2);
+                $ref = (string) ($transaction->ref_no ?? $transaction->id);
+                $actorId = (int) ($transaction->created_by ?? $request->user_id ?? 0) ?: null;
+
+                \Modules\General\Support\SystemNotify::send('new_sell', [
+                    'ref_no' => $ref,
+                    'amount' => $amount,
+                ], url('/invoices'), $actorId);
+
+                $paymentStatus = strtolower((string) ($transaction->fresh()->payment_status ?? ''));
+                if (in_array($paymentStatus, ['paid', 'partial'], true)) {
+                    \Modules\General\Support\SystemNotify::send('payment_received', [
+                        'ref_no' => $ref,
+                        'amount' => $amount,
+                    ], url('/invoices'), $actorId);
+                }
             }
 
             $transaction->load(['sell_lines.product']);
