@@ -8,12 +8,15 @@ use App\Http\Middleware\EnsureModuleEntitlement;
 use App\Http\Middleware\LocalizationMiddleware;
 use App\Http\Middleware\SetApiLocale;
 use App\Http\Middleware\VerifySocketInternalSecret;
+use App\Support\MissingTenantGateway;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\Accounting\Exceptions\FiscalPeriodException;
+use Stancl\Tenancy\Contracts\TenantCouldNotBeIdentifiedException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -45,6 +48,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->dontReport(TenantCouldNotBeIdentifiedException::class);
+
+        $exceptions->render(function (TenantCouldNotBeIdentifiedException $e, Request $request) {
+            return MissingTenantGateway::toResponse($request);
+        });
+
         $exceptions->render(function (ValidationException $e, $request) {
             while (DB::transactionLevel() > 0) {
                 DB::rollBack();
