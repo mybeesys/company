@@ -107,6 +107,8 @@ class KitchenBroadcastService
         $formatted = KitchenOrderPayload::formatOrder($order);
         $updatedAt = $formatted['updated_at'] ?? now()->toIso8601String();
 
+        $categoryIds = $this->categoryIdsFromOrder($order);
+
         $this->send('kitchen:item:status_changed', [
             'establishment_id' => $establishmentId,
             'order_id' => $order->id,
@@ -120,7 +122,7 @@ class KitchenBroadcastService
             'order_type' => $formatted['order_type'] ?? ($source === 'local' ? 'محلي' : 'سفري'),
             'updated_at' => $updatedAt,
             'order' => $formatted,
-        ], $establishmentId, $this->categoryIdsFromOrder($order));
+        ], $establishmentId, $categoryIds);
 
         if ($removeIfOrderComplete && ! KitchenOrderPayload::appearsInKitchen($order->order_status)) {
             $this->orderRemoved(

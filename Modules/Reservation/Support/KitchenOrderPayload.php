@@ -307,7 +307,7 @@ class KitchenOrderPayload
         $parentItems = $allLines->filter(fn ($line) => OrderLineParent::isRoot($line));
 
         return $parentItems
-            ->map(function ($mainItem) use ($allLines) {
+            ->flatMap(function ($mainItem) use ($allLines) {
                 $subItems = $allLines->filter(
                     fn ($line) => (string) $line->parent_id === (string) $mainItem->id
                 );
@@ -319,14 +319,13 @@ class KitchenOrderPayload
                     ->filter(fn ($line) => $line->combo_id !== null && $line->combo_id !== '')
                     ->values();
 
-                return self::mapMainKitchenItem(
+                return self::mapKitchenGroup(
                     $mainItem,
                     $modifiers,
                     $combos,
                     fn ($combo) => $combo->product->name_ar ?? $combo->productCombo->name_ar ?? ''
                 );
             })
-            ->filter()
             ->values()
             ->all();
     }
@@ -357,7 +356,7 @@ class KitchenOrderPayload
         );
 
         return $parentItems
-            ->map(function (TransactionSellLine $mainItem) use ($allLines, $categoryIds) {
+            ->flatMap(function (TransactionSellLine $mainItem) use ($allLines) {
                 $subItems = $allLines->filter(
                     fn (TransactionSellLine $line) => (string) $line->parent_id === (string) $mainItem->id
                 );
@@ -369,14 +368,13 @@ class KitchenOrderPayload
                     ->filter(fn (TransactionSellLine $line) => self::isPosComboLine($line))
                     ->values();
 
-                return self::mapMainKitchenItem(
+                return self::mapKitchenGroup(
                     $mainItem,
                     $modifiers,
                     $combos,
                     fn ($combo) => $combo->product->name_ar ?? ''
                 );
             })
-            ->filter()
             ->values()
             ->all();
     }
@@ -400,12 +398,14 @@ class KitchenOrderPayload
 
             [$modifiers, $combos] = self::splitLegacyPosChildLines(collect($currentChildren));
 
-            $items[] = self::mapMainKitchenItem(
+            foreach (self::mapKitchenGroup(
                 $currentMain,
                 $modifiers,
                 $combos,
                 fn ($combo) => $combo->product->name_ar ?? ''
-            );
+            ) as $payload) {
+                $items[] = $payload;
+            }
 
             $currentMain = null;
             $currentChildren = [];
@@ -413,9 +413,13 @@ class KitchenOrderPayload
 
         foreach ($allLines->sortBy('id')->values() as $line) {
             if (self::isPosComboComponentLine($line)) {
-                if ($currentMain) {
+                if ($currentMain && self::belongsToSameKitchenStation($currentMain, $line)) {
                     $currentChildren[] = $line;
+                    continue;
                 }
+
+                $flush();
+                $currentMain = $line;
 
                 continue;
             }
@@ -518,6 +522,10 @@ class KitchenOrderPayload
         TransactionSellLine $currentMain,
         array $currentChildren,
     ): bool {
+        if (! self::belongsToSameKitchenStation($currentMain, $line)) {
+            return false;
+        }
+
         if (self::isPosModifierLine($line)) {
             return true;
         }
@@ -545,6 +553,30 @@ class KitchenOrderPayload
         TransactionSellLine $main,
     ): bool {
         return self::isPosModifierLine($line);
+    }
+
+    /**
+     * صنف بقسم مختلف عن الرئيسي يُعرض ويُجهَّز كصنف مطبخ مستقل.
+     */
+    public static function belongsToSameKitchenStation($mainLine, $otherLine): bool
+    {
+        $mainCategory = self::lineCategoryId($mainLine);
+        $otherCategory = self::lineCategoryId($otherLine);
+
+        if ($mainCategory <= 0 || $otherCategory <= 0) {
+            return true;
+        }
+
+        return $mainCategory === $otherCategory;
+    }
+
+    private static function lineCategoryId($line): int
+    {
+        if (! $line->relationLoaded('product')) {
+            return 0;
+        }
+
+        return (int) ($line->product->category_id ?? 0);
     }
 
     public static function appearsInKitchen(?string $orderStatus): bool
@@ -685,6 +717,40 @@ class KitchenOrderPayload
         }
 
         return false;
+    }
+
+    /**
+     * @param  Collection<int, OrderTableItems|TransactionSellLine>  $modifiers
+     * @param  Collection<int, OrderTableItems|TransactionSellLine>  $combos
+     * @return array<int, array<string, mixed>>
+     */
+    private static function mapKitchenGroup(
+        $mainItem,
+        Collection $modifiers,
+        Collection $combos,
+        callable $comboNameResolver
+    ): array {
+        [$ownModifiers, $extraModifiers] = $modifiers->partition(
+            fn ($line) => self::belongsToSameKitchenStation($mainItem, $line)
+        );
+        [$ownCombos, $extraCombos] = $combos->partition(
+            fn ($line) => self::belongsToSameKitchenStation($mainItem, $line)
+        );
+
+        $items = [
+            self::mapMainKitchenItem(
+                $mainItem,
+                $ownModifiers->values(),
+                $ownCombos->values(),
+                $comboNameResolver
+            ),
+        ];
+
+        foreach ($extraModifiers->concat($extraCombos) as $extra) {
+            $items[] = self::mapMainKitchenItem($extra, collect(), collect(), $comboNameResolver);
+        }
+
+        return $items;
     }
 
     /**

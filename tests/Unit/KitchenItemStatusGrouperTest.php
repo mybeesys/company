@@ -52,6 +52,21 @@ class KitchenItemStatusGrouperTest extends TestCase
         $this->assertSame([14], $fromNextMain);
     }
 
+    public function test_other_station_child_is_not_in_the_prepare_group(): void
+    {
+        $grill = $this->makeTableLine(1, null, 10, 50);
+        $grill->setRelation('product', (object) ['name_ar' => 'مشويات', 'category_id' => 10]);
+        $cheese = $this->makeTableLine(2, 1, 11, 2);
+        $cheese->setRelation('product', (object) ['name_ar' => 'جبنة', 'category_id' => 10]);
+        $juice = $this->makeTableLine(3, 1, 20, 0);
+        $juice->setRelation('product', (object) ['name_ar' => 'عصير', 'category_id' => 20]);
+
+        $lines = collect([$grill, $cheese, $juice]);
+
+        $this->assertEqualsCanonicalizing([1, 2], KitchenItemStatusGrouper::tableLineGroupIds($grill, $lines));
+        $this->assertEqualsCanonicalizing([3], KitchenItemStatusGrouper::tableLineGroupIds($juice, $lines));
+    }
+
     public function test_pos_line_group_keeps_two_cheap_products_separate(): void
     {
         $lines = collect([
