@@ -127,8 +127,7 @@
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
             <div class=" m-7">
 
-                <img alt="Logo" src="/assets/media/logos/1-14.png" style="justify-content: center;display: flex;"
-                    class="h-100px theme-light-show" />
+                <x-document-company-logo class="h-100px theme-light-show" height="100px" style="justify-content: center;display: flex;" />
                 <p class="fs-7 mb-1" style="color: #6a6a6a">VAT:{{ $company->tax_number }} </p>
                 <p class="fs-7 mb-1" style="color: #6a6a6a">@lang('sales::fields.paid_on') {{ $transaction->paid_on }} </p>
 

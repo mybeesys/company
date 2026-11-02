@@ -166,15 +166,7 @@ class StandaloneVoucherHelper
                 $companyTaglineAr = (string) ($row->commercial_name_ar ?? $row->tagline_ar ?? '');
                 $companyTaxNumber = trim((string) ($row->tax_number ?? ''));
                 $companyTaxName = trim((string) ($row->tax_name ?? ''));
-                foreach (['logo', 'logo_path', 'image', 'company_logo'] as $col) {
-                    if (! empty($row->{$col})) {
-                        $path = (string) $row->{$col};
-                        $companyLogoUrl = function_exists('central_public_storage_url_for_path')
-                            ? central_public_storage_url_for_path($path)
-                            : $path;
-                        break;
-                    }
-                }
+                $companyLogoUrl = (string) (\App\Support\CompanyDocumentLogo::src($row) ?? '');
             }
         }
 

@@ -246,6 +246,16 @@ if (! function_exists('resolve_public_storage_url')) {
     }
 }
 
+if (! function_exists('company_document_logo_src')) {
+    /**
+     * Tenant company logo for invoices, receipts, and vouchers (not the My Bee mark).
+     */
+    function company_document_logo_src(bool $forPdf = false): ?string
+    {
+        return \App\Support\CompanyDocumentLogo::currentSrc($forPdf);
+    }
+}
+
 if (! function_exists('menu_product_placeholder_url')) {
     function menu_product_placeholder_url(): string
     {

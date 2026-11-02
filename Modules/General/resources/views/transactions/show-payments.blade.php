@@ -69,7 +69,7 @@
 
     <div class="row">
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
-            <img alt="Logo" src="/assets/media/logos/1-14.png" class="h-100px theme-light-show" />
+            <x-document-company-logo class="h-100px theme-light-show" height="100px" />
         </div>
         <div class="col-sm-4 " style="justify-content: center;display: flex;">
             <div class="text-center m-7">

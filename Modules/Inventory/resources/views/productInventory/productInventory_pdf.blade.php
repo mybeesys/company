@@ -96,7 +96,9 @@
     <table class="w-full">
         <tr>
             <td class="w-half">
-                <img src="data:image/jpeg;base64,{{ $image }}" alt="larrravel daily" width="200" />
+                @if (! empty($image))
+                    <img src="data:image/png;base64,{{ $image }}" alt="" width="200" />
+                @endif
             </td>
             <td class="w-half">
                 <h2>{{ $type == 'p' ? __('reports.productInventory') : __('reports.ingredientInventory') }}</h2>

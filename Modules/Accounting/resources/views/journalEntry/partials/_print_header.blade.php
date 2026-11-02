@@ -5,24 +5,12 @@
     $companyLogoUrl = '';
     $companyTaxNumber = '';
 
-    if (function_exists('get_company_id') && get_company_id()) {
-        $row = \Illuminate\Support\Facades\DB::connection('mysql')
-            ->table('companies')
-            ->find(get_company_id());
-        if ($row) {
-            $companyName = (string) ($row->name ?? $companyName);
-            $companyNameAr = (string) ($row->name_ar ?? $row->name ?? $companyName);
-            $companyTaxNumber = trim((string) ($row->tax_number ?? ''));
-            foreach (['logo', 'logo_path', 'image', 'company_logo'] as $col) {
-                if (! empty($row->{$col})) {
-                    $path = (string) $row->{$col};
-                    $companyLogoUrl = function_exists('central_public_storage_url_for_path')
-                        ? central_public_storage_url_for_path($path)
-                        : $path;
-                    break;
-                }
-            }
-        }
+    $row = \App\Support\CompanyDocumentLogo::companyRow();
+    if ($row) {
+        $companyName = (string) ($row->name ?? $companyName);
+        $companyNameAr = (string) ($row->name_ar ?? $row->name ?? $companyName);
+        $companyTaxNumber = trim((string) ($row->tax_number ?? ''));
+        $companyLogoUrl = (string) (\App\Support\CompanyDocumentLogo::src($row) ?? '');
     }
 
     $opDate = isset($journal) && $journal->operation_date
