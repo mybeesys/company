@@ -138,6 +138,35 @@ class KitchenOrderPayloadTest extends TestCase
         $this->assertNull($items[0]['prepared_at']);
     }
 
+    public function test_other_station_combo_child_is_a_separate_kitchen_item(): void
+    {
+        $grill = $this->makeTableLine(1, null, 10, 'مشويات', 20, 23);
+        $grill->setRelation('product', (object) ['name_ar' => 'مشويات', 'category_id' => 10]);
+        $juice = $this->makeTableLine(2, 1, 20, 'عصير', 0, 0, comboId: '20');
+        $juice->setRelation('product', (object) ['name_ar' => 'عصير', 'category_id' => 20]);
+
+        $items = KitchenOrderPayload::formatTableOrderItems(collect([$grill, $juice]));
+
+        $this->assertCount(2, $items);
+        $this->assertSame(10, $items[0]['category_id']);
+        $this->assertSame([], $items[0]['order_item_combos']);
+        $this->assertSame(20, $items[1]['category_id']);
+        $this->assertSame('عصير', $items[1]['product_name']);
+    }
+
+    public function test_pos_zero_price_other_station_line_is_a_separate_main(): void
+    {
+        $grill = $this->makePosLine(10, 1, 'مشويات', 50, 57.5);
+        $grill->setRelation('product', (object) ['name_ar' => 'مشويات', 'category_id' => 10]);
+        $juice = $this->makePosLine(11, 2, 'عصير', 0, 0);
+        $juice->setRelation('product', (object) ['name_ar' => 'عصير', 'category_id' => 20]);
+
+        $items = KitchenOrderPayload::formatPosSellLines(collect([$grill, $juice]));
+
+        $this->assertCount(2, $items);
+        $this->assertSame([10, 20], array_column($items, 'category_id'));
+    }
+
     public function test_format_table_items_keeps_other_station_products(): void
     {
         $grill = $this->makeTableLine(1, null, 10, 'مشويات', 20, 23);

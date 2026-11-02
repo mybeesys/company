@@ -16,22 +16,29 @@ final class KitchenItemStatusGrouper
      */
     public static function tableLineGroupIds(OrderTableItems $item, ?Collection $allLines = null): array
     {
-        $mainId = self::tableMainLineId($item);
         $lines = $allLines ?? OrderTableItems::query()
             ->where('transaction_id', $item->transaction_id)
+            ->with('product')
             ->get();
+        $mainId = self::tableMainLineId($item, $lines);
+        $main = $lines->firstWhere('id', $mainId) ?? $item;
 
         return $lines
-            ->filter(static function (OrderTableItems $line) use ($mainId): bool {
+            ->filter(static function (OrderTableItems $line) use ($mainId, $main): bool {
                 if ((int) $line->id === $mainId) {
                     return true;
                 }
 
                 $parentId = $line->parent_id;
+                if ($parentId === null || $parentId === '') {
+                    return false;
+                }
 
-                return $parentId !== null
-                    && $parentId !== ''
-                    && ((int) $parentId === $mainId || (string) $parentId === (string) $mainId);
+                if ((int) $parentId !== $mainId && (string) $parentId !== (string) $mainId) {
+                    return false;
+                }
+
+                return KitchenOrderPayload::belongsToSameKitchenStation($main, $line);
             })
             ->pluck('id')
             ->map(static fn ($id) => (int) $id)
@@ -64,14 +71,23 @@ final class KitchenItemStatusGrouper
     private static function posLineGroupIdsByParent(Collection $allLines, TransactionSellLine $item): array
     {
         $mainId = ! empty($item->parent_id) ? (int) $item->parent_id : (int) $item->id;
+        $main = $allLines->firstWhere('id', $mainId) ?? $item;
+        if (! empty($item->parent_id) && $main && ! KitchenOrderPayload::belongsToSameKitchenStation($main, $item)) {
+            $mainId = (int) $item->id;
+            $main = $item;
+        }
 
         return $allLines
-            ->filter(static function (TransactionSellLine $line) use ($mainId): bool {
+            ->filter(static function (TransactionSellLine $line) use ($mainId, $main): bool {
                 if ((int) $line->id === $mainId) {
                     return true;
                 }
 
-                return (string) $line->parent_id === (string) $mainId;
+                if ((string) $line->parent_id !== (string) $mainId) {
+                    return false;
+                }
+
+                return KitchenOrderPayload::belongsToSameKitchenStation($main, $line);
             })
             ->pluck('id')
             ->map(static fn ($id) => (int) $id)
@@ -109,10 +125,15 @@ final class KitchenItemStatusGrouper
             $lineId = (int) $line->id;
 
             if (KitchenOrderPayload::isPosComboComponentLine($line)) {
-                if ($currentMain) {
+                if ($currentMain && KitchenOrderPayload::belongsToSameKitchenStation($currentMain, $line)) {
                     $currentChildren[] = $line;
                     $currentGroupIds[] = $lineId;
+                    continue;
                 }
+
+                $flush();
+                $currentMain = $line;
+                $currentGroupIds = [$lineId];
 
                 continue;
             }
@@ -149,12 +170,18 @@ final class KitchenItemStatusGrouper
         return $matchedGroup;
     }
 
-    private static function tableMainLineId(OrderTableItems $item): int
+    private static function tableMainLineId(OrderTableItems $item, Collection $lines): int
     {
-        if ($item->parent_id !== null && $item->parent_id !== '' && (int) $item->parent_id > 0) {
-            return (int) $item->parent_id;
+        if ($item->parent_id === null || $item->parent_id === '' || (int) $item->parent_id <= 0) {
+            return (int) $item->id;
         }
 
-        return (int) $item->id;
+        $parentId = (int) $item->parent_id;
+        $parent = $lines->firstWhere('id', $parentId);
+        if ($parent && ! KitchenOrderPayload::belongsToSameKitchenStation($parent, $item)) {
+            return (int) $item->id;
+        }
+
+        return $parentId;
     }
 }

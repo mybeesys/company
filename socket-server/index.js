@@ -316,9 +316,9 @@ function broadcastKitchenEvent(establishmentId, eventName, envelope, options = {
   const estRoom = `kitchen:establishment:${establishmentId}`;
   const order = envelope.order ?? null;
   const explicitCategories = normalizeCategoryIds(options.category_ids);
-  const itemCategories = explicitCategories.length
-    ? explicitCategories
-    : categoryIdsFromOrder(order);
+  const itemCategories = [
+    ...new Set([...explicitCategories, ...categoryIdsFromOrder(order)]),
+  ];
 
   // Full order only for clients in the establishment-wide kitchen room (no category filter).
   io.to(estRoom).emit(eventName, envelope);

@@ -746,24 +746,26 @@ class OrderController extends Controller
             $allOrderPrepared = $result['all_prepared'];
             $orderType = $result['order_type'];
 
-            DB::afterCommit(function () use ($order, $itemSnapshot, $allOrderPrepared, $orderType) {
-                $this->kitchen->itemStatusChanged(
-                    $order,
-                    (int) $itemSnapshot['id'],
-                    'prepared',
-                    $orderType,
-                    isset($itemSnapshot['category_id']) ? (int) $itemSnapshot['category_id'] : null,
-                    $itemSnapshot['prepared_at'] ?? now()->format('Y-m-d H:i:s')
-                );
+            $this->kitchen->itemStatusChanged(
+                $order,
+                (int) $itemSnapshot['id'],
+                'prepared',
+                $orderType,
+                isset($itemSnapshot['category_id']) ? (int) $itemSnapshot['category_id'] : null,
+                $itemSnapshot['prepared_at'] ?? now()->format('Y-m-d H:i:s')
+            );
 
-                if ($orderType === 'local' && $order->table_id) {
-                    $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
-                    if ($allOrderPrepared) {
-                        $this->realtime->orderStatusChanged($order, $notifyWaiterId);
-                    }
-                    $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
+            if (! $allOrderPrepared) {
+                $this->kitchen->orderUpdated($order, $orderType);
+            }
+
+            if ($orderType === 'local' && $order->table_id) {
+                $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
+                if ($allOrderPrepared) {
+                    $this->realtime->orderStatusChanged($order, $notifyWaiterId);
                 }
-            });
+                $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
+            }
         }
 
         return response()->json($this->kitchenStatusMutationResponse(
@@ -785,7 +787,7 @@ class OrderController extends Controller
             return KitchenItemStatusGrouper::tableLineGroupIds($item);
         }
 
-        $allLines = TransactionSellLine::where('transaction_id', $item->transaction_id)->get();
+        $allLines = TransactionSellLine::with('product')->where('transaction_id', $item->transaction_id)->get();
 
         return KitchenItemStatusGrouper::posLineGroupIds($allLines, (int) $item->id);
     }
@@ -899,44 +901,44 @@ class OrderController extends Controller
             $stationPrepare = $result['station_prepare'];
             $preparedMains = $result['prepared_mains'];
 
-            DB::afterCommit(function () use ($order, $orderTypeForBroadcast, $allOrderPrepared, $stationPrepare, $preparedMains) {
-                if ($stationPrepare) {
-                    $lastIndex = array_key_last($preparedMains);
-                    foreach ($preparedMains as $index => $main) {
-                        $this->kitchen->itemStatusChanged(
-                            $order,
-                            (int) $main['id'],
+            if ($stationPrepare) {
+                $lastIndex = array_key_last($preparedMains);
+                foreach ($preparedMains as $index => $main) {
+                    $this->kitchen->itemStatusChanged(
+                        $order,
+                        (int) $main['id'],
+                        'prepared',
+                        $orderTypeForBroadcast,
+                        isset($main['category_id']) ? (int) $main['category_id'] : null,
+                        $main['prepared_at'] ?? now()->format('Y-m-d H:i:s'),
+                        $allOrderPrepared && $index === $lastIndex
+                    );
+                }
+                if ($allOrderPrepared && $preparedMains === []) {
+                    $establishmentId = KitchenOrderPayload::establishmentIdFromOrder($order);
+                    if ($establishmentId) {
+                        $this->kitchen->orderRemoved(
+                            (int) $order->id,
+                            $establishmentId,
                             'prepared',
-                            $orderTypeForBroadcast,
-                            isset($main['category_id']) ? (int) $main['category_id'] : null,
-                            $main['prepared_at'] ?? now()->format('Y-m-d H:i:s'),
-                            $allOrderPrepared && $index === $lastIndex
+                            $order
                         );
                     }
-                    if ($allOrderPrepared && $preparedMains === []) {
-                        $establishmentId = KitchenOrderPayload::establishmentIdFromOrder($order);
-                        if ($establishmentId) {
-                            $this->kitchen->orderRemoved(
-                                (int) $order->id,
-                                $establishmentId,
-                                'prepared',
-                                $order
-                            );
-                        }
-                    }
-                } else {
+                } elseif (! $allOrderPrepared) {
                     $this->kitchen->orderUpdated($order, $orderTypeForBroadcast);
                 }
+            } else {
+                $this->kitchen->orderUpdated($order, $orderTypeForBroadcast);
+            }
 
-                if ($orderTypeForBroadcast === 'local' && $order instanceof TableOrders && $order->table_id) {
-                    $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
-                    if ($allOrderPrepared) {
-                        $this->realtime->orderStatusChanged($order, $notifyWaiterId);
-                    }
-                    $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
-                    $this->posOrders->orderUpdated($order);
+            if ($orderTypeForBroadcast === 'local' && $order instanceof TableOrders && $order->table_id) {
+                $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
+                if ($allOrderPrepared) {
+                    $this->realtime->orderStatusChanged($order, $notifyWaiterId);
                 }
-            });
+                $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
+                $this->posOrders->orderUpdated($order);
+            }
         }
 
         $snapshot = $result['snapshot'];
@@ -986,6 +988,9 @@ class OrderController extends Controller
         if ($itemModel === OrderTableItems::class || ! empty($item->parent_id)) {
             $mainId = ! empty($item->parent_id) ? (int) $item->parent_id : (int) $item->id;
             $main = $itemModel::with('product')->find($mainId);
+            if ($main && ! empty($item->parent_id) && ! KitchenOrderPayload::belongsToSameKitchenStation($main, $item)) {
+                return $item;
+            }
 
             return $main ?: $item;
         }
