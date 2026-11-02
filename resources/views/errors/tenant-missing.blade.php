@@ -435,9 +435,6 @@
                     <a class="tm__btn tm__btn--primary" href="{{ $registerUrl }}">
                         @lang('errors.tenant_missing_cta_start')
                     </a>
-                    <a class="tm__btn tm__btn--ghost" href="{{ $loginUrl }}">
-                        @lang('errors.tenant_missing_cta_login')
-                    </a>
                 </div>
             </div>
             <div class="tm__markcol">
