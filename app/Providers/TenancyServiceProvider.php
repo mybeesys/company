@@ -123,7 +123,6 @@ class TenancyServiceProvider extends ServiceProvider
 
         Middleware\InitializeTenancyByDomain::$onFail = $respond;
         Middleware\InitializeTenancyBySubdomain::$onFail = $respond;
-        Middleware\InitializeTenancyByDomainOrSubdomain::$onFail = $respond;
         Middleware\InitializeTenancyByPath::$onFail = $respond;
         Middleware\InitializeTenancyByRequestData::$onFail = $respond;
     }
