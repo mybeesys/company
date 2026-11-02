@@ -721,7 +721,7 @@ class OrderController extends Controller
             }
 
             $order->refresh();
-            $order->load(['sell_lines.product', 'sell_lines.productCombo', 'createdBy', 'client']);
+            $this->loadKitchenOrderRelations($order);
             $snapshot = KitchenOrderPayload::formatOrder($order) ?? [];
             $itemSnapshot = $this->kitchenItemFromSnapshot($snapshot, (int) $mainItem->id, $mainCategoryId);
 
@@ -832,7 +832,7 @@ class OrderController extends Controller
                 ]];
             }
 
-            $order->load(['sell_lines.product', 'sell_lines.productCombo']);
+            $this->loadKitchenOrderRelations($order);
             $lineIds = $stationCategoryIds === []
                 ? $itemModel::where('transaction_id', $order->id)->pluck('id')->map(fn ($id) => (int) $id)->all()
                 : $this->stationLineIdsForOrder($itemModel, $order, $stationCategoryIds);
@@ -866,7 +866,7 @@ class OrderController extends Controller
             }
 
             $order->refresh();
-            $order->load(['sell_lines.product', 'sell_lines.productCombo', 'createdBy', 'client']);
+            $this->loadKitchenOrderRelations($order);
             $snapshot = KitchenOrderPayload::formatOrder($order) ?? [];
 
             return [
@@ -958,6 +958,21 @@ class OrderController extends Controller
                 'updated_lines' => $result['updated_lines'],
             ]
         ));
+    }
+
+    /**
+     * POS sell lines have product only. Combo names on table orders use productCombo.
+     *
+     * @param  TableOrders|Transaction  $order
+     */
+    private function loadKitchenOrderRelations($order): void
+    {
+        $relations = ['sell_lines.product', 'createdBy', 'client'];
+        if ($order instanceof TableOrders) {
+            $relations[] = 'sell_lines.productCombo';
+        }
+
+        $order->load($relations);
     }
 
     /**
