@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Modules\ClientsAndSuppliers\Models\Contact;
 use Modules\Employee\Models\Employee;
 use Modules\Establishment\Models\Establishment;
@@ -646,9 +647,9 @@ class OrderController extends Controller
             return response()->json(['message' => 'Establishment not found'], 404);
         }
 
-        return response()->json(
-            KitchenOrderPayload::ordersForEstablishment($establishment_id, $category_ids)
-        );
+        return response()->json([
+            'data' => KitchenOrderPayload::ordersForEstablishment($establishment_id, $category_ids),
+        ]);
     }
 
     public function updateItemStatus(Request $request)
@@ -656,10 +657,14 @@ class OrderController extends Controller
         $request->validate([
             'item_id' => 'required',
             'order_type' => 'required|in:local,pos',
+            'status' => 'sometimes|in:prepared',
+            'category_ids' => 'sometimes|array',
+            'category_ids.*' => 'integer',
         ]);
 
         $orderType = $request->order_type;
         $itemId = $request->item_id;
+        $stationCategoryIds = array_values(array_unique(array_map('intval', (array) $request->input('category_ids', []))));
 
         if ($orderType === 'local') {
             $itemModel = OrderTableItems::class;
@@ -669,52 +674,104 @@ class OrderController extends Controller
             $orderModel = Transaction::class;
         }
 
-        $item = $itemModel::with(['product'])->find($itemId);
+        $result = DB::transaction(function () use ($itemModel, $orderModel, $itemId, $stationCategoryIds, $orderType) {
+            $item = $itemModel::with(['product'])->lockForUpdate()->find($itemId);
+            if (! $item) {
+                return ['error' => ['message' => 'Item not found', 'code' => 404]];
+            }
 
-        if (! $item) {
-            return response()->json(['message' => 'Item not found'], 404);
-        }
+            $order = $orderModel::lockForUpdate()->find($item->transaction_id);
+            if (! $order) {
+                return ['error' => ['message' => 'Order not found', 'code' => 404]];
+            }
 
-        $lineIds = $this->resolvePreparedLineGroupIds($itemModel, $item);
-        $itemModel::whereIn('id', $lineIds)
-            ->where('line_status', 'inpreparation')
-            ->update(['line_status' => 'prepared']);
+            $lineIds = $this->resolvePreparedLineGroupIds($itemModel, $item);
+            $mainItem = $this->resolveKitchenMainLine($itemModel, $item, $lineIds);
+            $mainCategoryId = (int) ($mainItem->product->category_id ?? 0);
 
-        $order = $orderModel::find($item->transaction_id);
-        $allOrderPrepared = false;
+            if ($stationCategoryIds !== [] && ! in_array($mainCategoryId, $stationCategoryIds, true)) {
+                return ['error' => ['message' => 'item_not_in_station', 'code' => 403]];
+            }
 
-        if ($order) {
-            $remainingItems = $itemModel::where('transaction_id', $order->id)
-                ->where('line_status', 'inpreparation')
-                ->count();
+            $alreadyPrepared = $itemModel::whereIn('id', $lineIds)
+                ->where(function ($query) {
+                    KitchenOrderPayload::constrainUnpreparedLines($query);
+                })
+                ->doesntExist();
 
-            if ($remainingItems == 0) {
-                $order->update(['order_status' => 'prepared']);
+            $allOrderPrepared = false;
+            $changed = false;
+
+            if (! $alreadyPrepared) {
+                $itemModel::whereIn('id', $lineIds)
+                    ->where(function ($query) {
+                        KitchenOrderPayload::constrainUnpreparedLines($query);
+                    })
+                    ->update($this->kitchenPreparedLineAttributes($itemModel));
+
+                $changed = true;
+                $order->touch();
+
+                if ($this->unpreparedKitchenLineCount($itemModel, (int) $order->id) === 0) {
+                    $order->update(['order_status' => 'prepared']);
+                    $allOrderPrepared = true;
+                }
+            } elseif ((string) $order->order_status === 'prepared') {
                 $allOrderPrepared = true;
             }
-        }
 
-        if ($order) {
             $order->refresh();
-            $order->load(['sell_lines.product']);
-            $this->kitchen->itemStatusChanged($order, (int) $item->id, 'prepared', $orderType);
+            $order->load(['sell_lines.product', 'sell_lines.productCombo', 'createdBy', 'client']);
+            $snapshot = KitchenOrderPayload::formatOrder($order) ?? [];
+            $itemSnapshot = $this->kitchenItemFromSnapshot($snapshot, (int) $mainItem->id, $mainCategoryId);
 
-            if ($orderType === 'local' && $order->table_id) {
-                $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
-                if ($allOrderPrepared) {
-                    $this->realtime->orderStatusChanged($order, $notifyWaiterId);
-                }
-                $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
-            }
+            return [
+                'order' => $order,
+                'snapshot' => $snapshot,
+                'item' => $itemSnapshot,
+                'line_ids' => $lineIds,
+                'changed' => $changed,
+                'all_prepared' => $allOrderPrepared,
+                'order_type' => $orderType,
+            ];
+        });
+
+        if (isset($result['error'])) {
+            return response()->json(['message' => $result['error']['message']], $result['error']['code']);
         }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Status updated successfully',
-            'new_status' => 'prepared',
-            'updated_line_ids' => $lineIds,
-            'order_status' => $order ? $order->order_status : null,
-        ]);
+        if ($result['changed']) {
+            $order = $result['order'];
+            $itemSnapshot = $result['item'];
+            $allOrderPrepared = $result['all_prepared'];
+            $orderType = $result['order_type'];
+
+            DB::afterCommit(function () use ($order, $itemSnapshot, $allOrderPrepared, $orderType) {
+                $this->kitchen->itemStatusChanged(
+                    $order,
+                    (int) $itemSnapshot['id'],
+                    'prepared',
+                    $orderType,
+                    isset($itemSnapshot['category_id']) ? (int) $itemSnapshot['category_id'] : null,
+                    $itemSnapshot['prepared_at'] ?? now()->format('Y-m-d H:i:s')
+                );
+
+                if ($orderType === 'local' && $order->table_id) {
+                    $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
+                    if ($allOrderPrepared) {
+                        $this->realtime->orderStatusChanged($order, $notifyWaiterId);
+                    }
+                    $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
+                }
+            });
+        }
+
+        return response()->json($this->kitchenStatusMutationResponse(
+            $result['snapshot'],
+            $result['item'],
+            $result['line_ids'],
+            $result['all_prepared']
+        ));
     }
 
     /**
@@ -742,57 +799,300 @@ class OrderController extends Controller
             'order_id' => 'required|integer',
             'order_type' => 'required|in:local,pos',
             'status' => 'required|in:prepared',
+            'category_ids' => 'sometimes|array',
+            'category_ids.*' => 'integer',
         ]);
 
         $orderType = $validated['order_type'];
         $orderId = (int) $validated['order_id'];
+        $stationCategoryIds = array_values(array_unique(array_map(
+            'intval',
+            (array) ($validated['category_ids'] ?? [])
+        )));
 
         if ($orderType === 'local') {
             $itemModel = OrderTableItems::class;
-            $order = TableOrders::find($orderId);
+            $orderQuery = TableOrders::query();
         } else {
             $itemModel = TransactionSellLine::class;
-            $order = Transaction::where('type', 'sell')->find($orderId);
+            $orderQuery = Transaction::where('type', 'sell');
         }
 
-        if (! $order) {
-            return response()->json(['message' => 'Order not found'], 404);
+        $result = DB::transaction(function () use ($itemModel, $orderQuery, $orderId, $stationCategoryIds) {
+            $order = $orderQuery->lockForUpdate()->find($orderId);
+            if (! $order) {
+                return ['error' => ['message' => 'Order not found', 'code' => 404]];
+            }
+
+            if (! in_array((string) $order->order_status, ['inpreparation', 'prepared'], true)) {
+                return ['error' => [
+                    'message' => 'Order is not in preparation',
+                    'code' => 422,
+                    'order_status' => $order->order_status,
+                ]];
+            }
+
+            $order->load(['sell_lines.product', 'sell_lines.productCombo']);
+            $lineIds = $stationCategoryIds === []
+                ? $itemModel::where('transaction_id', $order->id)->pluck('id')->map(fn ($id) => (int) $id)->all()
+                : $this->stationLineIdsForOrder($itemModel, $order, $stationCategoryIds);
+
+            $alreadyPrepared = $lineIds === [] || $itemModel::whereIn('id', $lineIds)
+                ->where(function ($query) {
+                    KitchenOrderPayload::constrainUnpreparedLines($query);
+                })
+                ->doesntExist();
+
+            $updatedLines = 0;
+            $changed = false;
+            $allOrderPrepared = (string) $order->order_status === 'prepared';
+
+            if (! $alreadyPrepared && (string) $order->order_status === 'inpreparation') {
+                $updatedLines = $itemModel::whereIn('id', $lineIds)
+                    ->where(function ($query) {
+                        KitchenOrderPayload::constrainUnpreparedLines($query);
+                    })
+                    ->update($this->kitchenPreparedLineAttributes($itemModel));
+
+                $changed = $updatedLines > 0;
+                if ($changed) {
+                    $order->touch();
+                }
+
+                if ($this->unpreparedKitchenLineCount($itemModel, (int) $order->id) === 0) {
+                    $order->update(['order_status' => 'prepared']);
+                    $allOrderPrepared = true;
+                }
+            }
+
+            $order->refresh();
+            $order->load(['sell_lines.product', 'sell_lines.productCombo', 'createdBy', 'client']);
+            $snapshot = KitchenOrderPayload::formatOrder($order) ?? [];
+
+            return [
+                'order' => $order,
+                'snapshot' => $snapshot,
+                'line_ids' => $lineIds,
+                'updated_lines' => $updatedLines,
+                'changed' => $changed,
+                'all_prepared' => $allOrderPrepared,
+                'prepared_mains' => $changed
+                    ? $this->kitchenMainItemsFromLineIds($itemModel, $order, $lineIds)
+                    : [],
+                'station_prepare' => $stationCategoryIds !== [],
+            ];
+        });
+
+        if (isset($result['error'])) {
+            $payload = ['message' => $result['error']['message']];
+            if (isset($result['error']['order_status'])) {
+                $payload['order_status'] = $result['error']['order_status'];
+            }
+
+            return response()->json($payload, $result['error']['code']);
         }
 
-        if ($order->order_status !== 'inpreparation') {
-            return response()->json([
-                'message' => 'Order is not in preparation',
-                'order_status' => $order->order_status,
-            ], 422);
+        if ($result['changed']) {
+            $order = $result['order'];
+            $orderTypeForBroadcast = $orderType;
+            $allOrderPrepared = $result['all_prepared'];
+            $stationPrepare = $result['station_prepare'];
+            $preparedMains = $result['prepared_mains'];
+
+            DB::afterCommit(function () use ($order, $orderTypeForBroadcast, $allOrderPrepared, $stationPrepare, $preparedMains) {
+                if ($stationPrepare) {
+                    $lastIndex = array_key_last($preparedMains);
+                    foreach ($preparedMains as $index => $main) {
+                        $this->kitchen->itemStatusChanged(
+                            $order,
+                            (int) $main['id'],
+                            'prepared',
+                            $orderTypeForBroadcast,
+                            isset($main['category_id']) ? (int) $main['category_id'] : null,
+                            $main['prepared_at'] ?? now()->format('Y-m-d H:i:s'),
+                            $allOrderPrepared && $index === $lastIndex
+                        );
+                    }
+                    if ($allOrderPrepared && $preparedMains === []) {
+                        $establishmentId = KitchenOrderPayload::establishmentIdFromOrder($order);
+                        if ($establishmentId) {
+                            $this->kitchen->orderRemoved(
+                                (int) $order->id,
+                                $establishmentId,
+                                'prepared',
+                                $order
+                            );
+                        }
+                    }
+                } else {
+                    $this->kitchen->orderUpdated($order, $orderTypeForBroadcast);
+                }
+
+                if ($orderTypeForBroadcast === 'local' && $order instanceof TableOrders && $order->table_id) {
+                    $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
+                    if ($allOrderPrepared) {
+                        $this->realtime->orderStatusChanged($order, $notifyWaiterId);
+                    }
+                    $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
+                    $this->posOrders->orderUpdated($order);
+                }
+            });
         }
 
-        $updatedLines = $itemModel::where('transaction_id', $order->id)
-            ->where('line_status', 'inpreparation')
-            ->update(['line_status' => 'prepared']);
+        $snapshot = $result['snapshot'];
+        $firstItem = $snapshot['items'][0] ?? null;
 
-        $order->update(['order_status' => 'prepared']);
-        $order->refresh();
-        $order->load(['sell_lines.product', 'sell_lines.productCombo']);
+        return response()->json(array_merge(
+            $this->kitchenStatusMutationResponse(
+                $snapshot,
+                is_array($firstItem) ? $firstItem : null,
+                $result['line_ids'],
+                $result['all_prepared']
+            ),
+            [
+                'message' => $result['all_prepared'] ? 'Order marked as prepared' : 'Station items marked as prepared',
+                'order_id' => $snapshot['id'] ?? $orderId,
+                'order_type' => $orderType,
+                'source' => $snapshot['source'] ?? $orderType,
+                'kitchen_key' => $snapshot['kitchen_key'] ?? KitchenOrderPayload::kitchenKeyFromParts($orderType, $orderId),
+                'updated_lines' => $result['updated_lines'],
+            ]
+        ));
+    }
 
-        $kitchenSource = $orderType === 'local' ? 'local' : 'pos';
-        $this->kitchen->orderUpdated($order, $kitchenSource);
+    /**
+     * @param  class-string  $itemModel
+     * @param  OrderTableItems|TransactionSellLine  $item
+     * @param  array<int, int>  $lineIds
+     * @return OrderTableItems|TransactionSellLine
+     */
+    private function resolveKitchenMainLine(string $itemModel, $item, array $lineIds)
+    {
+        if ($itemModel === OrderTableItems::class || ! empty($item->parent_id)) {
+            $mainId = ! empty($item->parent_id) ? (int) $item->parent_id : (int) $item->id;
+            $main = $itemModel::with('product')->find($mainId);
 
-        if ($orderType === 'local' && $order instanceof TableOrders && $order->table_id) {
-            $notifyWaiterId = $this->tableAssignedWaiterId($order->table_id);
-            $this->realtime->orderStatusChanged($order, $notifyWaiterId);
-            $this->realtime->orderUpdated($order->table_id, $notifyWaiterId);
-            $this->posOrders->orderUpdated($order);
+            return $main ?: $item;
         }
 
-        return response()->json([
+        $mainId = $lineIds[0] ?? (int) $item->id;
+        $main = $itemModel::with('product')->find($mainId);
+
+        return $main ?: $item;
+    }
+
+    /**
+     * @param  class-string  $itemModel
+     * @param  TableOrders|Transaction  $order
+     * @param  array<int>  $categoryIds
+     * @return array<int, int>
+     */
+    private function stationLineIdsForOrder(string $itemModel, $order, array $categoryIds): array
+    {
+        $formatted = KitchenOrderPayload::formatOrder($order);
+        $allowed = array_map('intval', $categoryIds);
+        $ids = [];
+
+        foreach ($formatted['items'] ?? [] as $item) {
+            if (! in_array((int) ($item['category_id'] ?? 0), $allowed, true)) {
+                continue;
+            }
+
+            $line = $itemModel::find($item['id']);
+            if ($line) {
+                $ids = array_merge($ids, $this->resolvePreparedLineGroupIds($itemModel, $line));
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * @param  class-string  $itemModel
+     * @param  TableOrders|Transaction  $order
+     * @param  array<int, int>  $lineIds
+     * @return array<int, array<string, mixed>>
+     */
+    private function kitchenMainItemsFromLineIds(string $itemModel, $order, array $lineIds): array
+    {
+        $snapshot = KitchenOrderPayload::formatOrder($order) ?? [];
+        $idSet = array_flip($lineIds);
+        $mains = [];
+
+        foreach ($snapshot['items'] ?? [] as $item) {
+            if (isset($idSet[(int) $item['id']])) {
+                $mains[] = $item;
+            }
+        }
+
+        return $mains;
+    }
+
+    /**
+     * @param  class-string  $itemModel
+     */
+    private function unpreparedKitchenLineCount(string $itemModel, int $orderId): int
+    {
+        $query = $itemModel::where('transaction_id', $orderId);
+        KitchenOrderPayload::constrainUnpreparedLines($query);
+
+        return $query->count();
+    }
+
+    /**
+     * @param  class-string  $itemModel
+     * @return array<string, mixed>
+     */
+    private function kitchenPreparedLineAttributes(string $itemModel): array
+    {
+        $attributes = ['line_status' => 'prepared'];
+        $table = (new $itemModel)->getTable();
+        if (Schema::hasColumn($table, 'prepared_at')) {
+            $attributes['prepared_at'] = now();
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @param  array<string, mixed>  $snapshot
+     * @return array<string, mixed>
+     */
+    private function kitchenItemFromSnapshot(array $snapshot, int $itemId, int $categoryId): array
+    {
+        foreach ($snapshot['items'] ?? [] as $item) {
+            if ((int) ($item['id'] ?? 0) === $itemId) {
+                return $item;
+            }
+        }
+
+        return [
+            'id' => $itemId,
+            'category_id' => $categoryId,
+            'status' => 'prepared',
+            'prepared_at' => now()->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $snapshot
+     * @param  array<string, mixed>|null  $item
+     * @param  array<int, int>  $lineIds
+     * @return array<string, mixed>
+     */
+    private function kitchenStatusMutationResponse(array $snapshot, ?array $item, array $lineIds, bool $allPrepared): array
+    {
+        $orderStatus = $snapshot['order_status'] ?? ($allPrepared ? 'prepared' : 'pending');
+
+        return [
             'status' => true,
-            'message' => 'Order marked as prepared',
-            'order_id' => $order->id,
-            'order_type' => $orderType,
-            'source' => KitchenOrderPayload::resolveSource($order),
-            'kitchen_key' => KitchenOrderPayload::kitchenKey($order),
-            'order_status' => $order->order_status,
-            'updated_lines' => $updatedLines,
-        ]);
+            'message' => 'Status updated successfully',
+            'new_status' => 'prepared',
+            'item' => $item,
+            'updated_line_ids' => $lineIds,
+            'order_status' => $orderStatus,
+            'order_completed' => $allPrepared,
+            'order' => $snapshot,
+        ];
     }
 }

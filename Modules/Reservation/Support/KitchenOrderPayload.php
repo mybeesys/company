@@ -39,8 +39,8 @@ class KitchenOrderPayload
         $tableOrders = TableOrders::where('establishment_id', $establishmentId)
             ->where('order_status', 'inpreparation')
             ->when(! empty($categoryIds), function ($query) use ($categoryIds) {
-                return $query->whereHas('sell_lines.product', function ($q) use ($categoryIds) {
-                    $q->whereIn('category_id', $categoryIds);
+                return $query->whereHas('sell_lines', function ($q) use ($categoryIds) {
+                    self::constrainUnpreparedStationLines($q, $categoryIds);
                 });
             })
             ->with(['sell_lines.product', 'sell_lines.productCombo', 'createdBy'])
@@ -50,8 +50,8 @@ class KitchenOrderPayload
             ->where('type', 'sell')
             ->where('order_status', 'inpreparation')
             ->when(! empty($categoryIds), function ($query) use ($categoryIds) {
-                return $query->whereHas('sell_lines.product', function ($q) use ($categoryIds) {
-                    $q->whereIn('category_id', $categoryIds);
+                return $query->whereHas('sell_lines', function ($q) use ($categoryIds) {
+                    self::constrainUnpreparedStationLines($q, $categoryIds);
                 });
             })
             ->with(['sell_lines.product', 'createdBy', 'client'])
@@ -247,11 +247,19 @@ class KitchenOrderPayload
 
         $allLines = $order->sell_lines ?? collect();
         $items = $order instanceof TableOrders
-            ? self::formatTableOrderItems($allLines, $categoryIds)
-            : self::formatPosSellLines($allLines, $categoryIds);
+            ? self::formatTableOrderItems($allLines)
+            : self::formatPosSellLines($allLines);
 
-        if (! empty($categoryIds) && $items === []) {
+        if ($items === []) {
             return null;
+        }
+
+        if ($categoryIds !== [] && ! self::hasUnpreparedStationItem($items, $categoryIds)) {
+            return null;
+        }
+
+        if ($categoryIds !== []) {
+            $items = self::withActionableFlags($items, $categoryIds);
         }
 
         $serviceName = 'سفري';
@@ -272,7 +280,7 @@ class KitchenOrderPayload
             'table_id' => $order->table_id ?? null,
             'created_by' => $order->created_by,
             'order_type' => $serviceName,
-            'order_status' => $order->order_status,
+            'order_status' => self::kitchenOrderStatus($order->order_status),
             'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s.v') : null,
             'updated_at' => $order->updated_at?->toIso8601String(),
             'customer_name' => $reservation->customer_name ?? ($order->client?->name ?? 'Guest'),
@@ -299,7 +307,7 @@ class KitchenOrderPayload
         $parentItems = $allLines->filter(fn ($line) => OrderLineParent::isRoot($line));
 
         return $parentItems
-            ->map(function ($mainItem) use ($allLines, $categoryIds) {
+            ->map(function ($mainItem) use ($allLines) {
                 $subItems = $allLines->filter(
                     fn ($line) => (string) $line->parent_id === (string) $mainItem->id
                 );
@@ -310,10 +318,6 @@ class KitchenOrderPayload
                 $combos = $subItems
                     ->filter(fn ($line) => $line->combo_id !== null && $line->combo_id !== '')
                     ->values();
-
-                if (! self::lineGroupMatchesCategories($mainItem, $modifiers, $combos, $categoryIds)) {
-                    return null;
-                }
 
                 return self::mapMainKitchenItem(
                     $mainItem,
@@ -365,10 +369,6 @@ class KitchenOrderPayload
                     ->filter(fn (TransactionSellLine $line) => self::isPosComboLine($line))
                     ->values();
 
-                if (! self::lineGroupMatchesCategories($mainItem, $modifiers, $combos, $categoryIds)) {
-                    return null;
-                }
-
                 return self::mapMainKitchenItem(
                     $mainItem,
                     $modifiers,
@@ -400,14 +400,12 @@ class KitchenOrderPayload
 
             [$modifiers, $combos] = self::splitLegacyPosChildLines(collect($currentChildren));
 
-            if (self::lineGroupMatchesCategories($currentMain, $modifiers, $combos, $categoryIds)) {
-                $items[] = self::mapMainKitchenItem(
-                    $currentMain,
-                    $modifiers,
-                    $combos,
-                    fn ($combo) => $combo->product->name_ar ?? ''
-                );
-            }
+            $items[] = self::mapMainKitchenItem(
+                $currentMain,
+                $modifiers,
+                $combos,
+                fn ($combo) => $combo->product->name_ar ?? ''
+            );
 
             $currentMain = null;
             $currentChildren = [];
@@ -554,6 +552,108 @@ class KitchenOrderPayload
         return $orderStatus === 'inpreparation';
     }
 
+    public static function kitchenOrderStatus(?string $orderStatus): string
+    {
+        if ($orderStatus === 'prepared') {
+            return 'prepared';
+        }
+
+        if ($orderStatus === 'inpreparation' || $orderStatus === 'pending' || $orderStatus === null || $orderStatus === '') {
+            return 'pending';
+        }
+
+        return $orderStatus;
+    }
+
+    public static function kitchenItemStatus(?string $lineStatus): string
+    {
+        return $lineStatus === 'prepared' ? 'prepared' : 'pending';
+    }
+
+    public static function isLinePrepared(?string $lineStatus): bool
+    {
+        return $lineStatus === 'prepared';
+    }
+
+    private static function kitchenPreparedAt($line): ?string
+    {
+        if (! self::isLinePrepared($line->line_status ?? null)) {
+            return null;
+        }
+
+        $at = $line->prepared_at ?? $line->updated_at ?? null;
+        if ($at instanceof \DateTimeInterface) {
+            return \Carbon\Carbon::parse($at)->format('Y-m-d H:i:s');
+        }
+
+        if (is_string($at) && $at !== '') {
+            return $at;
+        }
+
+        return now()->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $query
+     */
+    public static function constrainUnpreparedLines($query): void
+    {
+        $query->where(function ($status) {
+            $status->whereNull('line_status')
+                ->orWhere('line_status', '<>', 'prepared');
+        });
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  array<int>  $categoryIds
+     */
+    public static function hasUnpreparedStationItem(array $items, array $categoryIds): bool
+    {
+        $allowed = array_map('intval', $categoryIds);
+
+        foreach ($items as $item) {
+            $categoryId = (int) ($item['category_id'] ?? 0);
+            if ($categoryId <= 0 || ! in_array($categoryId, $allowed, true)) {
+                continue;
+            }
+
+            if (! self::isLinePrepared($item['status'] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  array<int>  $categoryIds
+     * @return array<int, array<string, mixed>>
+     */
+    public static function withActionableFlags(array $items, array $categoryIds): array
+    {
+        $allowed = array_map('intval', $categoryIds);
+
+        return array_map(function (array $item) use ($allowed) {
+            $item['actionable'] = in_array((int) ($item['category_id'] ?? 0), $allowed, true);
+
+            return $item;
+        }, $items);
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  array<int>  $categoryIds
+     */
+    private static function constrainUnpreparedStationLines($query, array $categoryIds): void
+    {
+        self::constrainUnpreparedLines($query);
+        $query->whereHas('product', function ($product) use ($categoryIds) {
+            $product->whereIn('category_id', $categoryIds);
+        });
+    }
+
     public static function establishmentIdFromOrder($order): ?int
     {
         return $order->establishment_id ?? null;
@@ -610,7 +710,8 @@ class KitchenOrderPayload
             'tax_value' => (float) $mainItem->tax_value,
             'discount_type' => $mainItem->discount_type,
             'discount_amount' => (float) $mainItem->discount_amount,
-            'status' => $mainItem->line_status ?? 'inpreparation',
+            'status' => self::kitchenItemStatus($mainItem->line_status),
+            'prepared_at' => self::kitchenPreparedAt($mainItem),
             'note' => $mainItem->note ?? '',
             'order_item_modifiers' => $modifiers->map(function ($mod) {
                 return [
