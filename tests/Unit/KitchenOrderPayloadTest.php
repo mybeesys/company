@@ -128,6 +128,60 @@ class KitchenOrderPayloadTest extends TestCase
         $this->assertSame('بيج بيك', $items[0]['order_item_combos'][0]['option_name']);
     }
 
+    public function test_kitchen_item_status_maps_inpreparation_to_pending(): void
+    {
+        $main = $this->makeTableLine(1, null, 292, 'بيج بيك', 18, 20.7);
+
+        $items = KitchenOrderPayload::formatTableOrderItems(collect([$main]));
+
+        $this->assertSame('pending', $items[0]['status']);
+        $this->assertNull($items[0]['prepared_at']);
+    }
+
+    public function test_format_table_items_keeps_other_station_products(): void
+    {
+        $grill = $this->makeTableLine(1, null, 10, 'مشويات', 20, 23);
+        $grill->setRelation('product', (object) ['name_ar' => 'مشويات', 'category_id' => 10]);
+        $juice = $this->makeTableLine(2, null, 20, 'عصير', 5, 5.75);
+        $juice->setRelation('product', (object) ['name_ar' => 'عصير', 'category_id' => 20]);
+
+        $items = KitchenOrderPayload::formatTableOrderItems(collect([$grill, $juice]), [10]);
+
+        $this->assertCount(2, $items);
+        $this->assertSame([10, 20], array_column($items, 'category_id'));
+    }
+
+    public function test_station_visibility_and_actionable_flags(): void
+    {
+        $items = [
+            ['id' => 1, 'category_id' => 10, 'status' => 'prepared'],
+            ['id' => 2, 'category_id' => 20, 'status' => 'pending'],
+        ];
+
+        $this->assertFalse(KitchenOrderPayload::hasUnpreparedStationItem($items, [10]));
+        $this->assertTrue(KitchenOrderPayload::hasUnpreparedStationItem($items, [20]));
+        $this->assertTrue(KitchenOrderPayload::hasUnpreparedStationItem($items, [10, 20]));
+
+        $flagged = KitchenOrderPayload::withActionableFlags($items, [10]);
+        $this->assertTrue($flagged[0]['actionable']);
+        $this->assertFalse($flagged[1]['actionable']);
+    }
+
+    public function test_kitchen_order_status_maps_inpreparation_to_pending(): void
+    {
+        $this->assertSame('pending', KitchenOrderPayload::kitchenOrderStatus('inpreparation'));
+        $this->assertSame('prepared', KitchenOrderPayload::kitchenOrderStatus('prepared'));
+        $this->assertSame('canceled', KitchenOrderPayload::kitchenOrderStatus('canceled'));
+    }
+
+    public function test_unprepared_lines_include_pending_not_only_inpreparation(): void
+    {
+        $this->assertFalse(KitchenOrderPayload::isLinePrepared('pending'));
+        $this->assertFalse(KitchenOrderPayload::isLinePrepared('inpreparation'));
+        $this->assertFalse(KitchenOrderPayload::isLinePrepared(null));
+        $this->assertTrue(KitchenOrderPayload::isLinePrepared('prepared'));
+    }
+
     public function test_table_order_item_note_is_included_in_kitchen_payload(): void
     {
         $main = $this->makeTableLine(1, null, 292, 'بيج بيك', 18, 20.7, note: 'حار جداً');

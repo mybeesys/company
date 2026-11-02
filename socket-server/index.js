@@ -285,21 +285,31 @@ function leaveKitchenRooms(socket, establishmentId, categoryIds = []) {
   }
 }
 
-function filterOrderItems(order, allowedCategoryIds) {
-  if (!order) return null;
-  if (!allowedCategoryIds?.length) return order;
+function itemIsPrepared(item) {
+  return item?.status === "prepared";
+}
+
+function orderHasUnpreparedStationItem(order, allowedCategoryIds) {
+  if (!order) return false;
+  if (!allowedCategoryIds?.length) return true;
   const allowed = new Set(allowedCategoryIds.map(Number).filter(Boolean));
-  const items = (order.items || []).filter((item) => allowed.has(Number(item.category_id)));
-  if (!items.length) return null;
-  return { ...order, items };
+  return (order.items || []).some((item) => {
+    const categoryId = Number(item.category_id);
+    return allowed.has(categoryId) && !itemIsPrepared(item);
+  });
+}
+
+function orderTouchesCategories(order, allowedCategoryIds) {
+  if (!order) return false;
+  if (!allowedCategoryIds?.length) return true;
+  const allowed = new Set(allowedCategoryIds.map(Number).filter(Boolean));
+  return (order.items || []).some((item) => allowed.has(Number(item.category_id)));
 }
 
 function filterOrdersForCategories(orders, categoryIds) {
   if (!Array.isArray(orders)) return [];
   if (!categoryIds?.length) return orders;
-  return orders
-    .map((order) => filterOrderItems(order, categoryIds))
-    .filter(Boolean);
+  return orders.filter((order) => orderHasUnpreparedStationItem(order, categoryIds));
 }
 
 function broadcastKitchenEvent(establishmentId, eventName, envelope, options = {}) {
@@ -315,13 +325,7 @@ function broadcastKitchenEvent(establishmentId, eventName, envelope, options = {
 
   for (const catId of itemCategories) {
     const catRoom = `kitchen:establishment:${establishmentId}:category:${catId}`;
-    if (order) {
-      const filteredOrder = filterOrderItems(order, [catId]);
-      if (!filteredOrder) continue;
-      io.to(catRoom).emit(eventName, { ...envelope, order: filteredOrder });
-    } else {
-      io.to(catRoom).emit(eventName, envelope);
-    }
+    io.to(catRoom).emit(eventName, envelope);
   }
 
   broadcastToEstablishmentCategoryFilterRooms(establishmentId, eventName, envelope, order);
@@ -341,13 +345,10 @@ function broadcastToEstablishmentCategoryFilterRooms(establishmentId, eventName,
     if (!room.startsWith(prefix)) continue;
     const roomCats = normalizeCategoryIds(room.slice(prefix.length));
     if (!roomCats.length) continue;
-    if (order) {
-      const filteredOrder = filterOrderItems(order, roomCats);
-      if (!filteredOrder) continue;
-      io.to(room).emit(eventName, { ...envelope, order: filteredOrder });
-    } else {
-      io.to(room).emit(eventName, envelope);
+    if (order && !orderTouchesCategories(order, roomCats)) {
+      continue;
     }
+    io.to(room).emit(eventName, envelope);
   }
 }
 

@@ -89,8 +89,15 @@ class KitchenBroadcastService
     /**
      * @param  TableOrders|Transaction  $order
      */
-    public function itemStatusChanged($order, int $itemId, string $itemStatus, string $source = 'local'): void
-    {
+    public function itemStatusChanged(
+        $order,
+        int $itemId,
+        string $itemStatus,
+        string $source = 'local',
+        ?int $categoryId = null,
+        ?string $preparedAt = null,
+        bool $removeIfOrderComplete = true
+    ): void {
         $establishmentId = KitchenOrderPayload::establishmentIdFromOrder($order);
         if (! $establishmentId) {
             return;
@@ -98,6 +105,7 @@ class KitchenBroadcastService
 
         $order->loadMissing(['sell_lines.product']);
         $formatted = KitchenOrderPayload::formatOrder($order);
+        $updatedAt = $formatted['updated_at'] ?? now()->toIso8601String();
 
         $this->send('kitchen:item:status_changed', [
             'establishment_id' => $establishmentId,
@@ -105,19 +113,31 @@ class KitchenBroadcastService
             'source' => KitchenOrderPayload::resolveSource($order),
             'kitchen_key' => KitchenOrderPayload::kitchenKey($order),
             'item_id' => $itemId,
+            'category_id' => $categoryId,
             'status' => $itemStatus,
-            'order_status' => $order->order_status,
+            'prepared_at' => $preparedAt,
+            'order_status' => $formatted['order_status'] ?? KitchenOrderPayload::kitchenOrderStatus($order->order_status),
             'order_type' => $formatted['order_type'] ?? ($source === 'local' ? 'محلي' : 'سفري'),
+            'updated_at' => $updatedAt,
+            'order' => $formatted,
         ], $establishmentId, $this->categoryIdsFromOrder($order));
 
-        $this->orderUpdated($order, $source);
+        if ($removeIfOrderComplete && ! KitchenOrderPayload::appearsInKitchen($order->order_status)) {
+            $this->orderRemoved(
+                (int) $order->id,
+                $establishmentId,
+                $this->removalReason($order->order_status),
+                $order
+            );
+        }
     }
 
     private function removalReason(?string $orderStatus): string
     {
         return match ($orderStatus) {
             'canceled' => 'cancelled',
-            'served', 'completed', 'prepared' => 'completed',
+            'prepared' => 'prepared',
+            'served', 'completed' => 'completed',
             default => 'archived',
         };
     }
