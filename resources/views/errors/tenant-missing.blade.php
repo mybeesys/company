@@ -82,9 +82,9 @@
         .tm__hex--a {
             width: min(34vw, 280px);
             height: min(34vw, 280px);
-            top: 6%;
-            inset-inline-end: 4%;
-            opacity: 0.9;
+            top: 8%;
+            inset-inline-end: -6%;
+            opacity: 0.35;
         }
         .tm__hex--b {
             width: min(22vw, 160px);
@@ -121,23 +121,17 @@
             color: inherit;
         }
         .tm__brand img {
-            height: 2.85rem;
-            width: auto;
-            max-width: min(46vw, 11rem);
+            height: 2.35rem;
+            width: 2.35rem;
             object-fit: contain;
             display: block;
-            filter: drop-shadow(0 6px 14px rgba(23, 23, 23, 0.08));
+            flex: 0 0 auto;
         }
         .tm__brand strong {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
+            font-size: 1.2rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1;
         }
 
         .tm__lang {
@@ -159,13 +153,54 @@
             transform: translateY(-1px);
         }
 
-        .tm__hero {
+        .tm__stage {
             display: grid;
+            grid-template-columns: minmax(0, 36rem) minmax(14rem, 1fr);
+            align-items: center;
+            gap: clamp(1.75rem, 5vw, 4.5rem);
+            min-height: calc(100svh - 6.25rem);
+            max-width: 76rem;
+            margin: 0 auto;
+            padding: 0.5rem clamp(1.25rem, 4vw, 3.5rem) 2.5rem;
+        }
+
+        .tm__copy {
+            display: grid;
+            justify-items: start;
             align-content: center;
-            gap: 1.15rem;
-            min-height: calc(100svh - 5.5rem);
-            padding: 1.5rem clamp(1.1rem, 4vw, 3.5rem) 2.25rem;
-            max-width: 56rem;
+            gap: 0.95rem;
+            min-width: 0;
+        }
+
+        .tm__markcol {
+            display: grid;
+            place-items: center;
+            min-height: 18rem;
+        }
+
+        .tm__mark {
+            position: relative;
+            width: clamp(11rem, 24vw, 16.5rem);
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+        }
+
+        .tm__mark::before {
+            content: "";
+            position: absolute;
+            inset: 6%;
+            background:
+                radial-gradient(circle at 50% 42%, rgba(255, 253, 247, 0.95), rgba(235, 184, 30, 0.22) 58%, transparent 72%);
+            clip-path: var(--hex);
+        }
+
+        .tm__mark img {
+            position: relative;
+            width: 58%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 16px 28px rgba(184, 137, 18, 0.28));
         }
 
         .tm__eyebrow {
@@ -186,33 +221,6 @@
             height: 0.85rem;
             background: var(--gold);
             clip-path: var(--hex);
-        }
-
-        .tm__logo-hero {
-            display: inline-flex;
-            align-items: center;
-            justify-content: flex-start;
-            width: fit-content;
-            margin: 0.1rem 0 0.15rem;
-            padding: 0.85rem 1.05rem;
-            border-radius: 1.35rem;
-            background:
-                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.95), transparent 55%),
-                linear-gradient(180deg, #fffef9 0%, #fff8e8 100%);
-            border: 1px solid rgba(184, 137, 18, 0.22);
-            box-shadow:
-                0 18px 40px -24px rgba(184, 137, 18, 0.55),
-                0 10px 24px -18px rgba(23, 23, 23, 0.18);
-            opacity: 0;
-            animation: tmRise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
-        }
-        .tm__logo-hero img {
-            display: block;
-            height: clamp(4.6rem, 14vw, 7.25rem);
-            width: auto;
-            max-width: min(88vw, 22rem);
-            object-fit: contain;
-            filter: drop-shadow(0 8px 18px rgba(23, 23, 23, 0.1));
         }
 
         .tm__headline {
@@ -364,21 +372,27 @@
             to { transform: translateY(14px) rotate(5deg); }
         }
 
-        @media (max-width: 640px) {
-            .tm__hero { min-height: calc(100vh - 4.75rem); padding-top: 0.75rem; }
-            .tm__logo-hero {
-                padding: 0.75rem 0.85rem;
-                border-radius: 1.15rem;
+        @media (max-width: 860px) {
+            .tm__stage {
+                grid-template-columns: 1fr;
+                min-height: auto;
+                padding-top: 0.25rem;
             }
-            .tm__logo-hero img {
-                height: clamp(3.8rem, 22vw, 5.4rem);
+            .tm__markcol {
+                order: -1;
+                min-height: 0;
+                justify-items: start;
+                justify-content: start;
+            }
+            .tm__mark {
+                width: 7.25rem;
             }
             .tm__ctas { width: 100%; }
             .tm__btn { width: 100%; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .tm__hex, .tm__eyebrow, .tm__logo-hero, .tm__headline, .tm__lead, .tm__host, .tm__ctas {
+            .tm__hex, .tm__eyebrow, .tm__headline, .tm__lead, .tm__host, .tm__ctas {
                 animation: none !important;
                 opacity: 1 !important;
                 transform: none !important;
@@ -408,32 +422,35 @@
             <a class="tm__lang" href="?lang={{ $switchLang }}">{{ $switchLabel }}</a>
         </header>
 
-        <main class="tm__hero">
-            <p class="tm__eyebrow">@lang('errors.tenant_missing_kicker')</p>
-            <div class="tm__logo-hero" aria-label="{{ $brand }}">
-                <img
-                    src="{{ asset('assets/media/logos/1-15.png') }}"
-                    alt="{{ $brand }}"
-                    width="360"
-                    height="120"
-                    decoding="async"
-                    fetchpriority="high"
-                >
+        <main class="tm__stage">
+            <div class="tm__copy">
+                <p class="tm__eyebrow">@lang('errors.tenant_missing_kicker')</p>
+                <h1 class="tm__headline">@lang('errors.tenant_missing_title')</h1>
+                <p class="tm__lead">@lang('errors.tenant_missing_body')</p>
+                <p class="tm__host">
+                    <span>@lang('errors.tenant_missing_host_label')</span>
+                    <code>{{ $host }}</code>
+                </p>
+                <div class="tm__ctas">
+                    <a class="tm__btn tm__btn--primary" href="{{ $registerUrl }}">
+                        @lang('errors.tenant_missing_cta_start')
+                    </a>
+                    <a class="tm__btn tm__btn--ghost" href="{{ $loginUrl }}">
+                        @lang('errors.tenant_missing_cta_login')
+                    </a>
+                </div>
             </div>
-            <h1 class="tm__headline">@lang('errors.tenant_missing_title')</h1>
-            <p class="tm__lead">@lang('errors.tenant_missing_body')</p>
-            <p class="tm__host">
-                <span>@lang('errors.tenant_missing_host_label')</span>
-                <code>{{ $host }}</code>
-            </p>
-
-            <div class="tm__ctas">
-                <a class="tm__btn tm__btn--primary" href="{{ $registerUrl }}">
-                    @lang('errors.tenant_missing_cta_start')
-                </a>
-                <a class="tm__btn tm__btn--ghost" href="{{ $loginUrl }}">
-                    @lang('errors.tenant_missing_cta_login')
-                </a>
+            <div class="tm__markcol">
+                <div class="tm__mark" aria-hidden="true">
+                    <img
+                        src="{{ asset('assets/media/logos/1-15.png') }}"
+                        alt=""
+                        width="220"
+                        height="220"
+                        decoding="async"
+                        fetchpriority="high"
+                    >
+                </div>
             </div>
         </main>
 
