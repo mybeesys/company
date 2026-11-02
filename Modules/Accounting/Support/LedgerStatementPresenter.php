@@ -2,6 +2,7 @@
 
 namespace Modules\Accounting\Support;
 
+use App\Support\CompanyDocumentLogo;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Modules\Accounting\Models\AccountingAccount;
@@ -65,63 +66,13 @@ final class LedgerStatementPresenter
 
     public static function companyLogoPath(?object $company): ?string
     {
-        if (! $company) {
-            return null;
-        }
-
-        foreach (['logo', 'logo_path', 'image', 'company_logo'] as $col) {
-            if (empty($company->{$col})) {
-                continue;
-            }
-            $path = (string) $company->{$col};
-            if (is_file($path)) {
-                return $path;
-            }
-            $public = public_path(ltrim($path, '/'));
-            if (is_file($public)) {
-                return $public;
-            }
-            if (function_exists('central_public_storage_url_for_path')) {
-                $url = central_public_storage_url_for_path($path);
-                if ($url && is_string($url) && is_file($url)) {
-                    return $url;
-                }
-            }
-        }
-
-        return null;
+        return CompanyDocumentLogo::absolutePath($company);
     }
 
-    /** URL for browser print; file path for mPDF when no public URL applies. */
+    /** URL for browser print; filesystem path for mPDF. Never the product mark. */
     public static function companyLogoSrc(?object $company, bool $forPdf = false): ?string
     {
-        $path = self::companyLogoPath($company);
-        if (! $path) {
-            return null;
-        }
-
-        if ($forPdf && is_file($path)) {
-            return $path;
-        }
-
-        $publicRoot = str_replace('\\', '/', public_path());
-        $normalized = str_replace('\\', '/', $path);
-        if (str_starts_with($normalized, $publicRoot)) {
-            return asset(ltrim(substr($normalized, strlen($publicRoot)), '/'));
-        }
-
-        if (function_exists('central_public_storage_url_for_path') && $company) {
-            foreach (['logo', 'logo_path', 'image', 'company_logo'] as $col) {
-                if (! empty($company->{$col})) {
-                    $url = central_public_storage_url_for_path((string) $company->{$col});
-                    if (is_string($url) && $url !== '') {
-                        return $url;
-                    }
-                }
-            }
-        }
-
-        return is_file($path) ? $path : null;
+        return CompanyDocumentLogo::src($company, $forPdf);
     }
 
     public static function formatDate(?string $date): string

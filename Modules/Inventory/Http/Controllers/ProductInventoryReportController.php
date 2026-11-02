@@ -40,7 +40,7 @@ class ProductInventoryReportController extends Controller
         } else {
             $productList = $this->ingredientInventoryController->getIngredientInventories($request);
         }
-        $image = base64_encode(file_get_contents(public_path('assets/media/logos/1-01.png')));
+        $image = \App\Support\CompanyDocumentLogo::currentPdfBase64();
 
         return view('inventory::productInventory.productInventory_pdf',
             [

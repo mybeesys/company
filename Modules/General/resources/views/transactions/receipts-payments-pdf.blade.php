@@ -11,7 +11,7 @@
 
     $contactLabel = $isPurchase ? __('purchases::general.supplier') : __('sales::fields.client');
     $lines = $isPurchase ? ($transaction->transaction?->purchases_lines ?? []) : ($transaction->transaction?->sell_lines ?? []);
-    $logoPath = public_path('assets/media/logos/1-14.png');
+    $logoPath = \App\Support\CompanyDocumentLogo::currentSrc(true);
 @endphp
 <html dir="{{ $dir }}">
 <head>
@@ -54,8 +54,8 @@
             <td style="width:20%;"></td>
             <td style="width:40%; text-align:center;">
                 <div style="padding:10px;">
-                    @if (is_file($logoPath))
-                        <img src="{{ $logoPath }}" alt="Logo" style="height:70px;">
+                    @if ($logoPath)
+                        <img src="{{ $logoPath }}" alt="" style="height:70px;">
                     @endif
                     <div class="muted" style="margin-top:6px;">VAT: {{ $company->tax_number ?? '' }}</div>
                     <div class="muted">@lang('sales::fields.paid_on') {{ $transaction->paid_on ?? '--' }}</div>

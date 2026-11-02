@@ -42,7 +42,7 @@ class PurchaseOrderReportController extends Controller
             function ($carry, $item) {
                 return $carry + $item['total'];
             }, 0);
-        $image = base64_encode(file_get_contents(public_path('assets/media/logos/1-01.png')));
+        $image = \App\Support\CompanyDocumentLogo::currentPdfBase64();
 
         $pdf = PDF::loadView('inventory::purchaseOrder.purchase_order_pdf', ['data' => $resInventoryOperation, 'image' => $image]);
 
@@ -85,7 +85,7 @@ class PurchaseOrderReportController extends Controller
                 return $carry + $item['total'];
             }, 0);
 
-        $image = base64_encode(file_get_contents(public_path('assets/media/logos/1-01.png')));
+        $image = \App\Support\CompanyDocumentLogo::currentPdfBase64();
 
         return view('inventory::purchaseOrder.purchase_order_pdf', ['data' => $resInventoryOperation, 'image' => $image]);
     }
