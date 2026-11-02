@@ -104,11 +104,28 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
 
         $this->makeTenancyMiddlewareHighestPriority();
+        $this->registerMissingTenantGateway();
 
         \Event::listen(TenancyBootstrapped::class, function () {
             $tenant = tenancy()->tenant;
             config(['database.redis.default.database' => $tenant->redis_db]);
         });
+    }
+
+    /**
+     * Unknown / mistyped tenant hosts should sell the product, not dump a 500.
+     */
+    protected function registerMissingTenantGateway(): void
+    {
+        $respond = function ($exception, $request, $next) {
+            return \App\Support\MissingTenantGateway::toResponse($request);
+        };
+
+        Middleware\InitializeTenancyByDomain::$onFail = $respond;
+        Middleware\InitializeTenancyBySubdomain::$onFail = $respond;
+        Middleware\InitializeTenancyByDomainOrSubdomain::$onFail = $respond;
+        Middleware\InitializeTenancyByPath::$onFail = $respond;
+        Middleware\InitializeTenancyByRequestData::$onFail = $respond;
     }
 
     protected function bootEvents()

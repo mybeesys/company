@@ -11,4 +11,18 @@ return [
     'open_available_page' => 'Open an available page',
     'account' => 'My account',
     'sign_in' => 'Sign in',
+
+    'tenant_missing_document_title' => 'Workspace not found',
+    'tenant_missing_kicker' => 'This link is not tied to a live hive',
+    'tenant_missing_title' => 'This address does not open a ready workspace',
+    'tenant_missing_body' => 'The link may be mistyped, or the company is not activated on this domain yet. Start with My Bee and build your business hive in minutes.',
+    'tenant_missing_host_label' => 'Address you opened',
+    'tenant_missing_cta_start' => 'Start with My Bee',
+    'tenant_missing_cta_login' => 'Sign in',
+    'tenant_missing_proof_title' => 'Why teams choose My Bee',
+    'tenant_missing_proof_1' => 'POS, inventory, finance, and reports in one connected platform.',
+    'tenant_missing_proof_2' => 'Flexible plans that grow with branches, devices, and staff.',
+    'tenant_missing_proof_3' => 'Arabic-first experience with clear branding and simpler daily ops.',
+    'tenant_missing_footer' => 'Smart business management platform',
+    'tenant_missing_json' => 'No workspace exists on this domain.',
 ];
