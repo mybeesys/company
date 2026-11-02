@@ -116,19 +116,28 @@
         .tm__brand {
             display: inline-flex;
             align-items: center;
-            gap: 0.7rem;
+            gap: 0.65rem;
             text-decoration: none;
             color: inherit;
         }
         .tm__brand img {
-            width: 2.35rem;
-            height: 2.35rem;
+            height: 2.85rem;
+            width: auto;
+            max-width: min(46vw, 11rem);
             object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 6px 14px rgba(23, 23, 23, 0.08));
         }
         .tm__brand strong {
-            font-size: 1.15rem;
-            font-weight: 900;
-            letter-spacing: -0.03em;
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
 
         .tm__lang {
@@ -179,21 +188,31 @@
             clip-path: var(--hex);
         }
 
-        .tm__brand-hero {
-            margin: 0;
-            font-size: clamp(2.6rem, 8vw, 4.6rem);
-            font-weight: 900;
-            letter-spacing: -0.045em;
-            line-height: 0.98;
+        .tm__logo-hero {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: fit-content;
+            margin: 0.1rem 0 0.15rem;
+            padding: 0.85rem 1.05rem;
+            border-radius: 1.35rem;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.95), transparent 55%),
+                linear-gradient(180deg, #fffef9 0%, #fff8e8 100%);
+            border: 1px solid rgba(184, 137, 18, 0.22);
+            box-shadow:
+                0 18px 40px -24px rgba(184, 137, 18, 0.55),
+                0 10px 24px -18px rgba(23, 23, 23, 0.18);
             opacity: 0;
             animation: tmRise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
         }
-        .tm__brand-hero span {
+        .tm__logo-hero img {
             display: block;
-            background: linear-gradient(120deg, var(--ink) 20%, var(--gold-deep) 85%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            height: clamp(4.6rem, 14vw, 7.25rem);
+            width: auto;
+            max-width: min(88vw, 22rem);
+            object-fit: contain;
+            filter: drop-shadow(0 8px 18px rgba(23, 23, 23, 0.1));
         }
 
         .tm__headline {
@@ -347,13 +366,19 @@
 
         @media (max-width: 640px) {
             .tm__hero { min-height: calc(100vh - 4.75rem); padding-top: 0.75rem; }
-            .tm__brand-hero { font-size: clamp(2.2rem, 12vw, 3.2rem); }
+            .tm__logo-hero {
+                padding: 0.75rem 0.85rem;
+                border-radius: 1.15rem;
+            }
+            .tm__logo-hero img {
+                height: clamp(3.8rem, 22vw, 5.4rem);
+            }
             .tm__ctas { width: 100%; }
             .tm__btn { width: 100%; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .tm__hex, .tm__eyebrow, .tm__brand-hero, .tm__headline, .tm__lead, .tm__host, .tm__ctas {
+            .tm__hex, .tm__eyebrow, .tm__logo-hero, .tm__headline, .tm__lead, .tm__host, .tm__ctas {
                 animation: none !important;
                 opacity: 1 !important;
                 transform: none !important;
@@ -371,7 +396,13 @@
 
         <header class="tm__top">
             <a class="tm__brand" href="{{ $centralUrl }}">
-                <img src="{{ asset('assets/media/logos/1-01.png') }}" alt="{{ $brand }}">
+                <img
+                    src="{{ asset('assets/media/logos/1-15.png') }}"
+                    alt="{{ $brand }}"
+                    width="176"
+                    height="48"
+                    decoding="async"
+                >
                 <strong>{{ $brand }}</strong>
             </a>
             <a class="tm__lang" href="?lang={{ $switchLang }}">{{ $switchLabel }}</a>
@@ -379,7 +410,16 @@
 
         <main class="tm__hero">
             <p class="tm__eyebrow">@lang('errors.tenant_missing_kicker')</p>
-            <p class="tm__brand-hero"><span>{{ $brand }}</span></p>
+            <div class="tm__logo-hero" aria-label="{{ $brand }}">
+                <img
+                    src="{{ asset('assets/media/logos/1-15.png') }}"
+                    alt="{{ $brand }}"
+                    width="360"
+                    height="120"
+                    decoding="async"
+                    fetchpriority="high"
+                >
+            </div>
             <h1 class="tm__headline">@lang('errors.tenant_missing_title')</h1>
             <p class="tm__lead">@lang('errors.tenant_missing_body')</p>
             <p class="tm__host">
