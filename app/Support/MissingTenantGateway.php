@@ -28,7 +28,7 @@ final class MissingTenantGateway
             'brand' => brand_short_name(),
             'centralUrl' => $central,
             'loginUrl' => $central.'/login',
-            'registerUrl' => $central.'/register',
+            'registerUrl' => $central.'/admin/register?step=plan',
             'subscribeUrl' => $central.'/subscribe',
         ], 404);
     }
