@@ -94,12 +94,13 @@ class ZatcaCredentialService
                 'message' => __('zatca::lang.certificates_generated'),
             ];
         } catch (Throwable $e) {
+            $plain = app(ZatcaResponseFormatter::class)->presentStored($e->getMessage());
             $setting->status = 'failed';
-            $setting->last_error = $e->getMessage();
+            $setting->last_error = $plain;
             $setting->save();
 
             throw new RuntimeException(
-                __('zatca::lang.generation_failed', ['error' => $e->getMessage()]),
+                __('zatca::lang.generation_failed', ['error' => $plain]),
                 previous: $e
             );
         }

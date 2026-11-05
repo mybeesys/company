@@ -154,6 +154,7 @@ return [
     'zatca_err_not_reported' => 'لم يتم الإبلاغ عن الفاتورة لدى الهيئة.',
     'zatca_err_connection' => 'تعذّر الاتصال بخوادم هيئة الزكاة (ZATCA). تحقق من الإنترنت، إعدادات الشهادة، ثم أعد المحاولة.',
     'zatca_err_auth' => 'فشل التحقق من الهوية مع بوابة ZATCA. راجع الشهادات وبيانات الربط ثم أعد المحاولة.',
+    'zatca_err_invalid_otp' => 'رمز التحقق (OTP) غير صحيح أو انتهت صلاحيته. اطلب رمزاً جديداً من بوابة فاتورة، ثم أعد توليد الشهادات.',
     'reporting_status_reported' => 'تم الإبلاغ',
     'reporting_status_not_reported' => 'لم يتم الإبلاغ',
     'reporting_status_cleared' => 'تم الاعتماد (Clearance)',
