@@ -36,6 +36,8 @@ class EnsureHasSubscription
             'password.reset',
             'password.update',
             'auth.tenant-switch',
+            'my-companies.index',
+            'my-companies.switch',
             'set_locale',
             // Allow renew / invoice print even when the plan is expired or missing.
             'subscription',

@@ -63,6 +63,8 @@ final class SubscriptionAccess
             'subscription.cards.delete',
             'logout',
             'set_locale',
+            'my-companies.index',
+            'my-companies.switch',
         )) {
             return true;
         }
