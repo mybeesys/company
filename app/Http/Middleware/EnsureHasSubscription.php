@@ -2,10 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Company;
+use App\Support\SubscriptionAccess;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureHasSubscription
@@ -52,42 +51,14 @@ class EnsureHasSubscription
             return $next($request);
         }
 
-        $companyId = get_company_id();
-        if (! $companyId) {
-            return $this->handleCompanyNotFound($request);
-        }
-
-        $status = Cache::remember(
-            "tenant_subscription_status:{$companyId}",
-            now()->addMinutes(10),
-            fn () => $this->resolveSubscriptionStatus($companyId)
-        );
+        $status = app(SubscriptionAccess::class)->status();
 
         return match ($status) {
             'ok' => $next($request),
             'no_company' => $this->handleCompanyNotFound($request),
-            'no_subscription' => $this->handleNoSubscription($request),
-            'expired' => $this->handleExpiredSubscription($request),
+            'no_subscription', 'expired' => $this->handleLapsed($request, $next, $status),
             default => $this->handleCompanyNotFound($request),
         };
-    }
-
-    protected function resolveSubscriptionStatus(int $companyId): string
-    {
-        $company = Company::find($companyId);
-        if (! $company) {
-            return 'no_company';
-        }
-
-        if (! $company->subscription) {
-            return 'no_subscription';
-        }
-
-        if ($company->subscription->expired_at && $company->subscription->expired_at < now()) {
-            return 'expired';
-        }
-
-        return 'ok';
     }
 
     protected function handleCompanyNotFound(Request $request)
@@ -104,33 +75,24 @@ class EnsureHasSubscription
             ->withErrors(['company' => __('employee::responses.company_not_found')]);
     }
 
-    protected function handleNoSubscription(Request $request)
+    /**
+     * Keep the session. Web users land on the dashboard and may only renew.
+     * API clients stay blocked without signing the browser session out.
+     */
+    protected function handleLapsed(Request $request, Closure $next, string $status): Response
     {
-        if ($request->expectsJson()) {
+        if (app(SubscriptionAccess::class)->allowsLapsedWeb($request)) {
+            return $next($request);
+        }
+
+        if ($request->expectsJson() || $request->is('api/*')) {
+            $key = $status === 'expired' ? 'subscription_expired' : 'no_subscription_found';
+
             return response()->json([
-                'message' => __('employee::responses.no_subscription_found'),
+                'message' => __('employee::responses.'.$key),
             ], 403);
         }
-        auth()->logout();
 
-        return redirect()->route('login')
-            ->withInput()
-            ->withErrors(['subscription_missing' => __('employee::responses.no_subscription_found')]);
-    }
-
-    protected function handleExpiredSubscription(Request $request)
-    {
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => __('employee::responses.subscription_expired'),
-            ], 403);
-        }
-        auth()->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login')
-            ->withInput()
-            ->withErrors(['subscription_expired' => __('employee::responses.subscription_expired')]);
+        return redirect()->route('dashboard');
     }
 }

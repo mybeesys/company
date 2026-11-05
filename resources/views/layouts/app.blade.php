@@ -93,8 +93,8 @@
     data-kt-app-sidebar-minimize="{{ (session('sidebar_minimize') == false ? 'on' : 'off') ?? 'off' }}" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true"
     data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true"
     data-kt-app-aside-enabled="false" data-kt-app-aside-fixed="false" data-kt-app-aside-push-toolbar="true"
-    data-kt-app-aside-push-footer="true" class="app-default{{ session('show_post_login_splash') ? ' post-login-splash-active' : '' }}">
-    @if (session('show_post_login_splash'))
+    data-kt-app-aside-push-footer="true"     class="app-default{{ session('show_post_login_splash') && ! subscription_is_locked() ? ' post-login-splash-active' : '' }}">
+    @if (session('show_post_login_splash') && ! subscription_is_locked())
         @include('components.post-login-splash')
     @endif
     <div id="ajax-progress-bar" class="progress position-fixed top-0 start-0 w-100"
@@ -102,7 +102,7 @@
         <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 0%;"
             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
-    @unless (session('show_post_login_splash'))
+    @unless (session('show_post_login_splash') && ! subscription_is_locked())
         <div id="initial-loader" class="page-loader">
             <span class="spinner-border text-warning" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -189,6 +189,9 @@
                         <div id="kt_app_content" class="app-content flex-column-fluid pt-2">
                             <!--begin::Content container-->
                             <div id="kt_app_content_container" class="app-container container-fluid">
+                                @if (subscription_is_locked())
+                                    @include('components.subscription-lock')
+                                @endif
                                 @yield('content')
                             </div>
                             <!--end::Content container-->
