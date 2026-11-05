@@ -28,8 +28,14 @@ class EnsureHasSubscription
 
         $excludedRoutes = [
             'login',
+            'login.postLogin',
             'logout',
             'register',
+            'password.request',
+            'password.email',
+            'password.reset',
+            'password.update',
+            'auth.tenant-switch',
             'set_locale',
             // Allow renew / invoice print even when the plan is expired or missing.
             'subscription',
@@ -81,6 +87,12 @@ class EnsureHasSubscription
      */
     protected function handleLapsed(Request $request, Closure $next, string $status): Response
     {
+        // Login itself is not authenticated yet. Blocking it sends the form
+        // to the dashboard, then straight back to the login page.
+        if (! $request->user() && ! $request->expectsJson() && ! $request->is('api/*')) {
+            return $next($request);
+        }
+
         if (app(SubscriptionAccess::class)->allowsLapsedWeb($request)) {
             return $next($request);
         }
