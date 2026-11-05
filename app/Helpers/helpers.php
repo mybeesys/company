@@ -10,6 +10,28 @@ if (! function_exists('brand_legal_name')) {
     }
 }
 
+if (! function_exists('subscription_is_locked')) {
+    function subscription_is_locked(): bool
+    {
+        try {
+            return app(\App\Support\SubscriptionAccess::class)->isLocked();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+}
+
+if (! function_exists('subscription_lock_reason')) {
+    function subscription_lock_reason(): ?string
+    {
+        try {
+            return app(\App\Support\SubscriptionAccess::class)->reason();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+}
+
 if (! function_exists('brand_short_name')) {
     /**
      * الاسم المختصر لواجهة المستخدم (تبويبات، هيدر، تسجيل دخول…).

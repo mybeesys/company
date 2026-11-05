@@ -542,7 +542,7 @@
                     </div>
                 @endif
 
-                @if ($quickLinks->isNotEmpty())
+                @if ($quickLinks->isNotEmpty() && ! subscription_is_locked())
                     <div class="user-quick-menu-section">
                         <div class="user-quick-menu-section-title">
                             <i class="ki-outline ki-flash-circle fs-6"></i>

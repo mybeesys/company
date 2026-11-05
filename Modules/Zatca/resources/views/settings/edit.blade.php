@@ -63,8 +63,12 @@
     @endif
 
     @if ($setting->status === 'failed' && $setting->last_error && $activeTab === 'connection')
-        <div class="alert alert-warning">
-            <strong>{{ __('zatca::lang.last_error') }}:</strong> {{ $setting->last_error }}
+        @php
+            $lastErrorText = app(\Modules\Zatca\Services\ZatcaResponseFormatter::class)->presentStored($setting->last_error);
+        @endphp
+        <div class="alert alert-warning d-flex flex-column gap-1 mb-4">
+            <strong>{{ __('zatca::lang.last_error') }}</strong>
+            <span>{{ $lastErrorText }}</span>
         </div>
     @endif
 

@@ -154,6 +154,7 @@ return [
     'zatca_err_not_reported' => 'Invoice was not reported to ZATCA.',
     'zatca_err_connection' => 'Could not connect to ZATCA servers. Check your internet connection and certificate settings, then try again.',
     'zatca_err_auth' => 'ZATCA authentication failed. Recheck certificates and connection settings, then try again.',
+    'zatca_err_invalid_otp' => 'The OTP is invalid or has expired. Request a new code from the Fatoora portal, then generate the certificates again.',
     'reporting_status_reported' => 'Reported',
     'reporting_status_not_reported' => 'Not reported',
     'reporting_status_cleared' => 'Cleared',

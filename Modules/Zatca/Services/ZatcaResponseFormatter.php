@@ -65,12 +65,27 @@ class ZatcaResponseFormatter
         $errors = $this->mapMessages($validation['errorMessages'] ?? []);
         $warnings = $this->mapMessages($validation['warningMessages'] ?? []);
 
-        // Older/onboarding style payloads.
+        // Onboarding payloads: {"errors":[{"code":"Invalid-OTP","message":"..."}]}
         if ($errors === [] && ! empty($payload['errors']) && is_array($payload['errors'])) {
             foreach ($payload['errors'] as $err) {
+                if (is_array($err)) {
+                    $code = (string) ($err['code'] ?? 'ZATCA');
+                    $raw = (string) ($err['message'] ?? $code);
+                    $errors[] = [
+                        'code' => $this->displayCode($code),
+                        'message' => $this->localizeMessage($raw, $code),
+                    ];
+
+                    continue;
+                }
+
+                if (! is_string($err) || trim($err) === '') {
+                    continue;
+                }
+
                 $errors[] = [
                     'code' => 'ZATCA',
-                    'message' => $this->localizeMessage((string) $err, 'ZATCA'),
+                    'message' => $this->localizeMessage($err, 'ZATCA'),
                 ];
             }
         }
@@ -125,6 +140,25 @@ class ZatcaResponseFormatter
      *
      * @param  array{summary: string, errors: array<int, array{code: string, message: string}>}  $formatted
      */
+    /**
+     * Clean a stored or flashed ZATCA string. Already-human text is left as-is.
+     */
+    public function presentStored(?string $raw): string
+    {
+        $raw = trim((string) $raw);
+        if ($raw === '') {
+            return '';
+        }
+
+        if (! str_contains($raw, '{') && ! str_contains(strtolower($raw), 'invalid-otp')) {
+            return $raw;
+        }
+
+        $plain = trim($this->toPlainText($this->fromThrowable(new \RuntimeException($raw))));
+
+        return $plain !== '' ? $plain : $raw;
+    }
+
     public function toPlainText(array $formatted): string
     {
         $lines = [];
@@ -237,6 +271,8 @@ class ZatcaResponseFormatter
             'NOT_CLEARED' => __('zatca::lang.reporting_status_not_cleared'),
             'CONNECTION' => __('zatca::lang.zatca_err_connection'),
             'AUTH' => __('zatca::lang.zatca_err_auth'),
+            'Invalid-OTP' => __('zatca::lang.zatca_err_invalid_otp'),
+            'INVALID-OTP' => __('zatca::lang.zatca_err_invalid_otp'),
             'EXCEPTION' => __('zatca::lang.sync_failed_generic'),
         ];
 
@@ -254,6 +290,9 @@ class ZatcaResponseFormatter
             || str_contains($lower, 'curl error')
         ) {
             return __('zatca::lang.zatca_err_connection');
+        }
+        if (str_contains($lower, 'invalid otp') || str_contains($lower, 'provided otp is invalid') || str_contains($lower, 'invalid-otp')) {
+            return __('zatca::lang.zatca_err_invalid_otp');
         }
         if (str_contains($lower, 'vat number that exists in the authentication certificate')) {
             return __('zatca::lang.zatca_err_certificate_permissions');

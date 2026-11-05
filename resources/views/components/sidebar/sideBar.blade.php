@@ -1,5 +1,8 @@
 <div id="#kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false"
-    class="app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-0 mb-5">
+    @class([
+        'app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-0 mb-5',
+        'is-subscription-locked' => subscription_is_locked(),
+    ])>
     @php
         $isPeriodicPolicyEnabled = \Modules\General\Models\Setting::isPeriodicInventory();
         $upgradeUrl = route('subscription.manage');
@@ -48,6 +51,10 @@
             return ! $hasMenuEntitlement($item);
         };
     @endphp
+
+    @if (subscription_is_locked())
+        <p class="subscription-lock-sidebar-note">@lang('general::general.subscription_lock_sidebar')</p>
+    @endif
 
     @foreach (config('menu') as $menuItem)
         @php
@@ -182,6 +189,26 @@
 </div>
 
 <style>
+    .subscription-lock-sidebar-note {
+        margin: 0 0.35rem 0.85rem;
+        padding: 0.55rem 0.7rem;
+        border-radius: 0.75rem;
+        background: rgba(235, 184, 30, 0.16);
+        color: #7a5b10;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1.45;
+    }
+
+    .app-sidebar-menu-primary.is-subscription-locked .menu-item,
+    .app-sidebar-menu-primary.is-subscription-locked .menu-link,
+    .app-sidebar-menu-primary.is-subscription-locked a,
+    .app-sidebar-menu-primary.is-subscription-locked .entitlement-locked-link {
+        pointer-events: none !important;
+        cursor: not-allowed !important;
+        opacity: 0.42;
+    }
+
     .periodic-policy-disabled-link {
         opacity: .8;
         cursor: not-allowed;
