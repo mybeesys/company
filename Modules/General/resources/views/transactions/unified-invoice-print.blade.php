@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
-    <title>{{ $docTitleAr }} — {{ $transaction->ref_no }}</title>
+    <title>{{ $docTitleAr }}</title>
     <style>
         body {
             font-family: dejavusans, DejaVu Sans, sans-serif;
@@ -79,6 +79,8 @@
             vertical-align: top;
         }
         .parties .name { font-size: 10pt; font-weight: bold; margin-bottom: 4px; }
+        .parties .addr-line { font-size: 7.5pt; color: #666; line-height: 1.45; }
+        .parties .addr-line.ltr { direction: ltr; text-align: left; }
 
         table.lines {
             width: 100%;
@@ -241,8 +243,11 @@
 <body>
 @php
     $money = static fn ($v): string => number_format((float) $v, 2);
-    $seller = $seller ?? ['name' => '—', 'address' => '', 'vat' => '', 'cr' => '', 'mobile' => ''];
-    $buyer = $buyer ?? ['name' => '—', 'address' => '', 'vat' => '', 'cr' => '', 'mobile' => ''];
+    $localeAr = $localeAr ?? true;
+    $seller = $seller ?? ['name' => '—', 'address' => '', 'address_lines' => [], 'vat' => '', 'cr' => '', 'mobile' => ''];
+    $buyer = $buyer ?? ['name' => '—', 'address' => '', 'address_lines' => [], 'vat' => '', 'cr' => '', 'mobile' => ''];
+    $sellerAddressLines = $seller['address_lines'] ?? (filled($seller['address'] ?? null) ? [(string) $seller['address']] : []);
+    $buyerAddressLines = $buyer['address_lines'] ?? (filled($buyer['address'] ?? null) ? [(string) $buyer['address']] : []);
 @endphp
 
 <div class="top-rule"></div>
@@ -251,9 +256,6 @@
     <tr>
         <td width="55%">
             <div class="brand">{{ $seller['name'] }}</div>
-            @if (($seller['vat'] ?? '') !== '')
-                <div class="bi-en ltr">VAT {{ $seller['vat'] }}</div>
-            @endif
         </td>
         <td width="45%" class="logo">
             @if (!empty($logoSrc))
@@ -323,27 +325,36 @@
     <tr>
         <td class="pb" width="49%">
             <div class="name">{{ $seller['name'] }}</div>
-            @if (($seller['address'] ?? '') !== '')
-                <div class="ltr muted fs-7">{{ $seller['address'] }}</div>
-            @endif
+            @foreach ($sellerAddressLines as $addrLine)
+                <div class="addr-line {{ $localeAr ? '' : 'ltr' }}">{{ $addrLine }}</div>
+            @endforeach
             @if (($seller['vat'] ?? '') !== '')
                 <div style="margin-top:4px;">
-                    <span class="bi-ar">الرقم الضريبي</span>
-                    <span class="bi-en"> VAT</span>
+                    @if ($localeAr)
+                        <span class="bi-ar">الرقم الضريبي</span>
+                    @else
+                        <span class="bi-en">VAT</span>
+                    @endif
                     <span class="ltr"> {{ $seller['vat'] }}</span>
                 </div>
             @endif
             @if (($seller['cr'] ?? '') !== '')
                 <div>
-                    <span class="bi-ar">السجل التجاري</span>
-                    <span class="bi-en"> CR</span>
+                    @if ($localeAr)
+                        <span class="bi-ar">السجل التجاري</span>
+                    @else
+                        <span class="bi-en">CR</span>
+                    @endif
                     <span class="ltr"> {{ $seller['cr'] }}</span>
                 </div>
             @endif
             @if (($seller['mobile'] ?? '') !== '')
                 <div>
-                    <span class="bi-ar">الجوال</span>
-                    <span class="bi-en"> Mobile</span>
+                    @if ($localeAr)
+                        <span class="bi-ar">الجوال</span>
+                    @else
+                        <span class="bi-en">Mobile</span>
+                    @endif
                     <span class="ltr"> {{ $seller['mobile'] }}</span>
                 </div>
             @endif
@@ -351,29 +362,38 @@
         <td class="pgap" width="2%">&nbsp;</td>
         <td class="pb" width="49%">
             <div class="name">{{ $buyer['name'] }}</div>
-            @if (($buyer['address'] ?? '') !== '')
-                <div class="ltr muted fs-7">{{ $buyer['address'] }}</div>
-            @endif
+            @foreach ($buyerAddressLines as $addrLine)
+                <div class="addr-line {{ $localeAr ? '' : 'ltr' }}">{{ $addrLine }}</div>
+            @endforeach
             @if (($buyer['vat'] ?? '') !== '')
                 <div style="margin-top:4px;">
-                    <span class="bi-ar">الرقم الضريبي</span>
-                    <span class="bi-en"> VAT</span>
+                    @if ($localeAr)
+                        <span class="bi-ar">الرقم الضريبي</span>
+                    @else
+                        <span class="bi-en">VAT</span>
+                    @endif
                     <span class="ltr"> {{ $buyer['vat'] }}</span>
                 </div>
             @else
-                <div class="muted fs-7">لا يوجد رقم ضريبي</div>
+                <div class="muted fs-7">{{ $localeAr ? 'لا يوجد رقم ضريبي' : 'No VAT number' }}</div>
             @endif
             @if (($buyer['cr'] ?? '') !== '')
                 <div>
-                    <span class="bi-ar">السجل التجاري</span>
-                    <span class="bi-en"> CR</span>
+                    @if ($localeAr)
+                        <span class="bi-ar">السجل التجاري</span>
+                    @else
+                        <span class="bi-en">CR</span>
+                    @endif
                     <span class="ltr"> {{ $buyer['cr'] }}</span>
                 </div>
             @endif
             @if (($buyer['mobile'] ?? '') !== '')
                 <div>
-                    <span class="bi-ar">الجوال</span>
-                    <span class="bi-en"> Mobile</span>
+                    @if ($localeAr)
+                        <span class="bi-ar">الجوال</span>
+                    @else
+                        <span class="bi-en">Mobile</span>
+                    @endif
                     <span class="ltr"> {{ $buyer['mobile'] }}</span>
                 </div>
             @endif
@@ -400,12 +420,6 @@
                 <td class="col-seq">{{ $row['seq'] }}</td>
                 <td class="col-desc">
                     <div class="item">{{ $row['name'] }}</div>
-                    @if ($row['sku'] !== '')
-                        <div class="sku ltr">{{ $row['sku'] }}</div>
-                    @endif
-                    @if ($row['note'] !== '')
-                        <div class="sku">{{ $row['note'] }}</div>
-                    @endif
                 </td>
                 <td class="col-qty">
                     {{ $money($row['qty']) }}

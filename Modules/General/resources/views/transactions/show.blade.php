@@ -79,15 +79,17 @@
                 <p class="fs-7" style="color: #6a6a6a">{{ $company->state }} - {{ $company->city }}</p>
             </div>
         </div>
-        <div class="col-sm-4 " style="justify-content: center;display: flex;">
+        <div class="col-sm-4 " style="justify-content: center;display: flex; align-items: center; gap: 0.75rem;">
             <button class="favorite-btn btn border-0" data-transaction-id="{{ $transaction->id }}"
                 title="{{ $transaction->is_favorite ? __('genreal::lang.remove_from_favorites') : __('genreal::lang.add_to_favorites') }}">
                 <i class="fas fa-star favorite-icon {{ $transaction->is_favorite ? 'text-warning star-shadow' : 'text-light star-shadow' }}"
                     style="font-size: 2rem"></i>
             </button>
-
-
-
+            @if (in_array($transaction->type, ['sell', 'sell-return'], true) && ! $transaction->isDraft())
+                <a href="#" class="btn btn-sm btn-light-success whatsapp-invoice-share" data-id="{{ $transaction->id }}">
+                    <i class="fab fa-whatsapp fs-3 me-1"></i>@lang('general::lang.whatsapp_share_invoice')
+                </a>
+            @endif
         </div>
     </div>
     <div class="separator d-flex flex-center mb-5">

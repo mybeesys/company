@@ -352,6 +352,12 @@ class Transaction extends Model
                         $actions .= '<div class="menu-item px-3">
                 <a href="'.url("/transaction-print/{$row->id}").'" class="menu-link px-3">'.__('general.print').'</a>
             </div>';
+
+                        if (in_array($row->type, ['sell', 'sell-return'], true) && ! $row->isDraft()) {
+                            $actions .= '<div class="menu-item px-3">
+                <a href="#" class="menu-link px-3 whatsapp-invoice-share" data-id="'.$row->id.'">'.e(__('general::lang.whatsapp_share_invoice')).'</a>
+            </div>';
+                        }
                     }
 
                     if ($row->type === 'sell' && ! $isSellDraft && SalesAccess::can(SalesPermissions::INVOICES_CREATE)) {

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Accounting\Models\AccountingAccount;
 use Modules\General\Models\Transaction;
 use Modules\General\Models\TransactionPayments;
+use Modules\General\Support\InvoicePdfRenderer;
 use Modules\General\Support\UnifiedInvoicePrintPresenter;
 use Modules\General\Utils\TransactionUtils;
 use Modules\Purchases\Support\PurchasesAccess;
@@ -219,54 +220,11 @@ class TransactionController extends Controller
 
     public function exportPDF($id)
     {
-        $company = DB::connection('mysql')->table('companies')->find(get_company_id());
         $transaction = Transaction::query()->findOrFail($id);
         SalesAccess::authorizeTransaction($transaction, 'print');
         PurchasesAccess::authorizeTransaction($transaction, 'print');
-        $qrCode = QrCode::format('svg')->size(150)->margin(1)->generate(
-            $this->resolveInvoiceQrPayload($transaction, $company)
-        );
-        $qrCode = $this->normalizeQrSvg((string) $qrCode);
 
-        if (UnifiedInvoicePrintPresenter::supports($transaction->type)) {
-            $data = UnifiedInvoicePrintPresenter::build($transaction, $company, $qrCode, true);
-            $html = view('general::transactions.unified-invoice-print', $data)->render();
-
-            $mpdf = new Mpdf([
-                'mode' => 'utf-8',
-                'format' => 'A4',
-                'default_font' => 'DejaVuSans',
-                'default_font_size' => 10,
-                'autoLangToFont' => true,
-                'autoScriptToLang' => true,
-                'margin_top' => 10,
-                'margin_bottom' => 14,
-                'margin_left' => 10,
-                'margin_right' => 10,
-            ]);
-            $mpdf->SetDirectionality('rtl');
-            $mpdf->SetTitle(($data['docTitleAr'] ?? 'Invoice').' - '.(string) $transaction->ref_no);
-            $mpdf->WriteHTML($html);
-
-            $filename = preg_replace('/[^\w\-]+/u', '-', (string) $transaction->ref_no).'.pdf';
-
-            return $mpdf->Output($filename, 'D');
-        }
-
-        $html = view('general::transactions.print', compact('transaction', 'qrCode', 'company'))->render();
-
-        $mpdf = new Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4',
-            'default_font' => 'DejaVuSans',
-            'default_font_size' => 12,
-            'autoLangToFont' => true,
-            'autoScriptToLang' => true,
-        ]);
-
-        $mpdf->WriteHTML($html);
-
-        return $mpdf->Output($transaction->ref_no, 'D');
+        return InvoicePdfRenderer::download($transaction);
     }
 
     private function normalizeQrSvg(string $svg): string

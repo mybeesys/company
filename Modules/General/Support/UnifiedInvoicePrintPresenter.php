@@ -31,7 +31,7 @@ final class UnifiedInvoicePrintPresenter
     public static function build(Transaction $transaction, object $company, string $qrCodeSvg, bool $forPdf = false): array
     {
         $transaction->loadMissing([
-            'client.billingAddress',
+            'client.billingAddress.country_',
             'sell_lines.product',
             'purchases_lines.product',
             'parentSell',
@@ -42,9 +42,10 @@ final class UnifiedInvoicePrintPresenter
         $type = (string) $transaction->type;
         $isPurchaseSide = in_array($type, ['purchases', 'purchases-return'], true);
         $isReturn = in_array($type, ['sell-return', 'purchases-return'], true);
+        $localeAr = self::localeIsArabic();
 
-        $companyParty = self::companyParty($company);
-        $contactParty = self::contactParty($transaction);
+        $companyParty = self::companyParty($company, $localeAr);
+        $contactParty = self::contactParty($transaction, $localeAr);
 
         // Sales / sales-return: our company sells. Purchases / purchase-return: supplier sells.
         if ($isPurchaseSide) {
@@ -64,7 +65,7 @@ final class UnifiedInvoicePrintPresenter
         }
 
         [$docTitleAr, $docTitleEn] = self::documentTitles($type);
-        $lineRows = self::mapLines($transaction);
+        $lineRows = self::mapLines($transaction, $localeAr);
         $totalLineDiscount = round(array_sum(array_column($lineRows, 'discount')), 2);
         $invoiceDiscount = self::resolveInvoiceDiscount($transaction);
 
@@ -121,6 +122,7 @@ final class UnifiedInvoicePrintPresenter
             'sellerRoleEn' => $sellerRoleEn,
             'buyerRoleAr' => $buyerRoleAr,
             'buyerRoleEn' => $buyerRoleEn,
+            'localeAr' => $localeAr,
             'lineRows' => $lineRows,
             'totalLineDiscount' => $totalLineDiscount,
             'invoiceDiscount' => $invoiceDiscount,
@@ -202,71 +204,214 @@ final class UnifiedInvoicePrintPresenter
         };
     }
 
-    /** @return array{name: string, address: string, vat: string, cr: string, mobile: string} */
-    private static function companyParty(object $company): array
+    private static function localeIsArabic(): bool
     {
-        $name = LedgerStatementPresenter::companyDisplayName($company, app()->getLocale() === 'ar');
+        return str_starts_with(strtolower((string) app()->getLocale()), 'ar');
+    }
+
+    /**
+     * @return array{name: string, address: string, address_lines: list<string>, vat: string, cr: string, mobile: string}
+     */
+    private static function companyParty(object $company, bool $localeAr): array
+    {
+        $name = LedgerStatementPresenter::companyDisplayName($company, $localeAr);
         if ($name === '') {
             $name = trim((string) ($company->name ?? $company->name_ar ?? '')) ?: '—';
         }
 
-        $address = implode(' / ', array_filter([
-            trim((string) ($company->street_name ?? $company->address ?? '')),
-            trim((string) ($company->building_number ?? '')),
-            trim((string) ($company->district ?? $company->state ?? '')),
-            trim((string) ($company->city ?? '')),
-            trim((string) ($company->postal_code ?? $company->zip_code ?? '')),
-        ], static fn ($p) => $p !== ''));
-
-        if ($address === '') {
-            $address = implode(' / ', LedgerStatementPresenter::companyAddressLines($company, true));
-        }
+        $addressLines = self::companyAddressLines($company, $localeAr);
 
         return [
             'name' => $name,
-            'address' => $address,
+            'address' => implode($localeAr ? '، ' : ', ', $addressLines),
+            'address_lines' => $addressLines,
             'vat' => preg_replace('/\D+/', '', (string) ($company->tax_number ?? '')) ?: '',
             'cr' => trim((string) ($company->commercial_register ?? $company->commercial_registration_number ?? '')),
             'mobile' => trim((string) ($company->mobile ?? $company->phone ?? '')),
         ];
     }
 
-    /** @return array{name: string, address: string, vat: string, cr: string, mobile: string} */
-    private static function contactParty(Transaction $transaction): array
+    /**
+     * @return array{name: string, address: string, address_lines: list<string>, vat: string, cr: string, mobile: string}
+     */
+    private static function contactParty(Transaction $transaction, bool $localeAr): array
     {
+        $empty = [
+            'name' => '—',
+            'address' => '',
+            'address_lines' => [],
+            'vat' => '',
+            'cr' => '',
+            'mobile' => '',
+        ];
+
         $client = $transaction->client;
         if (! $client) {
-            return [
-                'name' => '—',
-                'address' => '',
-                'vat' => '',
-                'cr' => '',
-                'mobile' => '',
-            ];
+            return $empty;
         }
 
-        $billing = $client->billingAddress;
-        $address = implode(' / ', array_filter([
-            trim((string) ($billing?->street_name ?? '')),
-            trim((string) ($billing?->building_number ?? '')),
-            trim((string) ($billing?->state ?? '')),
-            trim((string) ($billing?->city ?? '')),
-            trim((string) ($billing?->postal_code ?? '')),
-        ], static fn ($p) => $p !== ''));
+        $addressLines = self::contactAddressLines($client->billingAddress, $localeAr);
 
         return [
             'name' => trim((string) ($client->name ?? '')) ?: '—',
-            'address' => $address,
+            'address' => implode($localeAr ? '، ' : ', ', $addressLines),
+            'address_lines' => $addressLines,
             'vat' => preg_replace('/\D+/', '', (string) ($client->tax_number ?? '')) ?: '',
             'cr' => trim((string) ($client->commercial_register ?? '')),
             'mobile' => trim((string) ($client->mobile_number ?? '')),
         ];
     }
 
+    /** @return list<string> */
+    private static function companyAddressLines(object $company, bool $localeAr): array
+    {
+        $lines = [];
+
+        $national = trim((string) ($company->national_address ?? ''));
+        if ($national !== '') {
+            $lines[] = $national;
+        }
+
+        $street = trim((string) ($company->street_name ?? $company->address ?? ''));
+        $building = trim((string) ($company->building_number ?? ''));
+        $district = trim((string) ($company->district ?? ''));
+        $state = trim((string) ($company->state ?? ''));
+        $city = trim((string) ($company->city ?? ''));
+        $postal = trim((string) ($company->postal_code ?? $company->zip_code ?? $company->zipcode ?? ''));
+        $country = self::resolveCountryName(
+            $company->country_id ?? $company->country ?? null,
+            $localeAr,
+            trim((string) ($company->country_name ?? $company->country ?? ''))
+        );
+
+        if ($street !== '') {
+            $lines[] = $localeAr ? 'الشارع: '.$street : 'Street: '.$street;
+        }
+        if ($building !== '') {
+            $lines[] = $localeAr ? 'رقم المبنى: '.$building : 'Building No.: '.$building;
+        }
+        if ($district !== '') {
+            $lines[] = $localeAr ? 'الحي: '.$district : 'District: '.$district;
+        } elseif ($state !== '' && $state !== $city) {
+            $lines[] = $localeAr ? 'المنطقة: '.$state : 'State: '.$state;
+        }
+        if ($city !== '') {
+            $lines[] = $localeAr ? 'المدينة: '.$city : 'City: '.$city;
+        }
+        if ($postal !== '') {
+            $lines[] = $localeAr ? 'الرمز البريدي: '.$postal : 'Postal Code: '.$postal;
+        }
+        if ($country !== '') {
+            $lines[] = $localeAr ? 'الدولة: '.$country : 'Country: '.$country;
+        }
+
+        if ($lines === []) {
+            $lines = LedgerStatementPresenter::companyAddressLines($company, $localeAr);
+        }
+
+        return array_values(array_unique(array_filter($lines, static fn ($line) => trim((string) $line) !== '')));
+    }
+
+    /** @return list<string> */
+    private static function contactAddressLines(?object $billing, bool $localeAr): array
+    {
+        if (! $billing) {
+            return [];
+        }
+
+        $lines = [];
+        $street = trim((string) ($billing->street_name ?? ''));
+        $building = trim((string) ($billing->building_number ?? ''));
+        $district = trim((string) ($billing->district ?? $billing->state ?? ''));
+        $city = trim((string) ($billing->city ?? ''));
+        $postal = trim((string) ($billing->postal_code ?? ''));
+        $country = '';
+        if (method_exists($billing, 'countryLabel')) {
+            try {
+                $country = self::countryLabelForLocale($billing, $localeAr);
+            } catch (Throwable) {
+                $country = '';
+            }
+        }
+        if ($country === '') {
+            $country = self::resolveCountryName($billing->country ?? null, $localeAr, '');
+        }
+
+        if ($street !== '') {
+            $lines[] = $localeAr ? 'الشارع: '.$street : 'Street: '.$street;
+        }
+        if ($building !== '') {
+            $lines[] = $localeAr ? 'رقم المبنى: '.$building : 'Building No.: '.$building;
+        }
+        if ($district !== '') {
+            $lines[] = $localeAr ? 'الحي: '.$district : 'District: '.$district;
+        }
+        if ($city !== '') {
+            $lines[] = $localeAr ? 'المدينة: '.$city : 'City: '.$city;
+        }
+        if ($postal !== '') {
+            $lines[] = $localeAr ? 'الرمز البريدي: '.$postal : 'Postal Code: '.$postal;
+        }
+        if ($country !== '') {
+            $lines[] = $localeAr ? 'الدولة: '.$country : 'Country: '.$country;
+        }
+
+        return $lines;
+    }
+
+    private static function countryLabelForLocale(object $billing, bool $localeAr): string
+    {
+        $country = $billing->country_ ?? null;
+        if (! $country) {
+            return '';
+        }
+
+        $ar = trim((string) ($country->name_ar ?? ''));
+        $en = trim((string) ($country->name_en ?? ''));
+
+        if ($localeAr) {
+            return $ar !== '' ? $ar : $en;
+        }
+
+        return $en !== '' ? $en : $ar;
+    }
+
+    private static function resolveCountryName(mixed $countryIdOrCode, bool $localeAr, string $fallback = ''): string
+    {
+        $fallback = trim($fallback);
+        if (is_object($countryIdOrCode)) {
+            $ar = trim((string) ($countryIdOrCode->name_ar ?? ''));
+            $en = trim((string) ($countryIdOrCode->name_en ?? ''));
+            if ($localeAr) {
+                return $ar !== '' ? $ar : ($en !== '' ? $en : $fallback);
+            }
+
+            return $en !== '' ? $en : ($ar !== '' ? $ar : $fallback);
+        }
+
+        if (is_numeric($countryIdOrCode) && (int) $countryIdOrCode > 0) {
+            try {
+                $row = \Modules\General\Models\Country::query()->find((int) $countryIdOrCode);
+                if ($row) {
+                    return self::resolveCountryName($row, $localeAr, $fallback);
+                }
+            } catch (Throwable) {
+                // ignore and fall through
+            }
+        }
+
+        $raw = trim((string) ($countryIdOrCode ?? ''));
+        if ($raw !== '' && ! is_numeric($raw)) {
+            return $raw;
+        }
+
+        return $fallback;
+    }
+
     /**
-     * @return list<array{seq:int,name:string,sku:string,note:string,qty:float,unit:string,unit_price:float,discount:float,tax_percent:string,tax:float,total:float}>
+     * @return list<array{seq:int,name:string,qty:float,unit:string,unit_price:float,discount:float,tax_percent:string,tax:float,total:float}>
      */
-    private static function mapLines(Transaction $transaction): array
+    private static function mapLines(Transaction $transaction, bool $localeAr): array
     {
         $type = (string) $transaction->type;
         // Mirror ERP storage: sell-return uses purchase lines; purchases-return uses sell lines.
@@ -287,7 +432,7 @@ final class UnifiedInvoicePrintPresenter
             if (! $line->product && empty($line->product_id)) {
                 continue;
             }
-            $rows[] = self::mapLine($line, $seq);
+            $rows[] = self::mapLine($line, $seq, $localeAr);
             $seq++;
         }
 
@@ -295,9 +440,9 @@ final class UnifiedInvoicePrintPresenter
     }
 
     /**
-     * @return array{seq:int,name:string,sku:string,note:string,qty:float,unit:string,unit_price:float,discount:float,tax_percent:string,tax:float,total:float}
+     * @return array{seq:int,name:string,qty:float,unit:string,unit_price:float,discount:float,tax_percent:string,tax:float,total:float}
      */
-    private static function mapLine(TransactionSellLine|TransactionePurchasesLine $line, int $seq): array
+    private static function mapLine(TransactionSellLine|TransactionePurchasesLine $line, int $seq, bool $localeAr): array
     {
         $qty = (float) ($line->qyt ?: 1);
         if ($qty <= 0) {
@@ -329,9 +474,14 @@ final class UnifiedInvoicePrintPresenter
         }
 
         $product = $line->product;
-        $name = (string) ($product?->name_ar ?: $product?->name_en ?: ('#'.$line->product_id));
-        $sku = trim((string) ($product?->SKU ?? $product?->barcode ?? ''));
-        $note = trim((string) ($line->note ?? $line->sell_line_note ?? ''));
+        $nameAr = trim((string) ($product?->name_ar ?? ''));
+        $nameEn = trim((string) ($product?->name_en ?? ''));
+        if ($localeAr) {
+            $name = $nameAr !== '' ? $nameAr : ($nameEn !== '' ? $nameEn : ('#'.$line->product_id));
+        } else {
+            $name = $nameEn !== '' ? $nameEn : ($nameAr !== '' ? $nameAr : ('#'.$line->product_id));
+        }
+
         $unit = '';
         try {
             $unit = trim((string) ($line->unitTransfer?->unit1 ?? ''));
@@ -342,8 +492,6 @@ final class UnifiedInvoicePrintPresenter
         return [
             'seq' => $seq,
             'name' => $name,
-            'sku' => $sku,
-            'note' => $note,
             'qty' => $qty,
             'unit' => $unit,
             'unit_price' => $unitPrice,

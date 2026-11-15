@@ -134,6 +134,7 @@ final class SettingAccess
             'general' => self::canHubHorizontal(),
             'notifications' => self::canTab('notifications'),
             'mail' => self::canTab('mail'),
+            'whatsapp' => self::canTab('mail'),
             'sms' => self::canTab('sms'),
             'prefix' => self::canTab('prefix'),
             'invoice' => self::canTab('invoice'),

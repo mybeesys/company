@@ -5,7 +5,8 @@
  * Source of truth: Modules/Accounting/data/MyBee_Master_Chart_of_Accounts_Tree_v6.xlsx
  *
  * Level 1 roots are conceptual; level 2 becomes account subtypes; levels 3–5 become
- * chart accounts (including workbook example leaves such as Customer 1 / Bank Account 1).
+ * chart accounts. Local Customer N / Supplier N example leaves are omitted from the pack;
+ * other workbook examples (Bank Account N, Export Customer N, …) remain.
  */
 
 declare(strict_types=1);
@@ -68,6 +69,10 @@ for ($r = 2; $r <= (int) $sheet->getHighestRow(); $r++) {
             'name_en' => $row['name_en'],
             'account_primary_type' => $row['account_primary_type'],
         ];
+        continue;
+    }
+
+    if (MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf($nameAr, $nameEn)) {
         continue;
     }
 

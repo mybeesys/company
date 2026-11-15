@@ -43,11 +43,19 @@ final class MyBeeMasterCoaCatalog
     }
 
     /**
+     * Installable master accounts (excludes default local Customer/Supplier example leaves).
+     *
      * @return list<array<string, mixed>>
      */
     public static function accounts(): array
     {
-        return self::get()['accounts'];
+        return array_values(array_filter(
+            self::get()['accounts'],
+            static fn (array $row): bool => ! MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf(
+                (string) ($row['name_ar'] ?? ''),
+                (string) ($row['name_en'] ?? '')
+            )
+        ));
     }
 
     /**

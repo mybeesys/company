@@ -92,6 +92,13 @@ final class CompanyDocumentLogo
             return self::absolutePath($company);
         }
 
+        // Embed when the file is on disk so print/preview does not depend on
+        // tenant storage URL quirks (nginx 403 / missing /storage/tenant… segment).
+        $dataUri = self::dataUri($company);
+        if ($dataUri !== null) {
+            return $dataUri;
+        }
+
         if (function_exists('resolve_public_storage_url')) {
             $url = resolve_public_storage_url($relative);
             if (is_string($url) && $url !== '') {
@@ -99,9 +106,24 @@ final class CompanyDocumentLogo
             }
         }
 
-        $absolute = self::absolutePath($company);
+        return null;
+    }
 
-        return $absolute ?: null;
+    public static function dataUri(?object $company): ?string
+    {
+        $path = self::absolutePath($company);
+        if (! $path || ! is_readable($path)) {
+            return null;
+        }
+
+        $binary = @file_get_contents($path);
+        if ($binary === false || $binary === '') {
+            return null;
+        }
+
+        $mime = TenantPublicImage::detectedMime($path) ?? 'image/png';
+
+        return 'data:'.$mime.';base64,'.base64_encode($binary);
     }
 
     public static function currentSrc(bool $forPdf = false): ?string
