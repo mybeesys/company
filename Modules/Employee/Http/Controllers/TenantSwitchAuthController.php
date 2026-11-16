@@ -35,6 +35,12 @@ class TenantSwitchAuthController extends Controller
             return redirect()->route('login')->with('error', __('employee::my_companies.switch_no_employee'));
         }
 
+        if (Auth::check()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         Auth::login($employee, true);
         $request->session()->regenerate();
 

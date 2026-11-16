@@ -26,9 +26,11 @@ return [
     'feedback_empty' => 'No ratings yet.',
 
     'modal_todays_title' => "Today's menu",
-    'modal_location_title' => 'Location on map',
-    'modal_location_heading' => 'Find us easily',
+    'modal_location_title' => 'Our location',
+    'modal_location_heading' => 'How to find us',
     'modal_location_branch' => 'Branch',
+    'modal_location_description' => 'Location description',
+    'modal_open_maps_search' => 'Search in Google Maps',
     'modal_open_maps' => 'Open in Google Maps',
     'modal_smart_title' => 'Smart menu',
     'modal_smart_heading' => 'A smarter menu experience — coming soon',
@@ -56,7 +58,7 @@ return [
     'menu_empty_title' => 'No products in this menu yet',
     'menu_empty_hint' => 'Regenerate the menu link with products selected, or add items to the linked custom menu.',
     'allergy_download' => 'Download / view file',
-    'map_pick_hint' => 'Location was set when the menu link was created.',
+    'map_pick_hint' => 'The location description was set when the menu link was created.',
 
     'menu_allergen_avoid_hint' => 'Hide products containing:',
     'menu_allergen_clear' => 'Clear filters',

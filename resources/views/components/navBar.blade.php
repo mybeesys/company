@@ -384,7 +384,7 @@
                             @if ($nbUnreadCount > 0)
                                 · <span class="text-dark fw-semibold notification-unread-count">{{ $nbUnreadCount }}</span> @lang('general::notifications.unread_short')
                             @endif
-                        </div>
+            </div>
                     </div>
                     <button type="button"
                         class="nb-mark-all notification-mark-all-btn {{ $nbUnreadCount === 0 ? 'is-disabled' : '' }}">
@@ -399,7 +399,7 @@
                             $mod = $ndata['module'] ?? 'system';
                         @endphp
                         @if (!empty($ndata['title']))
-                            <div @class([
+                                <div @class([
                                 "nb-item notification-body notification-{$notification->id} notification-row",
                                 'is-unread' => !$notification->read_at,
                             ])
@@ -408,31 +408,31 @@
                                 role="button">
                                 <div class="nb-ico sev-{{ $sev }}">
                                     <i @class(['fs-4', 'ki-outline '.($ndata['icon'] ?? 'ki-notification')])></i>
-                                </div>
+                                        </div>
                                 <div class="min-w-0">
                                     <div class="nb-title">
                                         @if (!$notification->read_at)<span class="nb-dot me-1"></span>@endif
                                         {{ $ndata['title'] }}
-                                    </div>
+                                            </div>
                                     <p class="nb-body">{{ \Illuminate\Support\Str::limit($ndata['body'] ?? '', 88) }}</p>
                                     <div class="nb-meta">
                                         <span class="nb-pill">{{ __('general::notifications.module_'.$mod) }}</span>
                                         <span class="nb-time">{{ $notification->created_at->diffForHumans() }}</span>
+                                        </div>
                                     </div>
-                                </div>
                                 <button type="button" data-id="{{ $notification->id }}" class="notification-delete-btn btn btn-icon btn-sm btn-light" title="@lang('employee::fields.delete')">
                                     <i class="ki-outline ki-trash fs-6 text-danger"></i>
-                                </button>
-                            </div>
-                        @endif
+                                    </button>
+                                </div>
+                            @endif
                     @empty
                         <div class="nb-empty empty-notifications-hint">
                             <div class="nb-empty-ico"><i class="ki-outline ki-notification-on fs-2"></i></div>
                             <p class="nb-empty-title">@lang('general.no_notifications')</p>
                             <p class="nb-empty-sub">@lang('general::notifications.empty_hint')</p>
-                        </div>
+                    </div>
                     @endforelse
-                </div>
+                    </div>
                 <div class="nb-foot">
                     <a href="{{ route('notifications.index') }}" class="nb-view-all">@lang('general::notifications.view_all')</a>
                 </div>
@@ -476,7 +476,7 @@
                         <div class="user-quick-menu-section-title">
                             <i class="ki-outline ki-abstract-26 fs-6"></i>
                             <span>@lang('general.workspace')</span>
-                        </div>
+                </div>
 
                         <div class="user-companies-list @if ($linkedCompaniesCount > 3) is-scrollable @endif">
                             @if ($currentLinkedCompany)
@@ -489,7 +489,7 @@
                                         <span class="user-company-chip-meta">{{ $currentLinkedCompany->domain }}</span>
                                     </span>
                                     <span class="user-company-chip-badge">@lang('employee::my_companies.current')</span>
-                                </div>
+            </div>
                             @endif
 
                             @foreach ($otherLinkedCompanies as $company)
@@ -556,10 +556,10 @@
                                     <span>{{ $link['label'] }}</span>
                                 </a>
                             @endforeach
-                        </div>
                     </div>
-                @endif
-            </div>
+                </div>
+            @endif
+                </div>
 
             <div class="user-quick-menu-footer">
                 <div class="user-quick-menu-footer-row">
@@ -571,33 +571,33 @@
                             <span>@lang('general.mode')</span>
                         </button>
                         <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-3 fs-7 w-140px"
-                            data-kt-menu="true" data-kt-element="theme-mode-menu">
-                            <div class="menu-item px-3 my-0">
-                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="light">
-                                    <span class="menu-icon" data-kt-element="icon">
+                    data-kt-menu="true" data-kt-element="theme-mode-menu">
+                    <div class="menu-item px-3 my-0">
+                        <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="light">
+                            <span class="menu-icon" data-kt-element="icon">
                                         <i class="ki-outline ki-night-day fs-3"></i>
-                                    </span>
-                                    <span class="menu-title">@lang('general.light')</span>
-                                </a>
-                            </div>
-                            <div class="menu-item px-3 my-0">
-                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="dark">
-                                    <span class="menu-icon" data-kt-element="icon">
-                                        <i class="ki-outline ki-moon fs-3"></i>
-                                    </span>
-                                    <span class="menu-title">@lang('general.dark')</span>
-                                </a>
-                            </div>
-                            <div class="menu-item px-3 my-0">
-                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="system">
-                                    <span class="menu-icon" data-kt-element="icon">
-                                        <i class="ki-outline ki-screen fs-3"></i>
-                                    </span>
-                                    <span class="menu-title">@lang('general.system')</span>
-                                </a>
-                            </div>
-                        </div>
+                            </span>
+                            <span class="menu-title">@lang('general.light')</span>
+                        </a>
                     </div>
+                    <div class="menu-item px-3 my-0">
+                        <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="dark">
+                            <span class="menu-icon" data-kt-element="icon">
+                                        <i class="ki-outline ki-moon fs-3"></i>
+                            </span>
+                            <span class="menu-title">@lang('general.dark')</span>
+                        </a>
+                    </div>
+                    <div class="menu-item px-3 my-0">
+                        <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="system">
+                            <span class="menu-icon" data-kt-element="icon">
+                                        <i class="ki-outline ki-screen fs-3"></i>
+                            </span>
+                            <span class="menu-title">@lang('general.system')</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
                     @php
                         $currentLocale = session('locale', app()->getLocale()) === 'en' ? 'en' : 'ar';
@@ -612,10 +612,10 @@
                     >
                         <img class="user-footer-flag"
                             src="/assets/media/flags/{{ $nextLocale === 'ar' ? 'saudi-arabia.svg' : 'united-states.svg' }}"
-                            alt="" />
+                                alt="" />
                         <span>{{ $nextLocale === 'ar' ? 'العربية' : 'English' }}</span>
                     </a>
-                </div>
+                    </div>
 
                 <a href="{{ route('logout') }}" class="user-footer-logout">
                     <i class="ki-outline ki-exit-right fs-4"></i>
@@ -1504,10 +1504,10 @@
         $('.notification-mark-all-btn').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            ajaxRequest("{{ route('notification-mark-all-as-read') }}", "POST", {}, false, false, false)
+                ajaxRequest("{{ route('notification-mark-all-as-read') }}", "POST", {}, false, false, false)
                 .done(function() {
-                    unreadNotificationCount = 0;
-                    updateUnreadBadgeHtml(0);
+                            unreadNotificationCount = 0;
+                            updateUnreadBadgeHtml(0);
                     $('.notification-mark-all-btn').addClass('is-disabled');
                     $('.notification-unread-count').remove();
                     $('.notification-body').removeClass('is-unread');
@@ -1618,7 +1618,7 @@
                         data-id="${notification.id}" data-url="${escapeHtml(notification.url || '')}" role="button">
                         <div class="nb-ico sev-${sev}">
                             <i class="fs-4 ki-outline ${escapeHtml(notification.icon || 'ki-notification')}"></i>
-                        </div>
+                            </div>
                         <div class="min-w-0">
                             <div class="nb-title">${dot}${escapeHtml(notification.title)}</div>
                             <p class="nb-body">${body}</p>
@@ -1629,7 +1629,7 @@
                         </div>
                         <button type="button" data-id="${notification.id}" class="notification-delete-btn btn btn-icon btn-sm btn-light" title="@lang('employee::fields.delete')">
                             <i class="ki-outline ki-trash fs-6 text-danger"></i>
-                        </button>
+                            </button>
                     </div>`;
                     list.append(notificationHtml);
                 });
@@ -1642,10 +1642,10 @@
                     </div>`);
             }
             unreadNotificationCount = response.unread_count || 0;
-            updateUnreadBadgeHtml(unreadNotificationCount);
-            if (typeof response.all_count !== 'undefined') {
-                $('.notification-count').html(response.all_count);
-            }
+                updateUnreadBadgeHtml(unreadNotificationCount);
+                if (typeof response.all_count !== 'undefined') {
+                    $('.notification-count').html(response.all_count);
+                }
             const markAll = $('.notification-mark-all-btn');
             if (unreadNotificationCount > 0) {
                 markAll.removeClass('is-disabled');

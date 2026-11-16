@@ -17,10 +17,11 @@ Route::middleware([
         Route::get('/login', 'index')->name('login');
 
         Route::post('/postlogin', 'login')->name('login.postLogin');
-
-        Route::get('/auth/tenant-switch', \Modules\Employee\Http\Controllers\TenantSwitchAuthController::class)
-            ->name('auth.tenant-switch');
     });
+
+    // Outside guest: a stale company session must not block a signed handoff from the main system.
+    Route::get('/auth/tenant-switch', \Modules\Employee\Http\Controllers\TenantSwitchAuthController::class)
+        ->name('auth.tenant-switch');
 
     Route::middleware(['guest'])->controller(PasswordResetController::class)->group(function () {
         Route::get('/forgot-password', 'forgotPasswordForm')->name('password.request');

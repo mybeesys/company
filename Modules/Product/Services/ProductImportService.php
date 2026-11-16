@@ -89,12 +89,10 @@ class ProductImportService
                 $problemFields[] = 'subcategory';
             }
 
-            $estName = $row['establishment'];
+            $estName = trim((string) ($row['establishment'] ?? ''));
             $isAll = in_array($estName, ['جميع المستودعات', 'All Establishments'], true);
-            if ($estName === '') {
-                $issues[] = ['code' => 'REQUIRED', 'field' => 'establishment', 'value' => ''];
-                $problemFields[] = 'establishment';
-            } elseif (! $isAll) {
+            // Establishment is optional: blank = no branch link; name must still match if filled.
+            if ($estName !== '' && ! $isAll) {
                 $est = Establishment::query()
                     ->where(function ($q) use ($estName) {
                         $q->where('name', $estName)->orWhere('name_en', $estName);
@@ -286,10 +284,10 @@ class ProductImportService
             throw new \RuntimeException('Tax not found');
         }
 
-        $estName = $row['establishment'];
+        $estName = trim((string) ($row['establishment'] ?? ''));
         $isAll = in_array($estName, ['جميع المستودعات', 'All Establishments'], true);
         $est = null;
-        if (! $isAll) {
+        if ($estName !== '' && ! $isAll) {
             $est = Establishment::query()
                 ->where(function ($q) use ($estName) {
                     $q->where('name', $estName)->orWhere('name_en', $estName);

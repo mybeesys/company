@@ -1343,16 +1343,31 @@
             display: flex;
             align-items: flex-start;
             gap: 0.55rem;
-            font-size: 0.92rem;
+            font-size: 0.98rem;
             font-weight: 600;
             color: var(--text-color);
             margin-bottom: 0.85rem;
-            line-height: 1.5;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .menu-location-address i {
             color: var(--brand-accent);
             margin-top: 0.15rem;
+            flex-shrink: 0;
+        }
+
+        .menu-location-description-card {
+            background: linear-gradient(145deg, var(--brand-surface), #fffdf8);
+            border: 1px solid rgba(var(--brand-primary-rgb), 0.2);
+            border-radius: 14px;
+            padding: 1rem 1rem 0.95rem;
+            margin-bottom: 0.85rem;
+        }
+
+        body.dark-mode .menu-location-description-card {
+            background: rgba(255, 255, 255, 0.04);
         }
 
         .menu-location-map-frame {
@@ -2494,29 +2509,44 @@
                                 </select>
                             </div>
                         @endif
-                        @if (!empty($mapLabel))
-                            <div class="menu-location-address" id="menuLocationAddress">
+                        <div class="menu-location-description-card {{ empty($mapLabel) ? 'd-none' : '' }}" id="menuLocationAddress">
+                            <div class="menu-location-label">@lang('reservation::lang.modal_location_description')</div>
+                            <div class="menu-location-address mb-0">
                                 <i class="fa-solid fa-map-pin" aria-hidden="true"></i>
                                 <span id="menuLocationAddressText">{{ $mapLabel }}</span>
                             </div>
-                        @else
-                            <div class="menu-location-address d-none" id="menuLocationAddress">
-                                <i class="fa-solid fa-map-pin" aria-hidden="true"></i>
-                                <span id="menuLocationAddressText"></span>
-                            </div>
-                        @endif
+                        </div>
                         @if ($mapEmbedUrl)
-                            <div class="ratio ratio-16x9 menu-location-map-frame mb-3">
+                            <div class="ratio ratio-16x9 menu-location-map-frame mb-3" id="menuLocationMapWrap">
                                 <iframe id="menuLocationMapFrame" src="{{ $mapEmbedUrl }}" style="border:0;" loading="lazy"
                                     referrerpolicy="no-referrer-when-downgrade"></iframe>
                             </div>
+                        @else
+                            <div class="ratio ratio-16x9 menu-location-map-frame mb-3 d-none" id="menuLocationMapWrap">
+                                <iframe id="menuLocationMapFrame" src="about:blank" style="border:0;" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                        @endif
+                        @php
+                            $mapsHref = !empty($mapLabel)
+                                ? 'https://www.google.com/maps/search/?api=1&query='.rawurlencode((string) $mapLabel)
+                                : ((!empty($mapLat) && !empty($mapLng))
+                                    ? 'https://www.google.com/maps?q='.$mapLat.','.$mapLng
+                                    : null);
+                        @endphp
+                        @if ($mapsHref)
                             <a id="menuLocationOpenMapsBtn" class="btn btn-primary menu-location-open-btn w-100" target="_blank" rel="noopener"
-                                href="https://www.google.com/maps?q={{ $mapLat }},{{ $mapLng }}">
+                                href="{{ $mapsHref }}">
                                 <i class="fa-brands fa-google" aria-hidden="true"></i>
-                                @lang('reservation::lang.modal_open_maps')
+                                @lang('reservation::lang.modal_open_maps_search')
                             </a>
                         @else
-                            <p class="text-muted mb-0 text-center py-3">@lang('general::lang.no_results')</p>
+                            <a id="menuLocationOpenMapsBtn" class="btn btn-primary menu-location-open-btn w-100 d-none" target="_blank" rel="noopener"
+                                href="#">
+                                <i class="fa-brands fa-google" aria-hidden="true"></i>
+                                @lang('reservation::lang.modal_open_maps_search')
+                            </a>
+                            <p class="text-muted mb-0 text-center py-3" id="menuLocationEmpty">@lang('general::lang.no_results')</p>
                         @endif
                     </div>
                 </div>
@@ -2540,12 +2570,13 @@
     <script>
         (function() {
             const estLocations = @json($menuEstLocations);
-
             const select = document.getElementById('menuLocationEstSelect');
             const frame = document.getElementById('menuLocationMapFrame');
+            const mapWrap = document.getElementById('menuLocationMapWrap');
             const btn = document.getElementById('menuLocationOpenMapsBtn');
-
-            if (!select || !frame || !btn) return;
+            const addressWrap = document.getElementById('menuLocationAddress');
+            const addressText = document.getElementById('menuLocationAddressText');
+            const emptyMsg = document.getElementById('menuLocationEmpty');
 
             const buildEmbedUrl = (lat, lng) => {
                 const d = 0.02;
@@ -2553,26 +2584,57 @@
                 return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${Number(lat)},${Number(lng)}`;
             };
 
-            const addressWrap = document.getElementById('menuLocationAddress');
-            const addressText = document.getElementById('menuLocationAddressText');
-
             const applyLocation = (estId) => {
                 const row = estLocations[String(estId)] || estLocations[Number(estId)] || null;
-                const lat = row && row.map_lat != null ? row.map_lat : null;
-                const lng = row && row.map_lng != null ? row.map_lng : null;
-                if (lat == null || lng == null || String(lat).trim() === '' || String(lng).trim() === '') {
-                    return;
+                const label = row && row.map_label != null ? String(row.map_label).trim() : '';
+                const lat = row && row.map_lat != null && String(row.map_lat).trim() !== '' ? row.map_lat : null;
+                const lng = row && row.map_lng != null && String(row.map_lng).trim() !== '' ? row.map_lng : null;
+
+                if (addressWrap && addressText) {
+                    if (label) {
+                        addressText.textContent = label;
+                        addressWrap.classList.remove('d-none');
+                    } else {
+                        addressText.textContent = '';
+                        addressWrap.classList.add('d-none');
+                    }
                 }
-                frame.src = buildEmbedUrl(lat, lng);
-                btn.href = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
-                if (addressWrap && addressText && row && row.map_label) {
-                    addressText.textContent = row.map_label;
-                    addressWrap.classList.remove('d-none');
+
+                if (mapWrap && frame) {
+                    if (lat != null && lng != null) {
+                        frame.src = buildEmbedUrl(lat, lng);
+                        mapWrap.classList.remove('d-none');
+                    } else {
+                        mapWrap.classList.add('d-none');
+                        frame.src = 'about:blank';
+                    }
+                }
+
+                if (btn) {
+                    if (label) {
+                        btn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(label)}`;
+                        btn.classList.remove('d-none');
+                    } else if (lat != null && lng != null) {
+                        btn.href = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
+                        btn.classList.remove('d-none');
+                    } else {
+                        btn.classList.add('d-none');
+                    }
+                }
+
+                if (emptyMsg) {
+                    if (label || (lat != null && lng != null)) {
+                        emptyMsg.classList.add('d-none');
+                    } else {
+                        emptyMsg.classList.remove('d-none');
+                    }
                 }
             };
 
-            applyLocation(select.value);
-            select.addEventListener('change', (e) => applyLocation(e.target.value));
+            if (select) {
+                applyLocation(select.value);
+                select.addEventListener('change', (e) => applyLocation(e.target.value));
+            }
         })();
     </script>
 

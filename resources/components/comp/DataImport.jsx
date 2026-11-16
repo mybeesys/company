@@ -1,7 +1,85 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import Select from "react-select";
 import { getRowName } from "../lang/Utils";
 import { emsCan } from "../emsCan";
+
+const ALL_ESTABLISHMENTS_AR = "جميع المستودعات";
+const ALL_ESTABLISHMENTS_EN = "All Establishments";
+
+const establishmentSelectStyles = {
+  container: (base) => ({ ...base, width: "100%", minWidth: 160 }),
+  control: (base, state) => ({
+    ...base,
+    minHeight: 32,
+    height: 32,
+    borderRadius: 6,
+    boxShadow: "none",
+    borderColor: state.isFocused ? "#ebb81e" : base.borderColor,
+    "&:hover": { borderColor: "#ebb81e" },
+  }),
+  valueContainer: (base) => ({ ...base, padding: "0 8px" }),
+  indicatorsContainer: (base) => ({ ...base, height: 32 }),
+  dropdownIndicator: (base) => ({ ...base, padding: 4 }),
+  clearIndicator: (base) => ({ ...base, padding: 4 }),
+  singleValue: (base) => ({
+    ...base,
+    maxWidth: "100%",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  }),
+  menu: (base) => ({ ...base, zIndex: 20, borderRadius: 8 }),
+  menuPortal: (base) => ({ ...base, zIndex: 100000 }),
+  option: (base) => ({
+    ...base,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    fontSize: 13,
+  }),
+};
+
+const buildEstablishmentOptions = (list, translations, dir) => {
+  const allLabel =
+    dir === "ltr"
+      ? translations?.allEstablishments || ALL_ESTABLISHMENTS_EN
+      : translations?.allEstablishments || ALL_ESTABLISHMENTS_AR;
+  const allValue = dir === "ltr" ? ALL_ESTABLISHMENTS_EN : ALL_ESTABLISHMENTS_AR;
+  const options = [
+    {
+      value: allValue,
+      label: allLabel,
+      names: [ALL_ESTABLISHMENTS_AR, ALL_ESTABLISHMENTS_EN],
+    },
+  ];
+  (Array.isArray(list) ? list : []).forEach((item) => {
+    const nameAr = item.name_ar || item.name || "";
+    const nameEn = item.name_en || "";
+    const label = getRowName(item, dir) || nameAr || nameEn;
+    const stored = nameAr || nameEn;
+    if (!stored) return;
+    options.push({
+      value: stored,
+      label,
+      names: [nameAr, nameEn].filter(Boolean),
+    });
+  });
+  return options;
+};
+
+const findEstablishmentOption = (options, raw) => {
+  const needle = String(raw ?? "").trim();
+  if (!needle) return null;
+  return (
+    options.find(
+      (opt) =>
+        opt.value === needle ||
+        opt.label === needle ||
+        (opt.names || []).some((n) => n === needle)
+    ) || null
+  );
+};
 
 const ACCEPTED = {
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
@@ -22,7 +100,12 @@ const IMPORT_PROFILES = {
       { key: "main_unit", labelKey: "Unit", editable: true },
       { key: "price_with_tax", labelKey: "price_with_tax", editable: true },
       { key: "tax", labelKey: "tax", editable: true },
-      { key: "establishment", labelKey: "establishment", editable: true },
+      {
+        key: "establishment",
+        labelKey: "establishment",
+        editable: true,
+        type: "establishment",
+      },
       { key: "SKU", labelKey: "SKU", editable: true },
     ],
   },
@@ -37,7 +120,12 @@ const IMPORT_PROFILES = {
       { key: "cost", labelKey: "cost", editable: true },
       { key: "SKU", labelKey: "SKU", editable: true },
       { key: "barcode", labelKey: "barcode", editable: true },
-      { key: "establishment", labelKey: "establishment", editable: true },
+      {
+        key: "establishment",
+        labelKey: "establishment",
+        editable: true,
+        type: "establishment",
+      },
       { key: "for_sell", labelKey: "forSell", editable: true },
     ],
   },
@@ -105,6 +193,8 @@ const ImportPreviewTable = ({
   onCellChange,
   onCellBlur,
   revalidating,
+  establishmentOptions,
+  dir,
 }) => (
   <div className="table-responsive pi-preview-table-wrap">
     <table className="table align-middle gs-0 gy-2 mb-0 pi-preview-table">
@@ -141,6 +231,48 @@ const ImportPreviewTable = ({
               {columns.map((col) => {
                 const isProblem = problems.has(col.key);
                 const value = row[col.key] ?? "";
+                if (canEdit && col.editable && col.type === "establishment") {
+                  const selected = findEstablishmentOption(
+                    establishmentOptions,
+                    value
+                  );
+                  return (
+                    <td
+                      key={col.key}
+                      className={isProblem ? "pi-cell-problem" : ""}
+                      style={{ minWidth: 180 }}
+                    >
+                      <Select
+                        classNamePrefix="pi-est-select"
+                        options={establishmentOptions}
+                        value={selected}
+                        isDisabled={revalidating}
+                        isClearable
+                        isSearchable
+                        placeholder={
+                          translations.selectEstablishment ||
+                          (dir === "ltr"
+                            ? "Select establishment"
+                            : "اختر المنشأة")
+                        }
+                        noOptionsMessage={() =>
+                          translations.noResults ||
+                          (dir === "ltr" ? "No results" : "لا نتائج")
+                        }
+                        menuPortalTarget={
+                          typeof document !== "undefined" ? document.body : null
+                        }
+                        menuPosition="fixed"
+                        styles={establishmentSelectStyles}
+                        onChange={(opt) => {
+                          onCellChange(index, col.key, opt?.value || "", {
+                            revalidate: true,
+                          });
+                        }}
+                      />
+                    </td>
+                  );
+                }
                 if (canEdit && col.editable) {
                   return (
                     <td key={col.key} className={isProblem ? "pi-cell-problem" : ""}>
@@ -154,6 +286,17 @@ const ImportPreviewTable = ({
                         onChange={(e) => onCellChange(index, col.key, e.target.value)}
                         onBlur={() => onCellBlur(index)}
                       />
+                    </td>
+                  );
+                }
+                if (col.type === "establishment") {
+                  const matched = findEstablishmentOption(
+                    establishmentOptions,
+                    value
+                  );
+                  return (
+                    <td key={col.key} className={isProblem ? "pi-cell-problem" : ""}>
+                      {matched?.label || value || "—"}
                     </td>
                   );
                 }
@@ -189,8 +332,36 @@ const DataImport = ({ translations, dir }) => {
   const [revalidating, setRevalidating] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [previewError, setPreviewError] = useState(null);
+  const [establishmentList, setEstablishmentList] = useState([]);
 
   const t = (key, fallback) => translations?.[key] || fallback;
+
+  const needsEstablishments = previewColumns.some(
+    (col) => col.type === "establishment"
+  );
+
+  useEffect(() => {
+    if (!needsEstablishments) return;
+    let cancelled = false;
+    axios
+      .get("/searchEstablishments?key=")
+      .then((response) => {
+        if (!cancelled) {
+          setEstablishmentList(Array.isArray(response.data) ? response.data : []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setEstablishmentList([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsEstablishments]);
+
+  const establishmentOptions = useMemo(
+    () => buildEstablishmentOptions(establishmentList, translations, dir),
+    [establishmentList, translations, dir]
+  );
 
   const rules = useMemo(
     () => [
@@ -297,10 +468,13 @@ const DataImport = ({ translations, dir }) => {
     onDragLeave: () => setDragActive(false),
   });
 
-  const handleCellChange = (index, key, value) => {
+  const handleCellChange = (index, key, value, { revalidate = false } = {}) => {
     setData((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [key]: value };
+      if (revalidate) {
+        queueMicrotask(() => revalidateRows(next));
+      }
       return next;
     });
   };
@@ -693,6 +867,8 @@ const DataImport = ({ translations, dir }) => {
               onCellChange={handleCellChange}
               onCellBlur={handleCellBlur}
               revalidating={revalidating}
+              establishmentOptions={establishmentOptions}
+              dir={dir}
             />
           ) : (
             <div className="pi-empty-preview text-center py-10">
