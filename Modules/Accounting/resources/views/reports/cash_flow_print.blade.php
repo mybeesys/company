@@ -6,7 +6,9 @@
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 10px; color: #181c32; }
         h2 { margin: 0 0 6px; font-size: 15px; }
+        h3 { margin: 14px 0 6px; font-size: 12px; }
         .muted { color: #78829d; margin-bottom: 8px; }
+        .note { padding: 6px 8px; border: 1px solid #b5d0ff; background: #eef5ff; margin-bottom: 10px; }
         .summary { padding: 8px; border: 1px solid #dbdfe9; margin-bottom: 10px; background: #f9f9f9; }
         table { width: 100%; border-collapse: collapse; margin-top: 6px; }
         th, td { border: 1px solid #dbdfe9; padding: 4px 6px; }
@@ -15,11 +17,45 @@
         .section { background: #f1f1f4; font-weight: bold; }
         .subtotal { background: #f9f9f9; font-weight: bold; }
         .grand { background: #e9f3ff; font-weight: bold; }
+        .dim { color: #99a1b7; }
     </style>
 </head>
 <body>
     <h2>{{ $company->name ?? '' }} — {{ __('accounting::lang.cash_flow_statement') }}</h2>
     <div class="muted">{{ __('accounting::lang.from_date') }}: {{ $startDate }} — {{ __('accounting::lang.to_date') }}: {{ $endDate }}</div>
+    <div class="note">{{ __('accounting::lang.cf_structure_phase_note') }}</div>
+
+    <h3>{{ __('accounting::lang.cf_coa_statement') }}</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>{{ __('accounting::lang.cf_line_item') }}</th>
+                <th>{{ __('accounting::lang.cf_linked_gl') }}</th>
+                <th class="text-end">{{ __('employee::fields.amount') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (($coaStatement['rows'] ?? []) as $row)
+                @php
+                    $kind = $row['kind'] ?? 'line';
+                    $cls = match ($kind) {
+                        'header' => 'section',
+                        'subtotal' => 'subtotal',
+                        'total' => 'grand',
+                        default => '',
+                    };
+                    $pad = max(0, (int) ($row['indent'] ?? 0)) * 10;
+                @endphp
+                <tr class="{{ $cls }}">
+                    <td style="padding-inline-start: {{ 4 + $pad }}px">{{ $row['label'] ?? '' }}</td>
+                    <td>{{ !empty($row['gl_codes']) ? implode(', ', $row['gl_codes']) : '—' }}</td>
+                    <td class="text-end dim">{{ __('accounting::lang.cf_amount_pending') }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    <h3>{{ __('accounting::lang.cf_movements_analysis') }}</h3>
     <div class="summary">
         {{ __('accounting::lang.cash_inflows') }}: {{ number_format((float) $cashInflows, 2) }}
         | {{ __('accounting::lang.cash_outflows') }}: {{ number_format((float) $cashOutflows, 2) }}
