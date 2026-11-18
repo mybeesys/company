@@ -17,6 +17,17 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertFalse(MyBeeMasterCoaRules::isIllustrativePartyAccount('البنك - حساب جاري', 'Bank - Current Account'));
     }
 
+    public function test_default_local_party_example_leaves_only(): void
+    {
+        $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل 1', 'Customer 1'));
+        $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل 3', 'Customer 3'));
+        $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('مورد 2', 'Supplier 2'));
+        $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل تصدير 1', 'Export Customer 1'));
+        $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('مورد خارجي 1', 'Foreign Supplier 1'));
+        $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('حساب بنكي 1', 'Bank Account 1'));
+        $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('العملاء - محلي', 'Trade Receivables - Local'));
+    }
+
     public function test_maps_english_class_to_system_primary_types(): void
     {
         $this->assertSame('asset', MyBeeMasterCoaRules::primaryTypeFromClass('Assets'));
@@ -41,6 +52,12 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertSame('51402', $candidates['purchases_discount'][0]);
         $this->assertSame('11505', $candidates['inventory'][0]);
         $this->assertSame('51101', $candidates['cogs'][0]);
+        $this->assertSame('32201', $candidates['fiscal_close_current_period_result'][0]);
+        $this->assertSame('32101', $candidates['fiscal_close_retained_earnings'][0]);
+        $this->assertNotSame(
+            $candidates['fiscal_close_current_period_result'][0],
+            $candidates['fiscal_close_retained_earnings'][0]
+        );
     }
 
     public function test_color_system_uses_workbook_families_and_levels(): void
@@ -61,7 +78,7 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertNotSame('#7F6000', $expenseL4['accent']);
     }
 
-    public function test_compiled_catalog_includes_full_tree_through_party_leaves(): void
+    public function test_compiled_catalog_excludes_default_local_party_leaves(): void
     {
         $path = dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'Modules'.DIRECTORY_SEPARATOR.'Accounting'.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'mybee-master-coa-v6.php';
         if (! is_file($path)) {
@@ -71,15 +88,32 @@ class MyBeeMasterCoaRulesTest extends TestCase
 
         /** @var array<string, mixed> $catalog */
         $catalog = require $path;
-        $codes = array_column($catalog['accounts'], 'gl_code');
+        $installable = array_values(array_filter(
+            $catalog['accounts'],
+            static fn (array $row): bool => ! MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf(
+                (string) ($row['name_ar'] ?? ''),
+                (string) ($row['name_en'] ?? '')
+            )
+        ));
+        $codes = array_column($installable, 'gl_code');
+        $rawCodes = array_column($catalog['accounts'], 'gl_code');
 
         $this->assertCount(17, $catalog['types']);
         $this->assertSame(5, (int) $catalog['max_level']);
-        $this->assertContains('11301', $codes);
-        $this->assertContains('1130101', $codes); // Customer 1
-        $this->assertContains('2110101', $codes); // Supplier 1
-        $this->assertContains('1120101', $codes); // Bank Account 1
-        $this->assertGreaterThanOrEqual(296, count($codes));
+        $this->assertContains('11301', $codes); // Trade Receivables - Local (control)
+        $this->assertContains('21101', $codes); // Trade Payables - Local (control)
+        $this->assertNotContains('1130101', $rawCodes); // Customer 1 removed from compiled pack
+        $this->assertNotContains('1130102', $rawCodes);
+        $this->assertNotContains('1130103', $rawCodes);
+        $this->assertNotContains('2110101', $rawCodes); // Supplier 1 removed from compiled pack
+        $this->assertNotContains('2110102', $rawCodes);
+        $this->assertNotContains('2110103', $rawCodes);
+        $this->assertNotContains('1130101', $codes);
+        $this->assertNotContains('2110101', $codes);
+        $this->assertContains('1120101', $codes); // Bank Account 1 kept
+        $this->assertContains('1130201', $codes); // Export Customer 1 kept
+        $this->assertContains('2110201', $codes); // Foreign Supplier 1 kept
+        $this->assertGreaterThanOrEqual(290, count($codes));
         $this->assertContains('41101', $codes);
         $this->assertContains('21301', $codes);
         $this->assertContains('11901', $codes);
@@ -88,7 +122,7 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertContains('51402', $codes);
 
         $byGl = [];
-        foreach ($catalog['accounts'] as $row) {
+        foreach ($installable as $row) {
             $byGl[$row['gl_code']] = $row;
         }
 
@@ -100,8 +134,7 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertTrue($byGl['51401']['allow_direct_posting']);
         $this->assertTrue($byGl['51402']['allow_direct_posting']);
         $this->assertFalse($byGl['514']['allow_direct_posting']);
-        $this->assertSame(5, (int) $byGl['1130101']['level']);
-        $this->assertTrue($byGl['1130101']['allow_direct_posting']);
-        $this->assertSame('11301', $byGl['1130101']['parent_gl']);
+        $this->assertFalse($byGl['11301']['allow_direct_posting']);
+        $this->assertFalse($byGl['21101']['allow_direct_posting']);
     }
 }

@@ -98,6 +98,14 @@
                     <option value="financing" @selected(($activity_section ?? '') === 'financing')>@lang('accounting::lang.financing_activities')</option>
                 </select>
             </div>
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small" for="detail_level">@lang('accounting::lang.cf_detail_level')</label>
+                <select name="detail_level" id="detail_level" class="form-select form-select-sm">
+                    <option value="3" @selected((int)($detail_level ?? 3) === 3)>@lang('accounting::lang.cf_detail_level_3')</option>
+                    <option value="4" @selected((int)($detail_level ?? 3) === 4)>@lang('accounting::lang.cf_detail_level_4')</option>
+                    <option value="5" @selected((int)($detail_level ?? 3) === 5)>@lang('accounting::lang.cf_detail_level_5')</option>
+                </select>
+            </div>
             <div class="col-md-6 col-lg-4">
                 <label class="form-label small" for="choose_cost_center_select">@lang('accounting::lang.cost_center')</label>
                 <select name="choose_cost_center_select[]" id="choose_cost_center_select" class="form-select form-select-sm" multiple>
@@ -125,10 +133,22 @@
                 @dashboardcan(\Modules\Accounting\Support\AccountingPermissions::CASH_FLOW_PRINT)
                 <button type="button" id="cashFlowExportPdf" class="btn btn-export-pdf btn-sm">PDF</button>
                 <button type="button" id="cashFlowExportExcel" class="btn btn-export-excel btn-sm">Excel</button>
+                <button type="button" id="cashFlowExportStatementExcel" class="btn btn-light-primary btn-sm">@lang('accounting::lang.cf_export_statement')</button>
                 @enddashboardcan
             </div>
         </div>
     </form>
+
+    <div class="alert alert-primary py-2 mb-3 no-print">
+        <span class="badge badge-light-primary me-2">@lang('accounting::lang.cf_structure_phase_badge')</span>
+        @lang('accounting::lang.cf_structure_phase_note')
+        @if(!empty($coaStatement['missing_prefixes'] ?? []))
+            <div class="small mt-1 text-muted">
+                @lang('accounting::lang.cf_missing_coa_prefix'):
+                {{ implode(', ', $coaStatement['missing_prefixes']) }}
+            </div>
+        @endif
+    </div>
 
     <div class="alert {{ ($netCashFlow ?? 0) >= 0 ? 'alert-success' : 'alert-warning' }} py-2 mb-3 no-print">
         <strong>@lang('accounting::lang.net_cash_flows'):</strong> @format_accounting_amount($netCashFlow ?? 0)
@@ -237,12 +257,64 @@
         </div>
     </div>
 
+    @php $coaRows = $coaStatement['rows'] ?? []; @endphp
     <div class="cf-panel mb-4">
-        <div class="cf-panel-header d-flex justify-content-between align-items-center">
-            <h3 class="cf-panel-title mb-0">@lang('accounting::lang.cash_flow_statement')</h3>
+        <div class="cf-panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h3 class="cf-panel-title mb-0">@lang('accounting::lang.cf_coa_statement')</h3>
+            <span class="small text-muted">@lang('accounting::lang.cf_detail_level'): {{ $coaStatement['detail_level'] ?? 3 }}</span>
         </div>
         <div class="cf-statement-scroll p-0">
             <table class="table table-sm mb-0" id="cfStatementTable">
+                <thead>
+                    <tr>
+                        <th>@lang('accounting::lang.cf_line_item')</th>
+                        <th>@lang('accounting::lang.cf_linked_gl')</th>
+                        <th class="cf-fin">{{ $startDate }}</th>
+                        <th class="cf-fin">@lang('employee::fields.amount')</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($coaRows as $row)
+                        @php
+                            $kind = $row['kind'] ?? 'line';
+                            $rowClass = match ($kind) {
+                                'header' => 'cf-section-row',
+                                'subheader' => 'cf-line-row fw-semibold',
+                                'subtotal' => 'cf-line-row cf-subtotal',
+                                'total' => 'cf-summary-row',
+                                default => 'cf-line-row'.(!empty($row['is_detail']) ? ' cf-indent-1' : ''),
+                            };
+                            $indent = (int) ($row['indent'] ?? 0);
+                            $pad = $indent > 0 ? ('padding-inline-start:'.(0.75 + $indent * 0.85).'rem') : '';
+                        @endphp
+                        <tr class="{{ $rowClass }}">
+                            <td style="{{ $pad }}">{{ $row['label'] ?? '' }}</td>
+                            <td class="small text-muted">
+                                @if(!empty($row['gl_codes']))
+                                    {{ implode(', ', $row['gl_codes']) }}
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td class="cf-fin text-muted">@lang('accounting::lang.cf_amount_pending')</td>
+                            <td class="cf-fin text-muted">@lang('accounting::lang.cf_amount_pending')</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-muted text-center py-4">@lang('accounting::lang.no_data')</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="cf-panel mb-4 no-print">
+        <div class="cf-panel-header d-flex justify-content-between align-items-center">
+            <h3 class="cf-panel-title mb-0">@lang('accounting::lang.cf_movements_analysis')</h3>
+        </div>
+        <div class="cf-statement-scroll p-0">
+            <table class="table table-sm mb-0" id="cfMovementsStatementTable">
                 <thead>
                     <tr>
                         <th>@lang('accounting::lang.cf_line_item')</th>
@@ -458,6 +530,9 @@
 
             $('#cashFlowExportPdf').on('click', () => window.open(cashFlowExportPdfUrl + '?' + buildCashFlowQuery(), '_blank'));
             $('#cashFlowExportExcel').on('click', () => { window.location.href = cashFlowExportExcelUrl + '?' + buildCashFlowQuery(); });
+            $('#cashFlowExportStatementExcel').on('click', () => {
+                window.location.href = cashFlowExportExcelUrl + '?' + buildCashFlowQuery() + '&export_mode=statement';
+            });
         });
     </script>
 @stop

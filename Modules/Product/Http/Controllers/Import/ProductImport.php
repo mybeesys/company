@@ -64,7 +64,8 @@ class ProductImport implements ToModel, WithHeadingRow
 
         $isAllEstablishments = in_array($establishmentName, ['جميع المستودعات', 'All Establishments'], true);
         $est = null;
-        if (! $isAllEstablishments) {
+        // Establishment is optional; validate only when a value is provided.
+        if ($establishmentName !== '' && ! $isAllEstablishments) {
             $est = Establishment::query()
                 ->where(function ($q) use ($establishmentName) {
                     $q->where('name', $establishmentName)

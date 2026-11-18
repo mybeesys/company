@@ -1941,6 +1941,7 @@ class AccountingReportsController extends Controller
             'detailPaginator' => $detailPaginator,
             'compare_mode' => $report['compareMode'],
             'period_group' => $report['periodGroup'],
+            'detail_level' => $report['detailLevel'] ?? $report['coaStatement']['detail_level'] ?? 3,
         ]));
     }
 
@@ -1967,6 +1968,32 @@ class AccountingReportsController extends Controller
     public function cashFlowExportExcel(Request $request)
     {
         $report = CashFlowReportService::dataset($request);
+
+        if ($request->input('export_mode') === 'statement') {
+            $exportRows = collect($report['coaStatement']['rows'] ?? [])->map(function (array $row) {
+                return [
+                    $row['label'] ?? '',
+                    implode(', ', $row['gl_codes'] ?? []),
+                    $row['account_label'] ?? '',
+                    $row['section'] ?? '',
+                    $row['kind'] ?? '',
+                    $row['amount'] === null ? '—' : number_format((float) $row['amount'], 2, '.', ''),
+                ];
+            });
+
+            return Excel::download(
+                new CashFlowExport($exportRows, [
+                    'start_date' => $report['startDate'],
+                    'end_date' => $report['endDate'],
+                    'cash_inflows' => $report['cashInflows'],
+                    'cash_outflows' => $report['cashOutflows'],
+                    'net_cash_flow' => $report['netCashFlow'],
+                    'export_mode' => 'statement',
+                    'detail_level' => $report['detailLevel'] ?? 3,
+                ]),
+                'cash-flow-statement-'.now()->format('Ymd-His').'.xlsx'
+            );
+        }
 
         $exportRows = collect($report['detailRows'])->map(function ($row) {
             return [

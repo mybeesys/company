@@ -156,7 +156,7 @@ const MenuQR = ({ translations, dir }) => {
     const getTranslatedLabel = (key) => {
         const fallbackLabels = {
             todays_menu: dir === "rtl" ? "قائمة اليوم" : "Today's Menu",
-            location: dir === "rtl" ? "الموقع الجغرافي" : "Location",
+            location: dir === "rtl" ? "وصف الموقع" : "Location",
             smart_menu: dir === "rtl" ? "المنيو الذكي" : "Smart Menu",
             allergy_info: dir === "rtl" ? "معلومات الحساسية" : "Allergy Info",
             photos: dir === "rtl" ? "معرض الصور" : "Photos",
@@ -319,36 +319,6 @@ const MenuQR = ({ translations, dir }) => {
         }
     };
 
-    const fillLocationFromBrowser = () => {
-        if (!navigator.geolocation) {
-            window.Swal.fire({
-                icon: "warning",
-                title: dir === "rtl" ? "غير مدعوم" : "Not supported",
-                text: dir === "rtl" ? "المتصفح لا يدعم تحديد الموقع" : "Geolocation is not supported",
-            });
-            return;
-        }
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const lat = String(pos.coords.latitude);
-                const lng = String(pos.coords.longitude);
-                onChange("map_lat", lat);
-                onChange("map_lng", lng);
-                const firstEstId = currentObject.selectedEstablishments?.[0]?.value;
-                if (firstEstId) {
-                    setEstLocation(firstEstId, { map_lat: lat, map_lng: lng });
-                }
-            },
-            () => {
-                window.Swal.fire({
-                    icon: "error",
-                    title: dir === "rtl" ? "تعذر الموقع" : "Location error",
-                    text: dir === "rtl" ? "اسمح بالوصول للموقع أو أدخل الإحداثيات يدوياً" : "Allow location or enter coordinates manually",
-                });
-            }
-        );
-    };
-
     const validateBeforeGenerate = () => {
         const s = currentObject.menuSections;
         if (s.todays_menu && !currentObject.customMenu) {
@@ -366,28 +336,27 @@ const MenuQR = ({ translations, dir }) => {
             if (ids.length > 0) {
                 for (const id of ids) {
                     const row = map[String(id)];
-                    const lat = row?.map_lat ?? "";
-                    const lng = row?.map_lng ?? "";
-                    if (String(lat).trim() === "" || String(lng).trim() === "") {
+                    const label = String(row?.map_label ?? "").trim();
+                    if (label === "") {
                         window.Swal.fire({
                             icon: "error",
                             title: dir === "rtl" ? "الموقع" : "Location",
                             text:
                                 dir === "rtl"
-                                    ? "أدخل خط العرض والطول لكل فرع أو استخدم زر موقعي"
-                                    : "Enter coordinates for each establishment or use My location",
+                                    ? "اكتب وصف الموقع لكل فرع (العنوان أو تعليمات الوصول)"
+                                    : "Enter a location description for each establishment",
                         });
                         return false;
                     }
                 }
-            } else if (currentObject.map_lat === "" || currentObject.map_lng === "") {
+            } else if (String(currentObject.map_label || "").trim() === "") {
                 window.Swal.fire({
                     icon: "error",
                     title: dir === "rtl" ? "الموقع" : "Location",
                     text:
                         dir === "rtl"
-                            ? "أدخل خط العرض والطول أو استخدم زر موقعي"
-                            : "Enter latitude & longitude or use My location",
+                            ? "اكتب وصف الموقع الذي سيظهر للزبون في المنيو"
+                            : "Enter the location description shown to customers on the menu",
                 });
                 return false;
             }
@@ -434,10 +403,26 @@ const MenuQR = ({ translations, dir }) => {
                 formData.append("custom_menu_id", String(currentObject.customMenu.value));
             }
             if (currentObject.menuSections.location) {
-                formData.append("map_lat", String(currentObject.map_lat));
-                formData.append("map_lng", String(currentObject.map_lng));
-                formData.append("map_label", currentObject.map_label || "");
-                formData.append("est_locations", JSON.stringify(currentObject.est_locations || {}));
+                const estLocs = currentObject.est_locations || {};
+                const firstId = currentObject.selectedEstablishments?.[0]?.value;
+                const firstLabel =
+                    (firstId && estLocs[String(firstId)]?.map_label) ||
+                    currentObject.map_label ||
+                    "";
+                // Description-first: keep lat/lng empty unless already present on a legacy row.
+                formData.append("map_lat", "");
+                formData.append("map_lng", "");
+                formData.append("map_label", String(firstLabel).trim());
+                const cleanedLocs = {};
+                Object.keys(estLocs).forEach((k) => {
+                    const row = estLocs[k] && typeof estLocs[k] === "object" ? estLocs[k] : {};
+                    cleanedLocs[k] = {
+                        map_lat: "",
+                        map_lng: "",
+                        map_label: String(row.map_label || "").trim(),
+                    };
+                });
+                formData.append("est_locations", JSON.stringify(cleanedLocs));
             }
             if (currentObject.allergyFile) {
                 formData.append("allergy_document", currentObject.allergyFile);
@@ -934,61 +919,53 @@ const MenuQR = ({ translations, dir }) => {
 
                             {currentObject.menuSections.location && (
                                 <div className="border rounded p-3 mb-3 bg-white">
-                                    <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-                                        <h6 className="fw-bold mb-0">{dir === "rtl" ? "موقع الخريطة" : "Map location"}</h6>
-                                        <button type="button" className="btn btn-sm btn-light-primary" onClick={fillLocationFromBrowser}>
-                                            {dir === "rtl" ? "موقعي الحالي" : "My location"}
-                                        </button>
+                                    <div className="mb-3">
+                                        <h6 className="fw-bold mb-1">
+                                            {dir === "rtl" ? "وصف الموقع" : "Location description"}
+                                        </h6>
+                                        <p className="text-muted small mb-0">
+                                            {dir === "rtl"
+                                                ? "اكتب عنوان الفرع أو تعليمات الوصول كما تريد أن يراها الزبون في المنيو — بدون إحداثيات."
+                                                : "Write the branch address or arrival directions as customers should see them on the menu — no coordinates."}
+                                        </p>
                                     </div>
-                                    <div className="table-responsive">
-                                        <table className="table table-sm align-middle mb-0">
-                                            <thead>
-                                                <tr className="text-muted fs-7">
-                                                    <th style={{ width: "26%" }}>{dir === "rtl" ? "الفرع" : "Establishment"}</th>
-                                                    <th style={{ width: "22%" }}>Latitude</th>
-                                                    <th style={{ width: "22%" }}>Longitude</th>
-                                                    <th style={{ width: "30%" }}>{dir === "rtl" ? "وصف الموقع" : "Place label"}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {(currentObject.selectedEstablishments || []).map((e) => {
-                                                    const loc = getEstLocation(e.value);
-                                                    return (
-                                                        <tr key={e.value}>
-                                                            <td className="fw-semibold">{e.label}</td>
-                                                            <td>
-                                                                <input
-                                                                    className="form-control form-control-sm form-control-solid"
-                                                                    value={loc.map_lat ?? ""}
-                                                                    onChange={(ev) => setEstLocation(e.value, { map_lat: ev.target.value })}
-                                                                />
-                                                            </td>
-                                                            <td>
-                                                                <input
-                                                                    className="form-control form-control-sm form-control-solid"
-                                                                    value={loc.map_lng ?? ""}
-                                                                    onChange={(ev) => setEstLocation(e.value, { map_lng: ev.target.value })}
-                                                                />
-                                                            </td>
-                                                            <td>
-                                                                <input
-                                                                    className="form-control form-control-sm form-control-solid"
-                                                                    value={loc.map_label ?? ""}
-                                                                    onChange={(ev) => setEstLocation(e.value, { map_label: ev.target.value })}
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                                {(currentObject.selectedEstablishments || []).length === 0 && (
-                                                    <tr>
-                                                        <td colSpan={4} className="text-center text-muted">
-                                                            {dir === "rtl" ? "اختر الأفرع أولاً" : "Select establishments first"}
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
+                                    <div className="d-flex flex-column gap-3">
+                                        {(currentObject.selectedEstablishments || []).map((e) => {
+                                            const loc = getEstLocation(e.value);
+                                            return (
+                                                <div key={e.value}>
+                                                    <label className="form-label fw-semibold mb-1">
+                                                        {e.label}
+                                                    </label>
+                                                    <textarea
+                                                        className="form-control form-control-solid"
+                                                        rows={3}
+                                                        maxLength={2000}
+                                                        placeholder={
+                                                            dir === "rtl"
+                                                                ? "مثال: الرياض — حي العليا، شارع التحلية، مقابل …، المدخل من الجهة الشمالية"
+                                                                : "e.g. Riyadh — Olaya, Tahlia St., opposite …, north entrance"
+                                                        }
+                                                        value={loc.map_label ?? ""}
+                                                        onChange={(ev) => {
+                                                            const value = ev.target.value;
+                                                            setEstLocation(e.value, { map_label: value });
+                                                            if (
+                                                                String(currentObject.selectedEstablishments?.[0]?.value) ===
+                                                                String(e.value)
+                                                            ) {
+                                                                onChange("map_label", value);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                        {(currentObject.selectedEstablishments || []).length === 0 && (
+                                            <div className="text-center text-muted py-2">
+                                                {dir === "rtl" ? "اختر الأفرع أولاً" : "Select establishments first"}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}

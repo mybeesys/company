@@ -89,6 +89,8 @@ class UnifiedInvoicePrintPresenterTest extends TestCase
         $this->assertStringContainsString('شركتي', $data['seller']['name']);
         $this->assertSame('Customer A', $data['buyer']['name']);
         $this->assertFalse($data['isPurchaseSide']);
+        $this->assertNotEmpty($data['seller']['address_lines']);
+        $this->assertArrayHasKey('localeAr', $data);
     }
 
     public function test_purchase_invoice_supplier_is_seller_company_is_buyer(): void

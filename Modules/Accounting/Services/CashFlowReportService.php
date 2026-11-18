@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Modules\Accounting\Models\AccountingAccountsTransaction;
 use Modules\Accounting\Support\AccountingReportDateResolver;
+use Modules\Accounting\Support\CashFlowStatementBlueprint;
 use Modules\Expense\Support\TreasuryAccounts;
 
 final class CashFlowReportService
@@ -107,6 +108,17 @@ final class CashFlowReportService
         $detailRows = static::mapDetailRows($flows);
         $availableSubTypes = static::availableSubTypes($startDate, $endDate);
 
+        $detailLevel = (int) $request->input(
+            'detail_level',
+            CashFlowStatementBlueprint::DEFAULT_DETAIL_LEVEL
+        );
+        $coaStatement = (new CashFlowStatementBuilder)->build(
+            (string) $startDate,
+            (string) $endDate,
+            $detailLevel,
+            $costCenterIds
+        );
+
         return compact(
             'startDate',
             'endDate',
@@ -131,7 +143,9 @@ final class CashFlowReportService
             'comparePeriod',
             'compareAnalytics',
             'detailRows',
-            'availableSubTypes'
+            'availableSubTypes',
+            'coaStatement',
+            'detailLevel'
         );
     }
 

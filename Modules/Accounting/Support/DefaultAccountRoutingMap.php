@@ -77,6 +77,26 @@ final class DefaultAccountRoutingMap
             ?? $inventoryAdj
             ?? $cogs;
 
+        // Year-end close: temporary P&L clearing (current year result) → retained earnings.
+        // Prefer master GLs 32201 / 32101; fall back by name for older trees.
+        $currentPeriodResult = self::firstAccountByGlCandidates($candidates['fiscal_close_current_period_result'] ?? ['32201'])
+            ?? self::firstAccountByNameNeedles([
+                'أرباح/خسائر العام الحالي',
+                'أرباح وخسائر العام الحالي',
+                'Current Year Profit',
+                'Current Year Profit / Loss',
+            ]);
+        $retainedEarnings = self::firstAccountByGlCandidates($candidates['fiscal_close_retained_earnings'] ?? ['32101'])
+            ?? self::firstAccountByNameNeedles([
+                'أرباح مبقاة',
+                'الأرباح المبقاة',
+                'أرباح مرحلة',
+                'Retained Earnings',
+            ]);
+        if ($currentPeriodResult && $retainedEarnings && (int) $currentPeriodResult->id === (int) $retainedEarnings->id) {
+            $retainedEarnings = null;
+        }
+
         $now = now();
         $stamp = [
             'direction' => 'auto_assign',
@@ -169,6 +189,18 @@ final class DefaultAccountRoutingMap
                 'section' => 'waste',
                 'routing_type' => 'expense',
                 'account_id' => $wasteExpense?->id,
+            ]),
+            array_merge($stamp, [
+                'type' => 'fiscal_close_current_period_result',
+                'section' => 'fiscal_close',
+                'routing_type' => 'equity',
+                'account_id' => $currentPeriodResult?->id,
+            ]),
+            array_merge($stamp, [
+                'type' => 'fiscal_close_retained_earnings',
+                'section' => 'fiscal_close',
+                'routing_type' => 'equity',
+                'account_id' => $retainedEarnings?->id,
             ]),
         ];
     }

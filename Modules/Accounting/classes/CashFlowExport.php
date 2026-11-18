@@ -22,6 +22,27 @@ class CashFlowExport implements FromCollection, WithHeadings, WithStyles
 
     public function headings(): array
     {
+        if (($this->meta['export_mode'] ?? '') === 'statement') {
+            return [
+                [
+                    __('accounting::lang.cash_flow_statement').' - '.
+                        __('accounting::lang.from_date').': '.$this->meta['start_date'].' - '.
+                        __('accounting::lang.to_date').': '.$this->meta['end_date'],
+                ],
+                [
+                    __('accounting::lang.cf_structure_phase_note'),
+                ],
+                [
+                    __('accounting::lang.cf_line_item'),
+                    __('accounting::lang.cf_linked_gl'),
+                    __('accounting::lang.cf_linked_account'),
+                    __('accounting::lang.activity_section'),
+                    __('accounting::lang.cf_line_kind'),
+                    __('employee::fields.amount'),
+                ],
+            ];
+        }
+
         return [
             [
                 __('accounting::lang.cash_flow_statement').' - '.

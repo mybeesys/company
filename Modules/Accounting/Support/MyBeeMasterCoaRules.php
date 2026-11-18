@@ -43,7 +43,8 @@ final class MyBeeMasterCoaRules
 
     /**
      * Detect workbook example party leaves (Customer 1, Supplier 1, Bank Account 1…).
-     * These are included in the installed master tree; helper remains for labeling / diffs.
+     * Helper remains for labeling / diffs; local Customer/Supplier N leaves are excluded
+     * from the installable master pack via {@see isDefaultLocalPartyExampleLeaf()}.
      */
     public static function isIllustrativePartyAccount(string $nameAr, string $nameEn): bool
     {
@@ -52,6 +53,23 @@ final class MyBeeMasterCoaRules
         }
 
         return preg_match('/^(Customer|Export Customer|Supplier|Foreign Supplier|Employee Petty Cash|Bank Account|Partner)\s+\d+$/i', $nameEn) === 1;
+    }
+
+    /**
+     * Default local party placeholders only: عميل 1..N / Customer 1..N and مورد 1..N / Supplier 1..N.
+     * Does not match export/foreign variants (عميل تصدير، مورد خارجي، …).
+     */
+    public static function isDefaultLocalPartyExampleLeaf(string $nameAr, string $nameEn): bool
+    {
+        $nameAr = self::cleanName($nameAr);
+        $nameEn = self::cleanName($nameEn);
+
+        if (preg_match('/^عميل\s+\d+$/u', $nameAr) === 1 || preg_match('/^مورد\s+\d+$/u', $nameAr) === 1) {
+            return true;
+        }
+
+        return preg_match('/^Customer\s+\d+$/i', $nameEn) === 1
+            || preg_match('/^Supplier\s+\d+$/i', $nameEn) === 1;
     }
 
     /**
@@ -90,6 +108,9 @@ final class MyBeeMasterCoaRules
             'cogs' => ['51101', '50101'],
             'inventory_adjustment' => ['11601', '51101', '50105', '50101'],
             'waste_expense' => ['51106', '11601', '51101'],
+            // Fiscal year close — equity clearing then permanent retained earnings.
+            'fiscal_close_current_period_result' => ['32201'],
+            'fiscal_close_retained_earnings' => ['32101'],
         ];
     }
 

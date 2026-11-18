@@ -3,7 +3,7 @@
 return [
     'routing_tab' => 'Fiscal period close',
     'routing_intro_title' => 'Year-end closing accounts',
-    'routing_intro_body' => 'Choose equity accounts from your chart (not tied to default GL codes). They are used when previewing and posting fiscal-period closing entries.',
+    'routing_intro_body' => 'Creating the default chart suggests Current Year P/L (32201) and Retained Earnings (32101). You can change them anytime. Used when previewing and posting fiscal-period closing entries.',
     'current_period_result' => 'Current period result account',
     'retained_earnings' => 'Retained earnings account',
     'current_period_result_help' => 'Temporary equity account that receives income and expense balances before transfer to retained earnings.',

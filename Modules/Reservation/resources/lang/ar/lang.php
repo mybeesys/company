@@ -26,9 +26,11 @@ return [
     'feedback_empty' => 'لا توجد تقييمات بعد.',
 
     'modal_todays_title' => 'قائمة اليوم',
-    'modal_location_title' => 'الموقع على الخريطة',
-    'modal_location_heading' => 'اعثر علينا بسهولة',
+    'modal_location_title' => 'موقعنا',
+    'modal_location_heading' => 'وصف الوصول كما حدّدناه لكم',
     'modal_location_branch' => 'الفرع',
+    'modal_location_description' => 'وصف الموقع',
+    'modal_open_maps_search' => 'البحث في خرائط جوجل',
     'modal_open_maps' => 'فتح في خرائط جوجل',
     'modal_smart_title' => 'القائمة الذكية',
     'modal_smart_heading' => 'تجربة منيو أذكى — قريباً',
@@ -56,7 +58,7 @@ return [
     'menu_empty_title' => 'لا توجد منتجات في هذه القائمة',
     'menu_empty_hint' => 'جرّب إعادة إنشاء رابط المنيو مع اختيار منتجات، أو ربط قائمة اليوم بأصناف فعلية داخل القائمة المخصصة.',
     'allergy_download' => 'تحميل / عرض الملف',
-    'map_pick_hint' => 'تم تثبيت الموقع عند إنشاء رابط المنيو.',
+    'map_pick_hint' => 'وصف الموقع يظهر كما أُدخل عند إنشاء رابط المنيو.',
 
     'menu_allergen_avoid_hint' => 'إخفاء الأصناف التي تحتوي على:',
     'menu_allergen_clear' => 'مسح التصفية',

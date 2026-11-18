@@ -244,6 +244,7 @@
     </div>
 
     @include('layouts.js-references')
+    @include('general::components.whatsapp-invoice-share-modal')
 
     @yield('script')
 </body>

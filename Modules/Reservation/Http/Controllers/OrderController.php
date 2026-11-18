@@ -64,17 +64,54 @@ class OrderController extends Controller
         foreach ($estIds as $estId) {
             $estId = (int) $estId;
             $row = $estLocations[(string) $estId] ?? $estLocations[$estId] ?? null;
-            $lat = is_array($row) ? ($row['map_lat'] ?? null) : null;
-            $lng = is_array($row) ? ($row['map_lng'] ?? null) : null;
-            if ($lat === null || $lat === '' || $lng === null || $lng === '') {
-                return "Missing location for establishment #{$estId}";
-            }
-            if (! is_numeric($lat) || ! is_numeric($lng)) {
-                return "Invalid location coordinates for establishment #{$estId}";
+            $label = is_array($row) ? trim((string) ($row['map_label'] ?? '')) : '';
+            if ($label === '') {
+                return "Missing location description for establishment #{$estId}";
             }
         }
 
         return null;
+    }
+
+    /**
+     * Normalize per-branch locations: description is required; lat/lng kept optional for legacy rows.
+     *
+     * @param  array<int|string, mixed>  $estLocations
+     * @param  array<int, mixed>  $estIds
+     * @return array{0: array<string, array{map_lat: mixed, map_lng: mixed, map_label: string}>, 1: string}
+     */
+    private function normalizeEstLocationsForSave(array $estLocations, array $estIds, ?string $fallbackLabel = null): array
+    {
+        $normalized = [];
+        $firstLabel = trim((string) ($fallbackLabel ?? ''));
+
+        foreach ($estIds as $estId) {
+            $key = (string) (int) $estId;
+            $row = $estLocations[$key] ?? $estLocations[(int) $estId] ?? $estLocations[$estId] ?? null;
+            $label = is_array($row) ? trim((string) ($row['map_label'] ?? '')) : '';
+            if ($label === '' && $firstLabel !== '') {
+                $label = $firstLabel;
+            }
+            $lat = is_array($row) ? ($row['map_lat'] ?? null) : null;
+            $lng = is_array($row) ? ($row['map_lng'] ?? null) : null;
+            // Clear empty coordinate strings so DB float casts stay null.
+            if ($lat === '' || $lat === null) {
+                $lat = null;
+            }
+            if ($lng === '' || $lng === null) {
+                $lng = null;
+            }
+            $normalized[$key] = [
+                'map_lat' => $lat,
+                'map_lng' => $lng,
+                'map_label' => $label,
+            ];
+            if ($firstLabel === '' && $label !== '') {
+                $firstLabel = $label;
+            }
+        }
+
+        return [$normalized, $firstLabel];
     }
 
     /**
@@ -131,7 +168,7 @@ class OrderController extends Controller
             'custom_menu_id' => 'nullable|integer|exists:product_custom_menus,id',
             'map_lat' => 'nullable|numeric',
             'map_lng' => 'nullable|numeric',
-            'map_label' => 'nullable|string|max:500',
+            'map_label' => 'nullable|string|max:2000',
             'est_locations' => 'nullable',
             'allergy_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
@@ -140,8 +177,7 @@ class OrderController extends Controller
             $rules['custom_menu_id'] = 'required|integer|exists:product_custom_menus,id';
         }
         if (! empty($sectionFlags['location'])) {
-            $rules['map_lat'] = 'nullable|numeric';
-            $rules['map_lng'] = 'nullable|numeric';
+            $rules['map_label'] = 'nullable|string|max:2000';
         }
         if (! empty($sectionFlags['allergy_info'])) {
             $rules['allergy_document'] = 'required|file|mimes:pdf,jpg,jpeg,png|max:10240';
@@ -158,22 +194,38 @@ class OrderController extends Controller
         }
 
         $estLocations = $this->parseEstLocationsFromRequest($request);
+        $mapLabel = trim((string) ($request->input('map_label') ?? ''));
+        $mapLat = $request->input('map_lat');
+        $mapLng = $request->input('map_lng');
+        if ($mapLat === '' || $mapLat === null) {
+            $mapLat = null;
+        }
+        if ($mapLng === '' || $mapLng === null) {
+            $mapLng = null;
+        }
         if (! empty($sectionFlags['location'])) {
-            if (empty($estLocations) && ($request->input('map_lat') !== null || $request->input('map_lng') !== null)) {
+            if (empty($estLocations) && $mapLabel !== '') {
                 $estLocations = [
                     (string) (int) $estIds[0] => [
-                        'map_lat' => $request->input('map_lat'),
-                        'map_lng' => $request->input('map_lng'),
-                        'map_label' => $request->input('map_label'),
+                        'map_lat' => $mapLat,
+                        'map_lng' => $mapLng,
+                        'map_label' => $mapLabel,
                     ],
                 ];
             }
+            [$estLocations, $mapLabel] = $this->normalizeEstLocationsForSave($estLocations, $estIds, $mapLabel);
             $err = $this->validateEstLocations($estIds, $estLocations);
             if ($err) {
                 return response()->json(['message' => $err], 422);
             }
+            $firstRow = $estLocations[(string) (int) $estIds[0]] ?? null;
+            $mapLat = is_array($firstRow) ? ($firstRow['map_lat'] ?? null) : null;
+            $mapLng = is_array($firstRow) ? ($firstRow['map_lng'] ?? null) : null;
         } else {
             $estLocations = [];
+            $mapLabel = '';
+            $mapLat = null;
+            $mapLng = null;
         }
 
         $token = Str::random(30);
@@ -187,9 +239,9 @@ class OrderController extends Controller
                 'sub_title' => $data['sub_title'] ?? '',
                 'products' => $productIds,
                 'custom_menu_id' => $request->input('custom_menu_id') ?: null,
-                'map_lat' => $request->input('map_lat'),
-                'map_lng' => $request->input('map_lng'),
-                'map_label' => $request->input('map_label'),
+                'map_lat' => $mapLat,
+                'map_lng' => $mapLng,
+                'map_label' => $mapLabel !== '' ? $mapLabel : null,
                 'allergy_document_path' => $allergyPath,
                 'section_flags' => $sectionFlags,
                 'allergen_visible_keys' => $this->parseAllergenVisibleKeysFromRequest($request),
@@ -680,7 +732,7 @@ class OrderController extends Controller
             'custom_menu_id' => 'nullable|integer|exists:product_custom_menus,id',
             'map_lat' => 'nullable|numeric',
             'map_lng' => 'nullable|numeric',
-            'map_label' => 'nullable|string|max:500',
+            'map_label' => 'nullable|string|max:2000',
             'est_locations' => 'nullable',
             'allergy_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
@@ -688,8 +740,7 @@ class OrderController extends Controller
             $rules['custom_menu_id'] = 'required|integer|exists:product_custom_menus,id';
         }
         if (! empty($sectionFlags['location'])) {
-            $rules['map_lat'] = 'nullable|numeric';
-            $rules['map_lng'] = 'nullable|numeric';
+            $rules['map_label'] = 'nullable|string|max:2000';
         }
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -711,22 +762,38 @@ class OrderController extends Controller
         }
 
         $estLocations = $this->parseEstLocationsFromRequest($request);
+        $mapLabel = trim((string) ($request->input('map_label') ?? ''));
+        $mapLat = $request->input('map_lat');
+        $mapLng = $request->input('map_lng');
+        if ($mapLat === '' || $mapLat === null) {
+            $mapLat = null;
+        }
+        if ($mapLng === '' || $mapLng === null) {
+            $mapLng = null;
+        }
         if (! empty($sectionFlags['location'])) {
-            if (empty($estLocations) && ($request->input('map_lat') !== null || $request->input('map_lng') !== null)) {
+            if (empty($estLocations) && $mapLabel !== '') {
                 $estLocations = [
                     (string) (int) $estIds[0] => [
-                        'map_lat' => $request->input('map_lat'),
-                        'map_lng' => $request->input('map_lng'),
-                        'map_label' => $request->input('map_label'),
+                        'map_lat' => $mapLat,
+                        'map_lng' => $mapLng,
+                        'map_label' => $mapLabel,
                     ],
                 ];
             }
+            [$estLocations, $mapLabel] = $this->normalizeEstLocationsForSave($estLocations, $estIds, $mapLabel);
             $err = $this->validateEstLocations($estIds, $estLocations);
             if ($err) {
                 return response()->json(['message' => $err], 422);
             }
+            $firstRow = $estLocations[(string) (int) $estIds[0]] ?? null;
+            $mapLat = is_array($firstRow) ? ($firstRow['map_lat'] ?? null) : null;
+            $mapLng = is_array($firstRow) ? ($firstRow['map_lng'] ?? null) : null;
         } else {
             $estLocations = [];
+            $mapLabel = '';
+            $mapLat = null;
+            $mapLng = null;
         }
 
         $payload = [
@@ -737,9 +804,9 @@ class OrderController extends Controller
             'sub_title' => $data['sub_title'] ?? '',
             'products' => $productIds,
             'custom_menu_id' => $request->input('custom_menu_id') ?: null,
-            'map_lat' => $request->input('map_lat'),
-            'map_lng' => $request->input('map_lng'),
-            'map_label' => $request->input('map_label'),
+            'map_lat' => $mapLat,
+            'map_lng' => $mapLng,
+            'map_label' => $mapLabel !== '' ? $mapLabel : null,
             'allergy_document_path' => $allergyPath,
             'section_flags' => $sectionFlags,
         ];

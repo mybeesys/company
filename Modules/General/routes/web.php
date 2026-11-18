@@ -6,8 +6,10 @@ use Modules\General\Http\Controllers\GeneralController;
 use Modules\General\Http\Controllers\NotificationController;
 use Modules\General\Http\Controllers\NotificationSettingController;
 use Modules\General\Http\Controllers\PaymentMethodsController;
+use Modules\General\Http\Controllers\PublicInvoiceController;
 use Modules\General\Http\Controllers\TaxController;
 use Modules\General\Http\Controllers\TransactionController;
+use Modules\General\Http\Controllers\WhatsAppInvoiceShareController;
 use Modules\General\Support\SettingPermissions;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -28,6 +30,15 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
+
+    Route::middleware(['signed'])->group(function () {
+        Route::get('public/invoice/{transaction}', [PublicInvoiceController::class, 'show'])
+            ->whereNumber('transaction')
+            ->name('public.invoice.show');
+        Route::get('public/invoice/{transaction}/pdf', [PublicInvoiceController::class, 'pdf'])
+            ->whereNumber('transaction')
+            ->name('public.invoice.pdf');
+    });
 
     Route::middleware(['auth'])->group(function () {
         $perm = fn (string ...$names) => 'dashboard.perm:'.implode(',', $names);
@@ -86,6 +97,9 @@ Route::middleware([
         Route::get('transaction-print/{id}', [TransactionController::class, 'print'])->name('transaction-print');
         Route::get('transaction-payment-print/{id}', [TransactionController::class, 'paymentPrint'])->name('transaction-payment-print');
         Route::get('transaction-export-pdf/{id}', [TransactionController::class, 'exportPDF'])->name('transaction-export-pdf');
+        Route::get('transaction-whatsapp-share/{id}', [WhatsAppInvoiceShareController::class, 'show'])
+            ->whereNumber('id')
+            ->name('transaction-whatsapp-share');
 
         Route::get('transaction-show-payments/{id}', [TransactionController::class, 'showPayments'])->name('transaction-show-payments');
         Route::post('add-payment', [TransactionController::class, 'addPayment'])->name('add-payment');

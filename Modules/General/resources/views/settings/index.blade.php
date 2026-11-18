@@ -179,6 +179,12 @@
                     href="#mail_settings_tab">@lang('general::general.mail_settings')</a>
             </li>
             @endif
+            @if ($h['whatsapp'] ?? false)
+            <li class="nav-item">
+                <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'whatsapp' ? 'active' : '' }}" data-bs-toggle="tab"
+                    href="#whatsapp_settings_tab">@lang('general::general.whatsapp_settings')</a>
+            </li>
+            @endif
             @if ($h['sms'])
             <li class="nav-item">
                 <a class="nav-link justify-content-center text-active-gray-800 {{ $firstH === 'sms' ? 'active' : '' }}" data-bs-toggle="tab"
@@ -225,6 +231,10 @@
 
             @if ($h['mail'])
             <x-general::mail-settings.mail-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
+            @endif
+
+            @if ($h['whatsapp'] ?? false)
+            <x-general::whatsapp-settings.whatsapp-settings-index :notifications_settings_parameters="$notifications_settings_parameters" />
             @endif
 
             @if ($h['sms'])
@@ -296,6 +306,11 @@
             @if (!empty($h['mail']))
             if (typeof mailSettingsForm === 'function') {
                 mailSettingsForm();
+            }
+            @endif
+            @if (!empty($h['whatsapp']))
+            if (typeof whatsappSettingsForm === 'function') {
+                whatsappSettingsForm();
             }
             @endif
             if (methodTable.length) {
