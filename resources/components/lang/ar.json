@@ -441,8 +441,8 @@
   "importRuleTemplateBody": "حمّل النموذج الرسمي واملأ الصفوف دون تعديل أسماء الأعمدة في الصف الأول.",
   "importRuleCategoryTitle": "التصنيفات",
   "importRuleCategoryBody": "التصنيف والتصنيف الجزئي يُنشآن تلقائياً إن لم يكونا موجودين في النظام.",
-  "importRuleTaxTitle": "الضريبة والمنشأة",
-  "importRuleTaxBody": "طابق اسم الضريبة كما في النظام، وللمنشأة استخدم اسماً موجوداً أو «جميع المستودعات».",
+  "importRuleTaxTitle": "الضريبة",
+  "importRuleTaxBody": "عمود الضريبة اختياري؛ إن تُرك فارغاً تُستخدم الضريبة الافتراضية في النظام.",
   "importRuleUnitTitle": "الوحدة والأسماء",
   "importRuleUnitBody": "الاسم العربي والوحدة الرئيسية إلزاميان، ولا يُسمح بتكرار الاسم العربي أو الإنجليزي.",
   "importRuleSizeTitle": "حجم وصيغة الملف",
@@ -450,5 +450,11 @@
   "importRuleFormatTitle": "صيغة الملف",
   "importRuleFormatBody": "XLSX أو XLS أو CSV وفق النموذج المعتمد.",
   "importRuleHeadersTitle": "ترويسة الأعمدة",
-  "importRuleHeadersBody": "لا تغيّر أسماء الأعمدة في الصف الأول من الملف."
+  "importRuleHeadersBody": "لا تغيّر أسماء الأعمدة في الصف الأول من الملف.",
+  "importRuleRequiredTitle": "الحقول الإلزامية والاختيارية",
+  "importRuleRequiredBody": "إلزامي: الاسم العربي، التصنيف، التصنيف الفرعي، الوحدة. اختياري: الاسم الإنجليزي، التكلفة، السعر شامل الضريبة، الضريبة، SKU. السعرات الحرارية غير مطلوبة.",
+  "importRuleBranchesTitle": "الأفرع",
+  "importProductBranchesNote": "يُضاف المنتج تلقائياً لجميع الأفرع — لا يظهر عمود المنشأة في الواجهة.",
+  "importFieldRequired": "إلزامي",
+  "importFieldOptional": "اختياري"
 }

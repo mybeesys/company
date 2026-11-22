@@ -7,9 +7,50 @@ use Illuminate\Http\Request;
 use Modules\General\Http\Requests\StoreNotificationRequest;
 use Modules\General\Models\NotificationSetting;
 use Modules\General\Models\NotificationSettingParameter;
+use Modules\General\Services\Notifications\NotificationCatalog;
+use Modules\General\Services\Notifications\NotificationPreferenceService;
+use Modules\General\Support\SettingAccess;
+use Modules\General\Support\SettingPermissions;
 
 class NotificationSettingController extends Controller
 {
+    public function storeSystemAlertPreferences(Request $request, NotificationPreferenceService $preferences)
+    {
+        SettingAccess::authorize(SettingPermissions::for('notifications', 'update'));
+
+        $catalogKeys = array_keys(NotificationCatalog::all());
+        $request->validate([
+            'alert_internal_active' => ['nullable', 'array'],
+            'alert_internal_active.*' => ['nullable'],
+            'alert_email_active' => ['nullable', 'array'],
+            'alert_email_active.*' => ['nullable'],
+            'alert_recipients' => ['nullable', 'array'],
+            'alert_recipients.*' => ['nullable', 'array'],
+            'alert_recipients.*.*' => ['integer'],
+        ]);
+
+        $internalMap = (array) $request->input('alert_internal_active', []);
+        $emailMap = (array) $request->input('alert_email_active', []);
+        $recipientsMap = (array) $request->input('alert_recipients', []);
+        $alerts = [];
+
+        foreach ($catalogKeys as $key) {
+            $alerts[$key] = [
+                'internal_active' => array_key_exists($key, $internalMap)
+                    ? filter_var($internalMap[$key], FILTER_VALIDATE_BOOLEAN)
+                    : false,
+                'email_active' => array_key_exists($key, $emailMap)
+                    ? filter_var($emailMap[$key], FILTER_VALIDATE_BOOLEAN)
+                    : false,
+                'recipients' => $recipientsMap[$key] ?? [],
+            ];
+        }
+
+        $preferences->save($alerts);
+
+        return response()->json(['message' => __('employee::responses.operation_success')]);
+    }
+
     public function storeNotificationsSettings(StoreNotificationRequest $request, string $notificationType)
     {
         $notificationKeys = [

@@ -36,9 +36,10 @@ class PublicInvoiceController extends Controller
             'issueDate' => Carbon::parse($transaction->transaction_date)->format('Y-m-d'),
             'amount' => number_format((float) ($transaction->final_total ?: 0), 2),
             'localeAr' => $localeAr,
+            'autoDownload' => $request->boolean('auto'),
             'expiresAt' => $request->query('expires')
                 ? Carbon::createFromTimestamp((int) $request->query('expires'))->format('Y-m-d H:i')
-                : now()->addDays(WhatsAppInvoiceSharePresenter::LINK_TTL_DAYS)->format('Y-m-d H:i'),
+                : WhatsAppInvoiceSharePresenter::linkExpiresAt()->format('Y-m-d H:i'),
         ]);
     }
 

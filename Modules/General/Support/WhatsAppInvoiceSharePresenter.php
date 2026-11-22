@@ -12,7 +12,20 @@ final class WhatsAppInvoiceSharePresenter
 {
     public const TEMPLATE_KEY = 'WHATSAPP_INVOICE_TEMPLATE';
 
-    public const LINK_TTL_DAYS = 7;
+    public const TTL_HOURS_KEY = 'WHATSAPP_INVOICE_LINK_TTL_HOURS';
+
+    /** Default: 24 hours (not a fixed week). */
+    public const DEFAULT_TTL_HOURS = 24;
+
+    public const MIN_TTL_HOURS = 1;
+
+    public const MAX_TTL_HOURS = 168;
+
+    /** @deprecated Use linkTtlHours() — kept for callers that still reference days. */
+    public const LINK_TTL_DAYS = 1;
+
+    /** @var list<int> */
+    public const TTL_HOUR_OPTIONS = [1, 6, 12, 24, 48, 72, 168];
 
     /** @var list<string> */
     public const SHAREABLE_TYPES = ['sell', 'sell-return'];
@@ -25,33 +38,53 @@ final class WhatsAppInvoiceSharePresenter
 
     public static function defaultTemplate(): string
     {
-        // WhatsApp formatting: *bold* — keep lines short and bilingual for clarity.
+        // Fallback for wa.me only (shows a link). Cloud API uses defaultApiTemplate().
         return implode("\n", [
-            '*عزيزنا العميل / Dear Customer*',
-            '{customer_name}',
+            'عزيزي العميل،',
+            'Dear Customer,',
+            '*{customer_name}*',
             '',
-            'نشكر لكم زيارتكم وثقتكم بـ *{company_name}*.',
+            'نشكر لكم زيارتكم لـ *{company_name}*.',
             'Thank you for visiting *{company_name}*.',
             '',
-            'يمكنكم الاطلاع على فاتورة مشترياتكم من الرابط أدناه.',
-            'Please find your purchase invoice via the secure link below.',
+            'نرفق لكم فاتورة مشترياتكم.',
+            'Please find your purchase invoice below.',
             '',
-            '────────────────────',
-            '*تفاصيل الفاتورة / Invoice details*',
-            'رقم الفاتورة / Invoice No.: *{invoice_no}*',
+            'رقم الفاتورة / Invoice: *{invoice_no}*',
             'التاريخ / Date: {date}',
             'المبلغ / Amount: *{amount} SAR*',
-            '────────────────────',
             '',
-            '*لتحميل الفاتورة يرجى الضغط على الرابط التالي*',
-            '*To download the invoice, please tap the link below*',
+            '*لتحميل الفاتورة يرجى الضغط على تحميل*',
+            '*To download the invoice, please click on Download*',
             '',
+            '⬇️ *تحميل / Download*',
             '{download_link}',
             '',
-            '_الرابط آمن وصالح لمدة 7 أيام_',
-            '_This secure link is valid for 7 days_',
+            '*{company_name}*',
+        ]);
+    }
+
+    /** Body for Cloud API: no raw URL — Download is a native WhatsApp button / PDF attachment. */
+    public static function defaultApiTemplate(): string
+    {
+        return implode("\n", [
+            'عزيزي العميل،',
+            'Dear Customer,',
+            '*{customer_name}*',
             '',
-            'مع أطيب التحيات / Best regards',
+            'نشكر لكم زيارتكم لـ *{company_name}*.',
+            'Thank you for visiting *{company_name}*.',
+            '',
+            'نرفق لكم فاتورة مشترياتكم.',
+            'Please find your purchase invoice below.',
+            '',
+            'رقم الفاتورة / Invoice: *{invoice_no}*',
+            'التاريخ / Date: {date}',
+            'المبلغ / Amount: *{amount} SAR*',
+            '',
+            '*لتحميل الفاتورة يرجى الضغط على تحميل*',
+            '*To download the invoice, please click on Download*',
+            '',
             '*{company_name}*',
         ]);
     }
@@ -71,6 +104,44 @@ final class WhatsAppInvoiceSharePresenter
         return $stored !== '' ? $stored : self::defaultTemplate();
     }
 
+    public static function linkTtlHours(): int
+    {
+        try {
+            $stored = NotificationSettingParameter::query()
+                ->where('key', self::TTL_HOURS_KEY)
+                ->value('value');
+        } catch (\Throwable) {
+            $stored = null;
+        }
+
+        $hours = is_numeric($stored) ? (int) $stored : self::DEFAULT_TTL_HOURS;
+
+        return max(self::MIN_TTL_HOURS, min(self::MAX_TTL_HOURS, $hours));
+    }
+
+    public static function linkExpiresAt(): Carbon
+    {
+        return now()->addHours(self::linkTtlHours());
+    }
+
+    public static function linkValidityLabel(int $hours): string
+    {
+        if ($hours % 24 === 0) {
+            $days = (int) ($hours / 24);
+            if ($days === 1) {
+                return '24 ساعة / 24 hours';
+            }
+
+            return $days.' أيام / '.$days.' days';
+        }
+
+        if ($hours === 1) {
+            return 'ساعة واحدة / 1 hour';
+        }
+
+        return $hours.' ساعات / '.$hours.' hours';
+    }
+
     /**
      * @return array{
      *   transaction_id:int,
@@ -80,7 +151,10 @@ final class WhatsAppInvoiceSharePresenter
      *   phone_display:string,
      *   message:string,
      *   download_url:string,
+     *   pdf_url:string,
      *   wa_url:string,
+     *   cloud_configured:bool,
+     *   send_mode:string,
      *   expires_at:string
      * }
      */
@@ -103,18 +177,30 @@ final class WhatsAppInvoiceSharePresenter
         $customerName = trim((string) ($transaction->client?->name ?? '')) ?: __('general::lang.whatsapp_share_customer_fallback');
         $phoneRaw = trim((string) ($transaction->client?->mobile_number ?? $transaction->client?->phone_number ?? ''));
         $phone = self::normalizePhone($phoneRaw);
-        $downloadUrl = self::signedPublicUrl($transaction);
+        $ttlHours = self::linkTtlHours();
+        $expiresAt = self::linkExpiresAt();
+        $landingUrl = self::signedPublicUrl($transaction, autoDownload: true);
+        $pdfUrl = self::signedPdfUrl($transaction);
         $amount = number_format((float) ($transaction->final_total ?: 0), 2);
         $date = Carbon::parse($transaction->transaction_date)->format('Y-m-d');
+        $cloudConfigured = WhatsAppCloudApiClient::isConfigured();
 
-        $message = self::renderTemplate(self::template(), [
+        $vars = [
             'customer_name' => $customerName,
             'invoice_no' => (string) $transaction->ref_no,
             'amount' => $amount,
             'date' => $date,
             'company_name' => $companyName,
-            'download_link' => $downloadUrl,
-        ]);
+            'download_link' => $cloudConfigured ? '' : $landingUrl,
+            'link_validity' => self::linkValidityLabel($ttlHours),
+        ];
+
+        if ($cloudConfigured) {
+            // Prefer API body with no URL; if a custom template still has {download_link}, strip links.
+            $message = self::stripLinksFromMessage(self::renderTemplate(self::apiBodyTemplate(), $vars));
+        } else {
+            $message = self::renderTemplate(self::template(), $vars);
+        }
 
         return [
             'transaction_id' => (int) $transaction->id,
@@ -123,10 +209,36 @@ final class WhatsAppInvoiceSharePresenter
             'phone' => $phone,
             'phone_display' => $phoneRaw !== '' ? $phoneRaw : $phone,
             'message' => $message,
-            'download_url' => $downloadUrl,
+            'download_url' => $landingUrl,
+            'pdf_url' => $pdfUrl,
             'wa_url' => self::waUrl($phone, $message),
-            'expires_at' => now()->addDays(self::LINK_TTL_DAYS)->toIso8601String(),
+            'cloud_configured' => $cloudConfigured,
+            'send_mode' => $cloudConfigured ? 'cloud_api' : 'wa_me',
+            'link_ttl_hours' => $ttlHours,
+            'expires_at' => $expiresAt->toIso8601String(),
         ];
+    }
+
+    public static function apiBodyTemplate(): string
+    {
+        // Custom templates often include a link line; for Cloud API we always start from the no-URL default
+        // unless the stored template has no {download_link} placeholder.
+        $stored = self::template();
+        if (! str_contains($stored, '{download_link}') && ! str_contains($stored, 'http')) {
+            return $stored;
+        }
+
+        return self::defaultApiTemplate();
+    }
+
+    public static function stripLinksFromMessage(string $message): string
+    {
+        $message = preg_replace('#https?://\S+#iu', '', $message) ?? $message;
+        $message = preg_replace('/^\s*⬇️?\s*\*?تحميل\s*\/\s*Download\*?\s*$/miu', '', $message) ?? $message;
+        $message = preg_replace("/[ \t]+\n/", "\n", $message) ?? $message;
+        $message = preg_replace("/\n{3,}/", "\n\n", $message) ?? $message;
+
+        return trim($message);
     }
 
     /**
@@ -142,12 +254,17 @@ final class WhatsAppInvoiceSharePresenter
         return strtr($template, $replacements);
     }
 
-    public static function signedPublicUrl(Transaction $transaction): string
+    public static function signedPublicUrl(Transaction $transaction, bool $autoDownload = false): string
     {
+        $params = ['transaction' => $transaction->id];
+        if ($autoDownload) {
+            $params['auto'] = 1;
+        }
+
         return URL::temporarySignedRoute(
             'public.invoice.show',
-            now()->addDays(self::LINK_TTL_DAYS),
-            ['transaction' => $transaction->id]
+            self::linkExpiresAt(),
+            $params
         );
     }
 
@@ -155,7 +272,7 @@ final class WhatsAppInvoiceSharePresenter
     {
         return URL::temporarySignedRoute(
             'public.invoice.pdf',
-            now()->addDays(self::LINK_TTL_DAYS),
+            self::linkExpiresAt(),
             ['transaction' => $transaction->id]
         );
     }

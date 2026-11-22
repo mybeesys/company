@@ -289,6 +289,15 @@ class FinancialYearSettingsController extends Controller
         try {
             $result = $this->accountingClose->execute($year, $period, (int) auth()->id());
 
+            $journalId = $result['journal_id'] ?? null;
+            $actionUrl = $journalId
+                ? route('journal-entry-show', ['id' => $journalId])
+                : url('/accounting/financial-years');
+
+            \Modules\General\Support\SystemNotify::send('fiscal_period_closed', [
+                'period_label' => (string) ($period?->name ?? $year->name ?? $year->id),
+            ], $actionUrl);
+
             $message = match (true) {
                 $result['already_posted'] ?? false => __('accounting::fiscal_close.execute_already_posted'),
                 $result['repaired'] ?? false => __('accounting::fiscal_close.repair_success'),

@@ -215,7 +215,7 @@
                 @php
                     $data = $notification->data ?? [];
                     $sev = $data['severity'] ?? 'info';
-                    $url = $data['url'] ?? null;
+                    $url = \Modules\General\Support\NotificationUrlNormalizer::normalize($data['url'] ?? null);
                     $module = $data['module'] ?? 'system';
                 @endphp
                 <div class="nc-row {{ $notification->read_at ? '' : 'is-unread' }} notif-open-row"

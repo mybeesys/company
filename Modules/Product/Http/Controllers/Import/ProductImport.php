@@ -46,7 +46,6 @@ class ProductImport implements ToModel, WithHeadingRow
         $valid = true;
         $categoryName = trim((string) ($row['category'] ?? ''));
         $subcategoryName = trim((string) ($row['subcategory'] ?? ''));
-        $establishmentName = trim((string) ($row['establishment'] ?? ''));
         $taxName = trim((string) ($row['tax'] ?? ''));
         $mainUnit = trim((string) ($row['main_unit'] ?? ''));
 
@@ -62,22 +61,7 @@ class ProductImport implements ToModel, WithHeadingRow
             $valid = false;
         }
 
-        $isAllEstablishments = in_array($establishmentName, ['جميع المستودعات', 'All Establishments'], true);
-        $est = null;
-        // Establishment is optional; validate only when a value is provided.
-        if ($establishmentName !== '' && ! $isAllEstablishments) {
-            $est = Establishment::query()
-                ->where(function ($q) use ($establishmentName) {
-                    $q->where('name', $establishmentName)
-                        ->orWhere('name_en', $establishmentName);
-                })
-                ->first();
-
-            if (! $est) {
-                $this->pushError($arabicName, $englishName, 'INVALID_establishment', [$establishmentName ?: '—']);
-                $valid = false;
-            }
-        }
+        // Establishment column is ignored: imported products are always linked to all branches.
 
         $tax = Tax::query()
             ->where(function ($q) use ($taxName) {
@@ -124,7 +108,8 @@ class ProductImport implements ToModel, WithHeadingRow
             'barcode' => $row['barcode'] ?? null,
             'order' => $row['order'] ?? null,
             'color' => $row['color'] ?? null,
-            'cost' => $row['cost'] ?? 0,
+            'cost' => ($row['cost'] === '' || $row['cost'] === null) ? 0 : ($row['cost'] ?? 0),
+            'calories' => ($row['calories'] === '' || $row['calories'] === null) ? null : ($row['calories'] ?? null),
             'price_with_tax' => $priceWithTax,
             'tax_id' => $tax->id,
             'price' => TaxHelper::getAmountBeforeTax($priceWithTax, $taxRate),
@@ -151,18 +136,10 @@ class ProductImport implements ToModel, WithHeadingRow
             'primary' => 1,
         ]);
 
-        if ($isAllEstablishments) {
-            $establishments = Establishment::where('is_main', 0)->get();
-            foreach ($establishments as $establishment) {
-                EstablishmentProduct::create([
-                    'product_id' => $product->id,
-                    'establishment_id' => $establishment->id,
-                ]);
-            }
-        } elseif ($est) {
+        foreach (Establishment::where('is_main', 0)->get() as $establishment) {
             EstablishmentProduct::create([
                 'product_id' => $product->id,
-                'establishment_id' => $est->id,
+                'establishment_id' => $establishment->id,
             ]);
         }
 

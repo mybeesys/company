@@ -22,10 +22,12 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل 1', 'Customer 1'));
         $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل 3', 'Customer 3'));
         $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('مورد 2', 'Supplier 2'));
-        $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل تصدير 1', 'Export Customer 1'));
+        $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل تصدير 1', 'Export Customer 1'));
+        $this->assertTrue(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('عميل تصدير 2', 'Export Customer 2'));
         $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('مورد خارجي 1', 'Foreign Supplier 1'));
         $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('حساب بنكي 1', 'Bank Account 1'));
         $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('العملاء - محلي', 'Trade Receivables - Local'));
+        $this->assertFalse(MyBeeMasterCoaRules::isDefaultLocalPartyExampleLeaf('العملاء - تصدير', 'Trade Receivables - Export'));
     }
 
     public function test_maps_english_class_to_system_primary_types(): void
@@ -111,9 +113,12 @@ class MyBeeMasterCoaRulesTest extends TestCase
         $this->assertNotContains('1130101', $codes);
         $this->assertNotContains('2110101', $codes);
         $this->assertContains('1120101', $codes); // Bank Account 1 kept
-        $this->assertContains('1130201', $codes); // Export Customer 1 kept
+        $this->assertContains('11302', $codes); // Trade Receivables - Export (control) kept
+        $this->assertNotContains('1130201', $rawCodes); // Export Customer 1 removed
+        $this->assertNotContains('1130202', $rawCodes); // Export Customer 2 removed
+        $this->assertNotContains('1130201', $codes);
         $this->assertContains('2110201', $codes); // Foreign Supplier 1 kept
-        $this->assertGreaterThanOrEqual(290, count($codes));
+        $this->assertGreaterThanOrEqual(288, count($codes));
         $this->assertContains('41101', $codes);
         $this->assertContains('21301', $codes);
         $this->assertContains('11901', $codes);

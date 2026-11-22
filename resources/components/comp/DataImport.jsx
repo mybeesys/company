@@ -92,22 +92,31 @@ const IMPORT_PROFILES = {
     titleKey: "importProduct",
     titleFallback: "استيراد المنتجات",
     dataLabelKey: "products",
+    // Products are always linked to all branches server-side (no establishment UI).
     columns: [
-      { key: "name_ar", labelKey: "name_ar", editable: true },
-      { key: "name_en", labelKey: "name_en", editable: true },
-      { key: "category", labelKey: "category", editable: true },
-      { key: "subcategory", labelKey: "subcategory", editable: true },
-      { key: "main_unit", labelKey: "Unit", editable: true },
-      { key: "price_with_tax", labelKey: "price_with_tax", editable: true },
-      { key: "tax", labelKey: "tax", editable: true },
-      {
-        key: "establishment",
-        labelKey: "establishment",
-        editable: true,
-        type: "establishment",
-      },
-      { key: "SKU", labelKey: "SKU", editable: true },
+      { key: "name_ar", labelKey: "name_ar", editable: true, required: true },
+      { key: "name_en", labelKey: "name_en", editable: true, required: false },
+      { key: "category", labelKey: "category", editable: true, required: true },
+      { key: "subcategory", labelKey: "subcategory", editable: true, required: true },
+      { key: "main_unit", labelKey: "Unit", editable: true, required: true },
+      { key: "cost", labelKey: "cost", editable: true, required: false },
+      { key: "price_with_tax", labelKey: "price_with_tax", editable: true, required: false },
+      { key: "tax", labelKey: "tax", editable: true, required: false },
+      { key: "SKU", labelKey: "SKU", editable: true, required: false },
     ],
+    fieldGuide: {
+      requiredKeys: ["name_ar", "category", "subcategory", "Unit"],
+      optionalKeys: [
+        "name_en",
+        "cost",
+        "price_with_tax",
+        "tax",
+        "SKU",
+        "barcode",
+        "calories",
+      ],
+      noteKey: "importProductBranchesNote",
+    },
   },
   importIngredient: {
     titleKey: "importIngredient",
@@ -204,7 +213,16 @@ const ImportPreviewTable = ({
           <th className="min-w-110px">{translations.status || "الحالة"}</th>
           {columns.map((col) => (
             <th key={col.key} className="min-w-120px">
-              {translations[col.labelKey] || col.key}
+              <span>{translations[col.labelKey] || col.key}</span>
+              {col.required ? (
+                <span className="badge badge-light-danger ms-1 fs-9">
+                  {translations.importFieldRequired || "إلزامي"}
+                </span>
+              ) : (
+                <span className="badge badge-light ms-1 fs-9">
+                  {translations.importFieldOptional || "اختياري"}
+                </span>
+              )}
             </th>
           ))}
           <th className="min-w-180px pe-4">{translations.notes || "الملاحظات"}</th>
@@ -363,8 +381,8 @@ const DataImport = ({ translations, dir }) => {
     [establishmentList, translations, dir]
   );
 
-  const rules = useMemo(
-    () => [
+  const rules = useMemo(() => {
+    const base = [
       {
         icon: "ki-file",
         title: t("importRuleTemplateTitle", "ابدأ من النموذج"),
@@ -394,9 +412,29 @@ const DataImport = ({ translations, dir }) => {
           "الحد الأقصى 10 ميغابايت — صيغ XLSX / XLS / CSV فقط."
         ),
       },
-    ],
-    [translations]
-  );
+    ];
+
+    if (type === "importProduct") {
+      base.splice(1, 0, {
+        icon: "ki-check-square",
+        title: t("importRuleRequiredTitle", "الحقول الإلزامية"),
+        body: t(
+          "importRuleRequiredBody",
+          "إلزامي: الاسم العربي، التصنيف، التصنيف الفرعي، الوحدة. اختياري: الاسم الإنجليزي، التكلفة، السعر شامل الضريبة، الضريبة، SKU. السعرات الحرارية غير مطلوبة."
+        ),
+      });
+      base.splice(2, 0, {
+        icon: "ki-geolocation",
+        title: t("importRuleBranchesTitle", "الأفرع"),
+        body: t(
+          "importProductBranchesNote",
+          "يُضاف المنتج تلقائياً لجميع الأفرع — لا حاجة لعمود المنشأة في الواجهة."
+        ),
+      });
+    }
+
+    return base;
+  }, [translations, type]);
 
   const applyValidated = (payload) => {
     const rows = Array.isArray(payload?.rows)

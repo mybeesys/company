@@ -168,7 +168,7 @@ class JournalEntryController extends Controller
 
             \Modules\General\Support\SystemNotify::send('journal_posted', [
                 'ref_no' => (string) $acc_trans_mapping->ref_no,
-            ], url('/journal-entry'));
+            ], route('journal-entry-show', ['id' => $acc_trans_mapping->id]));
 
             if ($request->submit_type == 'add') {
                 return redirect()->back()->with('success', __('messages.add_successfully'));

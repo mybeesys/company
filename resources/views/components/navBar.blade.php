@@ -216,7 +216,7 @@
         <div class="app-navbar-item">
             <a href="{{ url('/general-setting') }}" class="btn btn-icon btn-custom btn-color-gray-600 btn-active-color-primary w-32px h-32px w-md-34px h-md-34px navbar-action-btn"
                 title="{{ __('general.header_help_settings') }}" aria-label="{{ __('general.header_help_settings') }}">
-                <i class="ki-outline ki-information-2 fs-3"></i>
+                <i class="ki-outline ki-setting-2 fs-3"></i>
             </a>
         </div>
     @endif
@@ -404,7 +404,7 @@
                                 'is-unread' => !$notification->read_at,
                             ])
                                 data-id="{{ $notification->id }}"
-                                data-url="{{ $ndata['url'] ?? '' }}"
+                                data-url="{{ \Modules\General\Support\NotificationUrlNormalizer::normalize($ndata['url'] ?? null) ?? '' }}"
                                 role="button">
                                 <div class="nb-ico sev-{{ $sev }}">
                                     <i @class(['fs-4', 'ki-outline '.($ndata['icon'] ?? 'ki-notification')])></i>

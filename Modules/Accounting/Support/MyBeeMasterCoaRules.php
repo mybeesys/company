@@ -56,20 +56,29 @@ final class MyBeeMasterCoaRules
     }
 
     /**
-     * Default local party placeholders only: عميل 1..N / Customer 1..N and مورد 1..N / Supplier 1..N.
-     * Does not match export/foreign variants (عميل تصدير، مورد خارجي، …).
+     * Default installable party placeholders to strip from the master pack:
+     * - عميل 1..N / Customer 1..N
+     * - مورد 1..N / Supplier 1..N
+     * - عميل تصدير 1..N / Export Customer 1..N
+     *
+     * Does not match foreign suppliers, bank accounts, partners, etc.
      */
     public static function isDefaultLocalPartyExampleLeaf(string $nameAr, string $nameEn): bool
     {
         $nameAr = self::cleanName($nameAr);
         $nameEn = self::cleanName($nameEn);
 
-        if (preg_match('/^عميل\s+\d+$/u', $nameAr) === 1 || preg_match('/^مورد\s+\d+$/u', $nameAr) === 1) {
+        if (
+            preg_match('/^عميل\s+\d+$/u', $nameAr) === 1
+            || preg_match('/^مورد\s+\d+$/u', $nameAr) === 1
+            || preg_match('/^عميل\s+تصدير\s+\d+$/u', $nameAr) === 1
+        ) {
             return true;
         }
 
         return preg_match('/^Customer\s+\d+$/i', $nameEn) === 1
-            || preg_match('/^Supplier\s+\d+$/i', $nameEn) === 1;
+            || preg_match('/^Supplier\s+\d+$/i', $nameEn) === 1
+            || preg_match('/^Export\s+Customer\s+\d+$/i', $nameEn) === 1;
     }
 
     /**
