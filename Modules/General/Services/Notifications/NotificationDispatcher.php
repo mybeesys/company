@@ -11,6 +11,7 @@ final class NotificationDispatcher
     public function __construct(
         protected NotificationRecipientResolver $recipients,
         protected NotificationRealtimePublisher $realtime,
+        protected NotificationPreferenceService $preferences,
     ) {}
 
     /**
@@ -27,6 +28,13 @@ final class NotificationDispatcher
         if (! $definition) {
             Log::warning("Unknown notification key: {$key}");
 
+            return;
+        }
+
+        $internalOn = $this->preferences->isInternalEnabled($key);
+        $emailOn = $this->preferences->isEmailEnabled($key);
+
+        if (! $internalOn && ! $emailOn) {
             return;
         }
 
@@ -49,27 +57,30 @@ final class NotificationDispatcher
         $excludeId = $actorUserId ?? (auth()->id() ? (int) auth()->id() : null);
         $notifyActor = (bool) ($definition['notify_actor'] ?? false);
         $permissions = $definition['ems_permissions'] ?? [];
+        $explicitIds = $this->preferences->explicitRecipientIds($key);
 
         $notifiedIds = [];
 
-        // Internal inbox is always enabled (not gated by NotificationSetting toggles).
-        $internalRecipients = $this->recipients->forInternal(
-            $permissions,
-            $excludeId,
-            $notifyActor
-        );
+        if ($internalOn) {
+            $internalRecipients = $this->recipients->forInternal(
+                $permissions,
+                $excludeId,
+                $notifyActor,
+                $explicitIds
+            );
 
-        foreach ($internalRecipients as $employee) {
-            $employee->notify(new SystemAlertNotification($payload, ['database']));
-            $notifiedIds[] = (int) $employee->id;
+            foreach ($internalRecipients as $employee) {
+                $employee->notify(new SystemAlertNotification($payload, ['database']));
+                $notifiedIds[] = (int) $employee->id;
+            }
         }
 
-        // Critical events always email permission holders (settings only customize copy).
-        if (($definition['severity'] ?? '') === 'critical') {
+        if ($emailOn) {
             $mailRecipients = $this->recipients->forCriticalMail(
                 $permissions,
                 $excludeId,
-                $notifyActor
+                $notifyActor,
+                $explicitIds
             );
 
             foreach ($mailRecipients as $employee) {

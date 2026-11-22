@@ -34,7 +34,10 @@ final class InvoicePdfRenderer
         return self::normalizeQrSvg($svg);
     }
 
-    public static function download(Transaction $transaction, ?object $company = null): Response
+    /**
+     * @return array{binary: string, filename: string}
+     */
+    public static function binary(Transaction $transaction, ?object $company = null): array
     {
         $company ??= self::company();
         if (! $company) {
@@ -42,6 +45,7 @@ final class InvoicePdfRenderer
         }
 
         $qrCode = self::qrSvg($transaction, $company);
+        $filename = preg_replace('/[^\w\-]+/u', '-', (string) $transaction->ref_no).'.pdf';
 
         if (UnifiedInvoicePrintPresenter::supports($transaction->type)) {
             $data = UnifiedInvoicePrintPresenter::build($transaction, $company, $qrCode, true);
@@ -63,12 +67,10 @@ final class InvoicePdfRenderer
             $mpdf->SetTitle(($data['docTitleAr'] ?? 'Invoice').' - '.(string) $transaction->ref_no);
             $mpdf->WriteHTML($html);
 
-            $filename = preg_replace('/[^\w\-]+/u', '-', (string) $transaction->ref_no).'.pdf';
-
-            return response($mpdf->Output($filename, 'S'), 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-            ]);
+            return [
+                'binary' => $mpdf->Output($filename, 'S'),
+                'filename' => $filename,
+            ];
         }
 
         $html = view('general::transactions.print', compact('transaction', 'qrCode', 'company'))->render();
@@ -81,11 +83,20 @@ final class InvoicePdfRenderer
             'autoScriptToLang' => true,
         ]);
         $mpdf->WriteHTML($html);
-        $filename = preg_replace('/[^\w\-]+/u', '-', (string) $transaction->ref_no).'.pdf';
 
-        return response($mpdf->Output($filename, 'S'), 200, [
+        return [
+            'binary' => $mpdf->Output($filename, 'S'),
+            'filename' => $filename,
+        ];
+    }
+
+    public static function download(Transaction $transaction, ?object $company = null): Response
+    {
+        $pdf = self::binary($transaction, $company);
+
+        return response($pdf['binary'], 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Disposition' => 'attachment; filename="'.$pdf['filename'].'"',
         ]);
     }
 

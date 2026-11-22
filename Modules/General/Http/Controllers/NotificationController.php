@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Validation\Rule;
 use Modules\General\Services\Notifications\NotificationCatalog;
+use Modules\General\Support\NotificationUrlNormalizer;
 
 class NotificationController extends Controller
 {
@@ -58,7 +59,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'unread_count' => auth()->user()->unreadNotifications()->count(),
-            'url' => $notification->data['url'] ?? null,
+            'url' => NotificationUrlNormalizer::normalize($notification->data['url'] ?? null),
         ]);
     }
 
@@ -91,7 +92,7 @@ class NotificationController extends Controller
                     'title' => $data['title'] ?? __('general.notifications'),
                     'body' => $data['body'] ?? '',
                     'icon' => $data['icon'] ?? 'ki-notification',
-                    'url' => $data['url'] ?? null,
+                    'url' => NotificationUrlNormalizer::normalize($data['url'] ?? null),
                     'module' => $data['module'] ?? 'system',
                     'severity' => $data['severity'] ?? 'info',
                     'created_at' => $notification->created_at?->diffForHumans(),

@@ -226,7 +226,12 @@
         <div class="tab-content" id="myTabContent">
 
             @if ($h['notifications'])
-            <x-general::notifications.notification-settings-index :employees="$employees" :notifications_settings="$notifications_settings" />
+            <x-general::notifications.notification-settings-index
+                :employees="$employees"
+                :notifications_settings="$notifications_settings"
+                :system_alert_preferences="$system_alert_preferences"
+                :system_alert_groups="$system_alert_groups"
+            />
             @endif
 
             @if ($h['mail'])

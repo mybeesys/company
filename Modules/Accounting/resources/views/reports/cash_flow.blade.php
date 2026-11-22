@@ -139,9 +139,9 @@
         </div>
     </form>
 
-    <div class="alert alert-primary py-2 mb-3 no-print">
-        <span class="badge badge-light-primary me-2">@lang('accounting::lang.cf_structure_phase_badge')</span>
-        @lang('accounting::lang.cf_structure_phase_note')
+    <div class="alert alert-success py-2 mb-3 no-print">
+        <span class="badge badge-light-success me-2">@lang('accounting::lang.cf_amounts_phase_badge')</span>
+        @lang('accounting::lang.cf_amounts_phase_note')
         @if(!empty($coaStatement['missing_prefixes'] ?? []))
             <div class="small mt-1 text-muted">
                 @lang('accounting::lang.cf_missing_coa_prefix'):
@@ -257,20 +257,54 @@
         </div>
     </div>
 
-    @php $coaRows = $coaStatement['rows'] ?? []; @endphp
+    @php
+        $coaRows = $coaStatement['rows'] ?? [];
+        $coaTie = $coaStatement['tie_out'] ?? [];
+        // Temporary UI toggles — flip to true to restore (do not delete the blocks).
+        $cfShowFormulaColumn = false;
+        $cfShowTreasuryMovements = false;
+        $cfShowDetailMovements = false;
+    @endphp
     <div class="cf-panel mb-4">
         <div class="cf-panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h3 class="cf-panel-title mb-0">@lang('accounting::lang.cf_coa_statement')</h3>
-            <span class="small text-muted">@lang('accounting::lang.cf_detail_level'): {{ $coaStatement['detail_level'] ?? 3 }}</span>
+            <span class="small text-muted">
+                @lang('accounting::lang.cf_detail_level'): {{ $coaStatement['detail_level'] ?? 3 }}
+                · {{ $startDate }} → {{ $endDate }}
+            </span>
         </div>
+        @if(!empty($coaTie))
+            <div class="px-4 pt-3 no-print">
+                <div class="alert {{ !empty($coaTie['is_balanced']) ? 'alert-light-success' : 'alert-light-warning' }} py-2 mb-0 small">
+                    @lang('accounting::lang.cf_tie_out'):
+                    @lang('accounting::lang.cf_opening_cash') @format_accounting_amount($coaTie['cash_opening'] ?? 0)
+                    + @lang('accounting::lang.cf_net_change_cash') @format_accounting_amount($coaTie['net_change'] ?? 0)
+                    = @format_accounting_amount($coaTie['implied_closing'] ?? 0)
+                    · @lang('accounting::lang.cf_closing_cash') @format_accounting_amount($coaTie['cash_closing'] ?? 0)
+                    @if(empty($coaTie['is_balanced']))
+                        <span class="text-danger ms-2">(@lang('accounting::lang.cf_tie_diff'): @format_accounting_amount($coaTie['difference'] ?? 0))</span>
+                    @endif
+                </div>
+            </div>
+        @endif
         <div class="cf-statement-scroll p-0">
-            <table class="table table-sm mb-0" id="cfStatementTable">
+            <table class="table table-sm mb-0 {{ $cfShowFormulaColumn ? 'has-formula' : '' }}" id="cfStatementTable">
+                <colgroup>
+                    <col class="cf-col-item">
+                    <col class="cf-col-account">
+                    @if($cfShowFormulaColumn)
+                        <col class="cf-col-formula">
+                    @endif
+                    <col class="cf-col-amount">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th>@lang('accounting::lang.cf_line_item')</th>
-                        <th>@lang('accounting::lang.cf_linked_gl')</th>
-                        <th class="cf-fin">{{ $startDate }}</th>
-                        <th class="cf-fin">@lang('employee::fields.amount')</th>
+                        <th scope="col">@lang('accounting::lang.cf_line_item')</th>
+                        <th scope="col">@lang('accounting::lang.cf_linked_account')</th>
+                        @if($cfShowFormulaColumn)
+                            <th scope="col">@lang('accounting::lang.cf_formula')</th>
+                        @endif
+                        <th scope="col" class="cf-fin">@lang('employee::fields.amount')</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -286,22 +320,34 @@
                             };
                             $indent = (int) ($row['indent'] ?? 0);
                             $pad = $indent > 0 ? ('padding-inline-start:'.(0.75 + $indent * 0.85).'rem') : '';
+                            $amt = $row['amount'] ?? null;
                         @endphp
                         <tr class="{{ $rowClass }}">
-                            <td style="{{ $pad }}">{{ $row['label'] ?? '' }}</td>
-                            <td class="small text-muted">
-                                @if(!empty($row['gl_codes']))
-                                    {{ implode(', ', $row['gl_codes']) }}
+                            <td class="cf-cell-item" style="{{ $pad }}">{{ $row['label'] ?? '' }}</td>
+                            <td class="cf-cell-account">
+                                @if(!empty($row['account_names']))
+                                    {{ implode(' · ', array_slice($row['account_names'], 0, 2)) }}
+                                    @if(count($row['account_names']) > 2) … @endif
+                                @elseif(!empty($row['gl_codes']))
+                                    {{ implode(', ', array_slice($row['gl_codes'], 0, 3)) }}
                                 @else
                                     —
                                 @endif
                             </td>
-                            <td class="cf-fin text-muted">@lang('accounting::lang.cf_amount_pending')</td>
-                            <td class="cf-fin text-muted">@lang('accounting::lang.cf_amount_pending')</td>
+                            @if($cfShowFormulaColumn)
+                                <td class="cf-cell-account">{{ $row['formula_label'] ?? '—' }}</td>
+                            @endif
+                            <td class="cf-fin {{ is_numeric($amt) && $amt < 0 ? 'cf-fin-negative' : '' }}">
+                                @if($amt === null)
+                                    —
+                                @else
+                                    @format_accounting_amount($amt)
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-muted text-center py-4">@lang('accounting::lang.no_data')</td>
+                            <td colspan="{{ $cfShowFormulaColumn ? 4 : 3 }}" class="text-muted text-center py-4">@lang('accounting::lang.no_data')</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -309,6 +355,7 @@
         </div>
     </div>
 
+    @if($cfShowTreasuryMovements)
     <div class="cf-panel mb-4 no-print">
         <div class="cf-panel-header d-flex justify-content-between align-items-center">
             <h3 class="cf-panel-title mb-0">@lang('accounting::lang.cf_movements_analysis')</h3>
@@ -362,7 +409,9 @@
             </table>
         </div>
     </div>
+    @endif
 
+    @if($cfShowDetailMovements)
     <div class="cf-panel">
         <div class="cf-panel-header"><h3 class="cf-panel-title">@lang('accounting::lang.cf_detail_movements')</h3></div>
         <div class="cf-detail-scroll table-responsive p-3">
@@ -409,6 +458,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="cf-print-footer text-center text-muted small mt-4">
         @lang('accounting::lang.cf_print_footer') — {{ now()->format('Y-m-d H:i') }}

@@ -66,5 +66,41 @@ class WhatsAppInvoiceSharePresenterTest extends TestCase
         foreach (['{customer_name}', '{invoice_no}', '{amount}', '{date}', '{company_name}', '{download_link}'] as $token) {
             $this->assertStringContainsString($token, $template);
         }
+        $this->assertStringContainsString('تحميل / Download', $template);
+        $this->assertStringContainsString('To download the invoice, please click on Download', $template);
+        $this->assertStringNotContainsString('7 أيام', $template);
+        $this->assertStringNotContainsString('7 days', $template);
+    }
+
+    public function test_api_template_has_no_download_link(): void
+    {
+        $template = WhatsAppInvoiceSharePresenter::defaultApiTemplate();
+        $this->assertStringNotContainsString('{download_link}', $template);
+        $this->assertStringContainsString('{customer_name}', $template);
+        $this->assertStringContainsString('To download the invoice, please click on Download', $template);
+    }
+
+    public function test_strip_links_from_message_removes_urls(): void
+    {
+        $cleaned = WhatsAppInvoiceSharePresenter::stripLinksFromMessage(
+            "Hello\n⬇️ *تحميل / Download*\nhttps://example.test/invoice?x=1\n\nBye"
+        );
+        $this->assertStringNotContainsString('https://', $cleaned);
+        $this->assertStringContainsString('Hello', $cleaned);
+        $this->assertStringContainsString('Bye', $cleaned);
+    }
+
+    public function test_default_link_ttl_is_24_hours(): void
+    {
+        $this->assertSame(24, WhatsAppInvoiceSharePresenter::DEFAULT_TTL_HOURS);
+        $this->assertSame('24 ساعة / 24 hours', WhatsAppInvoiceSharePresenter::linkValidityLabel(24));
+        $this->assertSame('ساعة واحدة / 1 hour', WhatsAppInvoiceSharePresenter::linkValidityLabel(1));
+    }
+
+    public function test_public_https_url_detection(): void
+    {
+        $this->assertTrue(\Modules\General\Support\WhatsAppCloudApiClient::isPublicHttpsUrl('https://app.example.com/pdf'));
+        $this->assertFalse(\Modules\General\Support\WhatsAppCloudApiClient::isPublicHttpsUrl('http://test.localhost:8000/pdf'));
+        $this->assertFalse(\Modules\General\Support\WhatsAppCloudApiClient::isPublicHttpsUrl('https://localhost/pdf'));
     }
 }

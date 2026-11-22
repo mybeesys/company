@@ -64,8 +64,10 @@ class GeneralController extends Controller
         $taxes = Tax::where('is_tax_group', 0)->get();
         $methodColumns = PaymentMethod::getsPaymentMethodsColumns();
         $employees = Employee::where('pos_is_active', true)->select('name', 'name_en', 'id')->get();
-        $notifications_settings = NotificationSetting::all();
+        $notifications_settings = NotificationSetting::with('notifiable:id')->get();
         $notifications_settings_parameters = NotificationSettingParameter::all();
+        $system_alert_preferences = app(\Modules\General\Services\Notifications\NotificationPreferenceService::class)->mapForCatalog();
+        $system_alert_groups = app(\Modules\General\Services\Notifications\NotificationPreferenceService::class)->groupedCatalog();
         $prefixes = PrefixSetting::where('table_name', 'transactions')->get();
         $prefixes_mapp = PrefixSetting::where('table_name', 'transaction_mapp')->get();
         $prefixes_payments = PrefixSetting::where('table_name', 'transaction_payments')->get();
@@ -121,7 +123,7 @@ class GeneralController extends Controller
 
         $settings = $settings->merge($social_settings);
 
-        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'policy', 'inventoryCountFrequency', 'unit'));
+        return view('general::settings.index', compact('cards', 'accounts', 'reward_points_settings', 'modules', 'company', 'countries', 'enabledModules', 'currencies', 'setting_currency', 'inventory_costing_method', 'settings', 'prefixes', 'prefixes_mapp', 'prefixes_payments', 'taxes', 'taxesColumns', 'methodColumns', 'employees', 'notifications_settings', 'notifications_settings_parameters', 'system_alert_preferences', 'system_alert_groups', 'policy', 'inventoryCountFrequency', 'unit'));
     }
 
     public function subscription(\Illuminate\Http\Request $request)

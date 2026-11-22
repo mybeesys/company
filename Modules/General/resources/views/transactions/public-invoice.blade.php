@@ -3,19 +3,19 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $localeAr ? 'فاتورتك' : 'Your invoice' }} — {{ $transaction->ref_no }}</title>
+    <title>{{ $localeAr ? 'تحميل الفاتورة' : 'Download invoice' }} — {{ $transaction->ref_no }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ink: #1a1a1a;
-            --muted: #6b6b6b;
-            --line: #ececec;
-            --bee: #e9b71f;
-            --bee-deep: #c99a12;
-            --surface: #fffdf7;
-            --paper: #ffffff;
+            --ink: #111b21;
+            --muted: #667781;
+            --line: #e9edef;
+            --wa: #25d366;
+            --wa-deep: #1da851;
+            --bubble: #ffffff;
+            --page: #efeae2;
         }
         * { box-sizing: border-box; }
         body {
@@ -23,136 +23,164 @@
             min-height: 100vh;
             font-family: {{ $localeAr ? "'IBM Plex Sans Arabic', sans-serif" : "'Manrope', sans-serif" }};
             color: var(--ink);
-            background:
-                radial-gradient(1200px 600px at 10% -10%, rgba(233, 183, 31, 0.18), transparent 55%),
-                radial-gradient(900px 500px at 100% 0%, rgba(233, 183, 31, 0.10), transparent 50%),
-                linear-gradient(180deg, #fffaf0 0%, #f7f4ea 100%);
+            background: var(--page);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 28px 16px;
+            padding: 24px 14px;
         }
-        .sheet {
-            width: min(520px, 100%);
-            background: var(--paper);
-            border: 1px solid var(--line);
-            border-top: 4px solid var(--bee);
-            padding: 36px 32px 28px;
-            box-shadow: 0 18px 50px rgba(26, 26, 26, 0.06);
+        .card {
+            width: min(420px, 100%);
+            background: var(--bubble);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(17, 27, 33, 0.08);
         }
-        .logo {
+        .head {
+            padding: 22px 22px 14px;
             text-align: center;
-            margin-bottom: 18px;
-            min-height: 56px;
+            border-bottom: 1px solid var(--line);
         }
         .logo img {
-            max-height: 64px;
-            max-width: 180px;
+            max-height: 52px;
+            max-width: 160px;
             object-fit: contain;
         }
         .brand {
-            text-align: center;
-            font-size: 1.35rem;
+            margin: 10px 0 0;
+            font-size: 1.15rem;
             font-weight: 700;
-            letter-spacing: -0.02em;
-            margin: 0 0 6px;
         }
-        .eyebrow {
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.92rem;
-            margin: 0 0 28px;
+        .body {
+            padding: 18px 22px 8px;
         }
-        .meta {
-            border-top: 1px solid var(--line);
-            border-bottom: 1px solid var(--line);
-            padding: 18px 0;
-            margin-bottom: 28px;
-        }
-        .row {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 8px 0;
+        .msg {
+            margin: 0 0 14px;
             font-size: 0.95rem;
-        }
-        .row .k { color: var(--muted); }
-        .row .v { font-weight: 600; text-align: end; }
-        .amount .v {
-            font-size: 1.25rem;
+            line-height: 1.55;
             color: var(--ink);
         }
-        .cta {
-            display: block;
+        .meta {
+            margin: 0 0 8px;
+            font-size: 0.88rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+        .meta strong { color: var(--ink); font-weight: 700; }
+        .actions {
+            border-top: 1px solid var(--line);
+            background: #f7f8fa;
+        }
+        .dl-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             width: 100%;
-            text-align: center;
+            padding: 16px 18px;
             text-decoration: none;
-            background: var(--bee);
-            color: #1a1a1a;
+            color: var(--wa-deep);
             font-weight: 700;
             font-size: 1.05rem;
-            padding: 14px 18px;
+            background: transparent;
             border: 0;
-            transition: background 0.15s ease, transform 0.15s ease;
+            cursor: pointer;
         }
-        .cta:hover { background: var(--bee-deep); color: #111; }
-        .cta:active { transform: translateY(1px); }
+        .dl-btn:hover { background: #eef8f1; color: #14833d; }
+        .dl-btn .arrow {
+            font-size: 1.15rem;
+            line-height: 1;
+            transform: {{ $localeAr ? 'scaleX(-1)' : 'none' }};
+        }
+        .divider { height: 1px; background: var(--line); }
         .note {
-            margin-top: 18px;
+            padding: 12px 22px 18px;
             text-align: center;
             color: var(--muted);
-            font-size: 0.82rem;
-            line-height: 1.55;
+            font-size: 0.78rem;
+            line-height: 1.5;
         }
-        .foot {
-            margin-top: 28px;
+        .status {
+            display: none;
             text-align: center;
-            font-size: 0.75rem;
-            color: #9a9a9a;
+            color: var(--wa-deep);
+            font-size: 0.85rem;
+            margin: 0 0 10px;
         }
+        .status.is-on { display: block; }
     </style>
 </head>
 <body>
-    <main class="sheet">
-        <div class="logo">
+    <main class="card">
+        <div class="head">
             @if (!empty($logoSrc))
-                <img src="{{ $logoSrc }}" alt="{{ $companyName }}">
+                <div class="logo"><img src="{{ $logoSrc }}" alt="{{ $companyName }}"></div>
             @endif
-        </div>
-        <h1 class="brand">{{ $companyName }}</h1>
-        <p class="eyebrow">
-            {{ $localeAr ? 'فاتورتك جاهزة للتحميل' : 'Your invoice is ready to download' }}
-        </p>
-
-        <div class="meta">
-            <div class="row">
-                <span class="k">{{ $localeAr ? 'رقم الفاتورة' : 'Invoice No.' }}</span>
-                <span class="v" dir="ltr">{{ $transaction->ref_no }}</span>
-            </div>
-            <div class="row">
-                <span class="k">{{ $localeAr ? 'العميل' : 'Customer' }}</span>
-                <span class="v">{{ $customerName }}</span>
-            </div>
-            <div class="row">
-                <span class="k">{{ $localeAr ? 'التاريخ' : 'Date' }}</span>
-                <span class="v" dir="ltr">{{ $issueDate }}</span>
-            </div>
-            <div class="row amount">
-                <span class="k">{{ $localeAr ? 'المبلغ' : 'Amount' }}</span>
-                <span class="v" dir="ltr">{{ $amount }} SAR</span>
-            </div>
+            <h1 class="brand">{{ $companyName }}</h1>
         </div>
 
-        <a class="cta" href="{{ $pdfUrl }}">
-            {{ $localeAr ? 'تحميل الفاتورة PDF' : 'Download invoice PDF' }}
-        </a>
+        <div class="body">
+            <p class="msg">
+                {{ $localeAr
+                    ? 'لتحميل الفاتورة يرجى الضغط على تحميل'
+                    : 'To download the invoice, please click on Download' }}
+            </p>
+            <p class="meta">
+                {{ $localeAr ? 'رقم الفاتورة' : 'Invoice' }}:
+                <strong dir="ltr">{{ $transaction->ref_no }}</strong><br>
+                {{ $localeAr ? 'المبلغ' : 'Amount' }}:
+                <strong dir="ltr">{{ $amount }} SAR</strong>
+            </p>
+            <p id="dlStatus" class="status {{ !empty($autoDownload) ? 'is-on' : '' }}">
+                {{ $localeAr ? 'جاري بدء التحميل…' : 'Starting download…' }}
+            </p>
+        </div>
 
+        <div class="actions">
+            <a class="dl-btn" id="downloadBtn" href="{{ $pdfUrl }}" rel="noopener" download>
+                <span>{{ $localeAr ? 'تحميل / Download' : 'Download / تحميل' }}</span>
+                <span class="arrow" aria-hidden="true">↪️</span>
+            </a>
+        </div>
+
+        <div class="divider"></div>
         <p class="note">
             {{ $localeAr
-                ? 'يمكنك تحميل الفاتورة دون تسجيل دخول. الرابط آمن وينتهي في '.$expiresAt.'.'
-                : 'You can download this invoice without signing in. This secure link expires on '.$expiresAt.'.' }}
+                ? 'سيتم تحميل ملف PDF فوراً. الرابط آمن وينتهي في '.$expiresAt.'.'
+                : 'The PDF downloads immediately. This secure link expires on '.$expiresAt.'.' }}
         </p>
-        <p class="foot">{{ $companyName }}</p>
     </main>
+
+    <script>
+        (function () {
+            var pdfUrl = @json($pdfUrl);
+            var auto = @json((bool) ($autoDownload ?? false));
+            if (!auto || !pdfUrl) return;
+
+            function startDownload() {
+                // Prefer a real download click so the CTA page stays open for retry.
+                var a = document.createElement('a');
+                a.href = pdfUrl;
+                a.setAttribute('download', '');
+                a.rel = 'noopener';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                // Fallback for WebViews (WhatsApp in-app browser) that ignore download=.
+                var frame = document.createElement('iframe');
+                frame.style.display = 'none';
+                frame.src = pdfUrl;
+                document.body.appendChild(frame);
+            }
+
+            if (document.readyState === 'complete') {
+                startDownload();
+            } else {
+                window.addEventListener('load', startDownload, { once: true });
+            }
+        })();
+    </script>
 </body>
 </html>

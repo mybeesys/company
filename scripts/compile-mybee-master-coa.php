@@ -5,8 +5,8 @@
  * Source of truth: Modules/Accounting/data/MyBee_Master_Chart_of_Accounts_Tree_v6.xlsx
  *
  * Level 1 roots are conceptual; level 2 becomes account subtypes; levels 3–5 become
- * chart accounts. Local Customer N / Supplier N example leaves are omitted from the pack;
- * other workbook examples (Bank Account N, Export Customer N, …) remain.
+ * chart accounts. Customer N / Supplier N / Export Customer N example leaves are omitted;
+ * other workbook examples (Bank Account N, Foreign Supplier N, …) remain.
  */
 
 declare(strict_types=1);

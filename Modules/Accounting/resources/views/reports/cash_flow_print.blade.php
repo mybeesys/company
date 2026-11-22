@@ -23,14 +23,22 @@
 <body>
     <h2>{{ $company->name ?? '' }} — {{ __('accounting::lang.cash_flow_statement') }}</h2>
     <div class="muted">{{ __('accounting::lang.from_date') }}: {{ $startDate }} — {{ __('accounting::lang.to_date') }}: {{ $endDate }}</div>
-    <div class="note">{{ __('accounting::lang.cf_structure_phase_note') }}</div>
+    <div class="note">{{ __('accounting::lang.cf_amounts_phase_note') }}</div>
 
+    @php
+        // Temporary UI toggles — flip to true to restore (do not delete the blocks).
+        $cfShowFormulaColumn = false;
+        $cfShowTreasuryMovements = false;
+    @endphp
     <h3>{{ __('accounting::lang.cf_coa_statement') }}</h3>
     <table>
         <thead>
             <tr>
                 <th>{{ __('accounting::lang.cf_line_item') }}</th>
-                <th>{{ __('accounting::lang.cf_linked_gl') }}</th>
+                <th>{{ __('accounting::lang.cf_linked_account') }}</th>
+                @if($cfShowFormulaColumn)
+                    <th>{{ __('accounting::lang.cf_formula') }}</th>
+                @endif
                 <th class="text-end">{{ __('employee::fields.amount') }}</th>
             </tr>
         </thead>
@@ -45,16 +53,22 @@
                         default => '',
                     };
                     $pad = max(0, (int) ($row['indent'] ?? 0)) * 10;
+                    $amt = $row['amount'] ?? null;
+                    $names = $row['account_names'] ?? [];
                 @endphp
                 <tr class="{{ $cls }}">
                     <td style="padding-inline-start: {{ 4 + $pad }}px">{{ $row['label'] ?? '' }}</td>
-                    <td>{{ !empty($row['gl_codes']) ? implode(', ', $row['gl_codes']) : '—' }}</td>
-                    <td class="text-end dim">{{ __('accounting::lang.cf_amount_pending') }}</td>
+                    <td>{{ $names !== [] ? implode(' · ', array_slice($names, 0, 3)) : (!empty($row['gl_codes']) ? implode(', ', $row['gl_codes']) : '—') }}</td>
+                    @if($cfShowFormulaColumn)
+                        <td>{{ $row['formula_label'] ?? '—' }}</td>
+                    @endif
+                    <td class="text-end">{{ $amt === null ? '—' : number_format((float) $amt, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
+    @if($cfShowTreasuryMovements)
     <h3>{{ __('accounting::lang.cf_movements_analysis') }}</h3>
     <div class="summary">
         {{ __('accounting::lang.cash_inflows') }}: {{ number_format((float) $cashInflows, 2) }}
@@ -105,5 +119,6 @@
             </tr>
         </tbody>
     </table>
+    @endif
 </body>
 </html>

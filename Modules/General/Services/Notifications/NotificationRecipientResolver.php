@@ -6,39 +6,65 @@ use Illuminate\Support\Collection;
 use Modules\Employee\Models\Employee;
 
 /**
- * Recipients are resolved from EMS permissions only.
- * Channel enablement does not depend on NotificationSetting toggles:
- * - Internal (in-app) is always on
- * - Email is always on for critical events
+ * Recipients: explicit employee IDs from settings when provided,
+ * otherwise EMS permission holders for the catalog entry.
  */
 final class NotificationRecipientResolver
 {
     /**
      * @param  list<string>  $emsPermissions
+     * @param  list<int>|null  $explicitEmployeeIds
      * @return Collection<int, Employee>
      */
-    public function forInternal(array $emsPermissions, ?int $excludeUserId = null, bool $notifyActor = false): Collection
-    {
+    public function forInternal(
+        array $emsPermissions,
+        ?int $excludeUserId = null,
+        bool $notifyActor = false,
+        ?array $explicitEmployeeIds = null
+    ): Collection {
         return $this->applyActorFilter(
-            $this->employeesWithAnyPermission($emsPermissions),
+            $this->resolvePool($emsPermissions, $explicitEmployeeIds),
             $excludeUserId,
             $notifyActor
         )->values();
     }
 
     /**
-     * Critical email recipients: permission holders who have an email address.
+     * Critical email recipients who have an email address.
      *
      * @param  list<string>  $emsPermissions
+     * @param  list<int>|null  $explicitEmployeeIds
      * @return Collection<int, Employee>
      */
-    public function forCriticalMail(array $emsPermissions, ?int $excludeUserId = null, bool $notifyActor = false): Collection
-    {
+    public function forCriticalMail(
+        array $emsPermissions,
+        ?int $excludeUserId = null,
+        bool $notifyActor = false,
+        ?array $explicitEmployeeIds = null
+    ): Collection {
         return $this->applyActorFilter(
-            $this->employeesWithAnyPermission($emsPermissions),
+            $this->resolvePool($emsPermissions, $explicitEmployeeIds),
             $excludeUserId,
             $notifyActor
         )->filter(fn (Employee $e) => filled($e->email))->values();
+    }
+
+    /**
+     * @param  list<string>  $emsPermissions
+     * @param  list<int>|null  $explicitEmployeeIds
+     * @return Collection<int, Employee>
+     */
+    protected function resolvePool(array $emsPermissions, ?array $explicitEmployeeIds): Collection
+    {
+        if (is_array($explicitEmployeeIds) && $explicitEmployeeIds !== []) {
+            return Employee::query()
+                ->whereNull('deleted_at')
+                ->whereIn('id', $explicitEmployeeIds)
+                ->get()
+                ->values();
+        }
+
+        return $this->employeesWithAnyPermission($emsPermissions);
     }
 
     /**

@@ -37,11 +37,13 @@ class ProductImportService
                     'barcode' => $this->str($row[9] ?? null),
                     'order' => $row[10] ?? null,
                     'color' => $this->str($row[11] ?? null),
-                    'cost' => $row[12] ?? 0,
-                    'price_with_tax' => $row[13] ?? 0,
+                    'cost' => $this->optionalNumber($row[12] ?? null),
+                    'price_with_tax' => $this->optionalNumber($row[13] ?? null, 0),
                     'main_unit' => $this->str($row[14] ?? null),
                     'tax' => $this->str($row[15] ?? null),
+                    // Kept for backward-compatible files; import always links all branches.
                     'establishment' => $this->str($row[16] ?? null),
+                    'calories' => $this->optionalNumber($row[17] ?? null, null),
                 ];
             })
             ->filter(function ($row) {
@@ -89,19 +91,14 @@ class ProductImportService
                 $problemFields[] = 'subcategory';
             }
 
-            $estName = trim((string) ($row['establishment'] ?? ''));
-            $isAll = in_array($estName, ['جميع المستودعات', 'All Establishments'], true);
-            // Establishment is optional: blank = no branch link; name must still match if filled.
-            if ($estName !== '' && ! $isAll) {
-                $est = Establishment::query()
-                    ->where(function ($q) use ($estName) {
-                        $q->where('name', $estName)->orWhere('name_en', $estName);
-                    })
-                    ->first();
-                if (! $est) {
-                    $issues[] = ['code' => 'INVALID', 'field' => 'establishment', 'value' => $estName];
-                    $problemFields[] = 'establishment';
-                }
+            // Cost and calories are optional; only reject clearly non-numeric values.
+            if ($this->hasInvalidOptionalNumber($raw['cost'] ?? null)) {
+                $issues[] = ['code' => 'INVALID', 'field' => 'cost', 'value' => (string) ($raw['cost'] ?? '')];
+                $problemFields[] = 'cost';
+            }
+            if ($this->hasInvalidOptionalNumber($raw['calories'] ?? null)) {
+                $issues[] = ['code' => 'INVALID', 'field' => 'calories', 'value' => (string) ($raw['calories'] ?? '')];
+                $problemFields[] = 'calories';
             }
 
             if ($row['tax'] !== '') {
@@ -284,22 +281,10 @@ class ProductImportService
             throw new \RuntimeException('Tax not found');
         }
 
-        $estName = trim((string) ($row['establishment'] ?? ''));
-        $isAll = in_array($estName, ['جميع المستودعات', 'All Establishments'], true);
-        $est = null;
-        if ($estName !== '' && ! $isAll) {
-            $est = Establishment::query()
-                ->where(function ($q) use ($estName) {
-                    $q->where('name', $estName)->orWhere('name_en', $estName);
-                })
-                ->first();
-            if (! $est) {
-                throw new \RuntimeException('Establishment not found');
-            }
-        }
-
         $taxRate = (float) ($tax->amount ?? 0);
-        $priceWithTax = $row['price_with_tax'] ?? 0;
+        $priceWithTax = $this->optionalNumber($row['price_with_tax'] ?? null, 0) ?? 0;
+        $cost = $this->optionalNumber($row['cost'] ?? null, 0) ?? 0;
+        $calories = $this->optionalNumber($row['calories'] ?? null, null);
         $sku = $row['SKU'] !== '' ? $row['SKU'] : null;
 
         $product = Product::create([
@@ -315,7 +300,8 @@ class ProductImportService
             'barcode' => $row['barcode'] ?: null,
             'order' => $row['order'] ?? null,
             'color' => $row['color'] ?: null,
-            'cost' => $row['cost'] ?? 0,
+            'cost' => $cost,
+            'calories' => $calories,
             'price_with_tax' => $priceWithTax,
             'tax_id' => $tax->id,
             'price' => TaxHelper::getAmountBeforeTax($priceWithTax, $taxRate),
@@ -328,17 +314,11 @@ class ProductImportService
             'primary' => 1,
         ]);
 
-        if ($isAll) {
-            foreach (Establishment::where('is_main', 0)->get() as $establishment) {
-                EstablishmentProduct::create([
-                    'product_id' => $product->id,
-                    'establishment_id' => $establishment->id,
-                ]);
-            }
-        } elseif ($est) {
+        // Always attach to every branch — no establishment column in the UI.
+        foreach (Establishment::where('is_main', 0)->get() as $establishment) {
             EstablishmentProduct::create([
                 'product_id' => $product->id,
-                'establishment_id' => $est->id,
+                'establishment_id' => $establishment->id,
             ]);
         }
 
@@ -402,11 +382,12 @@ class ProductImportService
             'barcode' => $this->str($raw['barcode'] ?? ''),
             'order' => $raw['order'] ?? null,
             'color' => $this->str($raw['color'] ?? ''),
-            'cost' => $raw['cost'] ?? 0,
-            'price_with_tax' => $raw['price_with_tax'] ?? 0,
+            'cost' => $this->optionalNumber($raw['cost'] ?? null, 0),
+            'price_with_tax' => $this->optionalNumber($raw['price_with_tax'] ?? null, 0),
             'main_unit' => $this->str($raw['main_unit'] ?? $raw['unit'] ?? ''),
             'tax' => $this->str($raw['tax'] ?? ''),
             'establishment' => $this->str($raw['establishment'] ?? ''),
+            'calories' => $this->optionalNumber($raw['calories'] ?? null, null),
         ];
     }
 
@@ -417,5 +398,38 @@ class ProductImportService
         }
 
         return trim((string) $value);
+    }
+
+    /**
+     * Parse optional numeric Excel cells. Empty stays as $emptyDefault.
+     */
+    protected function optionalNumber($value, $emptyDefault = 0): mixed
+    {
+        if ($value === null) {
+            return $emptyDefault;
+        }
+        if (is_string($value)) {
+            $value = trim($value);
+            if ($value === '') {
+                return $emptyDefault;
+            }
+        }
+        if (is_numeric($value)) {
+            return 0 + $value;
+        }
+
+        return $emptyDefault;
+    }
+
+    protected function hasInvalidOptionalNumber($value): bool
+    {
+        if ($value === null) {
+            return false;
+        }
+        if (is_string($value) && trim($value) === '') {
+            return false;
+        }
+
+        return ! is_numeric($value);
     }
 }

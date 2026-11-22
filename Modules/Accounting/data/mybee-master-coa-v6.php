@@ -364,30 +364,6 @@ return array (
     ),
     19 => 
     array (
-      'gl_code' => '1130201',
-      'name_ar' => 'عميل تصدير 1',
-      'name_en' => 'Export Customer 1',
-      'level' => 5,
-      'parent_gl' => '11302',
-      'account_primary_type' => 'asset',
-      'normal_balance' => 'debit',
-      'allow_direct_posting' => true,
-      'sector' => 'جميع القطاعات / All Sectors',
-    ),
-    20 => 
-    array (
-      'gl_code' => '1130202',
-      'name_ar' => 'عميل تصدير 2',
-      'name_en' => 'Export Customer 2',
-      'level' => 5,
-      'parent_gl' => '11302',
-      'account_primary_type' => 'asset',
-      'normal_balance' => 'debit',
-      'allow_direct_posting' => true,
-      'sector' => 'جميع القطاعات / All Sectors',
-    ),
-    21 => 
-    array (
       'gl_code' => '11303',
       'name_ar' => 'عملاء شركات مرتبطة',
       'name_en' => 'Related Party Receivables',
@@ -398,7 +374,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    22 => 
+    20 => 
     array (
       'gl_code' => '11304',
       'name_ar' => 'أوراق القبض',
@@ -410,7 +386,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    23 => 
+    21 => 
     array (
       'gl_code' => '11305',
       'name_ar' => 'ذمم منصات التوصيل',
@@ -422,7 +398,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    24 => 
+    22 => 
     array (
       'gl_code' => '11306',
       'name_ar' => 'ذمم بوابات الدفع',
@@ -434,7 +410,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    25 => 
+    23 => 
     array (
       'gl_code' => '11307',
       'name_ar' => 'ذمم شركات التأمين',
@@ -446,7 +422,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    26 => 
+    24 => 
     array (
       'gl_code' => '11308',
       'name_ar' => 'ذمم الموظفين',
@@ -458,7 +434,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    27 => 
+    25 => 
     array (
       'gl_code' => '1130801',
       'name_ar' => 'موظف 1',
@@ -470,7 +446,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    28 => 
+    26 => 
     array (
       'gl_code' => '1130802',
       'name_ar' => 'موظف 2',
@@ -482,7 +458,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    29 => 
+    27 => 
     array (
       'gl_code' => '1130803',
       'name_ar' => 'موظف 3',
@@ -494,7 +470,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    30 => 
+    28 => 
     array (
       'gl_code' => '114',
       'name_ar' => 'مخصص خسائر ائتمانية متوقعة',
@@ -506,7 +482,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    31 => 
+    29 => 
     array (
       'gl_code' => '11401',
       'name_ar' => 'مخصص ديون مشكوك في تحصيلها',
@@ -518,7 +494,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    32 => 
+    30 => 
     array (
       'gl_code' => '115',
       'name_ar' => 'المخزون',
@@ -530,7 +506,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    33 => 
+    31 => 
     array (
       'gl_code' => '11501',
       'name_ar' => 'مخزون مواد خام',
@@ -542,7 +518,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    34 => 
+    32 => 
     array (
       'gl_code' => '11502',
       'name_ar' => 'مخزون مواد تعبئة وتغليف',
@@ -554,7 +530,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    35 => 
+    33 => 
     array (
       'gl_code' => '11503',
       'name_ar' => 'مخزون إنتاج تحت التشغيل',
@@ -566,7 +542,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    36 => 
+    34 => 
     array (
       'gl_code' => '11504',
       'name_ar' => 'مخزون إنتاج تام',
@@ -578,7 +554,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    37 => 
+    35 => 
     array (
       'gl_code' => '11505',
       'name_ar' => 'مخزون بضائع بغرض البيع',
@@ -590,7 +566,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    38 => 
+    36 => 
     array (
       'gl_code' => '11506',
       'name_ar' => 'مخزون قطع غيار',
@@ -602,7 +578,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    39 => 
+    37 => 
     array (
       'gl_code' => '11507',
       'name_ar' => 'مخزون مستلزمات تشغيل',
@@ -614,7 +590,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    40 => 
+    38 => 
     array (
       'gl_code' => '11508',
       'name_ar' => 'مخزون أغذية ومشروبات',
@@ -626,7 +602,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    41 => 
+    39 => 
     array (
       'gl_code' => '11509',
       'name_ar' => 'بضاعة بالطريق',
@@ -638,7 +614,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    42 => 
+    40 => 
     array (
       'gl_code' => '11510',
       'name_ar' => 'مخزون لدى الغير',
@@ -650,7 +626,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    43 => 
+    41 => 
     array (
       'gl_code' => '116',
       'name_ar' => 'مخصص هبوط وتقادم المخزون',
@@ -662,7 +638,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    44 => 
+    42 => 
     array (
       'gl_code' => '11601',
       'name_ar' => 'مخصص تقادم المخزون',
@@ -674,7 +650,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    45 => 
+    43 => 
     array (
       'gl_code' => '117',
       'name_ar' => 'مصروفات مدفوعة مقدماً',
@@ -686,7 +662,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    46 => 
+    44 => 
     array (
       'gl_code' => '11701',
       'name_ar' => 'إيجارات مدفوعة مقدماً',
@@ -698,7 +674,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    47 => 
+    45 => 
     array (
       'gl_code' => '11702',
       'name_ar' => 'تأمين مدفوع مقدماً',
@@ -710,7 +686,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    48 => 
+    46 => 
     array (
       'gl_code' => '11703',
       'name_ar' => 'اشتراكات وبرامج مدفوعة مقدماً',
@@ -722,7 +698,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    49 => 
+    47 => 
     array (
       'gl_code' => '11704',
       'name_ar' => 'صيانة مدفوعة مقدماً',
@@ -734,7 +710,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    50 => 
+    48 => 
     array (
       'gl_code' => '11705',
       'name_ar' => 'مصروفات أخرى مدفوعة مقدماً',
@@ -746,7 +722,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    51 => 
+    49 => 
     array (
       'gl_code' => '118',
       'name_ar' => 'دفعات مقدمة وسلف',
@@ -758,7 +734,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    52 => 
+    50 => 
     array (
       'gl_code' => '11801',
       'name_ar' => 'دفعات مقدمة للموردين',
@@ -770,7 +746,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    53 => 
+    51 => 
     array (
       'gl_code' => '11802',
       'name_ar' => 'سلف الموظفين',
@@ -782,7 +758,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    54 => 
+    52 => 
     array (
       'gl_code' => '1180201',
       'name_ar' => 'سلفة موظف 1',
@@ -794,7 +770,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    55 => 
+    53 => 
     array (
       'gl_code' => '1180202',
       'name_ar' => 'سلفة موظف 2',
@@ -806,7 +782,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    56 => 
+    54 => 
     array (
       'gl_code' => '11803',
       'name_ar' => 'عهد الموظفين',
@@ -818,7 +794,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    57 => 
+    55 => 
     array (
       'gl_code' => '11804',
       'name_ar' => 'دفعات مقدمة لمقاولين',
@@ -830,7 +806,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    58 => 
+    56 => 
     array (
       'gl_code' => '119',
       'name_ar' => 'ضرائب ورسوم مدينة',
@@ -842,7 +818,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    59 => 
+    57 => 
     array (
       'gl_code' => '11901',
       'name_ar' => 'ضريبة قيمة مضافة - مدخلات',
@@ -854,7 +830,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    60 => 
+    58 => 
     array (
       'gl_code' => '11902',
       'name_ar' => 'ضريبة قيمة مضافة مستردة/مستحقة الاسترداد',
@@ -866,7 +842,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    61 => 
+    59 => 
     array (
       'gl_code' => '11903',
       'name_ar' => 'ضريبة استقطاع مستردة',
@@ -878,7 +854,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    62 => 
+    60 => 
     array (
       'gl_code' => '121',
       'name_ar' => 'الممتلكات والآلات والمعدات',
@@ -890,7 +866,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    63 => 
+    61 => 
     array (
       'gl_code' => '12101',
       'name_ar' => 'الأراضي',
@@ -902,7 +878,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    64 => 
+    62 => 
     array (
       'gl_code' => '12102',
       'name_ar' => 'المباني',
@@ -914,7 +890,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    65 => 
+    63 => 
     array (
       'gl_code' => '12103',
       'name_ar' => 'تحسينات مبانٍ مستأجرة',
@@ -926,7 +902,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    66 => 
+    64 => 
     array (
       'gl_code' => '12104',
       'name_ar' => 'الآلات والمعدات',
@@ -938,7 +914,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    67 => 
+    65 => 
     array (
       'gl_code' => '12105',
       'name_ar' => 'الأثاث والتجهيزات',
@@ -950,7 +926,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    68 => 
+    66 => 
     array (
       'gl_code' => '12106',
       'name_ar' => 'أجهزة الحاسب',
@@ -962,7 +938,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    69 => 
+    67 => 
     array (
       'gl_code' => '12107',
       'name_ar' => 'أجهزة نقاط البيع',
@@ -974,7 +950,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    70 => 
+    68 => 
     array (
       'gl_code' => '12108',
       'name_ar' => 'السيارات',
@@ -986,7 +962,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    71 => 
+    69 => 
     array (
       'gl_code' => '12109',
       'name_ar' => 'معدات المطابخ',
@@ -998,7 +974,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    72 => 
+    70 => 
     array (
       'gl_code' => '12110',
       'name_ar' => 'معدات المصانع',
@@ -1010,7 +986,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    73 => 
+    71 => 
     array (
       'gl_code' => '12111',
       'name_ar' => 'لوحات وشاشات رقمية',
@@ -1022,7 +998,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    74 => 
+    72 => 
     array (
       'gl_code' => '122',
       'name_ar' => 'مجمع الإهلاك',
@@ -1034,7 +1010,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    75 => 
+    73 => 
     array (
       'gl_code' => '12202',
       'name_ar' => 'مجمع إهلاك المباني',
@@ -1046,7 +1022,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    76 => 
+    74 => 
     array (
       'gl_code' => '12203',
       'name_ar' => 'مجمع إهلاك تحسينات المباني',
@@ -1058,7 +1034,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    77 => 
+    75 => 
     array (
       'gl_code' => '12204',
       'name_ar' => 'مجمع إهلاك الآلات والمعدات',
@@ -1070,7 +1046,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    78 => 
+    76 => 
     array (
       'gl_code' => '12205',
       'name_ar' => 'مجمع إهلاك الأثاث والتجهيزات',
@@ -1082,7 +1058,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    79 => 
+    77 => 
     array (
       'gl_code' => '12206',
       'name_ar' => 'مجمع إهلاك أجهزة الحاسب',
@@ -1094,7 +1070,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    80 => 
+    78 => 
     array (
       'gl_code' => '12207',
       'name_ar' => 'مجمع إهلاك أجهزة نقاط البيع',
@@ -1106,7 +1082,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    81 => 
+    79 => 
     array (
       'gl_code' => '12208',
       'name_ar' => 'مجمع إهلاك السيارات',
@@ -1118,7 +1094,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    82 => 
+    80 => 
     array (
       'gl_code' => '12209',
       'name_ar' => 'مجمع إهلاك معدات المطابخ',
@@ -1130,7 +1106,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    83 => 
+    81 => 
     array (
       'gl_code' => '12210',
       'name_ar' => 'مجمع إهلاك معدات المصانع',
@@ -1142,7 +1118,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    84 => 
+    82 => 
     array (
       'gl_code' => '123',
       'name_ar' => 'الأصول غير الملموسة',
@@ -1154,7 +1130,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    85 => 
+    83 => 
     array (
       'gl_code' => '12301',
       'name_ar' => 'برامج وأنظمة',
@@ -1166,7 +1142,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    86 => 
+    84 => 
     array (
       'gl_code' => '12302',
       'name_ar' => 'تراخيص',
@@ -1178,7 +1154,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    87 => 
+    85 => 
     array (
       'gl_code' => '12303',
       'name_ar' => 'علامات تجارية',
@@ -1190,7 +1166,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    88 => 
+    86 => 
     array (
       'gl_code' => '12304',
       'name_ar' => 'تكاليف تطوير مرسملة',
@@ -1202,7 +1178,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    89 => 
+    87 => 
     array (
       'gl_code' => '12305',
       'name_ar' => 'شهرة',
@@ -1214,7 +1190,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    90 => 
+    88 => 
     array (
       'gl_code' => '124',
       'name_ar' => 'مجمع الإطفاء',
@@ -1226,7 +1202,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    91 => 
+    89 => 
     array (
       'gl_code' => '12401',
       'name_ar' => 'مجمع إطفاء البرامج والتراخيص',
@@ -1238,7 +1214,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    92 => 
+    90 => 
     array (
       'gl_code' => '125',
       'name_ar' => 'أصول حق الاستخدام',
@@ -1250,7 +1226,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    93 => 
+    91 => 
     array (
       'gl_code' => '12501',
       'name_ar' => 'أصول حق استخدام - عقارات',
@@ -1262,7 +1238,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    94 => 
+    92 => 
     array (
       'gl_code' => '12502',
       'name_ar' => 'أصول حق استخدام - مركبات',
@@ -1274,7 +1250,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    95 => 
+    93 => 
     array (
       'gl_code' => '126',
       'name_ar' => 'استثمارات طويلة الأجل',
@@ -1286,7 +1262,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    96 => 
+    94 => 
     array (
       'gl_code' => '12601',
       'name_ar' => 'استثمارات في شركات تابعة',
@@ -1298,7 +1274,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    97 => 
+    95 => 
     array (
       'gl_code' => '12602',
       'name_ar' => 'استثمارات في شركات زميلة',
@@ -1310,7 +1286,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    98 => 
+    96 => 
     array (
       'gl_code' => '12603',
       'name_ar' => 'استثمارات أخرى طويلة الأجل',
@@ -1322,7 +1298,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    99 => 
+    97 => 
     array (
       'gl_code' => '127',
       'name_ar' => 'تأمينات وودائع طويلة الأجل',
@@ -1334,7 +1310,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    100 => 
+    98 => 
     array (
       'gl_code' => '12701',
       'name_ar' => 'تأمين إيجار',
@@ -1346,7 +1322,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    101 => 
+    99 => 
     array (
       'gl_code' => '12702',
       'name_ar' => 'تأمين خدمات ومرافق',
@@ -1358,7 +1334,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    102 => 
+    100 => 
     array (
       'gl_code' => '12703',
       'name_ar' => 'تأمينات أخرى',
@@ -1370,7 +1346,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    103 => 
+    101 => 
     array (
       'gl_code' => '128',
       'name_ar' => 'مشروعات تحت التنفيذ',
@@ -1382,7 +1358,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    104 => 
+    102 => 
     array (
       'gl_code' => '12801',
       'name_ar' => 'إنشاءات تحت التنفيذ',
@@ -1394,7 +1370,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    105 => 
+    103 => 
     array (
       'gl_code' => '12802',
       'name_ar' => 'معدات تحت التركيب',
@@ -1406,7 +1382,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    106 => 
+    104 => 
     array (
       'gl_code' => '12803',
       'name_ar' => 'مشروعات تقنية تحت التطوير',
@@ -1418,7 +1394,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    107 => 
+    105 => 
     array (
       'gl_code' => '211',
       'name_ar' => 'الموردون والدائنون',
@@ -1430,7 +1406,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    108 => 
+    106 => 
     array (
       'gl_code' => '21101',
       'name_ar' => 'الموردون - محلي',
@@ -1442,7 +1418,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    109 => 
+    107 => 
     array (
       'gl_code' => '21102',
       'name_ar' => 'الموردون - خارجي',
@@ -1454,7 +1430,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    110 => 
+    108 => 
     array (
       'gl_code' => '2110201',
       'name_ar' => 'مورد خارجي 1',
@@ -1466,7 +1442,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    111 => 
+    109 => 
     array (
       'gl_code' => '2110202',
       'name_ar' => 'مورد خارجي 2',
@@ -1478,7 +1454,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    112 => 
+    110 => 
     array (
       'gl_code' => '21103',
       'name_ar' => 'دائنون متنوعون',
@@ -1490,7 +1466,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    113 => 
+    111 => 
     array (
       'gl_code' => '21104',
       'name_ar' => 'موردون شركات مرتبطة',
@@ -1502,7 +1478,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    114 => 
+    112 => 
     array (
       'gl_code' => '21105',
       'name_ar' => 'مستحقات منصات وخدمات',
@@ -1514,7 +1490,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    115 => 
+    113 => 
     array (
       'gl_code' => '212',
       'name_ar' => 'مصروفات مستحقة',
@@ -1526,7 +1502,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    116 => 
+    114 => 
     array (
       'gl_code' => '21201',
       'name_ar' => 'رواتب وأجور مستحقة',
@@ -1538,7 +1514,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    117 => 
+    115 => 
     array (
       'gl_code' => '21202',
       'name_ar' => 'إيجارات مستحقة',
@@ -1550,7 +1526,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    118 => 
+    116 => 
     array (
       'gl_code' => '21203',
       'name_ar' => 'كهرباء ومياه مستحقة',
@@ -1562,7 +1538,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    119 => 
+    117 => 
     array (
       'gl_code' => '21204',
       'name_ar' => 'عمولات مستحقة',
@@ -1574,7 +1550,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    120 => 
+    118 => 
     array (
       'gl_code' => '21205',
       'name_ar' => 'أتعاب مهنية مستحقة',
@@ -1586,7 +1562,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    121 => 
+    119 => 
     array (
       'gl_code' => '21206',
       'name_ar' => 'مصروفات تشغيل مستحقة أخرى',
@@ -1598,7 +1574,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    122 => 
+    120 => 
     array (
       'gl_code' => '213',
       'name_ar' => 'ضرائب ورسوم دائنة',
@@ -1610,7 +1586,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    123 => 
+    121 => 
     array (
       'gl_code' => '21301',
       'name_ar' => 'ضريبة قيمة مضافة - مخرجات',
@@ -1622,7 +1598,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    124 => 
+    122 => 
     array (
       'gl_code' => '21302',
       'name_ar' => 'ضريبة قيمة مضافة مستحقة',
@@ -1634,7 +1610,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    125 => 
+    123 => 
     array (
       'gl_code' => '21303',
       'name_ar' => 'ضريبة استقطاع مستحقة',
@@ -1646,7 +1622,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    126 => 
+    124 => 
     array (
       'gl_code' => '21304',
       'name_ar' => 'زكاة مستحقة',
@@ -1658,7 +1634,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    127 => 
+    125 => 
     array (
       'gl_code' => '21305',
       'name_ar' => 'ضريبة دخل مستحقة',
@@ -1670,7 +1646,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    128 => 
+    126 => 
     array (
       'gl_code' => '214',
       'name_ar' => 'التزامات الموظفين قصيرة الأجل',
@@ -1682,7 +1658,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    129 => 
+    127 => 
     array (
       'gl_code' => '21401',
       'name_ar' => 'رواتب مستحقة الدفع',
@@ -1694,7 +1670,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    130 => 
+    128 => 
     array (
       'gl_code' => '21402',
       'name_ar' => 'تأمينات اجتماعية مستحقة',
@@ -1706,7 +1682,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    131 => 
+    129 => 
     array (
       'gl_code' => '21403',
       'name_ar' => 'إجازات مستحقة',
@@ -1718,7 +1694,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    132 => 
+    130 => 
     array (
       'gl_code' => '21404',
       'name_ar' => 'استقطاعات موظفين مستحقة',
@@ -1730,7 +1706,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    133 => 
+    131 => 
     array (
       'gl_code' => '215',
       'name_ar' => 'دفعات مقدمة من العملاء',
@@ -1742,7 +1718,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    134 => 
+    132 => 
     array (
       'gl_code' => '21501',
       'name_ar' => 'دفعات مقدمة من العملاء',
@@ -1754,7 +1730,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    135 => 
+    133 => 
     array (
       'gl_code' => '21502',
       'name_ar' => 'إيرادات مؤجلة',
@@ -1766,7 +1742,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    136 => 
+    134 => 
     array (
       'gl_code' => '21503',
       'name_ar' => 'بطاقات وهدايا غير مستخدمة',
@@ -1778,7 +1754,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    137 => 
+    135 => 
     array (
       'gl_code' => '216',
       'name_ar' => 'قروض وتسهيلات قصيرة الأجل',
@@ -1790,7 +1766,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    138 => 
+    136 => 
     array (
       'gl_code' => '21601',
       'name_ar' => 'سحب على المكشوف',
@@ -1802,7 +1778,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    139 => 
+    137 => 
     array (
       'gl_code' => '21602',
       'name_ar' => 'قروض قصيرة الأجل',
@@ -1814,7 +1790,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    140 => 
+    138 => 
     array (
       'gl_code' => '21603',
       'name_ar' => 'الجزء المتداول من القروض طويلة الأجل',
@@ -1826,7 +1802,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    141 => 
+    139 => 
     array (
       'gl_code' => '217',
       'name_ar' => 'التزامات عقود الإيجار - متداولة',
@@ -1838,7 +1814,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    142 => 
+    140 => 
     array (
       'gl_code' => '21701',
       'name_ar' => 'التزام إيجار متداول',
@@ -1850,7 +1826,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    143 => 
+    141 => 
     array (
       'gl_code' => '218',
       'name_ar' => 'مخصصات قصيرة الأجل',
@@ -1862,7 +1838,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    144 => 
+    142 => 
     array (
       'gl_code' => '21801',
       'name_ar' => 'مخصص مطالبات وضمان',
@@ -1874,7 +1850,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    145 => 
+    143 => 
     array (
       'gl_code' => '21802',
       'name_ar' => 'مخصصات أخرى قصيرة الأجل',
@@ -1886,7 +1862,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    146 => 
+    144 => 
     array (
       'gl_code' => '219',
       'name_ar' => 'جاري ومسحوبات الشركاء',
@@ -1898,7 +1874,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    147 => 
+    145 => 
     array (
       'gl_code' => '221',
       'name_ar' => 'قروض طويلة الأجل',
@@ -1910,7 +1886,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    148 => 
+    146 => 
     array (
       'gl_code' => '22101',
       'name_ar' => 'قروض بنكية طويلة الأجل',
@@ -1922,7 +1898,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    149 => 
+    147 => 
     array (
       'gl_code' => '22102',
       'name_ar' => 'تمويل مرابحة طويل الأجل',
@@ -1934,7 +1910,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    150 => 
+    148 => 
     array (
       'gl_code' => '22103',
       'name_ar' => 'قروض من أطراف ذات علاقة',
@@ -1946,7 +1922,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    151 => 
+    149 => 
     array (
       'gl_code' => '222',
       'name_ar' => 'التزامات عقود الإيجار - غير متداولة',
@@ -1958,7 +1934,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    152 => 
+    150 => 
     array (
       'gl_code' => '22201',
       'name_ar' => 'التزام إيجار غير متداول',
@@ -1970,7 +1946,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    153 => 
+    151 => 
     array (
       'gl_code' => '223',
       'name_ar' => 'مكافأة نهاية الخدمة',
@@ -1982,7 +1958,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    154 => 
+    152 => 
     array (
       'gl_code' => '22301',
       'name_ar' => 'مخصص مكافأة نهاية الخدمة',
@@ -1994,7 +1970,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    155 => 
+    153 => 
     array (
       'gl_code' => '224',
       'name_ar' => 'مخصصات طويلة الأجل',
@@ -2006,7 +1982,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    156 => 
+    154 => 
     array (
       'gl_code' => '22401',
       'name_ar' => 'مخصصات طويلة الأجل أخرى',
@@ -2018,7 +1994,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    157 => 
+    155 => 
     array (
       'gl_code' => '31101',
       'name_ar' => 'رأس المال',
@@ -2030,7 +2006,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    158 => 
+    156 => 
     array (
       'gl_code' => '31201',
       'name_ar' => 'علاوة إصدار',
@@ -2042,7 +2018,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    159 => 
+    157 => 
     array (
       'gl_code' => '31301',
       'name_ar' => 'احتياطي نظامي',
@@ -2054,7 +2030,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    160 => 
+    158 => 
     array (
       'gl_code' => '31401',
       'name_ar' => 'احتياطي عام',
@@ -2066,7 +2042,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    161 => 
+    159 => 
     array (
       'gl_code' => '31501',
       'name_ar' => 'احتياطيات أخرى',
@@ -2078,7 +2054,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    162 => 
+    160 => 
     array (
       'gl_code' => '32101',
       'name_ar' => 'أرباح مبقاة',
@@ -2090,7 +2066,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    163 => 
+    161 => 
     array (
       'gl_code' => '32201',
       'name_ar' => 'أرباح/خسائر العام الحالي',
@@ -2102,7 +2078,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    164 => 
+    162 => 
     array (
       'gl_code' => '32301',
       'name_ar' => 'توزيعات أرباح',
@@ -2114,7 +2090,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    165 => 
+    163 => 
     array (
       'gl_code' => '32401',
       'name_ar' => 'تعديلات سنوات سابقة',
@@ -2126,7 +2102,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    166 => 
+    164 => 
     array (
       'gl_code' => '33101',
       'name_ar' => 'جاري الشركاء',
@@ -2138,7 +2114,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    167 => 
+    165 => 
     array (
       'gl_code' => '3310101',
       'name_ar' => 'شريك 1',
@@ -2150,7 +2126,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    168 => 
+    166 => 
     array (
       'gl_code' => '3310102',
       'name_ar' => 'شريك 2',
@@ -2162,7 +2138,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    169 => 
+    167 => 
     array (
       'gl_code' => '3310103',
       'name_ar' => 'شريك 3',
@@ -2174,7 +2150,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    170 => 
+    168 => 
     array (
       'gl_code' => '33201',
       'name_ar' => 'مسحوبات الملاك',
@@ -2186,7 +2162,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    171 => 
+    169 => 
     array (
       'gl_code' => '33301',
       'name_ar' => 'مساهمات إضافية من الملاك',
@@ -2198,7 +2174,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    172 => 
+    170 => 
     array (
       'gl_code' => '411',
       'name_ar' => 'إيرادات المبيعات',
@@ -2210,7 +2186,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    173 => 
+    171 => 
     array (
       'gl_code' => '41101',
       'name_ar' => 'مبيعات نقدية',
@@ -2222,7 +2198,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    174 => 
+    172 => 
     array (
       'gl_code' => '41102',
       'name_ar' => 'مبيعات آجلة',
@@ -2234,7 +2210,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    175 => 
+    173 => 
     array (
       'gl_code' => '41103',
       'name_ar' => 'مبيعات التجزئة',
@@ -2246,7 +2222,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    176 => 
+    174 => 
     array (
       'gl_code' => '41104',
       'name_ar' => 'مبيعات الجملة',
@@ -2258,7 +2234,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    177 => 
+    175 => 
     array (
       'gl_code' => '41105',
       'name_ar' => 'مبيعات التجارة الإلكترونية',
@@ -2270,7 +2246,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    178 => 
+    176 => 
     array (
       'gl_code' => '41106',
       'name_ar' => 'مبيعات نقاط البيع',
@@ -2282,7 +2258,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    179 => 
+    177 => 
     array (
       'gl_code' => '41107',
       'name_ar' => 'مبيعات منصات التوصيل',
@@ -2294,7 +2270,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    180 => 
+    178 => 
     array (
       'gl_code' => '41108',
       'name_ar' => 'مبيعات منتجات مصنعة',
@@ -2306,7 +2282,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    181 => 
+    179 => 
     array (
       'gl_code' => '41109',
       'name_ar' => 'مبيعات أغذية ومشروبات',
@@ -2318,7 +2294,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    182 => 
+    180 => 
     array (
       'gl_code' => '412',
       'name_ar' => 'إيرادات الخدمات',
@@ -2330,7 +2306,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    183 => 
+    181 => 
     array (
       'gl_code' => '41201',
       'name_ar' => 'إيرادات خدمات',
@@ -2342,7 +2318,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    184 => 
+    182 => 
     array (
       'gl_code' => '41202',
       'name_ar' => 'إيرادات استشارات',
@@ -2354,7 +2330,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    185 => 
+    183 => 
     array (
       'gl_code' => '41203',
       'name_ar' => 'إيرادات صيانة',
@@ -2366,7 +2342,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    186 => 
+    184 => 
     array (
       'gl_code' => '41204',
       'name_ar' => 'إيرادات اشتراكات',
@@ -2378,7 +2354,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    187 => 
+    185 => 
     array (
       'gl_code' => '41205',
       'name_ar' => 'إيرادات مشاريع وعقود',
@@ -2390,7 +2366,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    188 => 
+    186 => 
     array (
       'gl_code' => '41206',
       'name_ar' => 'إيرادات توصيل',
@@ -2402,7 +2378,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    189 => 
+    187 => 
     array (
       'gl_code' => '413',
       'name_ar' => 'إيرادات الامتياز التجاري',
@@ -2414,7 +2390,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    190 => 
+    188 => 
     array (
       'gl_code' => '41301',
       'name_ar' => 'رسوم امتياز أولية',
@@ -2426,7 +2402,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    191 => 
+    189 => 
     array (
       'gl_code' => '41302',
       'name_ar' => 'رسوم امتياز دورية',
@@ -2438,7 +2414,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    192 => 
+    190 => 
     array (
       'gl_code' => '41303',
       'name_ar' => 'رسوم تسويق من أصحاب الامتياز',
@@ -2450,7 +2426,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    193 => 
+    191 => 
     array (
       'gl_code' => '41304',
       'name_ar' => 'مبيعات مواد لأصحاب الامتياز',
@@ -2462,7 +2438,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    194 => 
+    192 => 
     array (
       'gl_code' => '414',
       'name_ar' => 'إيرادات أخرى تشغيلية',
@@ -2474,7 +2450,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    195 => 
+    193 => 
     array (
       'gl_code' => '41401',
       'name_ar' => 'عمولات مكتسبة',
@@ -2486,7 +2462,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    196 => 
+    194 => 
     array (
       'gl_code' => '41402',
       'name_ar' => 'إيرادات تأجير تشغيلي',
@@ -2498,7 +2474,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    197 => 
+    195 => 
     array (
       'gl_code' => '41403',
       'name_ar' => 'إيرادات تشغيلية أخرى',
@@ -2510,7 +2486,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    198 => 
+    196 => 
     array (
       'gl_code' => '42101',
       'name_ar' => 'مردودات المبيعات',
@@ -2522,7 +2498,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    199 => 
+    197 => 
     array (
       'gl_code' => '42201',
       'name_ar' => 'خصومات المبيعات',
@@ -2534,7 +2510,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    200 => 
+    198 => 
     array (
       'gl_code' => '42301',
       'name_ar' => 'عروض وخصومات ترويجية',
@@ -2546,7 +2522,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    201 => 
+    199 => 
     array (
       'gl_code' => '43101',
       'name_ar' => 'أرباح بيع أصول',
@@ -2558,7 +2534,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    202 => 
+    200 => 
     array (
       'gl_code' => '43201',
       'name_ar' => 'إيرادات تمويلية',
@@ -2570,7 +2546,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    203 => 
+    201 => 
     array (
       'gl_code' => '43301',
       'name_ar' => 'أرباح فروق عملة',
@@ -2582,7 +2558,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    204 => 
+    202 => 
     array (
       'gl_code' => '43401',
       'name_ar' => 'إيرادات استثمارات',
@@ -2594,7 +2570,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    205 => 
+    203 => 
     array (
       'gl_code' => '43501',
       'name_ar' => 'إيرادات أخرى',
@@ -2606,7 +2582,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    206 => 
+    204 => 
     array (
       'gl_code' => '511',
       'name_ar' => 'تكلفة البضاعة المباعة',
@@ -2618,7 +2594,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    207 => 
+    205 => 
     array (
       'gl_code' => '51101',
       'name_ar' => 'تكلفة بضائع مباعة',
@@ -2630,7 +2606,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    208 => 
+    206 => 
     array (
       'gl_code' => '51102',
       'name_ar' => 'تكلفة مواد خام مستهلكة',
@@ -2642,7 +2618,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    209 => 
+    207 => 
     array (
       'gl_code' => '51103',
       'name_ar' => 'تكلفة تعبئة وتغليف',
@@ -2654,7 +2630,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    210 => 
+    208 => 
     array (
       'gl_code' => '51104',
       'name_ar' => 'تكلفة إنتاج مباشر',
@@ -2666,7 +2642,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    211 => 
+    209 => 
     array (
       'gl_code' => '51105',
       'name_ar' => 'تكلفة أغذية ومشروبات',
@@ -2678,7 +2654,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    212 => 
+    210 => 
     array (
       'gl_code' => '51106',
       'name_ar' => 'هالك وتالف إنتاجي',
@@ -2690,7 +2666,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    213 => 
+    211 => 
     array (
       'gl_code' => '512',
       'name_ar' => 'تكلفة الخدمات',
@@ -2702,7 +2678,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    214 => 
+    212 => 
     array (
       'gl_code' => '51201',
       'name_ar' => 'أجور مباشرة للخدمات',
@@ -2714,7 +2690,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    215 => 
+    213 => 
     array (
       'gl_code' => '51202',
       'name_ar' => 'مقاولون من الباطن',
@@ -2726,7 +2702,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    216 => 
+    214 => 
     array (
       'gl_code' => '51203',
       'name_ar' => 'مواد ومستلزمات خدمات',
@@ -2738,7 +2714,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    217 => 
+    215 => 
     array (
       'gl_code' => '51204',
       'name_ar' => 'تكلفة توصيل مباشرة',
@@ -2750,7 +2726,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    218 => 
+    216 => 
     array (
       'gl_code' => '513',
       'name_ar' => 'تكاليف صناعية غير مباشرة',
@@ -2762,7 +2738,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    219 => 
+    217 => 
     array (
       'gl_code' => '51301',
       'name_ar' => 'أجور صناعية غير مباشرة',
@@ -2774,7 +2750,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    220 => 
+    218 => 
     array (
       'gl_code' => '51302',
       'name_ar' => 'كهرباء ومرافق المصنع',
@@ -2786,7 +2762,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    221 => 
+    219 => 
     array (
       'gl_code' => '51303',
       'name_ar' => 'صيانة معدات المصنع',
@@ -2798,7 +2774,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    222 => 
+    220 => 
     array (
       'gl_code' => '51304',
       'name_ar' => 'إهلاك معدات المصنع',
@@ -2810,7 +2786,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    223 => 
+    221 => 
     array (
       'gl_code' => '51305',
       'name_ar' => 'مستلزمات صناعية',
@@ -2822,7 +2798,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    224 => 
+    222 => 
     array (
       'gl_code' => '514',
       'name_ar' => 'تعديلات المشتريات',
@@ -2834,7 +2810,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    225 => 
+    223 => 
     array (
       'gl_code' => '51401',
       'name_ar' => 'مردودات المشتريات',
@@ -2846,7 +2822,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    226 => 
+    224 => 
     array (
       'gl_code' => '51402',
       'name_ar' => 'الخصم المكتسب على المشتريات',
@@ -2858,7 +2834,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    227 => 
+    225 => 
     array (
       'gl_code' => '52101',
       'name_ar' => 'رواتب وعمولات المبيعات',
@@ -2870,7 +2846,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    228 => 
+    226 => 
     array (
       'gl_code' => '52201',
       'name_ar' => 'إعلانات وتسويق رقمي',
@@ -2882,7 +2858,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    229 => 
+    227 => 
     array (
       'gl_code' => '52301',
       'name_ar' => 'عروض وترويج',
@@ -2894,7 +2870,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    230 => 
+    228 => 
     array (
       'gl_code' => '52401',
       'name_ar' => 'عمولات منصات التوصيل',
@@ -2906,7 +2882,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    231 => 
+    229 => 
     array (
       'gl_code' => '52501',
       'name_ar' => 'عمولات بوابات الدفع',
@@ -2918,7 +2894,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    232 => 
+    230 => 
     array (
       'gl_code' => '52601',
       'name_ar' => 'شحن وتوصيل للعملاء',
@@ -2930,7 +2906,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    233 => 
+    231 => 
     array (
       'gl_code' => '52701',
       'name_ar' => 'مصروفات المعارض والفعاليات',
@@ -2942,7 +2918,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    234 => 
+    232 => 
     array (
       'gl_code' => '52801',
       'name_ar' => 'مصروفات تسويق أخرى',
@@ -2954,7 +2930,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    235 => 
+    233 => 
     array (
       'gl_code' => '53101',
       'name_ar' => 'رواتب وأجور إدارية',
@@ -2966,7 +2942,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    236 => 
+    234 => 
     array (
       'gl_code' => '53201',
       'name_ar' => 'بدلات ومزايا موظفين',
@@ -2978,7 +2954,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    237 => 
+    235 => 
     array (
       'gl_code' => '53301',
       'name_ar' => 'تأمينات اجتماعية',
@@ -2990,7 +2966,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    238 => 
+    236 => 
     array (
       'gl_code' => '53401',
       'name_ar' => 'مكافأة نهاية الخدمة',
@@ -3002,7 +2978,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    239 => 
+    237 => 
     array (
       'gl_code' => '53501',
       'name_ar' => 'إيجارات',
@@ -3014,7 +2990,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    240 => 
+    238 => 
     array (
       'gl_code' => '53601',
       'name_ar' => 'كهرباء ومياه',
@@ -3026,7 +3002,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    241 => 
+    239 => 
     array (
       'gl_code' => '53701',
       'name_ar' => 'اتصالات وإنترنت',
@@ -3038,7 +3014,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    242 => 
+    240 => 
     array (
       'gl_code' => '53801',
       'name_ar' => 'قرطاسية ومطبوعات',
@@ -3050,7 +3026,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    243 => 
+    241 => 
     array (
       'gl_code' => '53901',
       'name_ar' => 'بريد وشحن',
@@ -3062,7 +3038,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    244 => 
+    242 => 
     array (
       'gl_code' => '531001',
       'name_ar' => 'ضيافة ونظافة',
@@ -3074,7 +3050,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    245 => 
+    243 => 
     array (
       'gl_code' => '531101',
       'name_ar' => 'صيانة وإصلاح',
@@ -3086,7 +3062,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    246 => 
+    244 => 
     array (
       'gl_code' => '531201',
       'name_ar' => 'تأمين',
@@ -3098,7 +3074,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    247 => 
+    245 => 
     array (
       'gl_code' => '531301',
       'name_ar' => 'أتعاب مهنية واستشارية',
@@ -3110,7 +3086,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    248 => 
+    246 => 
     array (
       'gl_code' => '531401',
       'name_ar' => 'أتعاب محاسبة ومراجعة',
@@ -3122,7 +3098,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    249 => 
+    247 => 
     array (
       'gl_code' => '531501',
       'name_ar' => 'أتعاب قانونية',
@@ -3134,7 +3110,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    250 => 
+    248 => 
     array (
       'gl_code' => '531601',
       'name_ar' => 'رسوم حكومية وتراخيص',
@@ -3146,7 +3122,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    251 => 
+    249 => 
     array (
       'gl_code' => '531701',
       'name_ar' => 'اشتراكات وبرامج سحابية',
@@ -3158,7 +3134,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    252 => 
+    250 => 
     array (
       'gl_code' => '531801',
       'name_ar' => 'مصروفات تقنية ومعلومات',
@@ -3170,7 +3146,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    253 => 
+    251 => 
     array (
       'gl_code' => '531901',
       'name_ar' => 'سفر وانتقالات',
@@ -3182,7 +3158,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    254 => 
+    252 => 
     array (
       'gl_code' => '532001',
       'name_ar' => 'وقود ومصروفات سيارات',
@@ -3194,7 +3170,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    255 => 
+    253 => 
     array (
       'gl_code' => '532101',
       'name_ar' => 'تدريب وتطوير',
@@ -3206,7 +3182,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    256 => 
+    254 => 
     array (
       'gl_code' => '532201',
       'name_ar' => 'مصروفات بنكية',
@@ -3218,7 +3194,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    257 => 
+    255 => 
     array (
       'gl_code' => '532301',
       'name_ar' => 'ديون معدومة وخسائر ائتمانية',
@@ -3230,7 +3206,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    258 => 
+    256 => 
     array (
       'gl_code' => '532401',
       'name_ar' => 'تبرعات ومساهمات',
@@ -3242,7 +3218,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    259 => 
+    257 => 
     array (
       'gl_code' => '532501',
       'name_ar' => 'مصروفات إدارية أخرى',
@@ -3254,7 +3230,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    260 => 
+    258 => 
     array (
       'gl_code' => '54101',
       'name_ar' => 'إهلاك المباني والتحسينات',
@@ -3266,7 +3242,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    261 => 
+    259 => 
     array (
       'gl_code' => '54201',
       'name_ar' => 'إهلاك الآلات والمعدات',
@@ -3278,7 +3254,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    262 => 
+    260 => 
     array (
       'gl_code' => '54301',
       'name_ar' => 'إهلاك الأثاث والتجهيزات',
@@ -3290,7 +3266,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    263 => 
+    261 => 
     array (
       'gl_code' => '54401',
       'name_ar' => 'إهلاك الحاسب ونقاط البيع',
@@ -3302,7 +3278,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    264 => 
+    262 => 
     array (
       'gl_code' => '54501',
       'name_ar' => 'إهلاك السيارات',
@@ -3314,7 +3290,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    265 => 
+    263 => 
     array (
       'gl_code' => '54601',
       'name_ar' => 'إطفاء البرامج والتراخيص',
@@ -3326,7 +3302,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    266 => 
+    264 => 
     array (
       'gl_code' => '54701',
       'name_ar' => 'إهلاك أصول حق الاستخدام',
@@ -3338,7 +3314,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    267 => 
+    265 => 
     array (
       'gl_code' => '55101',
       'name_ar' => 'فوائد ومرابحات بنكية',
@@ -3350,7 +3326,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    268 => 
+    266 => 
     array (
       'gl_code' => '55201',
       'name_ar' => 'فوائد التزامات الإيجار',
@@ -3362,7 +3338,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    269 => 
+    267 => 
     array (
       'gl_code' => '55301',
       'name_ar' => 'رسوم تمويل',
@@ -3374,7 +3350,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    270 => 
+    268 => 
     array (
       'gl_code' => '55401',
       'name_ar' => 'خسائر فروق عملة',
@@ -3386,7 +3362,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    271 => 
+    269 => 
     array (
       'gl_code' => '56101',
       'name_ar' => 'خسائر بيع أصول',
@@ -3398,7 +3374,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    272 => 
+    270 => 
     array (
       'gl_code' => '56201',
       'name_ar' => 'غرامات ومخالفات',
@@ -3410,7 +3386,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    273 => 
+    271 => 
     array (
       'gl_code' => '56301',
       'name_ar' => 'خسائر هبوط أصول',
@@ -3422,7 +3398,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    274 => 
+    272 => 
     array (
       'gl_code' => '56401',
       'name_ar' => 'مصروفات أخرى غير تشغيلية',
@@ -3434,7 +3410,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'جميع القطاعات / All Sectors',
     ),
-    275 => 
+    273 => 
     array (
       'gl_code' => '571',
       'name_ar' => 'المطاعم والمقاهي',
@@ -3446,7 +3422,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'المطاعم والمقاهي / F&B',
     ),
-    276 => 
+    274 => 
     array (
       'gl_code' => '57101',
       'name_ar' => 'مواد نظافة وتعقيم المطعم',
@@ -3458,7 +3434,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'المطاعم والمقاهي / F&B',
     ),
-    277 => 
+    275 => 
     array (
       'gl_code' => '57102',
       'name_ar' => 'غاز ووقود مطابخ',
@@ -3470,7 +3446,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'المطاعم والمقاهي / F&B',
     ),
-    278 => 
+    276 => 
     array (
       'gl_code' => '57103',
       'name_ar' => 'أدوات تقديم واستهلاكية',
@@ -3482,7 +3458,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'المطاعم والمقاهي / F&B',
     ),
-    279 => 
+    277 => 
     array (
       'gl_code' => '572',
       'name_ar' => 'التجزئة والتجارة الإلكترونية',
@@ -3494,7 +3470,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'التجزئة والتجارة / Retail',
     ),
-    280 => 
+    278 => 
     array (
       'gl_code' => '57201',
       'name_ar' => 'رسوم منصات التجارة الإلكترونية',
@@ -3506,7 +3482,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'التجزئة والتجارة / Retail',
     ),
-    281 => 
+    279 => 
     array (
       'gl_code' => '57202',
       'name_ar' => 'تغليف وشحن طلبات إلكترونية',
@@ -3518,7 +3494,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'التجزئة والتجارة / Retail',
     ),
-    282 => 
+    280 => 
     array (
       'gl_code' => '573',
       'name_ar' => 'التصنيع',
@@ -3530,7 +3506,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'التصنيع / Manufacturing',
     ),
-    283 => 
+    281 => 
     array (
       'gl_code' => '57301',
       'name_ar' => 'اختبارات جودة',
@@ -3542,7 +3518,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'التصنيع / Manufacturing',
     ),
-    284 => 
+    282 => 
     array (
       'gl_code' => '57302',
       'name_ar' => 'سلامة وصيانة خطوط الإنتاج',
@@ -3554,7 +3530,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'التصنيع / Manufacturing',
     ),
-    285 => 
+    283 => 
     array (
       'gl_code' => '574',
       'name_ar' => 'الخدمات والمشاريع',
@@ -3566,7 +3542,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'الخدمات / Services',
     ),
-    286 => 
+    284 => 
     array (
       'gl_code' => '57401',
       'name_ar' => 'مصروفات مواقع المشاريع',
@@ -3578,7 +3554,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'الخدمات / Services',
     ),
-    287 => 
+    285 => 
     array (
       'gl_code' => '57402',
       'name_ar' => 'أدوات ومعدات مشاريع صغيرة',
@@ -3590,7 +3566,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'الخدمات / Services',
     ),
-    288 => 
+    286 => 
     array (
       'gl_code' => '575',
       'name_ar' => 'الامتياز التجاري',
@@ -3602,7 +3578,7 @@ return array (
       'allow_direct_posting' => false,
       'sector' => 'الامتياز التجاري / Franchise',
     ),
-    289 => 
+    287 => 
     array (
       'gl_code' => '57501',
       'name_ar' => 'دعم وتشغيل أصحاب الامتياز',
@@ -3614,7 +3590,7 @@ return array (
       'allow_direct_posting' => true,
       'sector' => 'الامتياز التجاري / Franchise',
     ),
-    290 => 
+    288 => 
     array (
       'gl_code' => '57502',
       'name_ar' => 'مراجعة والتزام الامتياز',

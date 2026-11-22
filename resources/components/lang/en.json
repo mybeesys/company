@@ -434,8 +434,8 @@
   "importRuleTemplateBody": "Download the official template and fill rows without renaming header columns.",
   "importRuleCategoryTitle": "Categories",
   "importRuleCategoryBody": "Category and subcategory are created automatically when missing.",
-  "importRuleTaxTitle": "Tax and establishment",
-  "importRuleTaxBody": "Match the tax name as in the system, and use an existing establishment or “All Establishments”.",
+  "importRuleTaxTitle": "Tax",
+  "importRuleTaxBody": "Tax is optional; when blank the system default tax is used.",
   "importRuleUnitTitle": "Unit and names",
   "importRuleUnitBody": "Arabic name and main unit are required. Arabic and English names must be unique.",
   "importRuleSizeTitle": "File size and format",
@@ -443,5 +443,11 @@
   "importRuleFormatTitle": "File format",
   "importRuleFormatBody": "XLSX, XLS, or CSV matching the approved template.",
   "importRuleHeadersTitle": "Column headers",
-  "importRuleHeadersBody": "Do not change the header names in the first row."
+  "importRuleHeadersBody": "Do not change the header names in the first row.",
+  "importRuleRequiredTitle": "Required vs optional fields",
+  "importRuleRequiredBody": "Required: Arabic name, category, subcategory, unit. Optional: English name, cost, price with tax, tax, SKU. Calories are not required.",
+  "importRuleBranchesTitle": "Branches",
+  "importProductBranchesNote": "Products are automatically linked to all branches — no establishment column in the UI.",
+  "importFieldRequired": "Required",
+  "importFieldOptional": "Optional"
 }

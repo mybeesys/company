@@ -66,6 +66,10 @@ Route::middleware([
             ->middleware($perm(...SettingPermissions::for('notifications', 'update')))
             ->name('store-notifications-settings');
 
+        Route::post('store-system-alert-preferences', [NotificationSettingController::class, 'storeSystemAlertPreferences'])
+            ->middleware($perm(...SettingPermissions::for('notifications', 'update')))
+            ->name('store-system-alert-preferences');
+
         Route::post('store-notification-settings-parameters', [NotificationSettingController::class, 'storeNotificationSettingsParameters'])
             ->middleware($perm(...SettingPermissions::for('mail', 'update'), ...SettingPermissions::for('sms', 'update')))
             ->name('store-notification-settings-parameters');
@@ -100,6 +104,9 @@ Route::middleware([
         Route::get('transaction-whatsapp-share/{id}', [WhatsAppInvoiceShareController::class, 'show'])
             ->whereNumber('id')
             ->name('transaction-whatsapp-share');
+        Route::post('transaction-whatsapp-share/{id}', [WhatsAppInvoiceShareController::class, 'send'])
+            ->whereNumber('id')
+            ->name('transaction-whatsapp-share.send');
 
         Route::get('transaction-show-payments/{id}', [TransactionController::class, 'showPayments'])->name('transaction-show-payments');
         Route::post('add-payment', [TransactionController::class, 'addPayment'])->name('add-payment');
