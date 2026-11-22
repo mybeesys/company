@@ -1971,10 +1971,12 @@ class AccountingReportsController extends Controller
 
         if ($request->input('export_mode') === 'statement') {
             $exportRows = collect($report['coaStatement']['rows'] ?? [])->map(function (array $row) {
+                $names = $row['account_names'] ?? [];
+
                 return [
                     $row['label'] ?? '',
-                    implode(', ', $row['gl_codes'] ?? []),
-                    $row['account_label'] ?? '',
+                    $names !== [] ? implode(' · ', $names) : ($row['account_label'] ?? ''),
+                    $row['formula_label'] ?? '',
                     $row['section'] ?? '',
                     $row['kind'] ?? '',
                     $row['amount'] === null ? '—' : number_format((float) $row['amount'], 2, '.', ''),

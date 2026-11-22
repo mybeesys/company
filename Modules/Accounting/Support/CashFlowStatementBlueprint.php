@@ -54,7 +54,8 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'صافي ربح السنة / الفترة قبل الزكاة',
                 'label_en' => 'Net profit for the period before zakat',
-                'gl_prefixes' => ['41', '42', '43', '51', '52', '53', '54', '55', '56', '57', '32201'],
+                // P&L families only (not 32201 equity plug — avoids double count after fiscal close).
+                'gl_prefixes' => ['41', '42', '43', '51', '52', '53', '54', '55', '56', '57'],
                 'indent' => 0,
                 'amount_role' => 'pl_net',
             ],

@@ -7,11 +7,12 @@ namespace Modules\Accounting\Services;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Modules\Accounting\Models\AccountingAccount;
+use Modules\Accounting\Support\CashFlowFormula;
 use Modules\Accounting\Support\CashFlowStatementBlueprint;
 
 /**
- * Builds the IFRS-style cash flow statement tree from the blueprint + tenant COA.
- * Phase 1: structure, COA links, expandable detail levels — amounts deferred.
+ * Builds the IFRS-style cash flow statement from named COA lines + per-line formulas.
+ * Labels are fixed (Excel / level-3 style); amounts use the same equation for any date range.
  */
 final class CashFlowStatementBuilder
 {
@@ -23,8 +24,10 @@ final class CashFlowStatementBuilder
      *   start_date: string,
      *   end_date: string,
      *   rows: list<array<string, mixed>>,
+     *   section_totals: array<string, float>,
      *   linked_accounts_count: int,
-     *   missing_prefixes: list<string>
+     *   missing_prefixes: list<string>,
+     *   tie_out: array<string, float|bool>
      * }
      */
     public function build(
@@ -41,14 +44,19 @@ final class CashFlowStatementBuilder
         $locale = app()->getLocale() === 'ar' ? 'ar' : 'en';
         $accounts = $this->loadAccounts();
         $byGl = $accounts->keyBy(fn ($a) => (string) $a->gl_code);
+        $byId = $accounts->keyBy(fn ($a) => (int) $a->id);
+        $engine = new CashFlowAmountEngine($startDate, $endDate, array_values(array_filter($costCenterIds)));
 
         $rows = [];
         $linked = 0;
         $missing = [];
+        $amountsByKey = [];
 
+        // First pass: leaf/group lines (not section nets / net change — those need sums).
         foreach (CashFlowStatementBlueprint::lines() as $line) {
+            $formula = CashFlowFormula::normalize($line['key'], $line['amount_role']);
             $label = $locale === 'ar' ? $line['label_ar'] : $line['label_en'];
-            $resolved = $this->resolvePrefixAccounts($line['gl_prefixes'], $byGl, $accounts);
+            $resolved = $this->resolveAccounts($line, $byGl, $accounts);
 
             if ($line['gl_prefixes'] !== [] && $resolved->isEmpty()) {
                 foreach ($line['gl_prefixes'] as $prefix) {
@@ -61,27 +69,30 @@ final class CashFlowStatementBuilder
                 $linked++;
             }
 
-            $rows[] = [
-                'key' => $line['key'],
-                'kind' => $line['kind'],
-                'section' => $line['section'],
-                'label' => $label,
-                'label_ar' => $line['label_ar'],
-                'label_en' => $line['label_en'],
-                'indent' => (int) $line['indent'],
-                'amount_role' => $line['amount_role'],
-                'gl_prefixes' => $line['gl_prefixes'],
-                'gl_codes' => $resolved->pluck('gl_code')->map(fn ($c) => (string) $c)->values()->all(),
-                'account_ids' => $resolved->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
-                'account_label' => $primary
-                    ? trim(($primary->gl_code ?? '').' — '.($locale === 'ar'
-                        ? ($primary->name_ar ?: $primary->name_en)
-                        : ($primary->name_en ?: $primary->name_ar)))
-                    : null,
-                'amount' => null,
-                'is_detail' => false,
-                'parent_key' => null,
-            ];
+            $accountIds = $this->collectPostableIds($resolved, $accounts);
+            $amount = null;
+            if (! in_array($formula, [CashFlowFormula::SECTION_NET, CashFlowFormula::NET_CHANGE, CashFlowFormula::NONE], true)) {
+                $relatedDep = 0.0;
+                if ($formula === CashFlowFormula::INVESTING_CAPEX) {
+                    $relatedDep = (float) ($amountsByKey['depreciation'] ?? 0)
+                        + (float) ($amountsByKey['amortization'] ?? 0);
+                }
+                $amount = $engine->compute($formula, $accountIds, $byId, $relatedDep);
+                $amountsByKey[$line['key']] = $amount;
+            }
+
+            $rows[] = $this->makeRow(
+                $line,
+                $label,
+                $formula,
+                $resolved,
+                $accountIds,
+                $primary,
+                $locale,
+                $amount,
+                false,
+                null
+            );
 
             if (
                 $line['kind'] === 'line'
@@ -92,6 +103,8 @@ final class CashFlowStatementBuilder
                     $childLabel = $locale === 'ar'
                         ? ($child->name_ar ?: $child->name_en)
                         : ($child->name_en ?: $child->name_ar);
+                    $childIds = $this->collectPostableIds(collect([$child]), $accounts);
+                    $childAmount = $engine->compute($formula, $childIds, $byId, 0.0);
                     $rows[] = [
                         'key' => $line['key'].'::'.$child->gl_code,
                         'kind' => 'line',
@@ -101,11 +114,14 @@ final class CashFlowStatementBuilder
                         'label_en' => $child->name_en,
                         'indent' => (int) $line['indent'] + 1,
                         'amount_role' => $line['amount_role'],
+                        'formula' => $formula,
+                        'formula_label' => CashFlowFormula::labelAr($formula),
                         'gl_prefixes' => [(string) $child->gl_code],
                         'gl_codes' => [(string) $child->gl_code],
-                        'account_ids' => [(int) $child->id],
+                        'account_ids' => $childIds,
+                        'account_names' => [trim((string) $childLabel)],
                         'account_label' => trim(($child->gl_code ?? '').' — '.$childLabel),
-                        'amount' => null,
+                        'amount' => $childAmount,
                         'is_detail' => true,
                         'parent_key' => $line['key'],
                     ];
@@ -114,16 +130,239 @@ final class CashFlowStatementBuilder
             }
         }
 
+        // Second pass: section nets + cash bridge derived lines.
+        $sectionTotals = [
+            'operating' => 0.0,
+            'investing' => 0.0,
+            'financing' => 0.0,
+        ];
+        $opsBeforeWc = 0.0;
+        foreach ($rows as $row) {
+            if (! empty($row['is_detail']) || ($row['amount'] ?? null) === null) {
+                continue;
+            }
+            $key = (string) $row['key'];
+            $formula = (string) ($row['formula'] ?? '');
+            if (in_array($formula, [CashFlowFormula::SECTION_NET, CashFlowFormula::NET_CHANGE, CashFlowFormula::NONE], true)) {
+                continue;
+            }
+            if (in_array($formula, [CashFlowFormula::CASH_OPEN, CashFlowFormula::CASH_CLOSE], true)) {
+                continue;
+            }
+            $amt = (float) $row['amount'];
+            if ($row['section'] === 'operating') {
+                $sectionTotals['operating'] = round($sectionTotals['operating'] + $amt, 2);
+                if (! str_starts_with($key, 'wc_')) {
+                    $opsBeforeWc = round($opsBeforeWc + $amt, 2);
+                }
+            } elseif ($row['section'] === 'investing') {
+                $sectionTotals['investing'] = round($sectionTotals['investing'] + $amt, 2);
+            } elseif ($row['section'] === 'financing') {
+                $sectionTotals['financing'] = round($sectionTotals['financing'] + $amt, 2);
+            }
+        }
+
+        $netChange = round(
+            $sectionTotals['operating'] + $sectionTotals['investing'] + $sectionTotals['financing'],
+            2
+        );
+
+        foreach ($rows as &$row) {
+            $key = (string) $row['key'];
+            $formula = (string) ($row['formula'] ?? '');
+            if ($key === 'cash_from_operations_subtotal') {
+                $row['amount'] = $opsBeforeWc;
+                $amountsByKey[$key] = $opsBeforeWc;
+            } elseif ($key === 'net_operating') {
+                $row['amount'] = $sectionTotals['operating'];
+                $amountsByKey[$key] = $sectionTotals['operating'];
+            } elseif ($key === 'net_investing') {
+                $row['amount'] = $sectionTotals['investing'];
+                $amountsByKey[$key] = $sectionTotals['investing'];
+            } elseif ($key === 'net_financing') {
+                $row['amount'] = $sectionTotals['financing'];
+                $amountsByKey[$key] = $sectionTotals['financing'];
+            } elseif ($key === 'net_change_cash' || $formula === CashFlowFormula::NET_CHANGE) {
+                $row['amount'] = $netChange;
+                $amountsByKey[$key] = $netChange;
+            }
+        }
+        unset($row);
+
+        $cashOpen = (float) ($amountsByKey['cash_opening'] ?? 0);
+        $cashClose = (float) ($amountsByKey['cash_closing'] ?? 0);
+        $impliedClose = round($cashOpen + $netChange, 2);
+
         return [
-            'phase' => 'structure',
+            'phase' => 'amounts',
             'detail_level' => $detailLevel,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'cost_center_ids' => array_values(array_filter($costCenterIds)),
             'rows' => $rows,
+            'section_totals' => $sectionTotals,
             'linked_accounts_count' => $linked,
             'missing_prefixes' => array_values(array_unique($missing)),
+            'tie_out' => [
+                'cash_opening' => $cashOpen,
+                'net_change' => $netChange,
+                'cash_closing' => $cashClose,
+                'implied_closing' => $impliedClose,
+                'difference' => round($cashClose - $impliedClose, 2),
+                'is_balanced' => abs($cashClose - $impliedClose) < 0.05,
+            ],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $line
+     * @param  Collection<int, AccountingAccount>  $resolved
+     * @param  list<int>  $accountIds
+     * @return array<string, mixed>
+     */
+    private function makeRow(
+        array $line,
+        string $label,
+        string $formula,
+        Collection $resolved,
+        array $accountIds,
+        mixed $primary,
+        string $locale,
+        ?float $amount,
+        bool $isDetail,
+        ?string $parentKey,
+    ): array {
+        $names = $resolved->map(function ($a) use ($locale) {
+            return trim((string) ($locale === 'ar'
+                ? ($a->name_ar ?: $a->name_en)
+                : ($a->name_en ?: $a->name_ar)));
+        })->filter()->values()->all();
+
+        return [
+            'key' => $line['key'],
+            'kind' => $line['kind'],
+            'section' => $line['section'],
+            'label' => $label,
+            'label_ar' => $line['label_ar'],
+            'label_en' => $line['label_en'],
+            'indent' => (int) $line['indent'],
+            'amount_role' => $line['amount_role'],
+            'formula' => $formula,
+            'formula_label' => CashFlowFormula::labelAr($formula),
+            'gl_prefixes' => $line['gl_prefixes'],
+            'gl_codes' => $resolved->pluck('gl_code')->map(fn ($c) => (string) $c)->values()->all(),
+            'account_ids' => $accountIds,
+            'account_names' => $names,
+            'account_label' => $primary
+                ? trim(($primary->gl_code ?? '').' — '.($locale === 'ar'
+                    ? ($primary->name_ar ?: $primary->name_en)
+                    : ($primary->name_en ?: $primary->name_ar)))
+                : null,
+            'amount' => $amount,
+            'is_detail' => $isDetail,
+            'parent_key' => $parentKey,
+        ];
+    }
+
+    /**
+     * Resolve by account name first (accountant rule), then GL prefixes.
+     *
+     * @param  array<string, mixed>  $line
+     * @param  Collection<string, AccountingAccount>  $byGl
+     * @param  Collection<int, AccountingAccount>  $all
+     * @return Collection<int, AccountingAccount>
+     */
+    private function resolveAccounts(array $line, Collection $byGl, Collection $all): Collection
+    {
+        $key = (string) ($line['key'] ?? '');
+        // Broad P&L / cash families are safer by GL tree than free-text names.
+        $prefixOnly = in_array($key, [
+            'net_profit_before_zakat',
+            'cash_opening',
+            'cash_closing',
+            'net_change_cash',
+            'prior_period_adjustments',
+            'fin_dividends',
+        ], true);
+
+        if (! $prefixOnly) {
+            $needles = $this->nameNeedles($line);
+            if ($needles !== []) {
+                $byName = $all->filter(function ($a) use ($needles) {
+                    $hay = $this->normalizeName(($a->name_ar ?? '').' '.($a->name_en ?? ''));
+                    foreach ($needles as $needle) {
+                        if ($needle !== '' && str_contains($hay, $needle)) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })->values();
+
+                // Prefer closest group roots (shortest GL) among name matches.
+                if ($byName->isNotEmpty()) {
+                    $minLen = $byName->min(fn ($a) => strlen((string) $a->gl_code));
+                    $roots = $byName->filter(fn ($a) => strlen((string) $a->gl_code) === $minLen)->values();
+                    if ($roots->isNotEmpty()) {
+                        return $roots;
+                    }
+                }
+            }
+        }
+
+        return $this->resolvePrefixAccounts($line['gl_prefixes'] ?? [], $byGl, $all);
+    }
+
+    /**
+     * @param  array<string, mixed>  $line
+     * @return list<string>
+     */
+    private function nameNeedles(array $line): array
+    {
+        $raw = array_filter([
+            $line['label_ar'] ?? null,
+            $line['label_en'] ?? null,
+        ]);
+
+        // Strip formula-ish suffixes from labels for matching.
+        $cleaned = [];
+        foreach ($raw as $label) {
+            $label = (string) $label;
+            $label = preg_replace('/\s*[—\-].*$/u', '', $label) ?? $label;
+            $label = str_replace(['- مكون', '— charged', '— current', '— non-current'], '', $label);
+            $n = $this->normalizeName($label);
+            if (mb_strlen($n) >= 3) {
+                $cleaned[] = $n;
+            }
+        }
+
+        // Extra aliases for common COA wording differences.
+        $key = (string) ($line['key'] ?? '');
+        $aliases = match ($key) {
+            'wc_inventory' => ['المخزون', 'inventory'],
+            'wc_trade_receivables' => ['ذمم تجارية مدينة', 'trade receivable'],
+            'wc_trade_payables' => ['الموردون', 'دائنون', 'trade payable', 'suppliers'],
+            'depreciation' => ['استهلاك', 'depreciation'],
+            'amortization' => ['اطفاء', 'إطفاء', 'amortization'],
+            'net_profit_before_zakat' => [], // use prefixes / P&L families, names too broad
+            'cash_opening', 'cash_closing', 'net_change_cash' => ['نقد', 'بنوك', 'cash', 'bank'],
+            default => [],
+        };
+
+        foreach ($aliases as $alias) {
+            $cleaned[] = $this->normalizeName($alias);
+        }
+
+        return array_values(array_unique(array_filter($cleaned)));
+    }
+
+    private function normalizeName(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+        $value = str_replace(['أ', 'إ', 'آ', 'ة', 'ى'], ['ا', 'ا', 'ا', 'ه', 'ي'], $value);
+
+        return $value;
     }
 
     /**
@@ -138,6 +377,7 @@ final class CashFlowStatementBuilder
             'name_en',
             'parent_account_id',
             'account_primary_type',
+            'account_type',
             'allow_direct_posting',
         ];
         if (Schema::hasColumn('accounting_accounts', 'coa_level')) {
@@ -165,7 +405,6 @@ final class CashFlowStatementBuilder
                 $found->push($byGl->get($prefix));
                 continue;
             }
-            // Exact leaf codes (e.g. 32201, 32301) may exist without a group parent.
             $starts = $all->filter(function ($a) use ($prefix) {
                 $gl = (string) $a->gl_code;
 
@@ -173,7 +412,6 @@ final class CashFlowStatementBuilder
             })->sortBy(fn ($a) => strlen((string) $a->gl_code))->values();
 
             if ($starts->isNotEmpty()) {
-                // Prefer the shortest GL that matches (closest group root).
                 $rootLen = strlen((string) $starts->first()->gl_code);
                 $found = $found->merge(
                     $starts->filter(fn ($a) => strlen((string) $a->gl_code) === $rootLen)
@@ -182,6 +420,34 @@ final class CashFlowStatementBuilder
         }
 
         return $found->unique('id')->values();
+    }
+
+    /**
+     * Include the resolved nodes plus all descendants that can hold balances.
+     *
+     * @param  Collection<int, AccountingAccount>  $roots
+     * @param  Collection<int, AccountingAccount>  $all
+     * @return list<int>
+     */
+    private function collectPostableIds(Collection $roots, Collection $all): array
+    {
+        if ($roots->isEmpty()) {
+            return [];
+        }
+
+        $rootGls = $roots->pluck('gl_code')->map(fn ($c) => (string) $c)->all();
+        $ids = $all->filter(function ($a) use ($rootGls) {
+            $gl = (string) $a->gl_code;
+            foreach ($rootGls as $rootGl) {
+                if ($gl === $rootGl || str_starts_with($gl, $rootGl)) {
+                    return true;
+                }
+            }
+
+            return false;
+        })->pluck('id')->map(fn ($id) => (int) $id)->unique()->values()->all();
+
+        return $ids;
     }
 
     /**
@@ -215,7 +481,6 @@ final class CashFlowStatementBuilder
                     return $level <= $detailLevel;
                 }
 
-                // Fallback when coa_level missing: allow codes longer than roots.
                 return strlen($gl) <= strlen($rootGls[0] ?? '') + ($detailLevel - 3) * 2;
             })
             ->sortBy('gl_code')
