@@ -720,6 +720,7 @@ return [
     'cf_missing_coa_prefix' => 'بادئات غير موجودة في الدليل',
     'cf_expand_all' => 'توسيع الكل',
     'cf_collapse_all' => 'طي الكل',
+    'cf_accounts_count' => 'حسابات',
     'cf_compare' => 'مقارنة الفترة',
     'cf_compare_none' => 'بدون مقارنة',
     'cf_compare_previous' => 'الفترة السابقة',

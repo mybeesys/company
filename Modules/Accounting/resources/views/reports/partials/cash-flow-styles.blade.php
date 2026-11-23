@@ -108,6 +108,9 @@
     }
 
     #cfStatementTable .cf-cell-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.45rem;
         font-weight: 500;
         color: var(--bs-gray-800);
         line-height: 1.45;
@@ -119,32 +122,92 @@
         line-height: 1.4;
     }
 
-    #cfStatementTable tr.cf-section-row td {
+    #cfStatementTable tr.cf-stmt-section td {
         background: var(--bs-gray-200);
         font-weight: 700;
         color: var(--bs-primary);
         border-top: 2px solid var(--bs-gray-300);
     }
 
-    #cfStatementTable tr.cf-section-row .cf-cell-item {
+    #cfStatementTable tr.cf-stmt-section .cf-cell-item {
         font-weight: 800;
     }
 
-    #cfStatementTable tr.cf-line-row td {
+    #cfStatementTable tr.cf-stmt-line td {
         border-color: var(--bs-gray-200);
     }
 
-    #cfStatementTable tr.cf-line-row.cf-subtotal td {
+    #cfStatementTable tr.cf-stmt-line.cf-subtotal td {
         background: var(--bs-gray-100);
         font-weight: 700;
         border-top: 1px solid var(--bs-gray-300);
     }
 
-    #cfStatementTable tr.cf-summary-row td {
+    #cfStatementTable tr.cf-stmt-summary td {
         background: var(--bs-primary-light);
         font-weight: 800;
         font-size: 0.92rem;
         border-top: 2px solid var(--bs-primary);
+    }
+
+    #cfStatementTable tr.cf-stmt-child td {
+        background: #fafbfc;
+        font-size: 0.8125rem;
+    }
+
+    #cfStatementTable tr.cf-stmt-parent {
+        cursor: pointer;
+    }
+
+    #cfStatementTable tr.cf-stmt-parent:hover td {
+        background: var(--bs-primary-light);
+    }
+
+    #cfStatementTable .cf-stmt-toggle {
+        flex: 0 0 auto;
+        width: 1.35rem;
+        height: 1.35rem;
+        margin-top: 0.1rem;
+        padding: 0;
+        border: 0;
+        border-radius: 0.35rem;
+        background: transparent;
+        color: var(--bs-gray-600);
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #cfStatementTable .cf-stmt-toggle:hover {
+        background: rgba(27, 132, 255, 0.12);
+        color: var(--bs-primary);
+    }
+
+    #cfStatementTable .cf-stmt-chevron {
+        font-size: 0.7rem;
+        transition: transform 0.15s ease;
+    }
+
+    #cfStatementTable tr.cf-stmt-parent.is-open .cf-stmt-chevron {
+        transform: rotate(-90deg);
+    }
+
+    html[dir="rtl"] #cfStatementTable tr.cf-stmt-parent.is-open .cf-stmt-chevron,
+    body[dir="rtl"] #cfStatementTable tr.cf-stmt-parent.is-open .cf-stmt-chevron {
+        transform: rotate(90deg);
+    }
+
+    #cfStatementTable .cf-stmt-toggle-spacer {
+        display: inline-block;
+        width: 1.35rem;
+        flex: 0 0 auto;
+    }
+
+    #cfStatementTable .cf-account-count {
+        color: var(--bs-gray-500);
+        font-size: 0.75rem;
+        white-space: nowrap;
     }
 
     #cfStatementTable .cf-fin {
