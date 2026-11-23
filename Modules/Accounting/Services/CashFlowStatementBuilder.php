@@ -114,17 +114,31 @@ final class CashFlowStatementBuilder
                 null
             );
 
-            if (
-                $line['kind'] === 'line'
-                && $detailLevel > CashFlowStatementBlueprint::DEFAULT_DETAIL_LEVEL
-                && $resolved->isNotEmpty()
-            ) {
-                foreach ($this->expandDetails($resolved, $accounts, $detailLevel) as $child) {
+            // Always attach browsable child account rows (UI collapses them by default).
+            if ($line['kind'] === 'line' && $resolved->isNotEmpty()) {
+                $browseLevel = max($detailLevel, CashFlowStatementBlueprint::DEFAULT_DETAIL_LEVEL + 1);
+                $children = $line['key'] === 'net_profit_before_zakat'
+                    ? $this->browsePlFamilies($accounts)
+                    : $this->expandDetails($resolved, $accounts, $browseLevel);
+
+                if ($children->isEmpty() && $resolved->count() > 1) {
+                    $children = $resolved->values();
+                }
+
+                $childCount = 0;
+                foreach ($children as $child) {
+                    if ($childCount >= 80) {
+                        break;
+                    }
                     $childLabel = $locale === 'ar'
                         ? ($child->name_ar ?: $child->name_en)
                         : ($child->name_en ?: $child->name_ar);
                     $childIds = $this->collectPostableIds(collect([$child]), $accounts);
-                    $childAmount = $engine->compute($formula, $childIds, $byId, 0.0);
+                    if ($formula === CashFlowFormula::PL_NET) {
+                        $childAmount = $engine->periodPlNet($childIds, $byId);
+                    } else {
+                        $childAmount = $engine->compute($formula, $childIds, $byId, 0.0);
+                    }
                     $rows[] = [
                         'key' => $line['key'].'::'.$child->gl_code,
                         'kind' => 'line',
@@ -139,13 +153,23 @@ final class CashFlowStatementBuilder
                         'gl_prefixes' => [(string) $child->gl_code],
                         'gl_codes' => [(string) $child->gl_code],
                         'account_ids' => $childIds,
-                        'account_names' => [trim((string) $childLabel)],
+                        'account_names' => [trim((string) ($child->gl_code ?? '').' — '.$childLabel)],
                         'account_label' => trim(($child->gl_code ?? '').' — '.$childLabel),
                         'amount' => $childAmount,
                         'is_detail' => true,
                         'parent_key' => $line['key'],
                     ];
                     $linked++;
+                    $childCount++;
+                }
+
+                // Annotate parent with child count for the collapse chevron.
+                if ($childCount > 0) {
+                    $lastParentIdx = count($rows) - 1 - $childCount;
+                    if ($lastParentIdx >= 0 && ($rows[$lastParentIdx]['key'] ?? null) === $line['key']) {
+                        $rows[$lastParentIdx]['has_children'] = true;
+                        $rows[$lastParentIdx]['children_count'] = $childCount;
+                    }
                 }
             }
         }
@@ -281,7 +305,36 @@ final class CashFlowStatementBuilder
             'amount' => $amount,
             'is_detail' => $isDetail,
             'parent_key' => $parentKey,
+            'has_children' => false,
+            'children_count' => 0,
         ];
+    }
+
+    /**
+     * Top income/expense families for browsing under net profit (not every leaf).
+     *
+     * @param  Collection<int, AccountingAccount>  $all
+     * @return Collection<int, AccountingAccount>
+     */
+    private function browsePlFamilies(Collection $all): Collection
+    {
+        return $all
+            ->filter(function ($a) {
+                $gl = preg_replace('/[^0-9]/', '', (string) ($a->gl_code ?? '')) ?? '';
+                if ($gl === '' || strlen($gl) < 2) {
+                    return false;
+                }
+                // Families like 41, 42, 51, 54…
+                if (! in_array($gl[0], ['4', '5'], true) || strlen($gl) > 2) {
+                    return false;
+                }
+                $type = strtolower((string) ($a->account_primary_type ?? $a->account_type ?? ''));
+
+                return in_array($type, ['income', 'expenses', 'expense'], true)
+                    || in_array($gl[0], ['4', '5'], true);
+            })
+            ->sortBy('gl_code')
+            ->values();
     }
 
     /**

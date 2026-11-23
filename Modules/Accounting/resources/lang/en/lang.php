@@ -728,6 +728,7 @@ return [
     'cf_missing_coa_prefix' => 'Prefixes missing from chart',
     'cf_expand_all' => 'Expand all',
     'cf_collapse_all' => 'Collapse all',
+    'cf_accounts_count' => 'accounts',
     'cf_compare' => 'Period compare',
     'cf_compare_none' => 'No comparison',
     'cf_compare_previous' => 'Previous period',

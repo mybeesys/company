@@ -268,10 +268,14 @@
     <div class="cf-panel mb-4">
         <div class="cf-panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h3 class="cf-panel-title mb-0">@lang('accounting::lang.cf_coa_statement')</h3>
-            <span class="small text-muted">
-                @lang('accounting::lang.cf_detail_level'): {{ $coaStatement['detail_level'] ?? 3 }}
-                · {{ $startDate }} → {{ $endDate }}
-            </span>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="small text-muted">
+                    @lang('accounting::lang.cf_detail_level'): {{ $coaStatement['detail_level'] ?? 3 }}
+                    · {{ $startDate }} → {{ $endDate }}
+                </span>
+                <button type="button" class="btn btn-sm btn-light-primary no-print" id="cfStmtExpandAll">@lang('accounting::lang.cf_expand_all')</button>
+                <button type="button" class="btn btn-sm btn-light no-print" id="cfStmtCollapseAll">@lang('accounting::lang.cf_collapse_all')</button>
+            </div>
         </div>
         @if(!empty($coaTie))
             <div class="px-4 pt-3 no-print">
@@ -311,25 +315,44 @@
                     @forelse ($coaRows as $row)
                         @php
                             $kind = $row['kind'] ?? 'line';
+                            $isDetail = !empty($row['is_detail']);
+                            $hasChildren = !empty($row['has_children']);
+                            $parentKey = $row['parent_key'] ?? null;
+                            $rowKey = $row['key'] ?? '';
                             $rowClass = match ($kind) {
-                                'header' => 'cf-section-row',
-                                'subheader' => 'cf-line-row fw-semibold',
-                                'subtotal' => 'cf-line-row cf-subtotal',
-                                'total' => 'cf-summary-row',
-                                default => 'cf-line-row'.(!empty($row['is_detail']) ? ' cf-indent-1' : ''),
+                                'header' => 'cf-stmt-section',
+                                'subheader' => 'cf-stmt-line fw-semibold',
+                                'subtotal' => 'cf-stmt-line cf-subtotal',
+                                'total' => 'cf-stmt-summary',
+                                default => 'cf-stmt-line'.($isDetail ? ' cf-stmt-child' : ''),
                             };
                             $indent = (int) ($row['indent'] ?? 0);
                             $pad = $indent > 0 ? ('padding-inline-start:'.(0.75 + $indent * 0.85).'rem') : '';
                             $amt = $row['amount'] ?? null;
+                            $childCount = (int) ($row['children_count'] ?? 0);
                         @endphp
-                        <tr class="{{ $rowClass }}">
-                            <td class="cf-cell-item" style="{{ $pad }}">{{ $row['label'] ?? '' }}</td>
+                        <tr
+                            class="{{ $rowClass }}{{ $hasChildren ? ' cf-stmt-parent' : '' }}"
+                            @if($hasChildren) data-cf-stmt-parent="{{ $rowKey }}" @endif
+                            @if($isDetail && $parentKey) data-cf-stmt-child-of="{{ $parentKey }}" hidden @endif
+                        >
+                            <td class="cf-cell-item" style="{{ $pad }}">
+                                @if($hasChildren)
+                                    <button type="button" class="cf-stmt-toggle no-print" aria-expanded="false" title="@lang('accounting::lang.cf_expand_all')">
+                                        <i class="fa fa-chevron-left cf-stmt-chevron" aria-hidden="true"></i>
+                                    </button>
+                                @elseif($isDetail)
+                                    <span class="cf-stmt-toggle-spacer no-print" aria-hidden="true"></span>
+                                @endif
+                                <span>{{ $row['label'] ?? '' }}</span>
+                            </td>
                             <td class="cf-cell-account">
-                                @if(!empty($row['account_names']))
-                                    {{ implode(' · ', array_slice($row['account_names'], 0, 2)) }}
-                                    @if(count($row['account_names']) > 2) … @endif
+                                @if($hasChildren)
+                                    <span class="cf-account-count">{{ $childCount }} @lang('accounting::lang.cf_accounts_count')</span>
+                                @elseif(!empty($row['account_names']))
+                                    {{ $row['account_names'][0] ?? '' }}
                                 @elseif(!empty($row['gl_codes']))
-                                    {{ implode(', ', array_slice($row['gl_codes'], 0, 3)) }}
+                                    {{ $row['gl_codes'][0] ?? '—' }}
                                 @else
                                     —
                                 @endif
@@ -569,13 +592,47 @@
                 icon.toggleClass('fa-chevron-down', hidden).toggleClass('fa-chevron-right', !hidden);
             });
 
+            function setStmtParentOpen($parent, open) {
+                const key = $parent.data('cf-stmt-parent');
+                if (!key) return;
+                $parent.toggleClass('is-open', open);
+                $parent.find('.cf-stmt-toggle').attr('aria-expanded', open ? 'true' : 'false');
+                const $children = $('#cfStatementTable tr[data-cf-stmt-child-of="' + key + '"]');
+                if (open) {
+                    $children.prop('hidden', false);
+                } else {
+                    $children.prop('hidden', true);
+                }
+            }
+
+            $(document).on('click', '#cfStatementTable tr.cf-stmt-parent', function(e) {
+                if ($(e.target).closest('a, button').length && !$(e.target).closest('.cf-stmt-toggle').length) {
+                    return;
+                }
+                const $parent = $(this);
+                setStmtParentOpen($parent, !$parent.hasClass('is-open'));
+            });
+
+            $('#cfStmtExpandAll').on('click', function() {
+                $('#cfStatementTable tr.cf-stmt-parent').each(function() {
+                    setStmtParentOpen($(this), true);
+                });
+            });
+            $('#cfStmtCollapseAll').on('click', function() {
+                $('#cfStatementTable tr.cf-stmt-parent').each(function() {
+                    setStmtParentOpen($(this), false);
+                });
+            });
+
             $('#cfExpandAll').on('click', function() {
                 $('.cf-line-row').show();
                 $('.cf-section-icon').removeClass('fa-chevron-right').addClass('fa-chevron-down');
+                $('#cfStmtExpandAll').trigger('click');
             });
             $('#cfCollapseAll').on('click', function() {
                 $('.cf-line-row').not('.cf-subtotal').hide();
                 $('.cf-section-icon').removeClass('fa-chevron-down').addClass('fa-chevron-right');
+                $('#cfStmtCollapseAll').trigger('click');
             });
 
             $('#cashFlowExportPdf').on('click', () => window.open(cashFlowExportPdfUrl + '?' + buildCashFlowQuery(), '_blank'));
