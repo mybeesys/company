@@ -58,7 +58,15 @@ final class CashFlowStatementBuilder
             $label = $locale === 'ar' ? $line['label_ar'] : $line['label_en'];
             $resolved = $this->resolveAccounts($line, $byGl, $accounts);
 
-            if ($line['gl_prefixes'] !== [] && $resolved->isEmpty()) {
+            // Empty resolve is valid for optional expense add-backs / prior-period (amount = 0).
+            $optionalEmpty = in_array((string) $line['key'], [
+                'depreciation',
+                'amortization',
+                'inventory_obsolescence_provision',
+                'doubtful_debts_provision',
+                'prior_period_adjustments',
+            ], true);
+            if ($line['gl_prefixes'] !== [] && $resolved->isEmpty() && ! $optionalEmpty) {
                 foreach ($line['gl_prefixes'] as $prefix) {
                     $missing[] = (string) $prefix;
                 }
@@ -77,7 +85,19 @@ final class CashFlowStatementBuilder
                     $relatedDep = (float) ($amountsByKey['depreciation'] ?? 0)
                         + (float) ($amountsByKey['amortization'] ?? 0);
                 }
-                $amount = $engine->compute($formula, $accountIds, $byId, $relatedDep);
+                if ($formula === CashFlowFormula::PL_NET) {
+                    // Accountant rule: ALL period revenues & expenses (not a fixed leaf list).
+                    $amount = $engine->periodAllPlNet($accounts);
+                    $accountIds = $accounts
+                        ->filter(fn ($a) => ! $engine->isPriorPeriodAccount($a)
+                            && ($engine->isIncomeAccount($a) || $engine->isExpenseAccount($a)))
+                        ->pluck('id')
+                        ->map(fn ($id) => (int) $id)
+                        ->values()
+                        ->all();
+                } else {
+                    $amount = $engine->compute($formula, $accountIds, $byId, $relatedDep);
+                }
                 $amountsByKey[$line['key']] = $amount;
             }
 
@@ -275,13 +295,41 @@ final class CashFlowStatementBuilder
     private function resolveAccounts(array $line, Collection $byGl, Collection $all): Collection
     {
         $key = (string) ($line['key'] ?? '');
+
+        // Operating add-backs: expense accounts only (مصروف), never مجمع / BS allowance.
+        if ($key === 'depreciation') {
+            return $this->resolveExpenseByNameRules($all, include: ['اهلاك', 'هلاك', 'depreciation'], exclude: ['اطفاء', 'اطفا', 'amort', 'مجمع', 'accumulated', 'تقديم', 'consumable']);
+        }
+        if ($key === 'amortization') {
+            return $this->resolveExpenseByNameRules($all, include: ['اطفاء', 'اطفا', 'amortization', 'amortisation'], exclude: ['مجمع', 'accumulated']);
+        }
+        if ($key === 'inventory_obsolescence_provision') {
+            return $this->resolveExpenseByNameRules($all, include: ['تقادم', 'هبوط المخزون', 'obsolescence', 'inventory write'], exclude: ['مجمع', 'accumulated']);
+        }
+        if ($key === 'doubtful_debts_provision') {
+            return $this->resolveExpenseByNameRules($all, include: ['ديون معدومه', 'خسائر ائتمانيه', 'مشكوك', 'bad debt', 'credit loss', 'expected credit'], exclude: ['مجمع', 'accumulated']);
+        }
+        if ($key === 'prior_period_adjustments') {
+            // Exact COA line by name; if absent → empty → amount 0. Not P&L.
+            $byName = $all->filter(function ($a) {
+                $hay = $this->normalizeName(($a->name_ar ?? '').' '.($a->name_en ?? ''));
+
+                return str_contains($hay, 'تعديلات سنوات سابقه')
+                    || str_contains($hay, 'prior period');
+            })->values();
+            if ($byName->isNotEmpty()) {
+                return $byName;
+            }
+
+            return $this->resolvePrefixAccounts(['32401', '324'], $byGl, $all);
+        }
+
         // Broad P&L / cash families are safer by GL tree than free-text names.
         $prefixOnly = in_array($key, [
             'net_profit_before_zakat',
             'cash_opening',
             'cash_closing',
             'net_change_cash',
-            'prior_period_adjustments',
             'fin_dividends',
         ], true);
 
@@ -314,6 +362,43 @@ final class CashFlowStatementBuilder
     }
 
     /**
+     * Match expense accounts by Arabic/English name rules (period charges only).
+     *
+     * @param  Collection<int, AccountingAccount>  $all
+     * @param  list<string>  $include
+     * @param  list<string>  $exclude
+     * @return Collection<int, AccountingAccount>
+     */
+    private function resolveExpenseByNameRules(Collection $all, array $include, array $exclude = []): Collection
+    {
+        $include = array_map(fn ($n) => $this->normalizeName($n), $include);
+        $exclude = array_map(fn ($n) => $this->normalizeName($n), $exclude);
+
+        return $all->filter(function ($a) use ($include, $exclude) {
+            $type = strtolower((string) ($a->account_primary_type ?? $a->account_type ?? ''));
+            $gl = preg_replace('/[^0-9]/', '', (string) ($a->gl_code ?? '')) ?? '';
+            $isExpense = in_array($type, ['expenses', 'expense'], true) || ($gl !== '' && str_starts_with($gl, '5'));
+            if (! $isExpense) {
+                return false;
+            }
+
+            $hay = $this->normalizeName(($a->name_ar ?? '').' '.($a->name_en ?? ''));
+            foreach ($exclude as $ex) {
+                if ($ex !== '' && str_contains($hay, $ex)) {
+                    return false;
+                }
+            }
+            foreach ($include as $inc) {
+                if ($inc !== '' && str_contains($hay, $inc)) {
+                    return true;
+                }
+            }
+
+            return false;
+        })->values();
+    }
+
+    /**
      * @param  array<string, mixed>  $line
      * @return list<string>
      */
@@ -342,9 +427,7 @@ final class CashFlowStatementBuilder
             'wc_inventory' => ['المخزون', 'inventory'],
             'wc_trade_receivables' => ['ذمم تجارية مدينة', 'trade receivable'],
             'wc_trade_payables' => ['الموردون', 'دائنون', 'trade payable', 'suppliers'],
-            'depreciation' => ['استهلاك', 'depreciation'],
-            'amortization' => ['اطفاء', 'إطفاء', 'amortization'],
-            'net_profit_before_zakat' => [], // use prefixes / P&L families, names too broad
+            'net_profit_before_zakat' => [], // all P&L — handled separately
             'cash_opening', 'cash_closing', 'net_change_cash' => ['نقد', 'بنوك', 'cash', 'bank'],
             default => [],
         };

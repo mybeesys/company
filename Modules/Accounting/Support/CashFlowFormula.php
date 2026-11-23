@@ -20,6 +20,9 @@ final class CashFlowFormula
 
     public const ADJUSTMENT = 'adjustment';
 
+    /** Prior-period adjustments line (not part of P&L net). */
+    public const PRIOR_PERIOD = 'prior_period';
+
     public const WC_ASSET = 'wc_asset';
 
     public const WC_LIABILITY = 'wc_liability';
@@ -47,9 +50,14 @@ final class CashFlowFormula
      */
     public static function normalize(string $key, string $amountRole): string
     {
+        if ($key === 'prior_period_adjustments' || $amountRole === 'prior_period') {
+            return self::PRIOR_PERIOD;
+        }
+
         return match ($amountRole) {
             'pl_net' => self::PL_NET,
             'adjustment' => self::ADJUSTMENT,
+            'prior_period' => self::PRIOR_PERIOD,
             'cash_open' => self::CASH_OPEN,
             'cash_close' => self::CASH_CLOSE,
             'net_change' => self::NET_CHANGE,
@@ -92,8 +100,9 @@ final class CashFlowFormula
     public static function labelAr(string $formula): string
     {
         return match ($formula) {
-            self::PL_NET => 'إيرادات − مصروفات الفترة',
-            self::ADJUSTMENT => 'مصروف الفترة غير النقدي (يُضاف)',
+            self::PL_NET => 'إجمالي إيرادات الفترة − إجمالي مصروفات الفترة',
+            self::ADJUSTMENT => 'مصروف الفترة (قيود الفترة) — يُضاف',
+            self::PRIOR_PERIOD => 'بند تعديلات سنوات سابقة إن وُجد، وإلا 0',
             self::WC_ASSET, self::INVESTING_ASSET => 'رصيد أول الفترة − رصيد آخر الفترة',
             self::WC_LIABILITY, self::FINANCING_INFLOW => 'رصيد آخر الفترة − رصيد أول الفترة',
             self::INVESTING_CAPEX => '−(التغير في الصافي + الاستهلاك)',

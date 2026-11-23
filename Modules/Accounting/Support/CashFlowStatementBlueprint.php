@@ -19,7 +19,7 @@ namespace Modules\Accounting\Support;
  *   label_en: string,
  *   gl_prefixes: list<string>,
  *   indent: int,
- *   amount_role: 'none'|'structure'|'wc_delta'|'adjustment'|'pl_net'|'cash_open'|'cash_close'|'net_change'|'section_net'
+ *   amount_role: 'none'|'structure'|'wc_delta'|'adjustment'|'prior_period'|'pl_net'|'cash_open'|'cash_close'|'net_change'|'section_net'
  * }
  */
 final class CashFlowStatementBlueprint
@@ -54,8 +54,8 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'صافي ربح السنة / الفترة قبل الزكاة',
                 'label_en' => 'Net profit for the period before zakat',
-                // P&L families only (not 32201 equity plug — avoids double count after fiscal close).
-                'gl_prefixes' => ['41', '42', '43', '51', '52', '53', '54', '55', '56', '57'],
+                // All period income & expenses (not specific leaves; excludes prior-period adj).
+                'gl_prefixes' => ['4', '5'],
                 'indent' => 0,
                 'amount_role' => 'pl_net',
             ],
@@ -75,7 +75,8 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'استهلاكات الفترة',
                 'label_en' => 'Depreciation for the period',
-                'gl_prefixes' => ['54', '122'],
+                // Expense only (مصروف الإهلاك) — never accumulated depreciation (مجمع).
+                'gl_prefixes' => ['54'],
                 'indent' => 1,
                 'amount_role' => 'adjustment',
             ],
@@ -85,7 +86,8 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'اطفاءات الفترة',
                 'label_en' => 'Amortization for the period',
-                'gl_prefixes' => ['54', '124'],
+                // Expense only (مصروف الإطفاء) — never accumulated amortization.
+                'gl_prefixes' => ['54'],
                 'indent' => 1,
                 'amount_role' => 'adjustment',
             ],
@@ -95,7 +97,8 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'مخصص تقادم المخزون - مكون',
                 'label_en' => 'Inventory obsolescence provision — charged',
-                'gl_prefixes' => ['116'],
+                // Period expense charge (not BS allowance 116).
+                'gl_prefixes' => ['5'],
                 'indent' => 1,
                 'amount_role' => 'adjustment',
             ],
@@ -105,7 +108,8 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'ديون مشكوك في تحصيلها - مكون',
                 'label_en' => 'Expected credit loss provision — charged',
-                'gl_prefixes' => ['114'],
+                // Period expense (e.g. bad debts) — not BS allowance 114.
+                'gl_prefixes' => ['53', '56'],
                 'indent' => 1,
                 'amount_role' => 'adjustment',
             ],
@@ -115,9 +119,10 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'تعديلات سنوات سابقة',
                 'label_en' => 'Prior period adjustments',
-                'gl_prefixes' => ['32'],
+                // Standalone COA line (e.g. 32401) — NOT part of P&L net. Missing → 0.
+                'gl_prefixes' => ['32401', '324'],
                 'indent' => 1,
-                'amount_role' => 'adjustment',
+                'amount_role' => 'prior_period',
             ],
             [
                 'key' => 'cash_from_operations_subtotal',
