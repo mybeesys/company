@@ -33,7 +33,12 @@ class CashFlowStatementBlueprintTest extends TestCase
         $this->assertSame(['111', '112'], $byKey['cash_closing']['gl_prefixes']);
         $this->assertSame('wc_delta', $byKey['wc_inventory']['amount_role']);
         $this->assertSame('pl_net', $byKey['net_profit_before_zakat']['amount_role']);
-        $this->assertNotContains('32201', $byKey['net_profit_before_zakat']['gl_prefixes']);
+        $this->assertSame('prior_period', $byKey['prior_period_adjustments']['amount_role']);
+        $this->assertSame(['54'], $byKey['depreciation']['gl_prefixes']);
+        $this->assertNotContains('122', $byKey['depreciation']['gl_prefixes']);
+        $this->assertNotContains('124', $byKey['amortization']['gl_prefixes']);
+        $this->assertNotContains('114', $byKey['doubtful_debts_provision']['gl_prefixes']);
+        $this->assertNotContains('116', $byKey['inventory_obsolescence_provision']['gl_prefixes']);
         $this->assertSame('صافي ربح السنة / الفترة قبل الزكاة', $byKey['net_profit_before_zakat']['label_ar']);
         $this->assertSame('المخزون', $byKey['wc_inventory']['label_ar']);
     }

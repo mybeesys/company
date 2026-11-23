@@ -39,6 +39,18 @@ class CashFlowFormulaTest extends TestCase
         );
     }
 
+    public function test_prior_period_is_not_treated_as_generic_adjustment(): void
+    {
+        $this->assertSame(
+            CashFlowFormula::PRIOR_PERIOD,
+            CashFlowFormula::normalize('prior_period_adjustments', 'adjustment')
+        );
+        $this->assertSame(
+            CashFlowFormula::PRIOR_PERIOD,
+            CashFlowFormula::normalize('prior_period_adjustments', 'prior_period')
+        );
+    }
+
     public function test_formula_labels_are_present_for_core_roles(): void
     {
         $this->assertNotSame('', CashFlowFormula::labelAr(CashFlowFormula::PL_NET));

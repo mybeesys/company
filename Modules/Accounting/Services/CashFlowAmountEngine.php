@@ -115,7 +115,42 @@ final class CashFlowAmountEngine
     }
 
     /**
+     * Net profit for period from ALL income & expense accounts (not equity plugs).
+     * Prior-period adjustment accounts are excluded — they have their own line.
+     *
+     * @param  Collection<int, object>  $allAccounts
+     */
+    public function periodAllPlNet(Collection $allAccounts): float
+    {
+        $incomeIds = [];
+        $expenseIds = [];
+        foreach ($allAccounts as $acc) {
+            if ($this->isPriorPeriodAccount($acc)) {
+                continue;
+            }
+            if ($this->isIncomeAccount($acc)) {
+                $incomeIds[] = (int) $acc->id;
+            } elseif ($this->isExpenseAccount($acc)) {
+                $expenseIds[] = (int) $acc->id;
+            }
+        }
+
+        $byId = $allAccounts->keyBy(fn ($a) => (int) $a->id);
+        $income = 0.0;
+        foreach ($incomeIds as $id) {
+            $income += $this->periodCredit([$id]) - $this->periodDebit([$id]);
+        }
+        $expense = 0.0;
+        foreach ($expenseIds as $id) {
+            $expense += $this->periodDebit([$id]) - $this->periodCredit([$id]);
+        }
+
+        return round($income - $expense, 2);
+    }
+
+    /**
      * Net profit for period: income (credit−debit) − expenses (debit−credit).
+     * Skips non-P&L accounts (equity plugs, assets, liabilities).
      *
      * @param  list<int>  $accountIds
      * @param  Collection<int, object>  $accountsById
@@ -126,21 +161,16 @@ final class CashFlowAmountEngine
         $expense = 0.0;
         foreach ($accountIds as $id) {
             $acc = $accountsById->get((int) $id);
+            if (! $acc || $this->isPriorPeriodAccount($acc)) {
+                continue;
+            }
             $debit = $this->periodDebit([(int) $id]);
             $credit = $this->periodCredit([(int) $id]);
-            $type = strtolower((string) ($acc->account_primary_type ?? $acc->account_type ?? ''));
-            $gl = preg_replace('/[^0-9]/', '', (string) ($acc->gl_code ?? '')) ?? '';
 
-            $isIncome = in_array($type, ['income'], true) || ($gl !== '' && str_starts_with($gl, '4'));
-            $isExpense = in_array($type, ['expenses', 'expense'], true) || ($gl !== '' && str_starts_with($gl, '5'));
-
-            if ($isIncome) {
+            if ($this->isIncomeAccount($acc)) {
                 $income += ($credit - $debit);
-            } elseif ($isExpense) {
+            } elseif ($this->isExpenseAccount($acc)) {
                 $expense += ($debit - $credit);
-            } else {
-                // Equity plugs like 32201 current-year profit: treat credit-normal as income-like.
-                $income += ($credit - $debit);
             }
         }
 
@@ -148,7 +178,7 @@ final class CashFlowAmountEngine
     }
 
     /**
-     * Non-cash charge add-back (typically expense debit net for the period).
+     * Period expense charge only (مصروف) — never accumulated / allowance BS credits.
      *
      * @param  list<int>  $accountIds
      * @param  Collection<int, object>  $accountsById
@@ -158,28 +188,34 @@ final class CashFlowAmountEngine
         $total = 0.0;
         foreach ($accountIds as $id) {
             $acc = $accountsById->get((int) $id);
-            $type = strtolower((string) ($acc->account_primary_type ?? $acc->account_type ?? ''));
-            $gl = preg_replace('/[^0-9]/', '', (string) ($acc->gl_code ?? '')) ?? '';
+            if (! $acc || ! $this->isExpenseAccount($acc)) {
+                continue;
+            }
+            if ($this->isAccumulatedOrAllowanceName($acc)) {
+                continue;
+            }
             $debit = $this->periodDebit([(int) $id]);
             $credit = $this->periodCredit([(int) $id]);
-
-            // Prefer P&L expense accounts (5x / 54) for add-backs; skip pure contra-asset accumulators when both matched.
-            $isExpense = in_array($type, ['expenses', 'expense'], true) || ($gl !== '' && str_starts_with($gl, '5'));
-            if ($isExpense) {
-                $total += max(0, $debit - $credit);
-            }
-        }
-
-        // Fallback: if only asset contra codes matched, use period credit on them (accum. depreciation increase).
-        if (abs($total) < 0.0001) {
-            foreach ($accountIds as $id) {
-                $credit = $this->periodCredit([(int) $id]);
-                $debit = $this->periodDebit([(int) $id]);
-                $total += max(0, $credit - $debit);
-            }
+            $total += max(0, $debit - $credit);
         }
 
         return round($total, 2);
+    }
+
+    /**
+     * Prior-period adjustments line: signed period movement if the account exists, else 0.
+     * Not merged into P&L net.
+     *
+     * @param  list<int>  $accountIds
+     */
+    public function periodPriorPeriodAmount(array $accountIds): float
+    {
+        if ($accountIds === []) {
+            return 0.0;
+        }
+
+        // Same sign convention as the income statement prior-period band (credit − debit).
+        return round($this->periodCredit($accountIds) - $this->periodDebit($accountIds), 2);
     }
 
     /**
@@ -193,6 +229,7 @@ final class CashFlowAmountEngine
         return match ($formula) {
             CashFlowFormula::PL_NET => $this->periodPlNet($accountIds, $accountsById),
             CashFlowFormula::ADJUSTMENT => $this->periodAdjustment($accountIds, $accountsById),
+            CashFlowFormula::PRIOR_PERIOD => $this->periodPriorPeriodAmount($accountIds),
             CashFlowFormula::WC_ASSET, CashFlowFormula::INVESTING_ASSET => round($open - $close, 2),
             CashFlowFormula::WC_LIABILITY, CashFlowFormula::FINANCING_INFLOW => round($close - $open, 2),
             CashFlowFormula::INVESTING_CAPEX => round(-(($close - $open) + max(0, $relatedDepreciation)), 2),
@@ -202,6 +239,51 @@ final class CashFlowAmountEngine
             CashFlowFormula::CASH_CLOSE => $close,
             default => 0.0,
         };
+    }
+
+    public function isIncomeAccount(object $acc): bool
+    {
+        $type = strtolower((string) ($acc->account_primary_type ?? $acc->account_type ?? ''));
+        if ($type === 'income') {
+            return true;
+        }
+        $gl = preg_replace('/[^0-9]/', '', (string) ($acc->gl_code ?? '')) ?? '';
+
+        return $gl !== '' && str_starts_with($gl, '4');
+    }
+
+    public function isExpenseAccount(object $acc): bool
+    {
+        $type = strtolower((string) ($acc->account_primary_type ?? $acc->account_type ?? ''));
+        if (in_array($type, ['expenses', 'expense'], true)) {
+            return true;
+        }
+        $gl = preg_replace('/[^0-9]/', '', (string) ($acc->gl_code ?? '')) ?? '';
+
+        return $gl !== '' && str_starts_with($gl, '5');
+    }
+
+    public function isPriorPeriodAccount(object $acc): bool
+    {
+        $gl = preg_replace('/[^0-9]/', '', (string) ($acc->gl_code ?? '')) ?? '';
+        if ($gl !== '' && str_starts_with($gl, '324')) {
+            return true;
+        }
+        $hay = mb_strtolower(trim(($acc->name_ar ?? '').' '.($acc->name_en ?? '')));
+        $hay = str_replace(['أ', 'إ', 'آ', 'ة', 'ى'], ['ا', 'ا', 'ا', 'ه', 'ي'], $hay);
+
+        return str_contains($hay, 'تعديلات سنوات سابقه')
+            || str_contains($hay, 'prior period');
+    }
+
+    public function isAccumulatedOrAllowanceName(object $acc): bool
+    {
+        $hay = mb_strtolower(trim(($acc->name_ar ?? '').' '.($acc->name_en ?? '')));
+        $hay = str_replace(['أ', 'إ', 'آ', 'ة', 'ى'], ['ا', 'ا', 'ا', 'ه', 'ي'], $hay);
+
+        return str_contains($hay, 'مجمع')
+            || str_contains($hay, 'accumulated')
+            || (str_contains($hay, 'مخصص') && ! str_contains($hay, 'مصروف'));
     }
 
     /**
