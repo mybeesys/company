@@ -392,8 +392,8 @@ final class CashFlowStatementBuilder
             return $exact->isNotEmpty() ? $exact : $byName;
         }
 
-        // Broad P&L / cash / WC-asset families are safer by GL tree than free-text names.
-        // (Accountant WC assets: مخزون / ذمم / مقدمات / سلف / ضرائب مدينة → open − close.)
+        // Broad P&L / cash / WC families are safer by GL tree than free-text names.
+        // WC assets → open − close; WC liabilities (مصاريف مستحقة … نهاية الخدمة) → close − open.
         $prefixOnly = in_array($key, [
             'net_profit_before_zakat',
             'cash_opening',
@@ -405,6 +405,17 @@ final class CashFlowStatementBuilder
             'wc_prepaid_expenses',
             'wc_advances_staff',
             'wc_tax_receivable',
+            'wc_accrued_expenses',
+            'wc_trade_payables',
+            'wc_tax_payable',
+            'wc_short_term_employee',
+            'wc_customer_advances',
+            'wc_st_loans',
+            'wc_lease_current',
+            'wc_st_provisions',
+            'wc_partner_current',
+            'wc_lt_provisions',
+            'wc_eosb',
         ], true);
 
         if (! $prefixOnly) {

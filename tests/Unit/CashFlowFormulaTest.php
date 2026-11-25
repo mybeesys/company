@@ -25,6 +25,14 @@ class CashFlowFormulaTest extends TestCase
             CashFlowFormula::WC_LIABILITY,
             CashFlowFormula::normalize('wc_trade_payables', 'wc_delta')
         );
+        $this->assertSame(
+            CashFlowFormula::WC_LIABILITY,
+            CashFlowFormula::normalize('wc_accrued_expenses', 'wc_liability')
+        );
+        $this->assertSame(
+            CashFlowFormula::WC_LIABILITY,
+            CashFlowFormula::normalize('wc_eosb', 'wc_liability')
+        );
     }
 
     public function test_structure_keys_map_to_investing_and_financing_formulas(): void

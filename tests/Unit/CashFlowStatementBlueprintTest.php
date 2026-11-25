@@ -36,6 +36,17 @@ class CashFlowStatementBlueprintTest extends TestCase
         $this->assertSame('wc_asset', $byKey['wc_prepaid_expenses']['amount_role']);
         $this->assertSame('wc_asset', $byKey['wc_advances_staff']['amount_role']);
         $this->assertSame('wc_asset', $byKey['wc_tax_receivable']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_accrued_expenses']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_trade_payables']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_tax_payable']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_short_term_employee']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_customer_advances']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_st_loans']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_lease_current']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_st_provisions']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_partner_current']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_lt_provisions']['amount_role']);
+        $this->assertSame('wc_liability', $byKey['wc_eosb']['amount_role']);
         $this->assertSame('pl_net', $byKey['net_profit_before_zakat']['amount_role']);
         $this->assertSame('prior_period', $byKey['prior_period_adjustments']['amount_role']);
         $this->assertSame(['32401'], $byKey['prior_period_adjustments']['gl_prefixes']);

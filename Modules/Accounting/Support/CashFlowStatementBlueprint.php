@@ -185,6 +185,7 @@ final class CashFlowStatementBlueprint
                 'indent' => 1,
                 'amount_role' => 'wc_asset',
             ],
+            // —— Working-capital liabilities: closing − opening (مصاريف مستحقة … نهاية الخدمة) ——
             [
                 'key' => 'wc_accrued_expenses',
                 'kind' => 'line',
@@ -193,7 +194,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Accrued expenses',
                 'gl_prefixes' => ['212'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_trade_payables',
@@ -203,7 +204,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Trade and other payables',
                 'gl_prefixes' => ['211'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_tax_payable',
@@ -213,7 +214,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Taxes and duties payable',
                 'gl_prefixes' => ['213'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_short_term_employee',
@@ -223,7 +224,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Short-term employee liabilities',
                 'gl_prefixes' => ['214'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_customer_advances',
@@ -233,7 +234,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Customer advances',
                 'gl_prefixes' => ['215'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_st_loans',
@@ -243,7 +244,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Short-term loans and facilities',
                 'gl_prefixes' => ['216'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_lease_current',
@@ -253,7 +254,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Lease liabilities — current',
                 'gl_prefixes' => ['217'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_st_provisions',
@@ -263,7 +264,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Short-term provisions',
                 'gl_prefixes' => ['218'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_partner_current',
@@ -273,7 +274,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Partners current / drawings',
                 'gl_prefixes' => ['219'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_lt_provisions',
@@ -283,7 +284,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Long-term provisions',
                 'gl_prefixes' => ['224'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'wc_eosb',
@@ -293,7 +294,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'End-of-service benefits',
                 'gl_prefixes' => ['223'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_liability',
             ],
             [
                 'key' => 'net_operating',

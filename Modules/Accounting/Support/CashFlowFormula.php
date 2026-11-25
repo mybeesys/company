@@ -106,7 +106,7 @@ final class CashFlowFormula
             self::ADJUSTMENT => 'مصروف الفترة (قيود الفترة) — يُضاف',
             self::PRIOR_PERIOD => 'مبلغ حساب «تعديلات سنوات سابقة» في ميزان المراجعة (أو 0)',
             self::WC_ASSET, self::INVESTING_ASSET => 'رصيد أول المدة − رصيد آخر المدة',
-            self::WC_LIABILITY, self::FINANCING_INFLOW => 'رصيد آخر الفترة − رصيد أول الفترة',
+            self::WC_LIABILITY, self::FINANCING_INFLOW => 'رصيد آخر المدة − رصيد أول المدة',
             self::INVESTING_CAPEX => '−(التغير في الصافي + الاستهلاك)',
             self::INVESTING_PROCEEDS => 'متحصلات الاستبعاد خلال الفترة',
             self::FINANCING_OUTFLOW => '−مدفوعات الفترة',
