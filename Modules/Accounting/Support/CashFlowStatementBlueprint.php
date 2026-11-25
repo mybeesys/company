@@ -19,7 +19,7 @@ namespace Modules\Accounting\Support;
  *   label_en: string,
  *   gl_prefixes: list<string>,
  *   indent: int,
- *   amount_role: 'none'|'structure'|'wc_delta'|'adjustment'|'prior_period'|'pl_net'|'cash_open'|'cash_close'|'net_change'|'section_net'
+ *   amount_role: 'none'|'structure'|'wc_delta'|'wc_asset'|'wc_liability'|'adjustment'|'prior_period'|'pl_net'|'cash_open'|'cash_close'|'net_change'|'section_net'
  * }
  */
 final class CashFlowStatementBlueprint
@@ -119,8 +119,8 @@ final class CashFlowStatementBlueprint
                 'section' => 'operating',
                 'label_ar' => 'تعديلات سنوات سابقة',
                 'label_en' => 'Prior period adjustments',
-                // Standalone COA line (e.g. 32401) — NOT part of P&L net. Missing → 0.
-                'gl_prefixes' => ['32401', '324'],
+                // TB account by name only — if missing or zero activity → 0. Not part of P&L net.
+                'gl_prefixes' => ['32401'],
                 'indent' => 1,
                 'amount_role' => 'prior_period',
             ],
@@ -134,6 +134,7 @@ final class CashFlowStatementBlueprint
                 'indent' => 0,
                 'amount_role' => 'section_net',
             ],
+            // —— Working-capital assets: opening − closing (sign may be +/−) ——
             [
                 'key' => 'wc_inventory',
                 'kind' => 'line',
@@ -142,7 +143,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Inventory',
                 'gl_prefixes' => ['115'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_asset',
             ],
             [
                 'key' => 'wc_trade_receivables',
@@ -152,7 +153,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Trade receivables',
                 'gl_prefixes' => ['113'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_asset',
             ],
             [
                 'key' => 'wc_prepaid_expenses',
@@ -162,7 +163,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Prepaid expenses and other receivables',
                 'gl_prefixes' => ['117'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_asset',
             ],
             [
                 'key' => 'wc_advances_staff',
@@ -172,7 +173,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Advances and staff loans',
                 'gl_prefixes' => ['118'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_asset',
             ],
             [
                 'key' => 'wc_tax_receivable',
@@ -182,7 +183,7 @@ final class CashFlowStatementBlueprint
                 'label_en' => 'Taxes and duties receivable',
                 'gl_prefixes' => ['119'],
                 'indent' => 1,
-                'amount_role' => 'wc_delta',
+                'amount_role' => 'wc_asset',
             ],
             [
                 'key' => 'wc_accrued_expenses',

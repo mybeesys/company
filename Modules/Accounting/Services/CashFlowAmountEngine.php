@@ -203,8 +203,10 @@ final class CashFlowAmountEngine
     }
 
     /**
-     * Prior-period adjustments line: signed period movement if the account exists, else 0.
-     * Not merged into P&L net.
+     * Prior-period adjustments: period amount of the TB account named «تعديلات سنوات سابقة».
+     * Missing account or ~0 activity → 0. Not merged into P&L net.
+     *
+     * Equity-nature signed period movement (credit − debit), matching TB credit/debit columns.
      *
      * @param  list<int>  $accountIds
      */
@@ -214,8 +216,9 @@ final class CashFlowAmountEngine
             return 0.0;
         }
 
-        // Same sign convention as the income statement prior-period band (credit − debit).
-        return round($this->periodCredit($accountIds) - $this->periodDebit($accountIds), 2);
+        $net = round($this->periodCredit($accountIds) - $this->periodDebit($accountIds), 2);
+
+        return abs($net) < 0.005 ? 0.0 : $net;
     }
 
     /**

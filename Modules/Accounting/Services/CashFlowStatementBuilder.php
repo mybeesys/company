@@ -77,6 +77,7 @@ final class CashFlowStatementBuilder
                 $linked++;
             }
 
+            // Prior-period resolve is name/32401-strict above — postable descendants only of that match.
             $accountIds = $this->collectPostableIds($resolved, $accounts);
             $amount = null;
             if (! in_array($formula, [CashFlowFormula::SECTION_NET, CashFlowFormula::NET_CHANGE, CashFlowFormula::NONE], true)) {
@@ -363,27 +364,47 @@ final class CashFlowStatementBuilder
             return $this->resolveExpenseByNameRules($all, include: ['ديون معدومه', 'خسائر ائتمانيه', 'مشكوك', 'bad debt', 'credit loss', 'expected credit'], exclude: ['مجمع', 'accumulated']);
         }
         if ($key === 'prior_period_adjustments') {
-            // Exact COA line by name; if absent → empty → amount 0. Not P&L.
-            $byName = $all->filter(function ($a) {
-                $hay = $this->normalizeName(($a->name_ar ?? '').' '.($a->name_en ?? ''));
+            // Account must appear in TB by this name; otherwise amount stays 0.
+            $targetAr = $this->normalizeName('تعديلات سنوات سابقة');
+            $targetEn = $this->normalizeName('Prior Period Adjustments');
+            $byName = $all->filter(function ($a) use ($targetAr, $targetEn) {
+                $ar = $this->normalizeName((string) ($a->name_ar ?? ''));
+                $en = $this->normalizeName((string) ($a->name_en ?? ''));
 
-                return str_contains($hay, 'تعديلات سنوات سابقه')
-                    || str_contains($hay, 'prior period');
+                return $ar === $targetAr
+                    || $en === $targetEn
+                    || str_contains($ar, $targetAr)
+                    || str_contains($en, 'prior period adjustment');
             })->values();
-            if ($byName->isNotEmpty()) {
-                return $byName;
+
+            if ($byName->isEmpty()) {
+                return $this->resolvePrefixAccounts(['32401'], $byGl, $all);
             }
 
-            return $this->resolvePrefixAccounts(['32401', '324'], $byGl, $all);
+            // Prefer posting leaf / exact name over a broad parent.
+            $exact = $byName->filter(function ($a) use ($targetAr, $targetEn) {
+                $ar = $this->normalizeName((string) ($a->name_ar ?? ''));
+                $en = $this->normalizeName((string) ($a->name_en ?? ''));
+
+                return $ar === $targetAr || $en === $targetEn;
+            })->values();
+
+            return $exact->isNotEmpty() ? $exact : $byName;
         }
 
-        // Broad P&L / cash families are safer by GL tree than free-text names.
+        // Broad P&L / cash / WC-asset families are safer by GL tree than free-text names.
+        // (Accountant WC assets: مخزون / ذمم / مقدمات / سلف / ضرائب مدينة → open − close.)
         $prefixOnly = in_array($key, [
             'net_profit_before_zakat',
             'cash_opening',
             'cash_closing',
             'net_change_cash',
             'fin_dividends',
+            'wc_inventory',
+            'wc_trade_receivables',
+            'wc_prepaid_expenses',
+            'wc_advances_staff',
+            'wc_tax_receivable',
         ], true);
 
         if (! $prefixOnly) {
@@ -479,6 +500,9 @@ final class CashFlowStatementBuilder
         $aliases = match ($key) {
             'wc_inventory' => ['المخزون', 'inventory'],
             'wc_trade_receivables' => ['ذمم تجارية مدينة', 'trade receivable'],
+            'wc_prepaid_expenses' => ['مصروفات مدفوعه مقدما', 'ارصده مدينه اخرى', 'prepaid', 'other receivable'],
+            'wc_advances_staff' => ['دفعات مقدمه', 'سلف', 'staff loan', 'advances'],
+            'wc_tax_receivable' => ['ضرائب ورسوم مدينه', 'tax receivable', 'duties receivable'],
             'wc_trade_payables' => ['الموردون', 'دائنون', 'trade payable', 'suppliers'],
             'net_profit_before_zakat' => [], // all P&L — handled separately
             'cash_opening', 'cash_closing', 'net_change_cash' => ['نقد', 'بنوك', 'cash', 'bank'],
