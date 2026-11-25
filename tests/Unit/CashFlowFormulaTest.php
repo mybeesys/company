@@ -14,6 +14,14 @@ class CashFlowFormulaTest extends TestCase
             CashFlowFormula::normalize('wc_inventory', 'wc_delta')
         );
         $this->assertSame(
+            CashFlowFormula::WC_ASSET,
+            CashFlowFormula::normalize('wc_inventory', 'wc_asset')
+        );
+        $this->assertSame(
+            CashFlowFormula::WC_ASSET,
+            CashFlowFormula::normalize('wc_prepaid_expenses', 'wc_asset')
+        );
+        $this->assertSame(
             CashFlowFormula::WC_LIABILITY,
             CashFlowFormula::normalize('wc_trade_payables', 'wc_delta')
         );

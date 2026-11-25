@@ -31,9 +31,14 @@ class CashFlowStatementBlueprintTest extends TestCase
         $this->assertSame(['211'], $byKey['wc_trade_payables']['gl_prefixes']);
         $this->assertSame(['121'], $byKey['inv_ppe_purchase']['gl_prefixes']);
         $this->assertSame(['111', '112'], $byKey['cash_closing']['gl_prefixes']);
-        $this->assertSame('wc_delta', $byKey['wc_inventory']['amount_role']);
+        $this->assertSame('wc_asset', $byKey['wc_inventory']['amount_role']);
+        $this->assertSame('wc_asset', $byKey['wc_trade_receivables']['amount_role']);
+        $this->assertSame('wc_asset', $byKey['wc_prepaid_expenses']['amount_role']);
+        $this->assertSame('wc_asset', $byKey['wc_advances_staff']['amount_role']);
+        $this->assertSame('wc_asset', $byKey['wc_tax_receivable']['amount_role']);
         $this->assertSame('pl_net', $byKey['net_profit_before_zakat']['amount_role']);
         $this->assertSame('prior_period', $byKey['prior_period_adjustments']['amount_role']);
+        $this->assertSame(['32401'], $byKey['prior_period_adjustments']['gl_prefixes']);
         $this->assertSame(['54'], $byKey['depreciation']['gl_prefixes']);
         $this->assertNotContains('122', $byKey['depreciation']['gl_prefixes']);
         $this->assertNotContains('124', $byKey['amortization']['gl_prefixes']);
